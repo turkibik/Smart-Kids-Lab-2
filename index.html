@@ -327,5 +327,26 @@
         }
     }
 </script>
+<script>
+  // رابط ملفك الذي حصلنا عليه من Google Sheets
+  const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
+
+  // دالة لجلب البيانات وتحديث الزر
+  fetch(csvUrl)
+    .then(response => response.text())
+    .then(data => {
+      // تقسيم البيانات إلى أسطر
+      const rows = data.split('\n');
+      // استخراج الرقم من الصف الثاني والعمود الأول
+      const balance = rows[1].split(',')[0]; 
+      
+      // وضع الرقم داخل المكان الذي يحمل المعرف balance
+      document.getElementById('balance').innerText = balance;
+    })
+    .catch(error => {
+      console.error('حدث خطأ في الاتصال:', error);
+      document.getElementById('balance').innerText = "خطأ";
+    });
+</script>
 </body>
 </html>
