@@ -5,99 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Kids Lab - النسخة النهائية المطورة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --blue: #0b3c5d;
-            --light-blue: #1c6ea4;
-            --yellow: #f7c600;
-            --white: #ffffff;
-            --green: #2ecc71;
-            --red: #e74c3c;
-            --grad-start: #00b4db;
-            --grad-end: #0083b0;
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
-            background-attachment: fixed;
-            color: var(--white);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow-x: hidden;
-        }
-
-        .screen { 
-            display: none; 
-            padding: 30px; 
-            width: 90%; 
-            max-width: 700px; 
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 45px rgba(0,0,0,0.15);
-            animation: fadeInSlide 0.5s ease-out; 
-            text-align: center; 
-            margin: 20px 0;
-        }
-        .active { display: block; }
-
-        @keyframes fadeInSlide { 
-            from { opacity: 0; transform: scale(0.95); } 
-            to { opacity: 1; transform: scale(1); } 
-        }
-
-        h1 { font-size: 2.8rem; font-weight: 900; color: var(--white); text-shadow: 0 4px 15px rgba(0,0,0,0.2); margin: 10px 0; }
-        h2 { font-weight: 700; color: var(--yellow); margin-bottom: 20px; }
-        
-        button {
-            background: var(--yellow); 
-            border: none; padding: 15px 35px; border-radius: 50px;
-            font-size: 1.1rem; font-weight: 900; cursor: pointer; transition: 0.3s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin: 10px; width: 80%; color: var(--blue);
-        }
-        button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-        button:disabled { background: #95a5a6 !important; color: #7f8c8d !important; cursor: not-allowed; opacity: 0.7; }
-
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 15px;
-            margin: 25px 0;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            padding: 20px 10px;
-            cursor: pointer;
-            transition: 0.3s;
-            position: relative;
-        }
-        .card:hover { background: rgba(255, 255, 255, 0.25); transform: translateY(-5px); }
-        .card.locked { opacity: 0.6; cursor: not-allowed; }
-        .lock-icon { position: absolute; top: 10px; left: 10px; font-size: 0.9rem; }
-
-        .card-icon { width: 50px; height: 50px; margin-bottom: 10px; }
-        .card-text { font-size: 0.95rem; font-weight: 700; }
-
-        /* Quiz UI */
-        .progress-container { width: 100%; background: rgba(255,255,255,0.2); border-radius: 20px; height: 10px; margin-bottom: 25px; }
-        #progress-bar { width: 0%; height: 100%; background: var(--yellow); border-radius: 20px; transition: 0.4s; }
-        .ans-btn { background: var(--white); color: var(--blue); width: 100%; border-radius: 15px; margin: 5px 0; font-weight: 700; }
-        .ans-btn.correct { background: var(--green) !important; color: white; }
-        .ans-btn.wrong { background: var(--red) !important; color: white; }
-
-        .status-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; background: #555; display: block; margin-top: 5px; }
-        .unlocked { background: var(--green); color: white; }
+    <style>.unlocked { background: var(--green); color: white; }
     </style>
+    /* تصميم عصري وجذاب */
+:root {
+    --primary-color: #6366f1; /* لون الزر */
+    --bg-color: #0f172a;     /* لون الخلفية */
+    --text-color: #ffffff;   /* لون النص */
+    --card-bg: rgba(255, 255, 255, 0.1); /* شفافية البطاقات */
+}
+
+body {
+    background: var(--bg-color);
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.screen {
+    display: none;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px); /* تأثير الزجاج */
+    padding: 30px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.active { display: block; }
+
+button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 14px 25px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 10px;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
+}
+
+input {
+    width: 90%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 10px;
+}
 </head>
 <body>
 
