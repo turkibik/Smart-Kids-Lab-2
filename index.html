@@ -328,24 +328,27 @@
     }
 </script>
 <script>
-  const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
+  async function checkBalance() {
+    const inputName = document.getElementById('userName').value.trim();
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
 
-  fetch(csvUrl)
-    .then(response => response.text())
-    .then(data => {
-      const rows = data.split('\n');
-      if (rows.length > 1) {
-        // نأخذ الصف الثاني [1]، والعمود الـ 31 (فهرس 30 لأن العد يبدأ من 0)
-        const columns = rows[1].split(',');
-        const balance = columns[30]; 
-        document.getElementById('balance').innerText = balance;
-      } else {
-        document.getElementById('balance').innerText = "خطأ بيانات";
+    const response = await fetch(csvUrl);
+    const data = await response.text();
+    const rows = data.split('\n');
+
+    let found = false;
+    // يبدأ البحث من الصف الثاني (i=1)
+    for (let i = 1; i < rows.length; i++) {
+      const columns = rows[i].split(',');
+      // عدل [0] إذا كان الاسم في عمود آخر، و [30] إذا كان الرصيد في عمود آخر
+      if (columns[0] && columns[0].trim() === inputName) {
+        document.getElementById('balance').innerText = columns[30];
+        found = true;
+        break;
       }
-    })
-    .catch(error => {
-      document.getElementById('balance').innerText = "خطأ اتصال";
-    });
+    }
+    if (!found) document.getElementById('balance').innerText = "اسم غير موجود";
+  }
 </script>
     
 </body>
