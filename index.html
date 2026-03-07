@@ -130,7 +130,6 @@
   <button onclick="checkBalanceByEmail()" style="margin-top: 15px; padding: 10px 20px; background-color: #333; color: white; border: none; border-radius: 5px; cursor: pointer;">فتح البطاقة</button>
   <div id="balance-result" style="margin-top: 15px; font-weight: bold; font-size: 1.2em;"></div>
             </div>
-            </div>
             
             <div class="card locked">
                 <span class="lock-icon">🔒</span>
@@ -333,28 +332,33 @@
     }
 </script>
 <script>
-  async function checkBalance() {
-    const inputName = document.getElementById('userName').value.trim();
-    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
+async function checkBalanceByEmail() {
+  const inputEmail = document.getElementById('userEmail').value.trim().toLowerCase();
+  const display = document.getElementById('balance-result');
+  const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
 
+  display.innerText = "جاري البحث...";
+
+  try {
     const response = await fetch(csvUrl);
     const data = await response.text();
     const rows = data.split('\n');
 
     let found = false;
-    // يبدأ البحث من الصف الثاني (i=1)
     for (let i = 1; i < rows.length; i++) {
       const columns = rows[i].split(',');
-      // عدل [0] إذا كان الاسم في عمود آخر، و [30] إذا كان الرصيد في عمود آخر
-      if (columns[0] && columns[0].trim() === inputName) {
-        document.getElementById('balance').innerText = columns[30];
+      // [1] هو عمود الإيميل، تأكد أنه العمود الثاني في ملفك
+      if (columns[1] && columns[1].trim().toLowerCase() === inputEmail) {
+        display.innerText = "رصيدك هو: " + columns[30] + " دج";
         found = true;
         break;
       }
     }
-    if (!found) document.getElementById('balance').innerText = "اسم غير موجود";
+    if (!found) display.innerText = "هذا الإيميل غير مسجل!";
+  } catch (error) {
+    display.innerText = "حدث خطأ في الاتصال.";
   }
-</script>
-    
+}
+        </script>
 </body>
 </html>
