@@ -1,113 +1,169 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Kids Lab - النسخة النهائية المطورة</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --blue: #0b3c5d;
-            --light-blue: #1c6ea4;
-            --yellow: #f7c600;
-            --white: #ffffff;
-            --green: #2ecc71;
-            --red: #e74c3c;
-            --grad-start: #00b4db;
-            --grad-end: #0083b0;
-        }
 
-        body {
-            margin: 0;
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
-            background-attachment: fixed;
-            color: var(--white);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow-x: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        .screen { 
-            display: none; 
-            padding: 30px; 
-            width: 90%; 
-            max-width: 700px; 
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 45px rgba(0,0,0,0.15);
-            animation: fadeInSlide 0.5s ease-out; 
-            text-align: center; 
-            margin: 20px 0;
-        }
-        .active { display: block; }
+<title>Smart Kids Lab</title>
 
-        @keyframes fadeInSlide { 
-            from { opacity: 0; transform: scale(0.95); } 
-            to { opacity: 1; transform: scale(1); } 
-        }
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 
-        h1 { font-size: 2.8rem; font-weight: 900; color: var(--white); text-shadow: 0 4px 15px rgba(0,0,0,0.2); margin: 10px 0; }
-        h2 { font-weight: 700; color: var(--yellow); margin-bottom: 20px; }
-        
-        button {
-            background: var(--yellow); 
-            border: none; padding: 15px 35px; border-radius: 50px;
-            font-size: 1.1rem; font-weight: 900; cursor: pointer; transition: 0.3s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin: 10px; width: 80%; color: var(--blue);
-        }
-        button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-        button:disabled { background: #95a5a6 !important; color: #7f8c8d !important; cursor: not-allowed; opacity: 0.7; }
+<style>
 
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 15px;
-            margin: 25px 0;
-        }
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Cairo',sans-serif;
+}
 
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            padding: 20px 10px;
-            cursor: pointer;
-            transition: 0.3s;
-            position: relative;
-        }
-        .card:hover { background: rgba(255, 255, 255, 0.25); transform: translateY(-5px); }
-        .card.locked { opacity: 0.6; cursor: not-allowed; }
-        .lock-icon { position: absolute; top: 10px; left: 10px; font-size: 0.9rem; }
+body{
 
-        .card-icon { width: 50px; height: 50px; margin-bottom: 10px; }
-        .card-text { font-size: 0.95rem; font-weight: 700; }
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(140deg,#022c22,#064e3b,#14532d);
+color:white;
+text-align:center;
 
-        /* Quiz UI */
-        .progress-container { width: 100%; background: rgba(255,255,255,0.2); border-radius: 20px; height: 10px; margin-bottom: 25px; }
-        #progress-bar { width: 0%; height: 100%; background: var(--yellow); border-radius: 20px; transition: 0.4s; }
-        .ans-btn { background: var(--white); color: var(--blue); width: 100%; border-radius: 15px; margin: 5px 0; font-weight: 700; }
-        .ans-btn.correct { background: var(--green) !important; color: white; }
-        .ans-btn.wrong { background: var(--red) !important; color: white; }
+}
 
-        .status-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; background: #555; display: block; margin-top: 5px; }
-        .unlocked { background: var(--green); color: white; }
-    </style>
+/* الحاوية */
+
+.container{
+
+width:90%;
+max-width:420px;
+
+}
+
+/* الشخصيات */
+
+.characters{
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:40px;
+
+}
+
+.char{
+
+font-size:70px;
+filter:drop-shadow(0 0 10px rgba(255,215,0,0.4));
+
+}
+
+/* عنوان التطبيق */
+
+.title{
+
+font-size:40px;
+font-weight:900;
+background:linear-gradient(to right,#ffd700,#fff);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+
+}
+
+/* الوصف */
+
+.subtitle{
+
+margin-top:10px;
+font-size:18px;
+color:#d1fae5;
+
+}
+
+/* زر */
+
+.start{
+
+margin-top:40px;
+padding:16px 45px;
+font-size:20px;
+border:none;
+border-radius:14px;
+background:linear-gradient(45deg,#ffd700,#facc15);
+color:#022c22;
+font-weight:bold;
+cursor:pointer;
+transition:0.3s;
+
+}
+
+.start:hover{
+
+transform:scale(1.08);
+box-shadow:0 0 20px rgba(255,215,0,0.7);
+
+}
+
+/* شريط التحميل */
+
+.loading{
+
+margin-top:35px;
+height:6px;
+background:#064e3b;
+border-radius:10px;
+overflow:hidden;
+
+}
+
+.bar{
+
+height:100%;
+width:40%;
+background:linear-gradient(to right,#16a34a,#ef4444);
+animation:move 3s infinite;
+
+}
+
+@keyframes move{
+
+0%{width:0}
+50%{width:80%}
+100%{width:0}
+
+}
+
+</style>
+
 </head>
+
 <body>
 
-    <div id="welcome" class="screen active">
-        <img src="https://img.freepik.com/free-vector/young-engineers-working-robotic-arm_23-2148529341.jpg" alt="Young Leaders Lab" style="width: 100%; border-radius: 30px; margin-bottom: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.2);">
-        <h1>Smart Kids Lab</h1>
-        <p style="font-size: 1.2rem; opacity: 0.9;">منصة القادة الشباب لاختراع المستقبل</p>
-        <button onclick="initAudio(); showScreen('home')">دخول المختبر ⚡</button>
-    </div>
+<div class="container">
 
+<div class="characters">
+
+<div class="char">👦</div>
+<div class="char">🧑</div>
+<div class="char">👨‍🏫</div>
+
+</div>
+
+<div class="title">
+Smart Kids Lab
+</div>
+
+<div class="subtitle">
+مختبر الذكاء • التعلم • التحدي
+</div>
+
+<button class="start">
+ابدأ المغامرة
+</button>
+
+<div class="loading">
+<div class="bar"></div>
+</div>
     <div id="home" class="screen">
         <h2>القائمة الرئيسية</h2>
         <div class="menu-grid">
