@@ -141,11 +141,21 @@
                 <img src="https://cdn-icons-png.flaticon.com/512/1533/1533913.png" class="card-icon">
                 <div class="card-text">أهدافنا</div>
             </div>
-            <div class="card locked">
-                <span class="lock-icon">🔒</span>
-                <img src="https://cdn-icons-png.flaticon.com/512/3079/3079044.png" class="card-icon">
-                <div class="card-text">البحث</div>
+            <div id="app-container">
+    <div id="login-section">
+        <input type="text" id="username" placeholder="أدخل اسمك للمشاركة">
+        <button onclick="saveUser()">دخول للمنافسة</button>
+    </div>
+
+    <div id="quiz-section" style="display:none;">
+        <h2 id="welcome-msg"></h2>
+        <h3 id="question-text">جاري تحميل السؤال...</h3>
+        <button onclick="checkAnswer(true)">صحيح</button>
+        <button onclick="checkAnswer(false)">خطأ</button>
+        <p id="feedback"></p>
+    </div>
             </div>
+            
             <div class="card locked">
                 <span class="lock-icon">🔒</span>
                 <img src="https://cdn-icons-png.flaticon.com/512/1256/1256650.png" class="card-icon">
@@ -360,5 +370,35 @@ async function checkBalanceByEmail() {
   }
 }
         </script>
+    <script>
+    // 1. تسجيل الدخول
+    function saveUser() {
+        const name = document.getElementById('username').value;
+        localStorage.setItem('userName', name);
+        location.reload(); // إعادة تحميل الصفحة لإظهار الترحيب
+    }
+
+    // 2. عند فتح الصفحة
+    const userName = localStorage.getItem('userName');
+    if (userName) {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('quiz-section').style.display = 'block';
+        document.getElementById('welcome-msg').innerText = "أهلاً بك يا " + userName;
+
+        // جلب السؤال من جدول المنافسة
+        fetch("https://api.sheety.co/fc50bf1965fed5d74990fdd137a499f8/المنافسة/sheet1")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('question-text').innerText = data.sheet1[0]['الأسئلة'];
+            });
+    }
+
+    // 3. التحقق من الإجابة (مبسط)
+    function checkAnswer(isTrue) {
+        alert("تم تسجيل إجابتك يا " + userName + "! (تم إرسالها للجدول)");
+        // هنا نضيف كود إرسال النقاط للجدول لاحقاً بعد أن تتأكد أن هذا الجزء يعمل
+    }
+    </script>
+    
 </body>
 </html>
