@@ -123,10 +123,14 @@
                 <img src="https://cdn-icons-png.flaticon.com/512/3135/3135791.png" class="card-icon">
                 <div class="card-text">التحديات</div>
             </div>
-            <button onclick="window.open('...رابط_الاستمارة...')" style="background-color: #DAA520; color: white; border: none;">
-  رصيد: <span id="balance">جارٍ التحميل...</span>
-            </button>
-            
+            <div style="background-color: #DAA520; padding: 15px; border-radius: 10px; color: white; text-align: center;">
+  <input type="text" id="userName" placeholder="اكتب اسمك هنا..." style="padding: 5px;">
+  <button onclick="findMyBalance()" style="padding: 5px;">عرض رصيدي</button>
+  <div style="margin-top: 10px;">
+    رصيدك: <span id="balance">---</span>
+  </div>
+            </div>
+        </butto>
             <div class="card locked">
                 <span class="lock-icon">🔒</span>
                 <img src="https://cdn-icons-png.flaticon.com/512/3342/3342137.png" class="card-icon">
