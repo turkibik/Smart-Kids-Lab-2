@@ -1,364 +1,206 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Kids Lab - النسخة النهائية المطورة</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --blue: #0b3c5d;
-            --light-blue: #1c6ea4;
-            --yellow: #f7c600;
-            --white: #ffffff;
-            --green: #2ecc71;
-            --red: #e74c3c;
-            --grad-start: #00b4db;
-            --grad-end: #0083b0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Kids Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif;}
+body{height:100vh;background:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),url("https://images.unsplash.com/photo-1588072432836-e10032774350");background-size:cover;background-position:center;display:flex;justify-content:center;align-items:center;}
+.login{width:90%;max-width:420px;background:rgba(255,255,255,0.25);backdrop-filter:blur(15px);border-radius:25px;padding:35px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);color:white;}
+.title{font-size:30px;font-weight:900;}
+.subtitle{margin-top:10px;margin-bottom:25px;}
+input{width:100%;padding:13px;margin:8px 0;border-radius:10px;border:none;}
+button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;font-size:16px;background:linear-gradient(45deg,#0f9b0f,#e52d27);color:white;cursor:pointer;}
+.app{width:100%;height:100%;position:absolute;top:0;left:0;overflow:auto;padding:20px;display:none;background:linear-gradient(140deg,#0f9b0f,#ffffff,#e52d27);}
+.header{text-align:center;font-size:24px;font-weight:900;margin-bottom:30px;}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+.icon{display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+.circle{width:85px;height:85px;border-radius:50%;background:rgba(255,255,255,0.35);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 10px 25px rgba(0,0,0,0.25);transition:0.3s;}
+.circle:hover{transform:scale(1.15);}
+.label{margin-top:8px;font-weight:bold;}
 
-        body {
-            margin: 0;
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
-            background-attachment: fixed;
-            color: var(--white);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow-x: hidden;
-        }
-
-        .screen { 
-            display: none; 
-            padding: 30px; 
-            width: 90%; 
-            max-width: 700px; 
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 45px rgba(0,0,0,0.15);
-            animation: fadeInSlide 0.5s ease-out; 
-            text-align: center; 
-            margin: 20px 0;
-        }
-        .active { display: block; }
-
-        @keyframes fadeInSlide { 
-            from { opacity: 0; transform: scale(0.95); } 
-            to { opacity: 1; transform: scale(1); } 
-        }
-
-        h1 { font-size: 2.8rem; font-weight: 900; color: var(--white); text-shadow: 0 4px 15px rgba(0,0,0,0.2); margin: 10px 0; }
-        h2 { font-weight: 700; color: var(--yellow); margin-bottom: 20px; }
-        
-        button {
-            background: var(--yellow); 
-            border: none; padding: 15px 35px; border-radius: 50px;
-            font-size: 1.1rem; font-weight: 900; cursor: pointer; transition: 0.3s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin: 10px; width: 80%; color: var(--blue);
-        }
-        button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-        button:disabled { background: #95a5a6 !important; color: #7f8c8d !important; cursor: not-allowed; opacity: 0.7; }
-
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 15px;
-            margin: 25px 0;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            padding: 20px 10px;
-            cursor: pointer;
-            transition: 0.3s;
-            position: relative;
-        }
-        .card:hover { background: rgba(255, 255, 255, 0.25); transform: translateY(-5px); }
-        .card.locked { opacity: 0.6; cursor: not-allowed; }
-        .lock-icon { position: absolute; top: 10px; left: 10px; font-size: 0.9rem; }
-
-        .card-icon { width: 50px; height: 50px; margin-bottom: 10px; }
-        .card-text { font-size: 0.95rem; font-weight: 700; }
-
-        /* Quiz UI */
-        .progress-container { width: 100%; background: rgba(255,255,255,0.2); border-radius: 20px; height: 10px; margin-bottom: 25px; }
-        #progress-bar { width: 0%; height: 100%; background: var(--yellow); border-radius: 20px; transition: 0.4s; }
-        .ans-btn { background: var(--white); color: var(--blue); width: 100%; border-radius: 15px; margin: 5px 0; font-weight: 700; }
-        .ans-btn.correct { background: var(--green) !important; color: white; }
-        .ans-btn.wrong { background: var(--red) !important; color: white; }
-
-        .status-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; background: #555; display: block; margin-top: 5px; }
-        .unlocked { background: var(--green); color: white; }
-    </style>
+/* واجهة أيقونة الرصيد */
+.balance-panel{
+  position:absolute;
+  top:100%;
+  left:50%;
+  transform:translateX(-50%);
+  width:220px;
+  background:rgba(255,255,255,0.25);
+  backdrop-filter:blur(12px);
+  border-radius:20px;
+  padding:15px;
+  margin-top:15px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.25);
+  text-align:center;
+  color:white;
+  z-index:10;
+  display:none;
+}
+.balance-panel input.email-input{
+  width:90%;
+  padding:8px;
+  margin-bottom:10px;
+  border-radius:8px;
+  border:none;
+  text-align:center;
+}
+.balance-panel button{
+  padding:8px 15px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(45deg,#0f9b0f,#e52d27);
+  color:white;
+  cursor:pointer;
+  margin-bottom:10px;
+}
+.balance-info{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  margin-top:10px;
+}
+</style>
 </head>
 <body>
 
-    <div id="welcome" class="screen active">
-        <img src="https://img.freepik.com/free-vector/young-engineers-working-robotic-arm_23-2148529341.jpg" alt="Young Leaders Lab" style="width: 100%; border-radius: 30px; margin-bottom: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.2);">
-        <h1>Smart Kids Lab</h1>
-        <p style="font-size: 1.2rem; opacity: 0.9;">منصة القادة الشباب لاختراع المستقبل</p>
-        <button onclick="initAudio(); showScreen('home')">دخول المختبر ⚡</button>
+<!-- LOGIN -->
+<div class="login" id="login">
+  <div class="title">Smart Kids Lab</div>
+  <div class="subtitle">مختبر الشباب للذكاء والتعلم والإبداع</div>
+  <input type="email" placeholder="البريد الإلكتروني">
+  <input type="password" placeholder="كلمة المرور">
+  <button onclick="enter()">دخول</button>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <div class="header">Smart Kids Lab</div>
+  <div class="grid">
+
+    <div class="icon">
+      <div class="circle">ℹ️</div>
+      <div class="label">من نحن</div>
     </div>
 
-    <div id="home" class="screen">
-        <h2>القائمة الرئيسية</h2>
-        <div class="menu-grid">
-            <div class="card" onclick="showScreen('about')">
-                <img src="https://cdn-icons-png.flaticon.com/512/1067/1067256.png" class="card-icon">
-                <div class="card-text">من نحن</div>
-            </div>
-            <div class="card" onclick="openForm()">
-                <img src="https://cdn-icons-png.flaticon.com/512/3534/3534033.png" class="card-icon">
-                <div class="card-text">الاستمارة</div>
-            </div>
-            <div class="card" onclick="showScreen('levels')">
-                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135791.png" class="card-icon">
-                <div class="card-text">التحديات</div>
-            </div>
-            <div style="background-color: #DAA520; padding: 20px; border-radius: 15px; color: white; text-align: center;">
-  <h3>💳 بطاقتي البنكية</h3>
-  <input type="email" id="userEmail" placeholder="أدخل إيميلك المسجل..." style="padding: 10px; width: 80%; border-radius: 5px; border: none;">
-  <br>
-  <button onclick="checkBalanceByEmail()" style="margin-top: 15px; padding: 10px 20px; background-color: #333; color: white; border: none; border-radius: 5px; cursor: pointer;">فتح البطاقة</button>
-  <div id="balance-result" style="margin-top: 15px; font-weight: bold; font-size: 1.2em;"></div>
-            </div>
-            
-            <div class="card locked">
-                <span class="lock-icon">🔒</span>
-                <img src="https://cdn-icons-png.flaticon.com/512/3342/3342137.png" class="card-icon">
-                <div class="card-text">الصور والفيديو</div>
-            </div>
-            <div class="card locked">
-                <span class="lock-icon">🔒</span>
-                <img src="https://cdn-icons-png.flaticon.com/512/1533/1533913.png" class="card-icon">
-                <div class="card-text">أهدافنا</div>
-            </div>
-            <div class="card locked">
-                <span class="lock-icon">🔒</span>
-                <img src="https://cdn-icons-png.flaticon.com/512/3079/3079044.png" class="card-icon">
-                <div class="card-text">البحث</div>
-            </div>
-            <div class="card locked">
-                <span class="lock-icon">🔒</span>
-                <img src="https://cdn-icons-png.flaticon.com/512/1256/1256650.png" class="card-icon">
-                <div class="card-text">المنخرطون</div>
-            </div>
-            <div class="card locked">
-                <span class="lock-icon">🔒</span>
-                <img src="https://cdn-icons-png.flaticon.com/512/2345/2345338.png" class="card-icon">
-                <div class="card-text">القادة الرواد</div>
-            </div>
+    <div class="icon">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform" target="_self" style="text-decoration:none;color:inherit;">
+        <div class="circle">📝</div>
+        <div class="label">انخرط</div>
+      </a>
+    </div>
+
+    <div class="icon">
+      <div class="circle">📚</div>
+      <div class="label">تعلم</div>
+    </div>
+
+    <!-- أيقونة الرصيد -->
+    <div class="icon" id="balanceIcon">
+      <div class="circle">💰</div>
+      <div class="label">رصيدك</div>
+
+      <div class="balance-panel" id="balancePanel">
+        <input type="email" placeholder="أدخل بريدك الإلكتروني" class="email-input" id="balanceEmail">
+        <button onclick="loadBalance()">تسجيل الدخول</button>
+
+        <div class="balance-info" id="balanceInfo" style="display:none;">
+          <div class="profile-name" id="balanceName"></div>
+          <div class="profile-points" id="balancePoints"></div>
+          <div class="profile-balance" id="balanceValue"></div>
+          <button onclick="closeBalance()">رجوع</button>
         </div>
+      </div>
     </div>
 
-    <div id="about" class="screen">
-        <h2>تعريف المختبر</h2>
-        <div style="line-height: 1.8; text-align: justify; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 20px;">
-            <strong>Smart Kids Lab</strong> هو فضاء تعليمي وتربوي ريادي، صُمم خصيصاً ليكون حاضنة فكرية للأطفال والشباب المتميزين. نهدف من خلال هذا المختبر إلى كسر قيود التعليم التقليدي واستبداله ببيئة تفاعلية حديثة تعتمد على "التعلّم بالممارسة" و"اللعب الذكي". نحن نركز بشكل أساسي على تنمية الذكاءات المتعددة، وتدريب المنخرطين على مهارات التفكير النقدي، والقدرة على حل المشكلات المعقدة بأساليب مبتكرة.<br><br>رؤيتنا تهدف إلى صناعة جيل قيادي يمتلك مهارات القرن الحادي والعشرين، قادراً على التعامل مع التكنولوجيا الحديثة والذكاء الاصطناعي بوعي وإبداع. نحن نؤمن بأن كل طفل يمتلك عبقراً بداخله، ومهمتنا هي توفير الأدوات والبيئة المناسبة لاستخراج هذا العبقري وتوجيهه نحو النجاح.
-        </div>
-        <button onclick="showScreen('home')">رجوع</button>
+    <div class="icon">
+      <div class="circle">🎯</div>
+      <div class="label">المهام</div>
     </div>
 
-    <div id="levels" class="screen">
-        <h2>اختر مستوى التحدي</h2>
-        <p>ممنوع الخطأ! الإجابة الخاطئة تعيدك للبداية.</p>
-        <button onclick="startQuiz('basic')">🌱 المستوى الأول</button>
-        <button id="mBtn" onclick="startQuiz('medium')" disabled>⚡ المستوى الثاني <span id="mLock" class="status-badge">مغلق 🔒</span></button>
-        <button id="hBtn" onclick="startQuiz('hard')" disabled>🔥 المستوى الثالث <span id="hLock" class="status-badge">مغلق 🔒</span></button>
-        <button id="pBtn" onclick="startQuiz('pro')" disabled>👑 المستوى الخارق <span id="pLock" class="status-badge">مغلق 🔒</span></button>
-        <button onclick="showScreen('home')" style="background:none; border:2px solid white; color:white;">رجوع</button>
+    <div class="icon">
+      <div class="circle">🧠</div>
+      <div class="label">اختبر مكتسباتك</div>
     </div>
 
-    <div id="quiz" class="screen">
-        <div class="progress-container"><div id="progress-bar"></div></div>
-        <h3 id="q-number">السؤال</h3>
-        <p id="question-text" style="font-size: 1.4rem; font-weight: bold;"></p>
-        <div id="answers-box"></div>
+    <div class="icon">
+      <div class="circle">⭐</div>
+      <div class="label">اجمع النقاط</div>
     </div>
+
+    <div class="icon">
+      <div class="circle">👥</div>
+      <div class="label">المنخرطون</div>
+    </div>
+
+    <div class="icon">
+      <div class="circle">🖼️</div>
+      <div class="label">معرض الصور</div>
+    </div>
+
+    <div class="icon">
+      <div class="circle">🔎</div>
+      <div class="label">البحث</div>
+    </div>
+
+    <div class="icon">
+      <div class="circle">🏆</div>
+      <div class="label">جدول الترتيب</div>
+    </div>
+
+    <div class="icon">
+      <div class="circle">🥇</div>
+      <div class="label">تصنيفات وشارات</div>
+    </div>
+
+    <div class="icon">
+      <div class="circle">📅</div>
+      <div class="label">البرنامج العام</div>
+    </div>
+
+  </div>
+</div>
 
 <script>
-    // برمجة نظام الأصوات (تمت البرمجة)
-    let audioCtx = null;
-    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-
-    function playSound(type) {
-        if (!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        
-        if (type === 'correct') {
-            // نغمة نجاح قصيرة ومبهجة
-            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); // A5
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-        } else {
-            // نغمة خطأ عميقة وحزينة
-            osc.frequency.setValueAtTime(110, audioCtx.currentTime); // A2
-            osc.frequency.linearRampToValueAtTime(55, audioCtx.currentTime + 0.4); // A1
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-        }
-    }
-
-    // بنك الأسئلة (تم تحديث المستوى الثالث وإضافة الرابع بأسئلة صعبة وغير متكررة)
-    const questionsBank = {
-        basic: [
-            {q:"ما هو الهدف الأساسي لـ Smart Kids Lab؟", a:["تنمية الإبداع","مشاهدة التلفاز","النوم"], c:0},
-            {q:"كيف يتم التعلم في مختبرنا؟", a:["بالحفظ فقط","تفاعلي وممتع","بالخوف"], c:1},
-            {q:"أي مهارة نركز عليها؟", a:["الإهمال","حل المشكلات","الاعتماد على الغير"], c:1},
-            {q:"المختبر مخصص لـ...؟", a:["الأطفال المبدعين","محبي الكسل","غير المهتمين"], c:0},
-            {q:"التفكير النقدي يعني؟", a:["التقليد","التحليل والفهم","الرفض"], c:1},
-            {q:"نهتم بمهارات القرن الـ...؟", a:["19","20","21"], c:2},
-            {q:"نكتشف المواهب بـ؟", a:["الصدفة","الأنشطة الذكية","التخمين"], c:1},
-            {q:"ما هو شعارنا؟", a:["نلعب لنتعلم","نلعب للوقت","الدراسة مملة"], c:0},
-            {q:"المنخرط يتميز بـ؟", a:["الفضول والذكاء","الخجل","عدم المبالاة"], c:0},
-            {q:"هل Smart Kids Lab مكان للابتكار؟", a:["نعم","لا","ربما"], c:0}
-        ],
-        medium: [
-            {q:"ما هو أسرع حيوان بري؟", a:["الأسد","الفهد","النمر"], c:1},
-            {q:"عاصمة فلسطين الأبدية؟", a:["يافا","القدس","غزة"], c:1},
-            {q:"كم عدد القارات؟", a:["5","7","6"], c:1},
-            {q:"مخترع المصباح الكهربائي؟", a:["نيوتن","أديسون","تسلا"], c:1},
-            {q:"10 ضرب 10؟", a:["10","100","1000"], c:1},
-            {q:"أقسى مادة في الطبيعة؟", a:["الحديد","الألماس","الذهب"], c:1},
-            {q:"لون السماء صافية؟", a:["أحمر","أخضر","أزرق"], c:2},
-            {q:"أكبر محيط؟", a:["الهادي","الأطلسي","الهندي"], c:0},
-            {q:"غاز التنفس للإنسان؟", a:["أكسجين","هيدروجين","نيتروجين"], c:0},
-            {q:"ما هو الحيوان الملقب بملك الغابة؟", a:["النمر","الفيل","الأسد"], c:2}
-        ],
-        hard: [
-            {q:"ما هي الخوارزمية (في علوم الكمبيوتر)؟", a:["جهاز لوحي","مجموعة خطوات لحل مشكلة","لغة برمجة جديدة"], c:1},
-            {q:"أي مما يلي يعتبر 'عقل' الكمبيوتر؟", a:["الذاكرة العشوائية RAM","المعالج CPU","القرص الصلب"], c:1},
-            {q:"ما هي الطباعة ثلاثية الأبعاد 3D؟", a:["تصوير مجسم","إنشاء جسم صلب من نموذج رقمي","نوع من الطابعات الورقية السريعة"], c:1},
-            {q:"في البرمجة، ماذا تعني 'Loop'؟", a:["توقف البرنامج","تكرار مجموعة من التعليمات","حذف الكود"], c:1},
-            {q:"ما هو الرمز الكيميائي للماء؟", a:["CO2","H2O","O2"], c:1},
-            {q:"أيهما أسرع: الصوت أم الضوء؟", a:["الصوت","الضوء","متساويان"], c:1},
-            {q:"ما هي الوظيفة الأساسية للمستشعرات (Sensors) في الروبوت؟", a:["تحريك الأطراف","جمع البيانات من البيئة المحيطة","تخزين الطاقة"], c:1},
-            {q:"ما هو الإنترنت؟", a:["جهاز كمبيوتر كبير","شبكة عالمية من الكمبيوترات المتصلة","تطبيق على الهاتف"], c:1},
-            {q:"ما هي 'البيانات الضخمة' (Big Data)؟", a:["ملفات صور كبيرة","كميات هائلة من المعلومات المعقدة","جهاز تخزين قديم"], c:1},
-            {q:"ما هو الدماغ البشري؟", a:["جهاز عضلي","العضو المدبر للجهاز العصبي","مضخة للدم"], c:1}
-        ],
-        pro: [
-            {q:"في الذكاء الاصطناعي، ماذا يعني 'تعلم الآلة' (Machine Learning)؟", a:["تدريس الآلات في المدارس","قدرة الأنظمة على التعلم من البيانات والتحسن دون برمجة صريحة","صنع روبوتات تشبه البشر"], c:1},
-            {q:"ما هي تقنية البلوكشين (Blockchain)؟", a:["سلسلة من الكتل الخشبية","دفتر حسابات رقمي وموزع وآمن","نوع من العملات المعدنية"], c:1},
-            {q:"ما هو 'التشفير' (Encryption)؟", a:["كتابة كود برمجي سريع","عملية تحويل البيانات إلى تنسيق غير مقروء لحمايتها","حذف ملفات الفيروسات"], c:1},
-            {q:"في الحوسبة السحابية، أين يتم تخزين البيانات؟", a:["على القرص الصلب الخاص بك فقط","على خوادم بعيدة يتم الوصول إليها عبر الإنترنت","في السحب في السماء"], c:1},
-            {q:"ما هي 'الحوسبة الكمومية' (Quantum Computing)؟", a:["حواسيب صغيرة جداً","حواسيب تستخدم مبادئ فيزياء الكم لأداء عمليات معقدة بسرعة فائقة","نوع من الألعاب الإلكترونية"], c:1},
-            {q:"ما هو 'إنترنت الأشياء' (IoT)؟", a:["شبكة من الأشياء المادية المتصلة بالإنترنت والتي يمكنها جمع وتبادل البيانات","موقع لبيع الأدوات المنزلية","طريقة لتسريع الإنترنت"], c:0},
-            {q:"ما هي وظيفة 'المعالج الرسومي' (GPU) في الأبحاث الحديثة للذكاء الاصطناعي؟", a:["عرض الصور فقط","تسريع العمليات الحسابية المتوازية المعقدة (مثل تدريب الشبكات العصبية)","تخزين الملفات"], c:1},
-            {q:"ما هو 'الواقع المعزز' (Augmented Reality)؟", a:["العيش في عالم افتراضي بالكامل","دمج العناصر الرقمية مع العالم الحقيقي عبر الشاشات","تحسين جودة الصور الفوتوغرافية"], c:1},
-            {q:"في تطوير البرمجيات، ماذا تعني 'Open Source'؟", a:["برنامج غالي الثمن","برنامج يتوفر كوده المصدر للجميع للاطلاع عليه وتعديله","برنامج يعمل فقط على الويندوز"], c:1},
-            {q:"ما هو 'التزييف العميق' (Deepfake)؟", a:["تقنية لإنشاء صور ومقاطع فيديو واقعية ولكنها مزيفة باستخدام الذكاء الاصطناعي","نوع من الكاميرات الرقمية","طريقة لإصلاح الفيديوهات القديمة"], c:0}
-        ]
-    };
-
-    let currentLevel = "", qIndex = 0, score = 0;
-
-    function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    function openForm() { window.open("https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform", "_blank"); }
-
-    function startQuiz(l) {
-        currentLevel = l; qIndex = 0; score = 0;
-        showScreen('quiz'); renderQuestion();
-    }
-
-    function renderQuestion() {
-        const qData = questionsBank[currentLevel][qIndex];
-        document.getElementById("q-number").innerText = `السؤال ${qIndex + 1}`;
-        document.getElementById("question-text").innerText = qData.q;
-        const box = document.getElementById("answers-box");
-        box.innerHTML = "";
-        qData.a.forEach((t, i) => {
-            const b = document.createElement("button");
-            b.className = "ans-btn"; b.innerText = t;
-            b.onclick = () => checkAnswer(i, b);
-            box.appendChild(b);
-        });
-        document.getElementById("progress-bar").style.width = (qIndex / 10) * 100 + "%";
-    }
-
-    function checkAnswer(idx, btn) {
-        const correctIdx = questionsBank[currentLevel][qIndex].c;
-        if (idx === correctIdx) {
-            btn.classList.add("correct"); playSound('correct'); score++;
-            setTimeout(() => {
-                qIndex++;
-                if (qIndex < 10) renderQuestion();
-                else finishQuiz();
-            }, 600);
-        } else {
-            btn.classList.add("wrong"); playSound('wrong');
-            setTimeout(() => {
-                alert("إجابة خاطئة! قوانين المختبر صارمة.. ابدأ من جديد!");
-                showScreen('levels');
-            }, 200);
-        }
-    }
-
-    function finishQuiz() {
-        alert("عبقري! لقد اجتزت التحدي بنجاح 🏆");
-        if (currentLevel === 'basic') unlock('mBtn', 'mLock');
-        if (currentLevel === 'medium') unlock('hBtn', 'hLock');
-        if (currentLevel === 'hard') unlock('pBtn', 'pLock'); // فتح المستوى الرابع
-        showScreen('levels');
-    }
-
-    function unlock(btnId, lockId) {
-        const btn = document.getElementById(btnId);
-        if(btn) {
-            btn.disabled = false;
-            const lock = document.getElementById(lockId);
-            if(lock) {
-                lock.innerText = "مفتوح ✅";
-                lock.className = "status-badge unlocked";
-            }
-        }
-    }
-</script>
-<script>
-async function checkBalanceByEmail() {
-  const inputEmail = document.getElementById('userEmail').value.trim().toLowerCase();
-  const display = document.getElementById('balance-result');
-  const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
-
-  display.innerText = "جاري البحث...";
-
-  try {
-    const response = await fetch(csvUrl);
-    const data = await response.text();
-    const rows = data.split('\n');
-
-    let found = false;
-    for (let i = 1; i < rows.length; i++) {
-      const columns = rows[i].split(',');
-      // [1] هو عمود الإيميل، تأكد أنه العمود الثاني في ملفك
-      if (columns[1] && columns[1].trim().toLowerCase() === inputEmail) {
-        display.innerText = "رصيدك هو: " + columns[30] + " دج";
-        found = true;
-        break;
-      }
-    }
-    if (!found) display.innerText = "هذا الإيميل غير مسجل!";
-  } catch (error) {
-    display.innerText = "حدث خطأ في الاتصال.";
-  }
+function enter(){
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
 }
-        </script>
+
+// أيقونة الرصيد
+const balanceIcon = document.getElementById("balanceIcon");
+balanceIcon.addEventListener("click", function(e){
+  if(e.target.closest("#balancePanel")) return;
+  const panel = document.getElementById("balancePanel");
+  panel.style.display = (panel.style.display === "none") ? "block" : "none";
+});
+
+function closeBalance(){
+  document.getElementById("balancePanel").style.display = "none";
+  document.getElementById("balanceInfo").style.display = "none";
+  document.getElementById("balanceEmail").value = "";
+}
+
+function loadBalance(){
+  let email = document.getElementById("balanceEmail").value.trim();
+  if(!email){ alert("الرجاء إدخال البريد الإلكتروني."); return; }
+
+  let webAppUrl = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"; // ضع رابط Web App
+
+  fetch(`${webAppUrl}?email=${encodeURIComponent(email)}`)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("balanceName").innerText = data.name || "الاسم غير موجود";
+      document.getElementById("balancePoints").innerText = `النقاط: ${data.points || 0}`;
+      document.getElementById("balanceValue").innerText = `الرصيد: ${data.balance || 0} دج`;
+      document.getElementById("balanceInfo").style.display = "flex";
+    })
+    .catch(err => alert("لم يتم العثور على بياناتك. تأكد من البريد الإلكتروني."));
+}
+</script>
+
 </body>
 </html>
