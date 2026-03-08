@@ -142,24 +142,30 @@
                 <div class="card-text">أهدافنا</div>
             </div>
             <style>
-    .quiz-box { /* التنسيقات الخاصة بك */ }
-    .btn-action { /* تنسيقات الأزرار */ }
+    .modern-login-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    width: 85%;
+    z-index: 1000;
+    }
+                
 </style>
+<div class="competition-icon" onclick="showLogin()">
+    <img src="https://img.icons8.com/color/96/trophy.png">
+    <p>منافسة</p>
+</div>
 
-<div class="quiz-box">
-    <div id="login-part">
-        <h3>مرحباً بك في المنافسة</h3>
-        <input type="text" id="fullname" placeholder="أدخل اسمك">
-        <button class="btn-action btn-login" onclick="startCompetition()">دخول للمنافسة</button>
-    </div>
-
-    <div id="quiz-part" style="display:none;">
-        <h2 id="welcome-msg"></h2>
-        <p id="question-text"></p>
-        <button class="btn-action btn-true" onclick="checkAnswer(true)">صحيح</button>
-        <button class="btn-action btn-false" onclick="checkAnswer(false)">خطأ</button>
-        <h3 id="feedback"></h3>
-    </div>
+<div id="login-part" style="display:none;" class="modern-login-box">
+    <h3>تسجيل الدخول للمنافسة</h3>
+    <input type="text" id="fullname" placeholder="أدخل اسمك الكريم">
+    <button class="btn-login" onclick="startCompetition()">دخول</button>
+</div>
 </div>
             
 </div>
@@ -380,38 +386,46 @@ async function checkBalanceByEmail() {
   }
 }
         </script>
-    <script>
-    function startQuiz() {
-        const name = document.getElementById('fullname').value;
-        if (!name) { alert("يرجى كتابة الاسم واللقب"); return; }
-        
-        document.getElementById('welcome-msg').innerText = "أهلاً بك يا " + name;
-        document.getElementById('login-part').style.display = 'none';
-        document.getElementById('quiz-part').style.display = 'block';
-
-        // جلب السؤال من شيتي
-        fetch("https://api.sheety.co/fc50bf1965fed5d74990fdd137a499f8/المنافسة/sheet1")
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('question-text').innerText = data.sheet1[0]['الأسئلة'];
-            });
-    }
-
-    function checkAnswer(userChoice) {
-        // افتراض: السؤال هو 'صحيح' (يمكنك تغييره لاحقاً)
-        const isCorrect = true; 
-        const feedback = document.getElementById('feedback');
-        
-        if (userChoice === isCorrect) {
-            feedback.innerText = "✅ إجابة صحيحة!";
-            feedback.style.color = "#00b894";
-        } else {
-            feedback.innerText = "❌ إجابة خاطئة، حاول ثانية";
-            feedback.style.color = "#d63031";
+    <script>feedback.style.color = "#d63031";
         }
     }
     </script>
-    
+  // فتح نافذة التسجيل عند الضغط على الأيقونة
+function openLogin() {
+    document.getElementById('login-modal').style.display = 'block';
+}
+
+// البدء بالمنافسة وجلب الأسئلة
+function startCompetition() {
+    let name = document.getElementById('fullname').value;
+    if(!name) {
+        alert("يرجى إدخال اسمك أولاً!");
+        return;
+    }
+
+    // إخفاء نافذة التسجيل وإظهار حاوية الأسئلة
+    document.getElementById('login-modal').style.display = 'none';
+    document.getElementById('quiz-container').style.display = 'block';
+
+    // الرابط الخاص بك
+    const url = 'https://api.sheety.co/fc50bf1965fed5d74990fdd137a499f8/المنافسة/sheet1';
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            let q = data.sheet1[0]; // يأخذ السؤال الأول من الجدول
+            
+            // تأكد أن كلمة 'سؤال' هنا تطابق اسم العمود في جدولك تماماً
+            document.getElementById('question-text').innerText = q.سؤال;
+            
+            // ملاحظة: إذا كان اسم العمود في الجدول 'السؤال' (بالتعريف)، 
+            // يجب أن تغيرها في الكود هنا لتصبح q.السؤال
+        })
+        .catch(err => {
+            console.error("حدث خطأ أثناء جلب الأسئلة:", err);
+            alert("تعذر تحميل الأسئلة، تأكد من اتصالك بالإنترنت.");
+        });
+}
     
 </body>
 </html>
