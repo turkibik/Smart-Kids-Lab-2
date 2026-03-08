@@ -21,48 +21,51 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 .circle:hover{transform:scale(1.15);}
 .label{margin-top:8px;font-weight:bold;}
 
-/* واجهة أيقونة الرصيد */
-.balance-panel{
-  position:absolute;
-  top:100%;
-  left:50%;
-  transform:translateX(-50%);
-  width:220px;
-  background:rgba(255,255,255,0.25);
-  backdrop-filter:blur(12px);
-  border-radius:20px;
-  padding:15px;
-  margin-top:15px;
-  box-shadow:0 8px 25px rgba(0,0,0,0.25);
-  text-align:center;
-  color:white;
-  z-index:10;
+/* البطاقة البنكية الرقمية العصرية */
+.digital-card{
   display:none;
-}
-.balance-panel input.email-input{
-  width:90%;
-  padding:8px;
-  margin-bottom:10px;
-  border-radius:8px;
-  border:none;
+  margin-top:15px;
+  width:300px;
+  border-radius:20px;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #0b3c5d;
+  padding:20px;
   text-align:center;
+  box-shadow:0 12px 35px rgba(0,0,0,0.4);
+  transition: all 0.4s ease;
 }
-.balance-panel button{
-  padding:8px 15px;
-  border:none;
+.digital-card input{
+  width:90%;
+  padding:10px;
   border-radius:10px;
-  background:linear-gradient(45deg,#0f9b0f,#e52d27);
-  color:white;
+  border:none;
+  margin-bottom:12px;
+  text-align:center;
+  font-weight:bold;
+}
+.digital-card button{
+  padding:10px 20px;
+  border:none;
+  border-radius:12px;
+  background:#0b3c5d;
+  color:#FFD700;
+  font-weight:bold;
   cursor:pointer;
   margin-bottom:10px;
 }
-.balance-info{
-  display:flex;
+.card-info{
+  display:none;
   flex-direction:column;
-  align-items:center;
-  gap:6px;
-  margin-top:10px;
+  gap:10px;
+  background:rgba(255,255,255,0.15);
+  padding:15px;
+  border-radius:15px;
+  box-shadow:inset 0 5px 10px rgba(0,0,0,0.2);
+  text-align:center;
 }
+.card-info div{font-size:16px;font-weight:bold;color:#0b3c5d;}
+.card-info div span{font-weight:900;}
+.card-info button{background:#0b3c5d;color:#FFD700;}
 </style>
 </head>
 <body>
@@ -103,15 +106,15 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
       <div class="circle">💰</div>
       <div class="label">رصيدك</div>
 
-      <div class="balance-panel" id="balancePanel">
-        <input type="email" placeholder="أدخل بريدك الإلكتروني" class="email-input" id="balanceEmail">
-        <button onclick="loadBalance()">تسجيل الدخول</button>
-
-        <div class="balance-info" id="balanceInfo" style="display:none;">
-          <div class="profile-name" id="balanceName"></div>
-          <div class="profile-points" id="balancePoints"></div>
-          <div class="profile-balance" id="balanceValue"></div>
-          <button onclick="closeBalance()">رجوع</button>
+      <div class="digital-card" id="digitalCard">
+        <h3>💳 بطاقة رصيدك</h3>
+        <input type="email" placeholder="أدخل بريدك الإلكتروني" id="balanceEmail">
+        <button onclick="loadBalance()">عرض البطاقة</button>
+        <div class="card-info" id="cardInfo">
+          <div>الاسم: <span id="cardName"></span></div>
+          <div>النقاط: <span id="cardPoints"></span></div>
+          <div>الرصيد: <span id="cardBalance"></span> دج</div>
+          <button onclick="closeCard()">رجوع</button>
         </div>
       </div>
     </div>
@@ -170,35 +173,58 @@ function enter(){
   document.getElementById("app").style.display="block";
 }
 
-// أيقونة الرصيد
+// فتح البطاقة الرقمية عند الضغط على أيقونة الرصيد
 const balanceIcon = document.getElementById("balanceIcon");
 balanceIcon.addEventListener("click", function(e){
-  if(e.target.closest("#balancePanel")) return;
-  const panel = document.getElementById("balancePanel");
-  panel.style.display = (panel.style.display === "none") ? "block" : "none";
+  if(e.target.closest("#digitalCard")) return;
+  const card = document.getElementById("digitalCard");
+  card.style.display = (card.style.display === "none") ? "block" : "none";
 });
 
-function closeBalance(){
-  document.getElementById("balancePanel").style.display = "none";
-  document.getElementById("balanceInfo").style.display = "none";
-  document.getElementById("balanceEmail").value = "";
+function closeCard(){
+  document.getElementById("digitalCard").style.display="none";
+  document.getElementById("cardInfo").style.display="none";
+  document.getElementById("balanceEmail").value="";
 }
 
-function loadBalance(){
-  let email = document.getElementById("balanceEmail").value.trim();
+// تحميل بيانات الرصيد من CSV مباشرة
+async function loadBalance(){
+  const email = document.getElementById("balanceEmail").value.trim().toLowerCase();
   if(!email){ alert("الرجاء إدخال البريد الإلكتروني."); return; }
 
-  let webAppUrl = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"; // ضع رابط Web App
+  const cardName = document.getElementById("cardName");
+  const cardPoints = document.getElementById("cardPoints");
+  const cardBalance = document.getElementById("cardBalance");
+  const cardInfo = document.getElementById("cardInfo");
 
-  fetch(`${webAppUrl}?email=${encodeURIComponent(email)}`)
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById("balanceName").innerText = data.name || "الاسم غير موجود";
-      document.getElementById("balancePoints").innerText = `النقاط: ${data.points || 0}`;
-      document.getElementById("balanceValue").innerText = `الرصيد: ${data.balance || 0} دج`;
-      document.getElementById("balanceInfo").style.display = "flex";
-    })
-    .catch(err => alert("لم يتم العثور على بياناتك. تأكد من البريد الإلكتروني."));
+  const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
+  
+  try{
+      const response = await fetch(csvUrl);
+      const data = await response.text();
+      const rows = data.split('\n');
+      let found=false;
+
+      for(let i=1;i<rows.length;i++){
+          const cols = rows[i].split(',');
+          if(cols[1] && cols[1].trim().toLowerCase() === email){
+              const name = cols[2] || "منخرط"; // الاسم من العمود C
+              const points = parseInt(cols[32]) || 0; // النقاط من العمود AG
+              const balance = Math.floor(points / 50) * 30;
+
+              cardName.innerText = name;
+              cardPoints.innerText = points;
+              cardBalance.innerText = balance;
+              cardInfo.style.display = "flex";
+              found=true;
+              break;
+          }
+      }
+      if(!found) alert("هذا الإيميل غير مسجل!");
+  }catch(e){
+      alert("حدث خطأ في الاتصال.");
+      console.error(e);
+  }
 }
 </script>
 
