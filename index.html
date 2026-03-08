@@ -141,36 +141,27 @@
                 <img src="https://cdn-icons-png.flaticon.com/512/1533/1533913.png" class="card-icon">
                 <div class="card-text">أهدافنا</div>
             </div>
-            
-    .quiz-box { 
-        background: #f9f9f9; padding: 25px; border-radius: 20px; 
-        text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
-        max-width: 400px; margin: 30px auto; font-family: sans-serif;
-    }
-    input { width: 90%; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 10px; }
-    .btn-action { 
-        width: 100%; padding: 12px; border: none; border-radius: 10px; 
-        color: white; font-size: 16px; cursor: pointer; margin-top: 10px; 
-    }
-    .btn-login { background: #6c5ce7; }
-    .btn-true { background: #00b894; }
-    .btn-false { background: #d63031; }
+            <style>
+    .quiz-box { /* التنسيقات الخاصة بك */ }
+    .btn-action { /* تنسيقات الأزرار */ }
 </style>
 
 <div class="quiz-box">
     <div id="login-part">
         <h3>مرحباً بك في المنافسة</h3>
-        <input type="text" id="fullname" placeholder="الاسم واللقب">
-        <button class="btn-action btn-login" onclick="startQuiz()">ابدأ الآن</button>
+        <input type="text" id="fullname" placeholder="أدخل اسمك">
+        <button class="btn-action btn-login" onclick="startCompetition()">دخول للمنافسة</button>
     </div>
 
     <div id="quiz-part" style="display:none;">
         <h2 id="welcome-msg"></h2>
-        <p id="question-text" style="font-size: 1.3em; font-weight: bold; margin: 20px 0;"></p>
+        <p id="question-text"></p>
         <button class="btn-action btn-true" onclick="checkAnswer(true)">صحيح</button>
         <button class="btn-action btn-false" onclick="checkAnswer(false)">خطأ</button>
         <h3 id="feedback"></h3>
     </div>
+</div>
+            
 </div>
                 
             </div>
