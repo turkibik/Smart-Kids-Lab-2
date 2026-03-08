@@ -7,12 +7,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif;}
-body{height:100vh;background:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),url("https://images.unsplash.com/photo-1588072432836-e10032774350");background-size:cover;background-position:center;display:flex;justify-content:center;align-items:center;}
+body{height:100vh;background:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),url("https://images.unsplash.com/photo-1588072432836-e10032774350");background-size:cover;background-position:center;display:flex;justify-content:center;align-items:center;color:white;overflow:auto;}
+
+/* شاشة تسجيل الدخول */
 .login{width:90%;max-width:420px;background:rgba(255,255,255,0.25);backdrop-filter:blur(15px);border-radius:25px;padding:35px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);color:white;}
 .title{font-size:30px;font-weight:900;}
 .subtitle{margin-top:10px;margin-bottom:25px;}
 input{width:100%;padding:13px;margin:8px 0;border-radius:10px;border:none;}
 button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;font-size:16px;background:linear-gradient(45deg,#0f9b0f,#e52d27);color:white;cursor:pointer;}
+
+/* واجهة التطبيق */
 .app{width:100%;height:100%;position:absolute;top:0;left:0;overflow:auto;padding:20px;display:none;background:linear-gradient(140deg,#0f9b0f,#ffffff,#e52d27);}
 .header{text-align:center;font-size:24px;font-weight:900;margin-bottom:30px;}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
@@ -27,13 +31,41 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
   margin-top:15px;
   width:300px;
   border-radius:20px;
-  background: linear-gradient(135deg, #FFD700, #FFA500);
+  background: rgba(255, 215, 0, 0.15); /* ذهبي شفاف */
+  backdrop-filter: blur(15px);
   color: #0b3c5d;
   padding:20px;
   text-align:center;
   box-shadow:0 12px 35px rgba(0,0,0,0.4);
-  transition: all 0.4s ease;
+  transform: translateY(50px);
+  opacity:0;
+  transition: all 0.5s ease;
+  position:absolute;
+  left:50%;
+  transform:translate(-50%,50px);
+  z-index:20;
 }
+.digital-card.show{
+  display:block;
+  transform:translate(-50%,0);
+  opacity:1;
+}
+
+/* تأثير تشعشع ذهبي */
+.digital-card.show::before{
+  content:"";
+  position:absolute;
+  top:0; left:0; width:100%; height:100%;
+  border-radius:20px;
+  box-shadow:0 0 20px 3px rgba(255,215,0,0.6), 0 0 50px 10px rgba(255,215,0,0.3) inset;
+  pointer-events:none;
+  animation: glow 2s infinite alternate;
+}
+@keyframes glow{
+  0%{box-shadow:0 0 10px 2px rgba(255,215,0,0.4), 0 0 30px 5px rgba(255,215,0,0.2) inset;}
+  100%{box-shadow:0 0 25px 6px rgba(255,215,0,0.7), 0 0 60px 12px rgba(255,215,0,0.35) inset;}
+}
+
 .digital-card input{
   width:90%;
   padding:10px;
@@ -53,6 +85,7 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
   cursor:pointer;
   margin-bottom:10px;
 }
+
 .card-info{
   display:none;
   flex-direction:column;
@@ -65,7 +98,7 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 }
 .card-info div{font-size:16px;font-weight:bold;color:#0b3c5d;}
 .card-info div span{font-weight:900;}
-.card-info button{background:#0b3c5d;color:#FFD700;}
+.card-info button{background:#0b3c5d;color:#FFD700;padding:8px 12px;border-radius:10px;}
 </style>
 </head>
 <body>
@@ -84,22 +117,15 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
   <div class="header">Smart Kids Lab</div>
   <div class="grid">
 
-    <div class="icon">
-      <div class="circle">ℹ️</div>
-      <div class="label">من نحن</div>
-    </div>
+    <div class="icon"><div class="circle">ℹ️</div><div class="label">من نحن</div></div>
 
     <div class="icon">
       <a href="https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform" target="_self" style="text-decoration:none;color:inherit;">
-        <div class="circle">📝</div>
-        <div class="label">انخرط</div>
+        <div class="circle">📝</div><div class="label">انخرط</div>
       </a>
     </div>
 
-    <div class="icon">
-      <div class="circle">📚</div>
-      <div class="label">تعلم</div>
-    </div>
+    <div class="icon"><div class="circle">📚</div><div class="label">تعلم</div></div>
 
     <!-- أيقونة الرصيد -->
     <div class="icon" id="balanceIcon">
@@ -110,6 +136,7 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
         <h3>💳 بطاقة رصيدك</h3>
         <input type="email" placeholder="أدخل بريدك الإلكتروني" id="balanceEmail">
         <button onclick="loadBalance()">عرض البطاقة</button>
+
         <div class="card-info" id="cardInfo">
           <div>الاسم: <span id="cardName"></span></div>
           <div>النقاط: <span id="cardPoints"></span></div>
@@ -119,50 +146,15 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
       </div>
     </div>
 
-    <div class="icon">
-      <div class="circle">🎯</div>
-      <div class="label">المهام</div>
-    </div>
-
-    <div class="icon">
-      <div class="circle">🧠</div>
-      <div class="label">اختبر مكتسباتك</div>
-    </div>
-
-    <div class="icon">
-      <div class="circle">⭐</div>
-      <div class="label">اجمع النقاط</div>
-    </div>
-
-    <div class="icon">
-      <div class="circle">👥</div>
-      <div class="label">المنخرطون</div>
-    </div>
-
-    <div class="icon">
-      <div class="circle">🖼️</div>
-      <div class="label">معرض الصور</div>
-    </div>
-
-    <div class="icon">
-      <div class="circle">🔎</div>
-      <div class="label">البحث</div>
-    </div>
-
-    <div class="icon">
-      <div class="circle">🏆</div>
-      <div class="label">جدول الترتيب</div>
-    </div>
-
-    <div class="icon">
-      <div class="circle">🥇</div>
-      <div class="label">تصنيفات وشارات</div>
-    </div>
-
-    <div class="icon">
-      <div class="circle">📅</div>
-      <div class="label">البرنامج العام</div>
-    </div>
+    <div class="icon"><div class="circle">🎯</div><div class="label">المهام</div></div>
+    <div class="icon"><div class="circle">🧠</div><div class="label">اختبر مكتسباتك</div></div>
+    <div class="icon"><div class="circle">⭐</div><div class="label">اجمع النقاط</div></div>
+    <div class="icon"><div class="circle">👥</div><div class="label">المنخرطون</div></div>
+    <div class="icon"><div class="circle">🖼️</div><div class="label">معرض الصور</div></div>
+    <div class="icon"><div class="circle">🔎</div><div class="label">البحث</div></div>
+    <div class="icon"><div class="circle">🏆</div><div class="label">جدول الترتيب</div></div>
+    <div class="icon"><div class="circle">🥇</div><div class="label">تصنيفات وشارات</div></div>
+    <div class="icon"><div class="circle">📅</div><div class="label">البرنامج العام</div></div>
 
   </div>
 </div>
@@ -173,21 +165,27 @@ function enter(){
   document.getElementById("app").style.display="block";
 }
 
-// فتح البطاقة الرقمية عند الضغط على أيقونة الرصيد
+// فتح البطاقة الرقمية
 const balanceIcon = document.getElementById("balanceIcon");
+const digitalCard = document.getElementById("digitalCard");
+
 balanceIcon.addEventListener("click", function(e){
   if(e.target.closest("#digitalCard")) return;
-  const card = document.getElementById("digitalCard");
-  card.style.display = (card.style.display === "none") ? "block" : "none";
+  if(!digitalCard.classList.contains("show")){
+    digitalCard.classList.add("show");
+  } else {
+    digitalCard.classList.remove("show");
+    closeCard();
+  }
 });
 
 function closeCard(){
-  document.getElementById("digitalCard").style.display="none";
+  digitalCard.classList.remove("show");
   document.getElementById("cardInfo").style.display="none";
   document.getElementById("balanceEmail").value="";
 }
 
-// تحميل بيانات الرصيد من CSV مباشرة
+// جلب بيانات الرصيد من CSV
 async function loadBalance(){
   const email = document.getElementById("balanceEmail").value.trim().toLowerCase();
   if(!email){ alert("الرجاء إدخال البريد الإلكتروني."); return; }
