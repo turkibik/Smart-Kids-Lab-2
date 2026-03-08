@@ -146,14 +146,38 @@
         <input type="text" id="username" placeholder="أدخل اسمك للمشاركة">
         <button onclick="saveUser()">دخول للمنافسة</button>
     </div>
+<style>
+    .quiz-box { 
+        background: #f9f9f9; padding: 25px; border-radius: 20px; 
+        text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
+        max-width: 400px; margin: 30px auto; font-family: sans-serif;
+    }
+    input { width: 90%; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 10px; }
+    .btn-action { 
+        width: 100%; padding: 12px; border: none; border-radius: 10px; 
+        color: white; font-size: 16px; cursor: pointer; margin-top: 10px; 
+    }
+    .btn-login { background: #6c5ce7; }
+    .btn-true { background: #00b894; }
+    .btn-false { background: #d63031; }
+</style>
 
-    <div id="quiz-section" style="display:none;">
-        <h2 id="welcome-msg"></h2>
-        <h3 id="question-text">جاري تحميل السؤال...</h3>
-        <button onclick="checkAnswer(true)">صحيح</button>
-        <button onclick="checkAnswer(false)">خطأ</button>
-        <p id="feedback"></p>
+<div class="quiz-box">
+    <div id="login-part">
+        <h3>مرحباً بك في المنافسة</h3>
+        <input type="text" id="fullname" placeholder="الاسم واللقب">
+        <button class="btn-action btn-login" onclick="startQuiz()">ابدأ الآن</button>
     </div>
+
+    <div id="quiz-part" style="display:none;">
+        <h2 id="welcome-msg"></h2>
+        <p id="question-text" style="font-size: 1.3em; font-weight: bold; margin: 20px 0;"></p>
+        <button class="btn-action btn-true" onclick="checkAnswer(true)">صحيح</button>
+        <button class="btn-action btn-false" onclick="checkAnswer(false)">خطأ</button>
+        <h3 id="feedback"></h3>
+    </div>
+</div>
+                
             </div>
             
             <div class="card locked">
@@ -371,21 +395,15 @@ async function checkBalanceByEmail() {
 }
         </script>
     <script>
-    // 1. تسجيل الدخول
-    function saveUser() {
-        const name = document.getElementById('username').value;
-        localStorage.setItem('userName', name);
-        location.reload(); // إعادة تحميل الصفحة لإظهار الترحيب
-    }
+    function startQuiz() {
+        const name = document.getElementById('fullname').value;
+        if (!name) { alert("يرجى كتابة الاسم واللقب"); return; }
+        
+        document.getElementById('welcome-msg').innerText = "أهلاً بك يا " + name;
+        document.getElementById('login-part').style.display = 'none';
+        document.getElementById('quiz-part').style.display = 'block';
 
-    // 2. عند فتح الصفحة
-    const userName = localStorage.getItem('userName');
-    if (userName) {
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('quiz-section').style.display = 'block';
-        document.getElementById('welcome-msg').innerText = "أهلاً بك يا " + userName;
-
-        // جلب السؤال من جدول المنافسة
+        // جلب السؤال من شيتي
         fetch("https://api.sheety.co/fc50bf1965fed5d74990fdd137a499f8/المنافسة/sheet1")
             .then(res => res.json())
             .then(data => {
@@ -393,12 +411,21 @@ async function checkBalanceByEmail() {
             });
     }
 
-    // 3. التحقق من الإجابة (مبسط)
-    function checkAnswer(isTrue) {
-        alert("تم تسجيل إجابتك يا " + userName + "! (تم إرسالها للجدول)");
-        // هنا نضيف كود إرسال النقاط للجدول لاحقاً بعد أن تتأكد أن هذا الجزء يعمل
+    function checkAnswer(userChoice) {
+        // افتراض: السؤال هو 'صحيح' (يمكنك تغييره لاحقاً)
+        const isCorrect = true; 
+        const feedback = document.getElementById('feedback');
+        
+        if (userChoice === isCorrect) {
+            feedback.innerText = "✅ إجابة صحيحة!";
+            feedback.style.color = "#00b894";
+        } else {
+            feedback.innerText = "❌ إجابة خاطئة، حاول ثانية";
+            feedback.style.color = "#d63031";
+        }
     }
     </script>
+    
     
 </body>
 </html>
