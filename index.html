@@ -13,14 +13,34 @@ body{height:100vh;background:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),ur
 .subtitle{margin-top:10px;margin-bottom:25px;}
 input{width:100%;padding:13px;margin:8px 0;border-radius:10px;border:none;}
 button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;font-size:16px;background:linear-gradient(45deg,#0f9b0f,#e52d27);color:white;cursor:pointer;}
-.app{width:100%;height:100%;position:absolute;top:0;left:0;overflow:auto;padding:20px;display:none;background:linear-gradient(140deg,#0f9b0f,#ffffff,#e52d27);}
+
+/* الخلفية المتدرجة المتحركة خلف الأيقونات */
+.app{
+width:100%;
+height:100%;
+position:absolute;
+top:0;
+left:0;
+overflow:auto;
+padding:20px;
+display:none;
+background:linear-gradient(to bottom,#0f9b0f,#ffffff,#e52d27);
+background-size:100% 400%;
+animation:bgMove 8s linear infinite;
+}
+@keyframes bgMove{
+0%{background-position:0% 0%;}
+50%{background-position:0% 100%;}
+100%{background-position:0% 0%;}
+}
+
 .header{text-align:center;font-size:24px;font-weight:900;margin-bottom:30px;}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
 .icon{display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;}
 .circle{width:85px;height:85px;border-radius:50%;background:rgba(255,255,255,0.35);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 10px 25px rgba(0,0,0,0.25);transition:0.3s;}
 .circle:hover{transform:scale(1.15);}
 .label{margin-top:8px;font-weight:bold;}
-.digital-card{display:none;margin-top:15px;width:320px;border-radius:25px;background: rgba(255, 215, 0, 0.15);backdrop-filter: blur(18px);color: #0b3c5d;padding:25px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.5);transform: translateY(50px);opacity:0;transition: all 0.5s ease;position:absolute;left:50%;transform:translate(-50%,50px);z-index:20;overflow:hidden;}
+.digital-card{display:none;margin-top:15px;width:320px;border-radius:25px;background: rgba(255, 215, 0, 0.15);backdrop-filter: blur(18px);color: #0b3c5d;padding:25px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.5);transform: translateY(50px);opacity:0;transition: all 0.5s ease;position:absolute;left:50%;transform:translate(-50%,50px);z-index:9999;overflow:hidden;}
 .digital-card.show{display:block;transform:translate(-50%,0);opacity:1;}
 .digital-card.show::before{content:"";position:absolute;top:0;left:0;width:100%;height:100%;border-radius:25px;box-shadow:0 0 20px 4px rgba(255,215,0,0.6),0 0 50px 12px rgba(255,215,0,0.3) inset;pointer-events:none;animation:glow 2s infinite alternate;}
 @keyframes glow{0%{box-shadow:0 0 10px 2px rgba(255,215,0,0.4),0 0 30px 6px rgba(255,215,0,0.2) inset;}100%{box-shadow:0 0 25px 6px rgba(255,215,0,0.7),0 0 60px 14px rgba(255,215,0,0.35) inset;}}
