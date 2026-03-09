@@ -25,9 +25,6 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 .digital-card.show::before{content:"";position:absolute;top:0;left:0;width:100%;height:100%;border-radius:25px;box-shadow:0 0 20px 4px rgba(255,215,0,0.6),0 0 50px 12px rgba(255,215,0,0.3) inset;pointer-events:none;animation:glow 2s infinite alternate;}
 @keyframes glow{0%{box-shadow:0 0 10px 2px rgba(255,215,0,0.4),0 0 30px 6px rgba(255,215,0,0.2) inset;}100%{box-shadow:0 0 25px 6px rgba(255,215,0,0.7),0 0 60px 14px rgba(255,215,0,0.35) inset;}}
 .digital-card h3{font-weight:900;margin-bottom:15px;}
-.digital-card input{width:90%;padding:12px;border-radius:12px;border:none;margin-bottom:15px;text-align:center;font-weight:bold;}
-.digital-card button{padding:12px 25px;border:none;border-radius:15px;background: linear-gradient(45deg,#FFD700,#FFA500);color:#0b3c5d;font-weight:bold;cursor:pointer;margin-bottom:12px;transition:0.3s;}
-.digital-card button:hover{transform: scale(1.05);box-shadow:0 0 15px #FFD700;}
 .card-info{display:none;flex-direction:column;gap:12px;background:#0b1f3b;padding:20px;border-radius:20px;box-shadow:0 5px 15px rgba(0,0,0,0.3);text-align:center;font-weight:bold;}
 .card-info div{font-size:16px;color:#FFD700;margin:5px 0;}
 .card-info div span{font-weight:900;font-size:18px;}
@@ -36,30 +33,29 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 .digital-card .digits{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;}
 .digital-card .digits span{position:absolute;top:-20px;font-size:12px;color:rgba(255,215,0,0.7);animation: floatDigits linear infinite;}
 @keyframes floatDigits{0%{transform:translateY(0);}100%{transform:translateY(350px);}}
-/* اهتزاز الأيقونات المقفلة */
 @keyframes shakeLock{0%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-4px)}100%{transform:translateX(0)}}
 .lock-shake{animation:shakeLock .4s}
-.lock-icon{position:absolute;top:3px;right:6px;width:14px;height:14px;background:#0b1f3b;color:#FFD700;border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 6px rgba(0,0,0,.4);}
 .gold-glow{position:absolute;top:0;left:0;right:0;bottom:0;border-radius:20px;pointer-events:none;background:radial-gradient(circle,rgba(255,215,0,.35),transparent 70%);animation:goldPulse 2s infinite;}
 @keyframes goldPulse{0%{opacity:.4;transform:scale(1)}50%{opacity:.8;transform:scale(1.05)}100%{opacity:.4;transform:scale(1)}}
 .coin3d{position:absolute;top:-30px;font-size:18px;animation:coinFall linear infinite;}
 @keyframes coinFall{0%{transform:translateY(-30px) rotateX(0deg) rotateY(0deg);opacity:1}100%{transform:translateY(250px) rotateX(360deg) rotateY(360deg);opacity:0}}
-.cancel-operation{background:#bbb;border:none;padding:6px 12px;border-radius:6px;margin-right:6px;cursor:pointer;}
-.points-counter{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:#FFD700;padding:8px 12px;border-radius:10px;font-weight:bold;z-index:9999;font-size:16px;}
+.points-counter{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:#FFD700;padding:8px 12px;border-radius:10px;font-weight:bold;z-index:9999;font-size:16px;display:none;}
+#loadingBarContainer{position:fixed;bottom:0;left:0;width:100%;height:12px;background:#333;}
+#loadingBar{width:0%;height:100%;background:linear-gradient(90deg,#0f9b0f,#fff,#e52d27);transition:width 0.05s;}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div class="login" id="login">
   <div class="title">Smart Kids Lab</div>
   <div class="subtitle">مختبر الشباب للذكاء والتعلم والإبداع</div>
-  <input type="email" placeholder="البريد الإلكتروني">
-  <input type="password" placeholder="كلمة المرور">
+  <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
+  <input type="password" id="loginPassword" placeholder="كلمة المرور">
   <button onclick="enter()">دخول</button>
 </div>
 
-<!-- APP -->
+<div id="loadingBarContainer"><div id="loadingBar"></div></div>
+
 <div class="app" id="app">
   <div class="header">Smart Kids Lab</div>
   <div class="grid">
@@ -76,9 +72,6 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
       <div class="digital-card" id="digitalCard">
         <div class="digits" id="digitContainer"></div>
         <h3>💳 بطاقة رصيدك</h3>
-        <input type="email" placeholder="أدخل بريدك الإلكتروني" id="balanceEmail">
-        <button onclick="loadBalance()">عرض البطاقة</button>
-        <button class="cancel-operation" onclick="cancelBalance()">إلغاء</button>
         <div class="card-info" id="cardInfo">
           <div>الاسم: <span id="cardName"></span></div>
           <div>النقاط: <span id="cardPoints"></span></div>
@@ -100,35 +93,67 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 </div>
 
 <script>
-// الدخول
-function enter(){
-  document.getElementById("login").style.display="none";
-  document.getElementById("app").style.display="block";
-}
-
-// نقاط اللاعب
 let points = 0;
 const pointsCounter = document.createElement("div");
 pointsCounter.className = "points-counter";
-pointsCounter.innerText = "النقاط: 0";
 document.body.appendChild(pointsCounter);
 
-// تحديث اللافتة العلوية وربطها بالبطاقة
 function updatePointsDisplay(){
     pointsCounter.innerText = "النقاط: " + points;
     const cardPoints = document.getElementById("cardPoints");
-    if(cardPoints){
-        cardPoints.innerText = points;
-    }
+    if(cardPoints) cardPoints.innerText = points;
 }
 
-// إضافة نقاط
-function addPoints(n){
-    points += n;
-    updatePointsDisplay();
+function showLoadingBar(callback){
+    const bar = document.getElementById("loadingBar");
+    bar.style.width="0%";
+    let width=0;
+    document.getElementById("loadingBarContainer").style.display="block";
+    const interval = setInterval(()=>{
+        width += 2;
+        bar.style.width=width+"%";
+        if(width>=100){
+            clearInterval(interval);
+            document.getElementById("loadingBarContainer").style.display="none";
+            callback();
+        }
+    },40);
 }
 
-// البطاقة الرقمية
+// تسجيل الدخول بدون تحقق البريد
+async function enter(){
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+  if(!email || !password){ alert("الرجاء ملء الحقلين."); return; }
+
+  showLoadingBar(async ()=>{
+    document.getElementById("login").style.display="none";
+    document.getElementById("app").style.display="block";
+    pointsCounter.style.display="block";
+
+    // جلب بيانات المنخرط إذا موجود
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
+    try{
+      const response = await fetch(csvUrl);
+      const data = await response.text();
+      const rows = data.split('\n');
+      for(let i=1;i<rows.length;i++){
+        const cols = rows[i].split(',');
+        if(cols[1] && cols[1].trim().toLowerCase() === email.toLowerCase()){
+          const name = cols[2] || "منخرط";
+          points = parseInt(cols[33].replace(/\D/g,'')) || 0;
+          document.getElementById("cardName").innerText = name;
+          document.getElementById("cardPoints").innerText = points;
+          document.getElementById("cardBalance").innerText = ((points/50)*30).toFixed(2);
+          updatePointsDisplay();
+          break;
+        }
+      }
+    }catch(e){console.error(e);}
+  });
+}
+
+// الرصيد
 const balanceIcon = document.getElementById("balanceIcon");
 const digitalCard = document.getElementById("digitalCard");
 balanceIcon.addEventListener("click", function(e){
@@ -137,32 +162,19 @@ balanceIcon.addEventListener("click", function(e){
     digitalCard.classList.add("show");
     createDigits();
     startCoins();
-    updatePointsDisplay();
+    document.getElementById("cardInfo").style.display="flex";
   } else {
     digitalCard.classList.remove("show");
     closeCard();
   }
 });
 
-// زر الغاء العملية
-function cancelBalance(){
-    document.getElementById("balanceEmail").value = "";
-    document.getElementById("cardInfo").style.display = "none";
-    document.getElementById("digitContainer").innerHTML = "";
-    digitalCard.classList.remove("show");
-    updatePointsDisplay();
-}
-
-// اغلاق البطاقة
 function closeCard(){
     document.getElementById("cardInfo").style.display = "none";
-    document.getElementById("balanceEmail").value = "";
     document.getElementById("digitContainer").innerHTML = "";
     digitalCard.classList.remove("show");
-    updatePointsDisplay();
 }
 
-// رموز رقمية
 function createDigits(){
   const container = document.getElementById("digitContainer");
   for(let i=0;i<30;i++){
@@ -174,7 +186,6 @@ function createDigits(){
   }
 }
 
-// العملات الذهبية
 const goldSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3");
 function startCoins(){
   let card=document.querySelector(".digital-card");
@@ -195,41 +206,6 @@ function startCoins(){
   goldSound.play();
 }
 
-// جلب الرصيد من CSV (عمود AH = 34)
-async function loadBalance(){
-  const email = document.getElementById("balanceEmail").value.trim().toLowerCase();
-  if(!email){ alert("الرجاء إدخال البريد الإلكتروني."); return; }
-  const cardName = document.getElementById("cardName");
-  const cardPoints = document.getElementById("cardPoints");
-  const cardBalance = document.getElementById("cardBalance");
-  const cardInfo = document.getElementById("cardInfo");
-  const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
-  try{
-      const response = await fetch(csvUrl);
-      const data = await response.text();
-      const rows = data.split('\n');
-      let found=false;
-      for(let i=1;i<rows.length;i++){
-          const cols = rows[i].split(',');
-          if(cols[1] && cols[1].trim().toLowerCase() === email){
-              const name = cols[2] || "منخرط"; 
-              let csvPoints = parseInt(cols[33].replace(/\D/g,'')) || 0; // العمود AH
-              points = csvPoints; // تحديث النقاط من CSV
-              updatePointsDisplay();
-              const balance = (points / 50) * 30; // تحويل ديناميكي
-              cardName.innerText = name;
-              cardPoints.innerText = points;
-              cardBalance.innerText = balance.toFixed(2);
-              cardInfo.style.display = "flex";
-              found=true;
-              break;
-          }
-      }
-      if(!found) alert("هذا الإيميل غير مسجل!");
-  }catch(e){alert("حدث خطأ في الاتصال.");console.error(e);}
-}
-
-// اهتزاز الأيقونات المقفلة
 document.querySelectorAll(".locked").forEach(icon=>{
 icon.addEventListener("click", function(e){
 e.preventDefault();
