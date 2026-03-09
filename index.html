@@ -195,7 +195,7 @@ function startCoins(){
   goldSound.play();
 }
 
-// جلب الرصيد من CSV (معدل للعمود AH)
+// جلب الرصيد من CSV (عمود AH = 34)
 async function loadBalance(){
   const email = document.getElementById("balanceEmail").value.trim().toLowerCase();
   if(!email){ alert("الرجاء إدخال البريد الإلكتروني."); return; }
@@ -213,13 +213,13 @@ async function loadBalance(){
           const cols = rows[i].split(',');
           if(cols[1] && cols[1].trim().toLowerCase() === email){
               const name = cols[2] || "منخرط"; 
-              let csvPoints = parseInt(cols[33].replace(/\D/g,'')) || 0; // AH هو العمود رقم 34 (0-based index: 33)
+              let csvPoints = parseInt(cols[33].replace(/\D/g,'')) || 0; // العمود AH
               points = csvPoints; // تحديث النقاط من CSV
               updatePointsDisplay();
-              const balance = Math.floor(points / 50) * 30;
+              const balance = (points / 50) * 30; // تحويل ديناميكي
               cardName.innerText = name;
               cardPoints.innerText = points;
-              cardBalance.innerText = balance;
+              cardBalance.innerText = balance.toFixed(2);
               cardInfo.style.display = "flex";
               found=true;
               break;
