@@ -195,7 +195,7 @@ function startCoins(){
   goldSound.play();
 }
 
-// جلب الرصيد من CSV
+// جلب الرصيد من CSV (معدل للعمود AH)
 async function loadBalance(){
   const email = document.getElementById("balanceEmail").value.trim().toLowerCase();
   if(!email){ alert("الرجاء إدخال البريد الإلكتروني."); return; }
@@ -213,7 +213,7 @@ async function loadBalance(){
           const cols = rows[i].split(',');
           if(cols[1] && cols[1].trim().toLowerCase() === email){
               const name = cols[2] || "منخرط"; 
-              const csvPoints = parseInt(cols[32]) || 0;
+              let csvPoints = parseInt(cols[33].replace(/\D/g,'')) || 0; // AH هو العمود رقم 34 (0-based index: 33)
               points = csvPoints; // تحديث النقاط من CSV
               updatePointsDisplay();
               const balance = Math.floor(points / 50) * 30;
