@@ -8,15 +8,11 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif;}
 body{height:100vh;background:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),url("https://images.unsplash.com/photo-1588072432836-e10032774350");background-size:cover;background-position:center;display:flex;justify-content:center;align-items:center;color:white;overflow:auto;}
-
-/* شاشة تسجيل الدخول */
 .login{width:90%;max-width:420px;background:rgba(255,255,255,0.25);backdrop-filter:blur(15px);border-radius:25px;padding:35px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);color:white;}
 .title{font-size:30px;font-weight:900;}
 .subtitle{margin-top:10px;margin-bottom:25px;}
 input{width:100%;padding:13px;margin:8px 0;border-radius:10px;border:none;}
 button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;font-size:16px;background:linear-gradient(45deg,#0f9b0f,#e52d27);color:white;cursor:pointer;}
-
-/* واجهة التطبيق */
 .app{width:100%;height:100%;position:absolute;top:0;left:0;overflow:auto;padding:20px;display:none;background:linear-gradient(140deg,#0f9b0f,#ffffff,#e52d27);}
 .header{text-align:center;font-size:24px;font-weight:900;margin-bottom:30px;}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
@@ -24,81 +20,32 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 .circle{width:85px;height:85px;border-radius:50%;background:rgba(255,255,255,0.35);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 10px 25px rgba(0,0,0,0.25);transition:0.3s;}
 .circle:hover{transform:scale(1.15);}
 .label{margin-top:8px;font-weight:bold;}
-
-/* البطاقة البنكية الرقمية العصرية */
-.digital-card{
-  display:none;
-  margin-top:15px;
-  width:300px;
-  border-radius:20px;
-  background: rgba(255, 215, 0, 0.15); /* ذهبي شفاف */
-  backdrop-filter: blur(15px);
-  color: #0b3c5d;
-  padding:20px;
-  text-align:center;
-  box-shadow:0 12px 35px rgba(0,0,0,0.4);
-  transform: translateY(50px);
-  opacity:0;
-  transition: all 0.5s ease;
-  position:absolute;
-  left:50%;
-  transform:translate(-50%,50px);
-  z-index:20;
-}
-.digital-card.show{
-  display:block;
-  transform:translate(-50%,0);
-  opacity:1;
-}
-
-/* تأثير تشعشع ذهبي */
-.digital-card.show::before{
-  content:"";
-  position:absolute;
-  top:0; left:0; width:100%; height:100%;
-  border-radius:20px;
-  box-shadow:0 0 20px 3px rgba(255,215,0,0.6), 0 0 50px 10px rgba(255,215,0,0.3) inset;
-  pointer-events:none;
-  animation: glow 2s infinite alternate;
-}
-@keyframes glow{
-  0%{box-shadow:0 0 10px 2px rgba(255,215,0,0.4), 0 0 30px 5px rgba(255,215,0,0.2) inset;}
-  100%{box-shadow:0 0 25px 6px rgba(255,215,0,0.7), 0 0 60px 12px rgba(255,215,0,0.35) inset;}
-}
-
-.digital-card input{
-  width:90%;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  margin-bottom:12px;
-  text-align:center;
-  font-weight:bold;
-}
-.digital-card button{
-  padding:10px 20px;
-  border:none;
-  border-radius:12px;
-  background:#0b3c5d;
-  color:#FFD700;
-  font-weight:bold;
-  cursor:pointer;
-  margin-bottom:10px;
-}
-
-.card-info{
-  display:none;
-  flex-direction:column;
-  gap:10px;
-  background:rgba(255,255,255,0.15);
-  padding:15px;
-  border-radius:15px;
-  box-shadow:inset 0 5px 10px rgba(0,0,0,0.2);
-  text-align:center;
-}
-.card-info div{font-size:16px;font-weight:bold;color:#0b3c5d;}
-.card-info div span{font-weight:900;}
-.card-info button{background:#0b3c5d;color:#FFD700;padding:8px 12px;border-radius:10px;}
+.digital-card{display:none;margin-top:15px;width:320px;border-radius:25px;background: rgba(255, 215, 0, 0.15);backdrop-filter: blur(18px);color: #0b3c5d;padding:25px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.5);transform: translateY(50px);opacity:0;transition: all 0.5s ease;position:absolute;left:50%;transform:translate(-50%,50px);z-index:20;overflow:hidden;}
+.digital-card.show{display:block;transform:translate(-50%,0);opacity:1;}
+.digital-card.show::before{content:"";position:absolute;top:0;left:0;width:100%;height:100%;border-radius:25px;box-shadow:0 0 20px 4px rgba(255,215,0,0.6),0 0 50px 12px rgba(255,215,0,0.3) inset;pointer-events:none;animation:glow 2s infinite alternate;}
+@keyframes glow{0%{box-shadow:0 0 10px 2px rgba(255,215,0,0.4),0 0 30px 6px rgba(255,215,0,0.2) inset;}100%{box-shadow:0 0 25px 6px rgba(255,215,0,0.7),0 0 60px 14px rgba(255,215,0,0.35) inset;}}
+.digital-card h3{font-weight:900;margin-bottom:15px;}
+.digital-card input{width:90%;padding:12px;border-radius:12px;border:none;margin-bottom:15px;text-align:center;font-weight:bold;}
+.digital-card button{padding:12px 25px;border:none;border-radius:15px;background: linear-gradient(45deg,#FFD700,#FFA500);color:#0b3c5d;font-weight:bold;cursor:pointer;margin-bottom:12px;transition:0.3s;}
+.digital-card button:hover{transform: scale(1.05);box-shadow:0 0 15px #FFD700;}
+.card-info{display:none;flex-direction:column;gap:12px;background:#0b1f3b;padding:20px;border-radius:20px;box-shadow:0 5px 15px rgba(0,0,0,0.3);text-align:center;font-weight:bold;}
+.card-info div{font-size:16px;color:#FFD700;margin:5px 0;}
+.card-info div span{font-weight:900;font-size:18px;}
+.card-info button{background:#0b1f3b;color:#FFD700;padding:10px 18px;border-radius:15px;font-weight:bold;cursor:pointer;border:1px solid #FFD700;margin-top:10px;}
+.card-info button:hover{transform:scale(1.05);box-shadow:0 0 15px #FFD700;}
+.digital-card .digits{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;}
+.digital-card .digits span{position:absolute;top:-20px;font-size:12px;color:rgba(255,215,0,0.7);animation: floatDigits linear infinite;}
+@keyframes floatDigits{0%{transform:translateY(0);}100%{transform:translateY(350px);}}
+/* اهتزاز الأيقونات المقفلة */
+@keyframes shakeLock{0%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-4px)}100%{transform:translateX(0)}}
+.lock-shake{animation:shakeLock .4s}
+.lock-icon{position:absolute;top:3px;right:6px;width:14px;height:14px;background:#0b1f3b;color:#FFD700;border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 6px rgba(0,0,0,.4);}
+.gold-glow{position:absolute;top:0;left:0;right:0;bottom:0;border-radius:20px;pointer-events:none;background:radial-gradient(circle,rgba(255,215,0,.35),transparent 70%);animation:goldPulse 2s infinite;}
+@keyframes goldPulse{0%{opacity:.4;transform:scale(1)}50%{opacity:.8;transform:scale(1.05)}100%{opacity:.4;transform:scale(1)}}
+.coin3d{position:absolute;top:-30px;font-size:18px;animation:coinFall linear infinite;}
+@keyframes coinFall{0%{transform:translateY(-30px) rotateX(0deg) rotateY(0deg);opacity:1}100%{transform:translateY(250px) rotateX(360deg) rotateY(360deg);opacity:0}}
+.cancel-operation{background:#bbb;border:none;padding:6px 12px;border-radius:6px;margin-right:6px;cursor:pointer;}
+.points-counter{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:#FFD700;padding:8px 12px;border-radius:10px;font-weight:bold;z-index:9999;font-size:16px;}
 </style>
 </head>
 <body>
@@ -116,27 +63,22 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 <div class="app" id="app">
   <div class="header">Smart Kids Lab</div>
   <div class="grid">
-
     <div class="icon"><div class="circle">ℹ️</div><div class="label">من نحن</div></div>
-
     <div class="icon">
       <a href="https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform" target="_self" style="text-decoration:none;color:inherit;">
         <div class="circle">📝</div><div class="label">انخرط</div>
       </a>
     </div>
-
-    <div class="icon"><div class="circle">📚</div><div class="label">تعلم</div></div>
-
-    <!-- أيقونة الرصيد -->
+    <div class="icon locked" data-points="50"><div class="circle">📚</div><div class="label">تعلم</div></div>
     <div class="icon" id="balanceIcon">
       <div class="circle">💰</div>
       <div class="label">رصيدك</div>
-
       <div class="digital-card" id="digitalCard">
+        <div class="digits" id="digitContainer"></div>
         <h3>💳 بطاقة رصيدك</h3>
         <input type="email" placeholder="أدخل بريدك الإلكتروني" id="balanceEmail">
         <button onclick="loadBalance()">عرض البطاقة</button>
-
+        <button class="cancel-operation" onclick="cancelBalance()">إلغاء</button>
         <div class="card-info" id="cardInfo">
           <div>الاسم: <span id="cardName"></span></div>
           <div>النقاط: <span id="cardPoints"></span></div>
@@ -145,71 +87,136 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
         </div>
       </div>
     </div>
-
-    <div class="icon"><div class="circle">🎯</div><div class="label">المهام</div></div>
-    <div class="icon"><div class="circle">🧠</div><div class="label">اختبر مكتسباتك</div></div>
-    <div class="icon"><div class="circle">⭐</div><div class="label">اجمع النقاط</div></div>
-    <div class="icon"><div class="circle">👥</div><div class="label">المنخرطون</div></div>
-    <div class="icon"><div class="circle">🖼️</div><div class="label">معرض الصور</div></div>
-    <div class="icon"><div class="circle">🔎</div><div class="label">البحث</div></div>
-    <div class="icon"><div class="circle">🏆</div><div class="label">جدول الترتيب</div></div>
-    <div class="icon"><div class="circle">🥇</div><div class="label">تصنيفات وشارات</div></div>
-    <div class="icon"><div class="circle">📅</div><div class="label">البرنامج العام</div></div>
-
+    <div class="icon locked" data-points="50"><div class="circle">🎯</div><div class="label">المهام</div></div>
+    <div class="icon locked" data-points="50"><div class="circle">🧠</div><div class="label">اختبر مكتسباتك</div></div>
+    <div class="icon locked" data-points="50"><div class="circle">⭐</div><div class="label">اجمع النقاط</div></div>
+    <div class="icon locked" data-points="100"><div class="circle">👥</div><div class="label">المنخرطون</div></div>
+    <div class="icon locked" data-points="100"><div class="circle">🖼️</div><div class="label">معرض الصور</div></div>
+    <div class="icon locked" data-points="100"><div class="circle">🔎</div><div class="label">البحث</div></div>
+    <div class="icon locked" data-points="150"><div class="circle">🏆</div><div class="label">جدول الترتيب</div></div>
+    <div class="icon locked" data-points="150"><div class="circle">🥇</div><div class="label">تصنيفات وشارات</div></div>
+    <div class="icon locked" data-points="200"><div class="circle">📅</div><div class="label">البرنامج العام</div></div>
   </div>
 </div>
 
 <script>
+// الدخول
 function enter(){
   document.getElementById("login").style.display="none";
   document.getElementById("app").style.display="block";
 }
 
-// فتح البطاقة الرقمية
+// نقاط اللاعب
+let points = 0;
+const pointsCounter = document.createElement("div");
+pointsCounter.className = "points-counter";
+pointsCounter.innerText = "النقاط: 0";
+document.body.appendChild(pointsCounter);
+
+// تحديث اللافتة العلوية وربطها بالبطاقة
+function updatePointsDisplay(){
+    pointsCounter.innerText = "النقاط: " + points;
+    const cardPoints = document.getElementById("cardPoints");
+    if(cardPoints){
+        cardPoints.innerText = points;
+    }
+}
+
+// إضافة نقاط
+function addPoints(n){
+    points += n;
+    updatePointsDisplay();
+}
+
+// البطاقة الرقمية
 const balanceIcon = document.getElementById("balanceIcon");
 const digitalCard = document.getElementById("digitalCard");
-
 balanceIcon.addEventListener("click", function(e){
   if(e.target.closest("#digitalCard")) return;
   if(!digitalCard.classList.contains("show")){
     digitalCard.classList.add("show");
+    createDigits();
+    startCoins();
+    updatePointsDisplay();
   } else {
     digitalCard.classList.remove("show");
     closeCard();
   }
 });
 
-function closeCard(){
-  digitalCard.classList.remove("show");
-  document.getElementById("cardInfo").style.display="none";
-  document.getElementById("balanceEmail").value="";
+// زر الغاء العملية
+function cancelBalance(){
+    document.getElementById("balanceEmail").value = "";
+    document.getElementById("cardInfo").style.display = "none";
+    document.getElementById("digitContainer").innerHTML = "";
+    digitalCard.classList.remove("show");
+    updatePointsDisplay();
 }
 
-// جلب بيانات الرصيد من CSV
+// اغلاق البطاقة
+function closeCard(){
+    document.getElementById("cardInfo").style.display = "none";
+    document.getElementById("balanceEmail").value = "";
+    document.getElementById("digitContainer").innerHTML = "";
+    digitalCard.classList.remove("show");
+    updatePointsDisplay();
+}
+
+// رموز رقمية
+function createDigits(){
+  const container = document.getElementById("digitContainer");
+  for(let i=0;i<30;i++){
+    const span = document.createElement("span");
+    span.innerText = Math.floor(Math.random()*10);
+    span.style.left = Math.random()*100 + "%";
+    span.style.animationDuration = (Math.random()*3+2)+"s";
+    container.appendChild(span);
+  }
+}
+
+// العملات الذهبية
+const goldSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3");
+function startCoins(){
+  let card=document.querySelector(".digital-card");
+  if(!card) return;
+  if(!card.querySelector(".gold-glow")){
+    let glow=document.createElement("div");
+    glow.className="gold-glow";
+    card.appendChild(glow);
+  }
+  for(let i=0;i<12;i++){
+    let coin=document.createElement("div");
+    coin.className="coin3d";
+    coin.innerHTML="🪙";
+    coin.style.left=Math.random()*100+"%";
+    coin.style.animationDuration=(2+Math.random()*2)+"s";
+    card.appendChild(coin);
+  }
+  goldSound.play();
+}
+
+// جلب الرصيد من CSV
 async function loadBalance(){
   const email = document.getElementById("balanceEmail").value.trim().toLowerCase();
   if(!email){ alert("الرجاء إدخال البريد الإلكتروني."); return; }
-
   const cardName = document.getElementById("cardName");
   const cardPoints = document.getElementById("cardPoints");
   const cardBalance = document.getElementById("cardBalance");
   const cardInfo = document.getElementById("cardInfo");
-
   const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
-  
   try{
       const response = await fetch(csvUrl);
       const data = await response.text();
       const rows = data.split('\n');
       let found=false;
-
       for(let i=1;i<rows.length;i++){
           const cols = rows[i].split(',');
           if(cols[1] && cols[1].trim().toLowerCase() === email){
-              const name = cols[2] || "منخرط"; // الاسم من العمود C
-              const points = parseInt(cols[32]) || 0; // النقاط من العمود AG
+              const name = cols[2] || "منخرط"; 
+              const csvPoints = parseInt(cols[32]) || 0;
+              points = csvPoints; // تحديث النقاط من CSV
+              updatePointsDisplay();
               const balance = Math.floor(points / 50) * 30;
-
               cardName.innerText = name;
               cardPoints.innerText = points;
               cardBalance.innerText = balance;
@@ -219,12 +226,19 @@ async function loadBalance(){
           }
       }
       if(!found) alert("هذا الإيميل غير مسجل!");
-  }catch(e){
-      alert("حدث خطأ في الاتصال.");
-      console.error(e);
-  }
+  }catch(e){alert("حدث خطأ في الاتصال.");console.error(e);}
 }
-</script>
 
+// اهتزاز الأيقونات المقفلة
+document.querySelectorAll(".locked").forEach(icon=>{
+icon.addEventListener("click", function(e){
+e.preventDefault();
+icon.classList.add("lock-shake");
+setTimeout(()=>icon.classList.remove("lock-shake"),400);
+if(navigator.vibrate){navigator.vibrate(200);}
+alert("اجمع النقاط المطلوبة لفتح هذه الميزة");
+});
+});
+</script>
 </body>
 </html>
