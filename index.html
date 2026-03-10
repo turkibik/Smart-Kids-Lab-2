@@ -6,31 +6,47 @@
 <title>Smart Kids Lab</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-    *{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif;}
-    body{height:100vh;background:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),url("https://images.unsplash.com/photo-1588072432836-e10032774350");background-size:cover;background-position:center;display:flex;justify-content:center;align-items:center;color:white;overflow:auto;}
-    .login{width:90%;max-width:420px;background:rgba(255,255,255,0.25);backdrop-filter:blur(15px);border-radius:25px;padding:35px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);color:white;}
-    .title{font-size:30px;font-weight:900;}.subtitle{margin-top:10px;margin-bottom:25px;}
-    input{width:100%;padding:13px;margin:8px 0;border-radius:10px;border:none;}
-    button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;font-size:16px;background:linear-gradient(45deg,#0f9b0f,#e52d27);color:white;cursor:pointer;}
-    .app{width:100%;height:100%;position:absolute;top:0;left:0;overflow:auto;padding:20px;display:none;background:linear-gradient(to bottom,#0f9b0f,#ffffff,#e52d27);background-size:100% 400%;animation:bgMove 8s linear infinite;}
-    @keyframes bgMove{0%{background-position:0% 0%;}50%{background-position:0% 100%;}100%{background-position:0% 0%;}}
-    .header{text-align:center;font-size:24px;font-weight:900;margin-bottom:30px;}
-    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
-    .icon{display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;}
-    .circle{width:85px;height:85px;border-radius:50%;background:rgba(255,255,255,0.35);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 10px 25px rgba(0,0,0,0.25);transition:0.3s;}
-    .label{margin-top:8px;font-weight:bold;}
-    .digital-card{display:none;margin-top:15px;width:320px;border-radius:25px;background: rgba(255, 215, 0, 0.15);backdrop-filter: blur(18px);color: #0b3c5d;padding:25px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.5);transform: translateY(50px);opacity:0;transition: all 0.5s ease;position:absolute;left:50%;transform:translate(-50%,50px);z-index:9999;}
-    .digital-card.show{display:block;transform:translate(-50%,0);opacity:1;}
-    .card-info{display:none;flex-direction:column;gap:12px;background:#0b1f3b;padding:20px;border-radius:20px;color:#FFD700;font-weight:bold;}
-    .points-counter{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:#FFD700;padding:8px 12px;border-radius:10px;font-weight:bold;z-index:9999;display:none;}
-    #loadingBarContainer{position:fixed;bottom:0;left:0;width:100%;height:12px;background:#333;display:none;}
-    #loadingBar{width:0%;height:100%;background:linear-gradient(90deg,#0f9b0f,#fff,#e52d27);transition:width 0.05s;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif;}
+body{height:100vh;background:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),url("https://images.unsplash.com/photo-1588072432836-e10032774350");background-size:cover;background-position:center;display:flex;justify-content:center;align-items:center;color:white;overflow:auto;}
+.login{width:90%;max-width:420px;background:rgba(255,255,255,0.25);backdrop-filter:blur(15px);border-radius:25px;padding:35px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);color:white;}
+.title{font-size:30px;font-weight:900;}
+.subtitle{margin-top:10px;margin-bottom:25px;}
+input{width:100%;padding:13px;margin:8px 0;border-radius:10px;border:none;}
+button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;font-size:16px;background:linear-gradient(45deg,#0f9b0f,#e52d27);color:white;cursor:pointer;}
+.app{width:100%;height:100%;position:absolute;top:0;left:0;overflow:auto;padding:20px;display:none;background:linear-gradient(to bottom,#0f9b0f,#ffffff,#e52d27);background-size:100% 400%;animation:bgMove 8s linear infinite;}
+@keyframes bgMove{0%{background-position:0% 0%;}50%{background-position:0% 100%;}100%{background-position:0% 0%;}}
+.header{text-align:center;font-size:24px;font-weight:900;margin-bottom:30px;}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+.icon{display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+.circle{width:85px;height:85px;border-radius:50%;background:rgba(255,255,255,0.35);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 10px 25px rgba(0,0,0,0.25);transition:0.3s;}
+.circle:hover{transform:scale(1.15);}
+.label{margin-top:8px;font-weight:bold;}
+.digital-card{display:none;margin-top:15px;width:320px;border-radius:25px;background: rgba(255, 215, 0, 0.15);backdrop-filter: blur(18px);color: #0b3c5d;padding:25px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.5);transform: translateY(50px);opacity:0;transition: all 0.5s ease;position:absolute;left:50%;transform:translate(-50%,50px);z-index:9999;overflow:hidden;}
+.digital-card.show{display:block;transform:translate(-50%,0);opacity:1;}
+.digital-card.show::before{content:"";position:absolute;top:0;left:0;width:100%;height:100%;border-radius:25px;box-shadow:0 0 20px 4px rgba(255,215,0,0.6),0 0 50px 12px rgba(255,215,0,0.3) inset;pointer-events:none;animation:glow 2s infinite alternate;}
+@keyframes glow{0%{box-shadow:0 0 10px 2px rgba(255,215,0,0.4),0 0 30px 6px rgba(255,215,0,0.2) inset;}100%{box-shadow:0 0 25px 6px rgba(255,215,0,0.7),0 0 60px 14px rgba(255,215,0,0.35) inset;}}
+.digital-card h3{font-weight:900;margin-bottom:15px;}
+.card-info{display:none;flex-direction:column;gap:12px;background:#0b1f3b;padding:20px;border-radius:20px;box-shadow:0 5px 15px rgba(0,0,0,0.3);text-align:center;font-weight:bold;}
+.card-info div{font-size:16px;color:#FFD700;margin:5px 0;}
+.card-info div span{font-weight:900;font-size:18px;}
+.card-info button{background:#0b1f3b;color:#FFD700;padding:10px 18px;border-radius:15px;font-weight:bold;cursor:pointer;border:1px solid #FFD700;margin-top:10px;}
+.card-info button:hover{transform:scale(1.05);box-shadow:0 0 15px #FFD700;}
+.points-counter{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:#FFD700;padding:8px 12px;border-radius:10px;font-weight:bold;z-index:9999;font-size:16px;display:none;}
+#loadingBarContainer{position:fixed;bottom:0;left:0;width:100%;height:12px;background:#333;}
+#loadingBar{width:0%;height:100%;background:linear-gradient(90deg,#0f9b0f,#fff,#e52d27);transition:width 0.05s;}
+.digits span{position:absolute;top:-20px;font-size:12px;color:rgba(255,215,0,0.7);animation: floatDigits linear infinite;}
+@keyframes floatDigits{0%{transform:translateY(0);}100%{transform:translateY(350px);}}
+.gold-glow{position:absolute;top:0;left:0;right:0;bottom:0;border-radius:20px;pointer-events:none;background:radial-gradient(circle,rgba(255,215,0,.35),transparent 70%);animation:goldPulse 2s infinite;}
+@keyframes goldPulse{0%{opacity:.4;transform:scale(1)}50%{opacity:.8;transform:scale(1.05)}100%{opacity:.4;transform:scale(1)}}
+.coin3d{position:absolute;top:-30px;font-size:18px;animation:coinFall linear infinite;}
+@keyframes coinFall{0%{transform:translateY(-30px) rotateX(0deg) rotateY(0deg);opacity:1}100%{transform:translateY(250px) rotateX(360deg) rotateY(360deg);opacity:0}}
 </style>
 </head>
 <body>
 
 <div class="login" id="login">
   <div class="title">Smart Kids Lab</div>
+  <div class="subtitle">مختبر الشباب للذكاء والتعلم والإبداع</div>
   <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
   <input type="password" id="loginPassword" placeholder="كلمة المرور">
   <button onclick="enter()">دخول</button>
@@ -41,58 +57,193 @@
 <div class="app" id="app">
   <div class="header">Smart Kids Lab</div>
   <div class="grid">
+    <div class="icon"><div class="circle">ℹ️</div><div class="label">من نحن</div></div>
+    <div class="icon"><a href="https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform" target="_self" style="text-decoration:none;color:inherit;"><div class="circle">📝</div><div class="label">انخرط</div></a></div>
+    <div class="icon"><div class="circle">📚</div><div class="label">تعلم</div></div>
     <div class="icon" id="balanceIcon"><div class="circle">💰</div><div class="label">رصيدك</div></div>
+    <div class="icon"><div class="circle">🎯</div><div class="label">المهام</div></div>
+    <div class="icon"><div class="circle">🧠</div><div class="label">اختبر مكتسباتك</div></div>
+    <div class="icon"><div class="circle">⭐</div><div class="label">اجمع النقاط</div></div>
     <div class="icon" id="membersIcon"><div class="circle">👥</div><div class="label">المنخرطون</div></div>
+    <div class="icon"><div class="circle">🖼️</div><div class="label">معرض الصور</div></div>
+    <div class="icon"><div class="circle">🔎</div><div class="label">البحث</div></div>
+    <div class="icon"><div class="circle">🏆</div><div class="label">جدول الترتيب</div></div>
+    <div class="icon"><div class="circle">🥇</div><div class="label">تصنيفات وشارات</div></div>
+    <div class="icon"><div class="circle">📅</div><div class="label">البرنامج العام</div></div>
   </div>
 </div>
 
+<!-- بطاقة الرصيد -->
 <div class="digital-card" id="digitalCard">
+  <div class="digits" id="digitContainer"></div>
   <h3>💳 بطاقة رصيدك</h3>
   <div class="card-info" id="cardInfo">
     <div>الاسم: <span id="cardName"></span></div>
     <div>النقاط: <span id="cardPoints"></span></div>
+    <div>الرصيد: <span id="cardBalance"></span> دج</div>
     <button onclick="closeCard()">رجوع</button>
   </div>
 </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBWULfRuzxilJlC__ZJT54M-7dAq_7SnzA",
-    authDomain: "smart-kids-lap-1ca13.firebaseapp.com",
-    projectId: "smart-kids-lap-1ca13",
-    storageBucket: "smart-kids-lap-1ca13.firebasestorage.app",
-    messagingSenderId: "270026186495",
-    appId: "1:270026186495:web:5ab677b0ee896d0c8076ca",
-    measurementId: "G-203K24X70Y"
-  };
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
+<!-- بطاقة المنخرطون -->
+<div class="digital-card" id="membersCard">
+  <h3>👥 قائمة المنخرطون</h3>
+  <div class="card-info" id="membersInfo" style="display:flex;flex-direction:column;gap:12px;max-height:350px;overflow-y:auto;"></div>
+  <button onclick="closeMembers()">رجوع</button>
+</div>
 
 <script>
-  function showLoadingBar(callback){
-    const bar=document.getElementById("loadingBar"); let width=0;
-    bar.style.width="0%"; document.getElementById("loadingBarContainer").style.display="block";
-    const interval=setInterval(()=>{width+=5; bar.style.width=width+"%"; if(width>=100){clearInterval(interval); document.getElementById("loadingBarContainer").style.display="none"; callback();}},30);
-  }
+// نقاط المستخدم
+let points = 0;
+const pointsCounter = document.createElement("div");
+pointsCounter.className = "points-counter";
+document.body.appendChild(pointsCounter);
+function updatePointsDisplay(){pointsCounter.innerText = "النقاط: " + points;}
 
-  async function enter(){
-    showLoadingBar(()=>{
-      document.getElementById("login").style.display="none";
-      document.getElementById("app").style.display="block";
-    });
-  }
+// شريط التحميل
+function showLoadingBar(callback){
+  const bar=document.getElementById("loadingBar"); let width=0;
+  bar.style.width="0%"; document.getElementById("loadingBarContainer").style.display="block";
+  const interval=setInterval(()=>{width+=2; bar.style.width=width+"%"; if(width>=100){clearInterval(interval); document.getElementById("loadingBarContainer").style.display="none"; callback();}},40);
+}
 
-  document.getElementById("balanceIcon").onclick = () => {
-    document.getElementById("digitalCard").classList.add("show");
+// تسجيل الدخول
+async function enter(){
+  const email=document.getElementById("loginEmail").value.trim();
+  const password=document.getElementById("loginPassword").value.trim();
+  if(!email||!password){alert("الرجاء ملء الحقلين."); return;}
+  showLoadingBar(async ()=>{
+    document.getElementById("login").style.display="none";
+    document.getElementById("app").style.display="block";
+    pointsCounter.style.display="block";
+    const csvUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
+    try{
+      const response=await fetch(csvUrl); const data=await response.text();
+      const rows=data.split('\n');
+      for(let i=1;i<rows.length;i++){
+        const cols=rows[i].split(',');
+        if(cols[1] && cols[1].trim().toLowerCase()===email.toLowerCase()){
+          const name=cols[2]||"منخرط";
+          points=parseInt(cols[33].replace(/\D/g,''))||0;
+          document.getElementById("cardName").innerText=name;
+          document.getElementById("cardPoints").innerText=points;
+          document.getElementById("cardBalance").innerText=((points/50)*30).toFixed(2);
+          updatePointsDisplay(); break;
+        }
+      }
+    }catch(e){console.error(e);}
+  });
+}
+
+// بطاقة الرصيد
+const balanceIcon=document.getElementById("balanceIcon");
+const digitalCard=document.getElementById("digitalCard");
+const goldSound=new Audio("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3");
+
+balanceIcon.addEventListener("click",function(){
+  if(!digitalCard.classList.contains("show")){
+    digitalCard.classList.add("show");
     document.getElementById("cardInfo").style.display="flex";
-  };
-  
-  function closeCard(){ document.getElementById("digitalCard").classList.remove("show"); }
+    createDigits(); startCoins();
+  } else closeCard();
+});
+function closeCard(){
+  document.getElementById("cardInfo").style.display="none";
+  document.getElementById("digitContainer").innerHTML="";
+  const coins=digitalCard.querySelectorAll(".coin3d,.gold-glow"); coins.forEach(c=>c.remove());
+  digitalCard.classList.remove("show");
+}
+function createDigits(){
+  const container=document.getElementById("digitContainer");
+  for(let i=0;i<30;i++){
+    const span=document.createElement("span");
+    span.innerText=Math.floor(Math.random()*10);
+    span.style.left=Math.random()*100+"%";
+    span.style.animationDuration=(Math.random()*3+2)+"s";
+    container.appendChild(span);
+  }
+}
+function startCoins(){
+  if(!digitalCard.querySelector(".gold-glow")){
+    let glow=document.createElement("div"); glow.className="gold-glow"; digitalCard.appendChild(glow);
+  }
+  for(let i=0;i<12;i++){
+    let coin=document.createElement("div"); coin.className="coin3d"; coin.innerHTML="🪙";
+    coin.style.left=Math.random()*100+"%"; coin.style.animationDuration=(2+Math.random()*2)+"s";
+    digitalCard.appendChild(coin);
+  }
+  goldSound.play();
+}
+
+// المنخرطون
+const membersIcon=document.getElementById("membersIcon");
+const membersCard=document.getElementById("membersCard");
+const membersInfo=document.getElementById("membersInfo");
+
+// الصور الافتراضية
+const defaultChild="https://i.ibb.co/7p1rHfL/child.png"; 
+const defaultGirl="https://i.ibb.co/0F9GbM2/girl.png"; 
+const defaultYoungMan="https://i.ibb.co/Y0m1bN6/man.png"; 
+const defaultYoungWoman="https://i.ibb.co/0YkLkYB/woman.png"; 
+
+membersIcon.addEventListener("click",async function(){
+  if(!membersCard.classList.contains("show")){
+    membersCard.classList.add("show");
+    membersInfo.innerHTML="<div style='text-align:center;font-weight:bold;padding:20px;'>جاري التحميل...</div>";
+    const csvUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
+    try{
+      const response=await fetch(csvUrl); const data=await response.text();
+      const rows=data.split('\n'); membersInfo.innerHTML="";
+      for(let i=1;i<rows.length;i++){
+        const cols=rows[i].split(',');
+        const name=cols[2]||"منخرط";
+        const dob=cols[3]?new Date(cols[3]):null;
+        let age=dob?new Date().getFullYear()-dob.getFullYear():0;
+        const gender=(cols[4]||"ذكر").toLowerCase();
+        const div=document.createElement("div");
+        div.style.display="flex"; div.style.alignItems="center"; div.style.gap="12px"; div.style.padding="10px";
+        div.style.background="rgba(255,255,255,0.1)"; div.style.borderRadius="12px"; div.style.marginBottom="8px";
+        const imgEl=document.createElement("img");
+        if(age<=15){
+          imgEl.src = (gender==="أنثى"||gender==="female")?defaultGirl:defaultChild;
+        } else if(age<=25){
+          imgEl.src = (gender==="أنثى"||gender==="female")?defaultYoungWoman:defaultYoungMan;
+        } else {
+          imgEl.src = (gender==="أنثى"||gender==="female")?defaultYoungWoman:defaultYoungMan;
+        }
+        imgEl.alt=name; imgEl.style.width="50px"; imgEl.style.height="50px"; imgEl.style.borderRadius="50%"; imgEl.style.objectFit="cover";
+        const textDiv=document.createElement("div"); textDiv.style.display="flex"; textDiv.style.flexDirection="column"; textDiv.style.justifyContent="center";const nameDiv = document.createElement("div");
+nameDiv.innerText = name;
+nameDiv.style.fontWeight = "bold";
+nameDiv.style.color = "#FFD700";
+
+const ageDiv = document.createElement("div");
+ageDiv.innerText = age + " سنة";
+ageDiv.style.color = "#ffffff";
+ageDiv.style.fontSize = "14px";
+
+textDiv.appendChild(nameDiv);
+textDiv.appendChild(ageDiv);
+
+div.appendChild(imgEl);
+div.appendChild(textDiv);
+
+membersInfo.appendChild(div);
+}
+} catch(e){
+membersInfo.innerHTML="<div style='text-align:center;color:red;'>فشل تحميل البيانات</div>";
+console.error(e);
+}
+} else {
+closeMembers();
+}
+});
+
+function closeMembers(){
+membersCard.classList.remove("show");
+membersInfo.innerHTML="";
+}
 </script>
 </body>
 </html>
-
+        
