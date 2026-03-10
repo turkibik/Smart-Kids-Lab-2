@@ -21,7 +21,7 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 .circle{width:85px;height:85px;border-radius:50%;background:rgba(255,255,255,0.35);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 10px 25px rgba(0,0,0,0.25);transition:0.3s;}
 .circle:hover{transform:scale(1.15);}
 .label{margin-top:8px;font-weight:bold;}
-.digital-card{display:none;margin-top:15px;width:320px;border-radius:25px;background: rgba(255, 215, 0, 0.15);backdrop-filter: blur(18px);color: #0b3c5d;padding:25px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.5);transform: translateY(50px);opacity:0;transition: all 0.5s ease;position:absolute;left:50%;transform:translate(-50%,50px);z-index:9999;overflow:hidden;}
+.digital-card{display:none;margin-top:15px;width:90%;max-width:600px;border-radius:25px;background: rgba(255, 215, 0, 0.15);backdrop-filter: blur(18px);color: #0b3c5d;padding:25px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.5);transform: translateY(50px);opacity:0;transition: all 0.5s ease;position:absolute;left:50%;transform:translate(-50%,50px);z-index:9999;overflow:hidden;}
 .digital-card.show{display:block;transform:translate(-50%,0);opacity:1;}
 .digital-card.show::before{content:"";position:absolute;top:0;left:0;width:100%;height:100%;border-radius:25px;box-shadow:0 0 20px 4px rgba(255,215,0,0.6),0 0 50px 12px rgba(255,215,0,0.3) inset;pointer-events:none;animation:glow 2s infinite alternate;}
 @keyframes glow{0%{box-shadow:0 0 10px 2px rgba(255,215,0,0.4),0 0 30px 6px rgba(255,215,0,0.2) inset;}100%{box-shadow:0 0 25px 6px rgba(255,215,0,0.7),0 0 60px 14px rgba(255,215,0,0.35) inset;}}
@@ -40,6 +40,15 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 @keyframes goldPulse{0%{opacity:.4;transform:scale(1)}50%{opacity:.8;transform:scale(1.05)}100%{opacity:.4;transform:scale(1)}}
 .coin3d{position:absolute;top:-30px;font-size:18px;animation:coinFall linear infinite;}
 @keyframes coinFall{0%{transform:translateY(-30px) rotateX(0deg) rotateY(0deg);opacity:1}100%{transform:translateY(250px) rotateX(360deg) rotateY(360deg);opacity:0}}
+
+/* جدول الترتيب */
+.table-ranking {border-collapse: collapse; width: 100%; background: #0b1f3b; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.5); margin-top:20px;}
+.table-ranking th, .table-ranking td {padding: 12px 15px; text-align: center;}
+.table-ranking th {background: linear-gradient(90deg, #0f9b0f, #e52d27); color: #fff; font-size: 16px;}
+.table-ranking tr:nth-child(even) {background: rgba(255,255,255,0.05);}
+.table-ranking tr:hover {background: rgba(255,255,255,0.15);}
+.rank-number {font-weight: bold; color: #FFD700;}
+.points-cell {font-weight:bold; color:#0ff;}
 </style>
 </head>
 <body>
@@ -66,8 +75,7 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
     <div class="icon"><div class="circle">⭐</div><div class="label">اجمع النقاط</div></div>
     <div class="icon" id="membersIcon"><div class="circle">👥</div><div class="label">المنخرطون</div></div>
     <div class="icon"><div class="circle">🖼️</div><div class="label">معرض الصور</div></div>
-    <div class="icon"><div class="circle">🔎</div><div class="label">البحث</div></div>
-    <div class="icon"><div class="circle">🏆</div><div class="label">جدول الترتيب</div></div>
+    <div class="icon" id="rankingIcon"><div class="circle">🏆</div><div class="label">جدول الترتيب</div></div>
     <div class="icon"><div class="circle">🥇</div><div class="label">تصنيفات وشارات</div></div>
     <div class="icon"><div class="circle">📅</div><div class="label">البرنامج العام</div></div>
   </div>
@@ -90,6 +98,13 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
   <h3>👥 قائمة المنخرطون</h3>
   <div class="card-info" id="membersInfo" style="display:flex;flex-direction:column;gap:12px;max-height:350px;overflow-y:auto;"></div>
   <button onclick="closeMembers()">رجوع</button>
+</div>
+
+<!-- بطاقة جدول الترتيب -->
+<div class="digital-card" id="rankingCard">
+  <h3>🏆 جدول الترتيب - أقل من 15 سنة</h3>
+  <div class="card-info" id="rankingInfo" style="display:flex;flex-direction:column;gap:12px;max-height:350px;overflow-y:auto;"></div>
+  <button onclick="closeRanking()">رجوع</button>
 </div>
 
 <script>
@@ -212,38 +227,69 @@ membersIcon.addEventListener("click",async function(){
           imgEl.src = (gender==="أنثى"||gender==="female")?defaultYoungWoman:defaultYoungMan;
         }
         imgEl.alt=name; imgEl.style.width="50px"; imgEl.style.height="50px"; imgEl.style.borderRadius="50%"; imgEl.style.objectFit="cover";
-        const textDiv=document.createElement("div"); textDiv.style.display="flex"; textDiv.style.flexDirection="column"; textDiv.style.justifyContent="center";const nameDiv = document.createElement("div");
-nameDiv.innerText = name;
-nameDiv.style.fontWeight = "bold";
-nameDiv.style.color = "#FFD700";
-
-const ageDiv = document.createElement("div");
-ageDiv.innerText = age + " سنة";
-ageDiv.style.color = "#ffffff";
-ageDiv.style.fontSize = "14px";
-
-textDiv.appendChild(nameDiv);
-textDiv.appendChild(ageDiv);
-
-div.appendChild(imgEl);
-div.appendChild(textDiv);
-
-membersInfo.appendChild(div);
-}
-} catch(e){
-membersInfo.innerHTML="<div style='text-align:center;color:red;'>فشل تحميل البيانات</div>";
-console.error(e);
-}
-} else {
-closeMembers();
-}
+        const textDiv=document.createElement("div"); textDiv.style.display="flex"; textDiv.style.flexDirection="column"; textDiv.style.justifyContent="center";
+        const nameDiv=document.createElement("div"); nameDiv.innerText=name; nameDiv.style.fontWeight="bold"; nameDiv.style.color="#FFD700";
+        const ageDiv=document.createElement("div"); ageDiv.innerText=age + " سنة"; ageDiv.style.color="#ffffff"; ageDiv.style.fontSize="14px";
+        textDiv.appendChild(nameDiv); textDiv.appendChild(ageDiv);
+        div.appendChild(imgEl); div.appendChild(textDiv);
+        membersInfo.appendChild(div);
+      }
+    } catch(e){
+      membersInfo.innerHTML="<div style='text-align:center;color:red;'>فشل تحميل البيانات</div>";
+      console.error(e);
+    }
+  } else closeMembers();
 });
 
 function closeMembers(){
-membersCard.classList.remove("show");
-membersInfo.innerHTML="";
+  membersCard.classList.remove("show");
+  membersInfo.innerHTML="";
+}
+
+// جدول الترتيب
+const rankingIcon = document.getElementById("rankingIcon");
+const rankingCard = document.getElementById("rankingCard");
+const rankingInfo = document.getElementById("rankingInfo");
+
+rankingIcon.addEventListener("click", async function() {
+  if(!rankingCard.classList.contains("show")) {
+    rankingCard.classList.add("show");
+    rankingInfo.innerHTML="<div style='text-align:center;font-weight:bold;padding:20px;'>جاري التحميل...</div>";
+    const csvUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
+    try {
+      const response = await fetch(csvUrl);
+      const data = await response.text();
+      const rows = data.split('\n').slice(1);
+      // تصفية أقل من 15 سنة
+      const under15 = [];
+      rows.forEach((row) => {
+        const cols = row.split(',');
+        const name = cols[2] || "منخرط";
+        const dob = cols[3] ? new Date(cols[3]) : null;
+        const age = dob ? new Date().getFullYear() - dob.getFullYear() : 0;
+        const points = parseInt((cols[33] || '0').replace(/\D/g,'')) || 0;
+        if(age < 15) under15.push({name, points});
+      });
+      // ترتيب تنازلي حسب النقاط
+      under15.sort((a,b)=>b.points - a.points);
+      // بناء الجدول
+      let tableHtml = '<table class="table-ranking"><thead><tr><th>رقم</th><th>الاسم واللقب</th><th>ن</th></tr></thead><tbody>';
+      under15.forEach((item,index)=>{
+        tableHtml += `<tr><td class="rank-number">${index+1}</td><td>${item.name}</td><td class="points-cell">${item.points}</td></tr>`;
+      });
+      tableHtml += '</tbody></table>';
+      rankingInfo.innerHTML = tableHtml;
+    } catch(e) {
+      rankingInfo.innerHTML="<div style='text-align:center;color:red;'>فشل تحميل جدول الترتيب</div>";
+      console.error(e);
+    }
+  } else closeRanking();
+});
+
+function closeRanking(){
+  rankingCard.classList.remove("show");
+  rankingInfo.innerHTML="";
 }
 </script>
 </body>
 </html>
-        
