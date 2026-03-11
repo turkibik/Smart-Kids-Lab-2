@@ -74,7 +74,7 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
     <div class="icon"><div class="circle">🧠</div><div class="label">اختبر مكتسباتك</div></div>
     <div class="icon"><div class="circle">⭐</div><div class="label">اجمع النقاط</div></div>
     <div class="icon" id="membersIcon"><div class="circle">👥</div><div class="label">المنخرطون</div></div>
-    <div class="icon"><div class="circle">🖼️</div><div class="label">معرض الصور</div></div>
+    <div class="icon" id="galleryIcon"><div class="circle">🖼️</div><div class="label">معرض الصور</div></div>
     <div class="icon" id="rankingIcon"><div class="circle">🏆</div><div class="label">جدول الترتيب</div></div>
     <div class="icon"><div class="circle">🥇</div><div class="label">تصنيفات وشارات</div></div>
     <div class="icon"><div class="circle">📅</div><div class="label">البرنامج العام</div></div>
@@ -108,21 +108,17 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 </div>
 
 <script>
-// نقاط المستخدم
+// ----------- كود النقاط والشريط والتسجيل -------------
 let points = 0;
 const pointsCounter = document.createElement("div");
 pointsCounter.className = "points-counter";
 document.body.appendChild(pointsCounter);
 function updatePointsDisplay(){pointsCounter.innerText = "النقاط: " + points;}
-
-// شريط التحميل
 function showLoadingBar(callback){
   const bar=document.getElementById("loadingBar"); let width=0;
   bar.style.width="0%"; document.getElementById("loadingBarContainer").style.display="block";
   const interval=setInterval(()=>{width+=2; bar.style.width=width+"%"; if(width>=100){clearInterval(interval); document.getElementById("loadingBarContainer").style.display="none"; callback();}},40);
 }
-
-// تسجيل الدخول
 async function enter(){
   const email=document.getElementById("loginEmail").value.trim();
   const password=document.getElementById("loginPassword").value.trim();
@@ -150,7 +146,7 @@ async function enter(){
   });
 }
 
-// بطاقة الرصيد
+// ----------- بطاقة الرصيد -------------
 const balanceIcon=document.getElementById("balanceIcon");
 const digitalCard=document.getElementById("digitalCard");
 const goldSound=new Audio("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3");
@@ -190,12 +186,10 @@ function startCoins(){
   goldSound.play();
 }
 
-// المنخرطون
+// ----------- المنخرطون -------------
 const membersIcon=document.getElementById("membersIcon");
 const membersCard=document.getElementById("membersCard");
 const membersInfo=document.getElementById("membersInfo");
-
-// الصور الافتراضية
 const defaultChild="https://i.ibb.co/7p1rHfL/child.png"; 
 const defaultGirl="https://i.ibb.co/0F9GbM2/girl.png"; 
 const defaultYoungMan="https://i.ibb.co/Y0m1bN6/man.png"; 
@@ -246,7 +240,7 @@ function closeMembers(){
   membersInfo.innerHTML="";
 }
 
-// جدول الترتيب
+// ----------- جدول الترتيب -------------
 const rankingIcon = document.getElementById("rankingIcon");
 const rankingCard = document.getElementById("rankingCard");
 const rankingInfo = document.getElementById("rankingInfo");
@@ -260,7 +254,6 @@ rankingIcon.addEventListener("click", async function() {
       const response = await fetch(csvUrl);
       const data = await response.text();
       const rows = data.split('\n').slice(1);
-      // تصفية أقل من 15 سنة
       const under15 = [];
       rows.forEach((row) => {
         const cols = row.split(',');
@@ -270,9 +263,7 @@ rankingIcon.addEventListener("click", async function() {
         const points = parseInt((cols[33] || '0').replace(/\D/g,'')) || 0;
         if(age < 15) under15.push({name, points});
       });
-      // ترتيب تنازلي حسب النقاط
       under15.sort((a,b)=>b.points - a.points);
-      // بناء الجدول
       let tableHtml = '<table class="table-ranking"><thead><tr><th>رقم</th><th>الاسم واللقب</th><th>ن</th></tr></thead><tbody>';
       under15.forEach((item,index)=>{
         tableHtml += `<tr><td class="rank-number">${index+1}</td><td>${item.name}</td><td class="points-cell">${item.points}</td></tr>`;
@@ -290,6 +281,12 @@ function closeRanking(){
   rankingCard.classList.remove("show");
   rankingInfo.innerHTML="";
 }
+
+// ----------- معرض الصور مرتبط بـ Google Drive -------------
+const galleryIcon = document.getElementById("galleryIcon");
+galleryIcon.addEventListener("click", function(){
+  window.open("https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3", "_blank");
+});
 </script>
 </body>
 </html>
