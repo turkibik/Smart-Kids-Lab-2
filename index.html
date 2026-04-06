@@ -11,8 +11,8 @@ body{height:100vh;background:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),ur
 .login{width:90%;max-width:420px;background:rgba(255,255,255,0.25);backdrop-filter:blur(15px);border-radius:25px;padding:35px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);color:white;}
 .title{font-size:30px;font-weight:900;}
 .subtitle{margin-top:10px;margin-bottom:25px;}
-input{width:100%;padding:13px;margin:8px 0;border-radius:10px;border:none;}
-button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;font-size:16px;background:linear-gradient(45deg,#0f9b0f,#e52d27);color:white;cursor:pointer;}
+input{width:100%;padding:13px;margin:8px 0;border-radius:10px;border:none;outline:none;}
+button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;font-size:16px;background:linear-gradient(45deg,#0f9b0f,#e52d27);color:white;cursor:pointer;font-weight:bold;}
 .app{width:100%;height:100%;position:absolute;top:0;left:0;overflow:auto;padding:20px;display:none;background:linear-gradient(to bottom,#0f9b0f,#ffffff,#e52d27);background-size:100% 400%;animation:bgMove 8s linear infinite;}
 @keyframes bgMove{0%{background-position:0% 0%;}50%{background-position:0% 100%;}100%{background-position:0% 0%;}}
 .header{text-align:center;font-size:24px;font-weight:900;margin-bottom:30px;}
@@ -32,7 +32,7 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 .card-info button{background:#0b1f3b;color:#FFD700;padding:10px 18px;border-radius:15px;font-weight:bold;cursor:pointer;border:1px solid #FFD700;margin-top:10px;}
 .card-info button:hover{transform:scale(1.05);box-shadow:0 0 15px #FFD700;}
 .points-counter{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:#FFD700;padding:8px 12px;border-radius:10px;font-weight:bold;z-index:9999;font-size:16px;display:none;}
-#loadingBarContainer{position:fixed;bottom:0;left:0;width:100%;height:12px;background:#333;}
+#loadingBarContainer{position:fixed;bottom:0;left:0;width:100%;height:12px;background:#333;display:none;}
 #loadingBar{width:0%;height:100%;background:linear-gradient(90deg,#0f9b0f,#fff,#e52d27);transition:width 0.05s;}
 .digits span{position:absolute;top:-20px;font-size:12px;color:rgba(255,215,0,0.7);animation: floatDigits linear infinite;}
 @keyframes floatDigits{0%{transform:translateY(0);}100%{transform:translateY(350px);}}
@@ -47,16 +47,22 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 .table-ranking tr:hover {background: rgba(255,255,255,0.15);}
 .rank-number {font-weight: bold; color: #FFD700;}
 .points-cell {font-weight:bold; color:#0ff;}
+.switch-account {margin-top:15px; font-size:12px; color:#ddd; cursor:pointer; text-decoration:underline; display:none;}
 </style>
 </head>
 <body>
 
 <div class="login" id="login">
   <div class="title">Smart Kids Lab</div>
-  <div class="subtitle">مختبر الشباب للذكاء والتعلم والإبداع</div>
-  <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
-  <input type="password" id="loginPassword" placeholder="كلمة المرور">
-  <button onclick="enter()">دخول</button>
+  <div class="subtitle" id="loginSubtitle">مختبر الشباب للذكاء والتعلم والإبداع</div>
+  
+  <div id="authFields">
+    <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
+    <input type="password" id="loginPassword" placeholder="كلمة المرور">
+  </div>
+  
+  <button onclick="handleAuthAction()" id="authBtn">دخول</button>
+  <div class="switch-account" id="switchAcc" onclick="clearSavedData()">الدخول بحساب آخر (إيميل)</div>
 </div>
 
 <div id="loadingBarContainer"><div id="loadingBar"></div></div>
@@ -103,7 +109,6 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 </div>
 
 <script>
-// الإعدادات العامة والروابط
 const dataUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?gid=1973938037&single=true&output=csv';
 let points = 0;
 const goldSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3");
@@ -112,6 +117,34 @@ const goldSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2000/20
 const pointsCounter = document.createElement("div");
 pointsCounter.className = "points-counter";
 document.body.appendChild(pointsCounter);
+
+// فحص الحالة عند التحميل
+window.onload = function() {
+  const savedName = localStorage.getItem("sklab_user_name");
+  if(savedName) {
+    showNameOnlyMode(savedName);
+  }
+};
+
+function showNameOnlyMode(name) {
+  document.getElementById("loginSubtitle").innerText = "أهلاً بك مجدداً!";
+  document.getElementById("authFields").innerHTML = `<input type="text" id="loginNameOnly" value="${name}" placeholder="اسم المنخرط">`;
+  document.getElementById("switchAcc").style.display = "block";
+}
+
+function clearSavedData() {
+  localStorage.removeItem("sklab_user_name");
+  location.reload();
+}
+
+function handleAuthAction() {
+  const savedName = localStorage.getItem("sklab_user_name");
+  if(savedName) {
+    enterWithNameOnly();
+  } else {
+    enter();
+  }
+}
 
 function updatePointsDisplay(){
   pointsCounter.innerText = "النقاط: " + points;
@@ -123,7 +156,7 @@ function showLoadingBar(callback){
   const interval=setInterval(()=>{width+=2; bar.style.width=width+"%"; if(width>=100){clearInterval(interval); document.getElementById("loadingBarContainer").style.display="none"; callback();}},40);
 }
 
-// دالة الدخول (التعديل الأساسي هنا)
+// دخول أول مرة (إيميل)
 async function enter(){
   const email=document.getElementById("loginEmail").value.trim().toLowerCase();
   const password=document.getElementById("loginPassword").value.trim();
@@ -139,41 +172,58 @@ async function enter(){
       for(let i=1; i<rows.length; i++){
         const cols = rows[i].split(',');
         if(cols[1] && cols[1].trim().toLowerCase() === email){
-          // جلب البيانات من الملف الجديد
           let name = cols[2] ? cols[2].replace(/"/g, '').trim() : "منخرط";
-          // النقاط في آخر عمود دائماً
+          localStorage.setItem("sklab_user_name", name); // حفظ الاسم
           points = parseInt((cols[cols.length - 1] || '0').replace(/\D/g,'')) || 0;
-          
-          // تحديث الواجهة والعداد العلوي
-          document.getElementById("cardName").innerText = name;
-          document.getElementById("cardPoints").innerText = points;
-          
-          // عملية التحويل: 50 نقطة = 30 دج
-          const balanceValue = ((points / 50) * 30).toFixed(2);
-          document.getElementById("cardBalance").innerText = balanceValue;
-          
-          updatePointsDisplay();
+          setupApp(name, points);
           found = true;
           break;
         }
       }
-
-      if(found){
-        document.getElementById("login").style.display="none";
-        document.getElementById("app").style.display="block";
-        pointsCounter.style.display="block";
-      } else {
-        alert("البريد الإلكتروني غير موجود في قاعدة البيانات.");
-        location.reload();
-      }
-    }catch(e){
-      console.error(e);
-      alert("حدث خطأ أثناء جلب البيانات.");
-    }
+      if(!found){ alert("البريد الإلكتروني غير موجود."); location.reload(); }
+    }catch(e){ alert("حدث خطأ في الاتصال."); }
   });
 }
 
-// أيقونة الرصيد
+// دخول المرات القادمة (اسم فقط)
+async function enterWithNameOnly() {
+  const inputName = document.getElementById("loginNameOnly").value.trim();
+  if(!inputName) {alert("يرجى إدخال الاسم"); return;}
+
+  showLoadingBar(async () => {
+    try {
+      const response = await fetch(dataUrl);
+      const data = await response.text();
+      const rows = data.split('\n');
+      let found = false;
+
+      for(let i=1; i<rows.length; i++) {
+        const cols = rows[i].split(',');
+        let nameInSheet = cols[2] ? cols[2].replace(/"/g, '').trim() : "";
+        if(nameInSheet === inputName) {
+          points = parseInt((cols[cols.length - 1] || '0').replace(/\D/g,'')) || 0;
+          setupApp(nameInSheet, points);
+          found = true;
+          break;
+        }
+      }
+      if(!found) alert("الاسم غير موجود، جرب الدخول بالإيميل.");
+    } catch(e) { alert("خطأ في تحديث البيانات."); }
+  });
+}
+
+function setupApp(name, pts) {
+  document.getElementById("cardName").innerText = name;
+  document.getElementById("cardPoints").innerText = pts;
+  const balanceValue = ((pts / 50) * 30).toFixed(2);
+  document.getElementById("cardBalance").innerText = balanceValue;
+  updatePointsDisplay();
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
+  pointsCounter.style.display="block";
+}
+
+// أيقونات ووظائف التطبيق
 const balanceIcon=document.getElementById("balanceIcon");
 const digitalCard=document.getElementById("digitalCard");
 
@@ -215,7 +265,6 @@ function startCoins(){
   goldSound.play();
 }
 
-// المنخرطون (رابط البيانات الأصلي كما طلبت)
 const membersIcon=document.getElementById("membersIcon");
 const membersCard=document.getElementById("membersCard");
 const membersInfo=document.getElementById("membersInfo");
@@ -251,7 +300,6 @@ membersIcon.addEventListener("click",async function(){
 
 function closeMembers(){membersCard.classList.remove("show");}
 
-// جدول الترتيب
 const rankingIcon = document.getElementById("rankingIcon");
 const rankingCard = document.getElementById("rankingCard");
 const rankingInfo = document.getElementById("rankingInfo");
@@ -290,4 +338,3 @@ document.getElementById("galleryIcon").addEventListener("click", ()=>window.open
 </script>
 </body>
 </html>
-
