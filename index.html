@@ -40,8 +40,6 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 @keyframes goldPulse{0%{opacity:.4;transform:scale(1)}50%{opacity:.8;transform:scale(1.05)}100%{opacity:.4;transform:scale(1)}}
 .coin3d{position:absolute;top:-30px;font-size:18px;animation:coinFall linear infinite;}
 @keyframes coinFall{0%{transform:translateY(-30px) rotateX(0deg) rotateY(0deg);opacity:1}100%{transform:translateY(250px) rotateX(360deg) rotateY(360deg);opacity:0}}
-
-/* جدول الترتيب */
 .table-ranking {border-collapse: collapse; width: 100%; background: #0b1f3b; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.5); margin-top:20px;}
 .table-ranking th, .table-ranking td {padding: 12px 15px; text-align: center;}
 .table-ranking th {background: linear-gradient(90deg, #0f9b0f, #e52d27); color: #fff; font-size: 16px;}
@@ -105,48 +103,79 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 </div>
 
 <script>
-// ----------- كود النقاط والشريط والتسجيل (الأصلي) -------------
+// الإعدادات العامة والروابط
+const dataUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?gid=1973938037&single=true&output=csv';
 let points = 0;
+const goldSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3");
+
+// عداد النقاط العلوي
 const pointsCounter = document.createElement("div");
 pointsCounter.className = "points-counter";
 document.body.appendChild(pointsCounter);
-function updatePointsDisplay(){pointsCounter.innerText = "النقاط: " + points;}
+
+function updatePointsDisplay(){
+  pointsCounter.innerText = "النقاط: " + points;
+}
+
 function showLoadingBar(callback){
   const bar=document.getElementById("loadingBar"); let width=0;
   bar.style.width="0%"; document.getElementById("loadingBarContainer").style.display="block";
   const interval=setInterval(()=>{width+=2; bar.style.width=width+"%"; if(width>=100){clearInterval(interval); document.getElementById("loadingBarContainer").style.display="none"; callback();}},40);
 }
+
+// دالة الدخول (التعديل الأساسي هنا)
 async function enter(){
-  const email=document.getElementById("loginEmail").value.trim();
+  const email=document.getElementById("loginEmail").value.trim().toLowerCase();
   const password=document.getElementById("loginPassword").value.trim();
   if(!email||!password){alert("الرجاء ملء الحقلين."); return;}
+  
   showLoadingBar(async ()=>{
-    document.getElementById("login").style.display="none";
-    document.getElementById("app").style.display="block";
-    pointsCounter.style.display="block";
-    const csvUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
     try{
-      const response=await fetch(csvUrl); const data=await response.text();
-      const rows=data.split('\n');
-      for(let i=1;i<rows.length;i++){
-        const cols=rows[i].split(',');
-        if(cols[1] && cols[1].trim().toLowerCase()===email.toLowerCase()){
-          const name=cols[2]||"منخرط";
-          points=parseInt(cols[33].replace(/\D/g,''))||0;
-          document.getElementById("cardName").innerText=name;
-          document.getElementById("cardPoints").innerText=points;
-          document.getElementById("cardBalance").innerText=((points/50)*30).toFixed(2);
-          updatePointsDisplay(); break;
+      const response = await fetch(dataUrl); 
+      const data = await response.text();
+      const rows = data.split('\n');
+      let found = false;
+
+      for(let i=1; i<rows.length; i++){
+        const cols = rows[i].split(',');
+        if(cols[1] && cols[1].trim().toLowerCase() === email){
+          // جلب البيانات من الملف الجديد
+          let name = cols[2] ? cols[2].replace(/"/g, '').trim() : "منخرط";
+          // النقاط في آخر عمود دائماً
+          points = parseInt((cols[cols.length - 1] || '0').replace(/\D/g,'')) || 0;
+          
+          // تحديث الواجهة والعداد العلوي
+          document.getElementById("cardName").innerText = name;
+          document.getElementById("cardPoints").innerText = points;
+          
+          // عملية التحويل: 50 نقطة = 30 دج
+          const balanceValue = ((points / 50) * 30).toFixed(2);
+          document.getElementById("cardBalance").innerText = balanceValue;
+          
+          updatePointsDisplay();
+          found = true;
+          break;
         }
       }
-    }catch(e){console.error(e);}
+
+      if(found){
+        document.getElementById("login").style.display="none";
+        document.getElementById("app").style.display="block";
+        pointsCounter.style.display="block";
+      } else {
+        alert("البريد الإلكتروني غير موجود في قاعدة البيانات.");
+        location.reload();
+      }
+    }catch(e){
+      console.error(e);
+      alert("حدث خطأ أثناء جلب البيانات.");
+    }
   });
 }
 
-// ----------- بطاقة الرصيد (الأصلية) -------------
+// أيقونة الرصيد
 const balanceIcon=document.getElementById("balanceIcon");
 const digitalCard=document.getElementById("digitalCard");
-const goldSound=new Audio("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3");
 
 balanceIcon.addEventListener("click",function(){
   if(!digitalCard.classList.contains("show")){
@@ -155,12 +184,14 @@ balanceIcon.addEventListener("click",function(){
     createDigits(); startCoins();
   } else closeCard();
 });
+
 function closeCard(){
   document.getElementById("cardInfo").style.display="none";
   document.getElementById("digitContainer").innerHTML="";
   const coins=digitalCard.querySelectorAll(".coin3d,.gold-glow"); coins.forEach(c=>c.remove());
   digitalCard.classList.remove("show");
 }
+
 function createDigits(){
   const container=document.getElementById("digitContainer");
   for(let i=0;i<30;i++){
@@ -171,6 +202,7 @@ function createDigits(){
     container.appendChild(span);
   }
 }
+
 function startCoins(){
   if(!digitalCard.querySelector(".gold-glow")){
     let glow=document.createElement("div"); glow.className="gold-glow"; digitalCard.appendChild(glow);
@@ -183,22 +215,19 @@ function startCoins(){
   goldSound.play();
 }
 
-// ----------- المنخرطون (الأصلي) -------------
+// المنخرطون (رابط البيانات الأصلي كما طلبت)
 const membersIcon=document.getElementById("membersIcon");
 const membersCard=document.getElementById("membersCard");
 const membersInfo=document.getElementById("membersInfo");
-const defaultChild="https://i.ibb.co/7p1rHfL/child.png"; 
-const defaultGirl="https://i.ibb.co/0F9GbM2/girl.png"; 
-const defaultYoungMan="https://i.ibb.co/Y0m1bN6/man.png"; 
-const defaultYoungWoman="https://i.ibb.co/0YkLkYB/woman.png"; 
+const originalCsv = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
 
 membersIcon.addEventListener("click",async function(){
   if(!membersCard.classList.contains("show")){
     membersCard.classList.add("show");
-    membersInfo.innerHTML="<div style='text-align:center;font-weight:bold;padding:20px;'>جاري التحميل...</div>";
-    const csvUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
+    membersInfo.innerHTML="<div style='text-align:center;padding:20px;'>جاري التحميل...</div>";
     try{
-      const response=await fetch(csvUrl); const data=await response.text();
+      const response=await fetch(originalCsv); 
+      const data=await response.text();
       const rows=data.split('\n'); membersInfo.innerHTML="";
       for(let i=1;i<rows.length;i++){
         const cols=rows[i].split(',');
@@ -207,97 +236,57 @@ membersIcon.addEventListener("click",async function(){
         let age=dob?new Date().getFullYear()-dob.getFullYear():0;
         const gender=(cols[4]||"ذكر").toLowerCase();
         const div=document.createElement("div");
-        div.style.display="flex"; div.style.alignItems="center"; div.style.gap="12px"; div.style.padding="10px";
-        div.style.background="rgba(255,255,255,0.1)"; div.style.borderRadius="12px"; div.style.marginBottom="8px";
+        div.style.cssText="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(255,255,255,0.1);border-radius:12px;margin-bottom:8px;";
         const imgEl=document.createElement("img");
-        if(age<=15){
-          imgEl.src = (gender==="أنثى"||gender==="female")?defaultGirl:defaultChild;
-        } else if(age<=25){
-          imgEl.src = (gender==="أنثى"||gender==="female")?defaultYoungWoman:defaultYoungMan;
-        } else {
-          imgEl.src = (gender==="أنثى"||gender==="female")?defaultYoungWoman:defaultYoungMan;
-        }
-        imgEl.alt=name; imgEl.style.width="50px"; imgEl.style.height="50px"; imgEl.style.borderRadius="50%"; imgEl.style.objectFit="cover";
-        const textDiv=document.createElement("div"); textDiv.style.display="flex"; textDiv.style.flexDirection="column"; textDiv.style.justifyContent="center";
-        const nameDiv=document.createElement("div"); nameDiv.innerText=name; nameDiv.style.fontWeight="bold"; nameDiv.style.color="#FFD700";
-        const ageDiv=document.createElement("div"); ageDiv.innerText=age + " سنة"; ageDiv.style.color="#ffffff"; ageDiv.style.fontSize="14px";
-        textDiv.appendChild(nameDiv); textDiv.appendChild(ageDiv);
+        imgEl.src = (gender==="أنثى"||gender==="female") ? "https://i.ibb.co/0F9GbM2/girl.png" : "https://i.ibb.co/7p1rHfL/child.png";
+        imgEl.style.cssText="width:50px;height:50px;border-radius:50%;object-fit:cover;";
+        const textDiv=document.createElement("div");
+        textDiv.innerHTML=`<div style="font-weight:bold;color:#FFD700;">${name}</div><div style="color:#fff;font-size:14px;">${age} سنة</div>`;
         div.appendChild(imgEl); div.appendChild(textDiv);
         membersInfo.appendChild(div);
       }
-    } catch(e){
-      membersInfo.innerHTML="<div style='text-align:center;color:red;'>فشل تحميل البيانات</div>";
-      console.error(e);
-    }
+    } catch(e){membersInfo.innerHTML="خطأ في التحميل";}
   } else closeMembers();
 });
 
-function closeMembers(){
-  membersCard.classList.remove("show");
-  membersInfo.innerHTML="";
-}
+function closeMembers(){membersCard.classList.remove("show");}
 
-// ----------- جدول الترتيب (الرابط الجديد مع تصحيح الأسماء) -------------
+// جدول الترتيب
 const rankingIcon = document.getElementById("rankingIcon");
 const rankingCard = document.getElementById("rankingCard");
 const rankingInfo = document.getElementById("rankingInfo");
 
-// الرابط الجديد الذي زودتني به
-const newRankingCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?gid=1973938037&single=true&output=csv';
-
 rankingIcon.addEventListener("click", async function() {
   if(!rankingCard.classList.contains("show")) {
     rankingCard.classList.add("show");
-    rankingInfo.innerHTML="<div style='text-align:center;font-weight:bold;padding:20px;'>جاري التحميل...</div>";
-    
+    rankingInfo.innerHTML="<div style='text-align:center;padding:20px;'>جاري التحميل...</div>";
     try {
-      const response = await fetch(newRankingCsvUrl);
+      const response = await fetch(dataUrl);
       const data = await response.text();
       const rows = data.split('\n').filter(r => r.trim() !== "").slice(1);
       const rankingData = [];
-
       rows.forEach((row) => {
         const cols = row.split(',');
         if(cols.length > 2) {
-          // في الملف الجديد: cols[1] هو الإيميل، و cols[2] هو الاسم
           let name = cols[2] ? cols[2].replace(/"/g, '').trim() : "غير معروف";
-          
-          // حماية إضافية في حال كان الاسم في عمود مختلف
-          if (name.includes('@')) {
-             name = cols[3] ? cols[3].replace(/"/g, '').trim() : name;
-          }
-
-          const points = parseInt((cols[cols.length - 1] || '0').replace(/\D/g,'')) || 0;
-          if(name !== "" && name !== "الاسم واللقب") {
-              rankingData.push({name, points});
-          }
+          const pts = parseInt((cols[cols.length - 1] || '0').replace(/\D/g,'')) || 0;
+          if(name !== "" && !name.includes('@')) rankingData.push({name, pts});
         }
       });
-
-      rankingData.sort((a,b) => b.points - a.points);
-
+      rankingData.sort((a,b) => b.pts - a.pts);
       let tableHtml = '<table class="table-ranking"><thead><tr><th>رقم</th><th>الاسم واللقب</th><th>ن</th></tr></thead><tbody>';
       rankingData.forEach((item, index) => {
-        tableHtml += `<tr><td class="rank-number">${index+1}</td><td>${item.name}</td><td class="points-cell">${item.points}</td></tr>`;
+        tableHtml += `<tr><td class="rank-number">${index+1}</td><td>${item.name}</td><td class="points-cell">${item.pts}</td></tr>`;
       });
       tableHtml += '</tbody></table>';
       rankingInfo.innerHTML = tableHtml;
-    } catch(e) {
-      rankingInfo.innerHTML="<div style='text-align:center;color:red;'>فشل تحميل الجدول</div>";
-    }
+    } catch(e) {rankingInfo.innerHTML="فشل تحميل الجدول";}
   } else closeRanking();
 });
 
-function closeRanking(){
-  rankingCard.classList.remove("show");
-  rankingInfo.innerHTML="";
-}
+function closeRanking(){rankingCard.classList.remove("show");}
 
-const galleryIcon = document.getElementById("galleryIcon");
-galleryIcon.addEventListener("click", function(){
-  window.open("https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3", "_blank");
-});
+document.getElementById("galleryIcon").addEventListener("click", ()=>window.open("https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3", "_blank"));
 </script>
 </body>
 </html>
-
