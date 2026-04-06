@@ -81,7 +81,6 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
   </div>
 </div>
 
-<!-- بطاقة الرصيد -->
 <div class="digital-card" id="digitalCard">
   <div class="digits" id="digitContainer"></div>
   <h3>💳 بطاقة رصيدك</h3>
@@ -93,22 +92,20 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
   </div>
 </div>
 
-<!-- بطاقة المنخرطون -->
 <div class="digital-card" id="membersCard">
   <h3>👥 قائمة المنخرطون</h3>
   <div class="card-info" id="membersInfo" style="display:flex;flex-direction:column;gap:12px;max-height:350px;overflow-y:auto;"></div>
   <button onclick="closeMembers()">رجوع</button>
 </div>
 
-<!-- بطاقة جدول الترتيب -->
 <div class="digital-card" id="rankingCard">
-  <h3>🏆 جدول الترتيب - أقل من 15 سنة</h3>
+  <h3>🏆 جدول الترتيب العام</h3>
   <div class="card-info" id="rankingInfo" style="display:flex;flex-direction:column;gap:12px;max-height:350px;overflow-y:auto;"></div>
   <button onclick="closeRanking()">رجوع</button>
 </div>
 
 <script>
-// ----------- كود النقاط والشريط والتسجيل -------------
+// ----------- كود النقاط والشريط والتسجيل (الأصلي) -------------
 let points = 0;
 const pointsCounter = document.createElement("div");
 pointsCounter.className = "points-counter";
@@ -146,7 +143,7 @@ async function enter(){
   });
 }
 
-// ----------- بطاقة الرصيد -------------
+// ----------- بطاقة الرصيد (الأصلية) -------------
 const balanceIcon=document.getElementById("balanceIcon");
 const digitalCard=document.getElementById("digitalCard");
 const goldSound=new Audio("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3");
@@ -186,7 +183,7 @@ function startCoins(){
   goldSound.play();
 }
 
-// ----------- المنخرطون -------------
+// ----------- المنخرطون (الأصلي) -------------
 const membersIcon=document.getElementById("membersIcon");
 const membersCard=document.getElementById("membersCard");
 const membersInfo=document.getElementById("membersInfo");
@@ -240,39 +237,53 @@ function closeMembers(){
   membersInfo.innerHTML="";
 }
 
-// ----------- جدول الترتيب -------------
+// ----------- جدول الترتيب (الرابط الجديد مع تصحيح الأسماء) -------------
 const rankingIcon = document.getElementById("rankingIcon");
 const rankingCard = document.getElementById("rankingCard");
 const rankingInfo = document.getElementById("rankingInfo");
+
+// الرابط الجديد الذي زودتني به
+const newRankingCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?gid=1973938037&single=true&output=csv';
 
 rankingIcon.addEventListener("click", async function() {
   if(!rankingCard.classList.contains("show")) {
     rankingCard.classList.add("show");
     rankingInfo.innerHTML="<div style='text-align:center;font-weight:bold;padding:20px;'>جاري التحميل...</div>";
-    const csvUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
+    
     try {
-      const response = await fetch(csvUrl);
+      const response = await fetch(newRankingCsvUrl);
       const data = await response.text();
-      const rows = data.split('\n').slice(1);
-      const under15 = [];
+      const rows = data.split('\n').filter(r => r.trim() !== "").slice(1);
+      const rankingData = [];
+
       rows.forEach((row) => {
         const cols = row.split(',');
-        const name = cols[2] || "منخرط";
-        const dob = cols[3] ? new Date(cols[3]) : null;
-        const age = dob ? new Date().getFullYear() - dob.getFullYear() : 0;
-        const points = parseInt((cols[33] || '0').replace(/\D/g,'')) || 0;
-        if(age < 15) under15.push({name, points});
+        if(cols.length > 2) {
+          // في الملف الجديد: cols[1] هو الإيميل، و cols[2] هو الاسم
+          let name = cols[2] ? cols[2].replace(/"/g, '').trim() : "غير معروف";
+          
+          // حماية إضافية في حال كان الاسم في عمود مختلف
+          if (name.includes('@')) {
+             name = cols[3] ? cols[3].replace(/"/g, '').trim() : name;
+          }
+
+          const points = parseInt((cols[cols.length - 1] || '0').replace(/\D/g,'')) || 0;
+          if(name !== "" && name !== "الاسم واللقب") {
+              rankingData.push({name, points});
+          }
+        }
       });
-      under15.sort((a,b)=>b.points - a.points);
+
+      rankingData.sort((a,b) => b.points - a.points);
+
       let tableHtml = '<table class="table-ranking"><thead><tr><th>رقم</th><th>الاسم واللقب</th><th>ن</th></tr></thead><tbody>';
-      under15.forEach((item,index)=>{
+      rankingData.forEach((item, index) => {
         tableHtml += `<tr><td class="rank-number">${index+1}</td><td>${item.name}</td><td class="points-cell">${item.points}</td></tr>`;
       });
       tableHtml += '</tbody></table>';
       rankingInfo.innerHTML = tableHtml;
     } catch(e) {
-      rankingInfo.innerHTML="<div style='text-align:center;color:red;'>فشل تحميل جدول الترتيب</div>";
-      console.error(e);
+      rankingInfo.innerHTML="<div style='text-align:center;color:red;'>فشل تحميل الجدول</div>";
     }
   } else closeRanking();
 });
@@ -282,7 +293,6 @@ function closeRanking(){
   rankingInfo.innerHTML="";
 }
 
-// ----------- معرض الصور مرتبط بـ Google Drive -------------
 const galleryIcon = document.getElementById("galleryIcon");
 galleryIcon.addEventListener("click", function(){
   window.open("https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3", "_blank");
