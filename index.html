@@ -6,7 +6,6 @@
 <title>Next Leaders DZ</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-/* --- الكود الأساسي (بدون تغيير) --- */
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif;}
 body{height:100vh;background:linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),url("https://images.unsplash.com/photo-1588072432836-e10032774350");background-size:cover;background-position:center;display:flex;justify-content:center;align-items:center;color:white;overflow:auto;}
 .login{width:90%;max-width:420px;background:rgba(255,255,255,0.25);backdrop-filter:blur(15px);border-radius:25px;padding:35px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);color:white;}
@@ -17,142 +16,11 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 .app{width:100%;height:100%;position:absolute;top:0;left:0;overflow:auto;padding:20px;display:none;background:linear-gradient(to bottom,#0f9b0f,#ffffff,#e52d27);background-size:100% 400%;animation:bgMove 8s linear infinite;}
 @keyframes bgMove{0%{background-position:0% 0%;}50%{background-position:0% 100%;}100%{background-position:0% 0%;}}
 .header{text-align:center;font-size:24px;font-weight:900;margin-bottom:30px;}
-
-/* --- تحسين شبكة الأيقونات لإضافة البعد الثالث --- */
-.grid{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:25px; /* زيادة الفراغ قليلاً للحركة */
-    padding: 10px;
-    perspective: 1000px; /* إضافة منظور للبعد الثالث */
-}
-
-/* --- تصميم الأيقونة المحترف الجديد (3D Glass) --- */
-.icon{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    position:relative;
-    transition: transform 0.5s ease, box-shadow 0.5s ease;
-    transform-style: preserve-3d; /* السماح للعناصر الداخلية بالتحرك ثلاثياً */
-    padding: 15px;
-    border-radius: 20px;
-}
-
-/* الروابط داخل الأيقونات */
-.icon a {text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; transform-style: preserve-3d;}
-
-/* --- الدائرة الزجاجية ثلاثية الأبعاد --- */
-.circle{
-    width:90px;
-    height:90px;
-    border-radius:50%;
-    /* خلفية زجاجية أكثر شفافية واحترافية */
-    background: rgba(255, 255, 255, 0.1); 
-    backdrop-filter: blur(15px) saturate(180%);
-    -webkit-backdrop-filter: blur(15px) saturate(180%);
-    
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:35px; /* تكبير الإيموجي قليلاً */
-    
-    /* حدود زجاجية ناعمة */
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    
-    /* ظلال خارجية وداخلية لإعطاء عمق */
-    box-shadow: 
-        0 8px 32px 0 rgba(0, 0, 0, 0.2),
-        inset 0 0 10px 1px rgba(255, 255, 255, 0.15);
-    
-    transition: transform 0.5s ease, box-shadow 0.5s ease, background 0.5s ease;
-    position:relative;
-    overflow:hidden; /* لإخفاء تأثير اللمعان الخارج عن الدائرة */
-    transform: translateZ(20px); /* رفع الدائرة قليلاً فوق الخلفية */
-}
-
-/* --- تأثير اللمعان (Shine) على الزجاج --- */
-.circle::after {
-    content: "";
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        to bottom right,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0) 40%,
-        rgba(255, 255, 255, 0.4) 50%,
-        rgba(255, 255, 255, 0) 60%,
-        rgba(255, 255, 255, 0) 100%
-    );
-    transform: rotate(45deg);
-    transition: transform 0.6s ease;
-    opacity: 0;
-}
-
-/* --- التدرج اللوني الديناميكي الخلفي (Glow) --- */
-.icon::before {
-    content: "";
-    position: absolute;
-    inset: 10px;
-    background: linear-gradient(45deg, #0f9b0f, #e52d27, #00c6ff, #9b59b6);
-    background-size: 400% 400%;
-    filter: blur(20px);
-    border-radius: 20px;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-    z-index: -1; /* خلف المحتوى */
-    animation: dynamicGradient 8s linear infinite;
-}
-
-/* حركة التدرج اللوني */
-@keyframes dynamicGradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* --- تأثيرات الحركة والتحويم (Hover Effects) --- */
-
-/* ميلان الأيقونة بالكامل ثلاثياً */
-.icon:hover {
-    transform: translateY(-5px) rotateX(10deg) rotateY(10deg);
-}
-
-/* ظهور التدرج الديناميكي الخلفي */
-.icon:hover::before {
-    opacity: 0.7;
-}
-
-/* زيادة عمق ولمعان الدائرة */
-.icon:hover .circle {
-    transform: translateZ(40px) scale(1.05); /* دفعها للأمام أكثر */
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: 
-        0 15px 45px 0 rgba(0, 0, 0, 0.3),
-        inset 0 0 15px 2px rgba(255, 255, 255, 0.25);
-}
-
-/* حركة اللمعان فوق الزجاج */
-.icon:hover .circle::after {
-    transform: rotate(45deg) translate(50%, 50%);
-    opacity: 1;
-}
-
-/* عنوان الأيقونة - إضافة ظل بسيط للوضوح */
-.label{
-    margin-top:12px;
-    font-weight:bold;
-    font-size: 14px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    transform: translateZ(10px); /* رفعه قليلاً */
-}
-
-/* --- بقية كود CSS (بدون تغيير) --- */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+.icon{display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+.circle{width:85px;height:85px;border-radius:50%;background:rgba(255,255,255,0.35);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 10px 25px rgba(0,0,0,0.25);transition:0.3s;}
+.circle:hover{transform:scale(1.15);}
+.label{margin-top:8px;font-weight:bold;}
 .digital-card{display:none;margin-top:15px;width:90%;max-width:600px;border-radius:25px;background: rgba(255, 215, 0, 0.15);backdrop-filter: blur(18px);color: #0b3c5d;padding:25px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.5);transform: translateY(50px);opacity:0;transition: all 0.5s ease;position:absolute;left:50%;transform:translate(-50%,50px);z-index:9999;overflow:hidden;}
 .digital-card.show{display:block;transform:translate(-50%,0);opacity:1;}
 .digital-card.show::before{content:"";position:absolute;top:0;left:0;width:100%;height:100%;border-radius:25px;box-shadow:0 0 20px 4px rgba(255,215,0,0.6),0 0 50px 12px rgba(255,215,0,0.3) inset;pointer-events:none;animation:glow 2s infinite alternate;}
@@ -187,10 +55,12 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 <div class="login" id="login">
   <div class="title">Next Leaders DZ</div>
   <div class="subtitle" id="loginSubtitle">مختبر الشباب للذكاء والتعلم والإبداع</div>
+  
   <div id="authFields">
     <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
     <input type="password" id="loginPassword" placeholder="كلمة المرور">
   </div>
+  
   <button onclick="handleAuthAction()" id="authBtn">دخول</button>
   <div class="switch-account" id="switchAcc" onclick="clearSavedData()">الدخول بحساب آخر (إيميل)</div>
 </div>
@@ -200,13 +70,17 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 <div class="app" id="app">
   <div class="header">Next Leaders DZ</div>
   <div class="grid">
-    <div class="icon" id="shababIcon">
-        <div class="circle">ℹ️</div>
-        <div class="label">الشباب</div>
+    <div class="icon">
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSecOGzwMlbed7jZPPf_PHaCtsGrIuKeZKTtTI2pOFmO_Y6tKQ/viewform?usp=publish-editor" target="_blank" style="text-decoration:none;color:inherit;">
+            <div class="circle">ℹ️</div>
+            <div class="label">الشباب</div>
+        </a>
     </div>
-    <div class="icon" id="smartKidIcon">
-        <div class="circle">📝</div>
-        <div class="label">Smart Kid</div>
+    <div class="icon">
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform" target="_self" style="text-decoration:none;color:inherit;">
+            <div class="circle">📝</div>
+            <div class="label">Smart Kid</div>
+        </a>
     </div>
     <div class="icon"><div class="circle">📚</div><div class="label">تعلم</div></div>
     <div class="icon" id="balanceIcon"><div class="circle">💰</div><div class="label">رصيدك</div></div>
@@ -248,9 +122,7 @@ button{width:100%;padding:13px;margin-top:15px;border:none;border-radius:12px;fo
 </div>
 
 <script>
-/* --- كود الجافاسكربت (بدون أي تغيير) --- */
 const dataUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?gid=1973938037&single=true&output=csv';
-let currentUserName = ""; 
 let points = 0;
 const goldSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3");
 
@@ -262,15 +134,6 @@ window.onload = function() {
   const savedName = localStorage.getItem("sklab_user_name");
   if(savedName) showNameOnlyMode(savedName);
 };
-
-// وظيفة الربط الذكي بالاسم للأيقونات
-function setupSmartLinks(name) {
-  const shababUrl = "https://docs.google.com/forms/d/e/1FAIpQLSecOGzwMlbed7jZPPf_PHaCtsGrIuKeZKTtTI2pOFmO_Y6tKQ/viewform?usp=pp_url&entry.123456789=" + encodeURIComponent(name);
-  const smartKidUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform?usp=pp_url&entry.987654321=" + encodeURIComponent(name);
-
-  document.getElementById("shababIcon").onclick = () => window.open(shababUrl, "_blank");
-  document.getElementById("smartKidIcon").onclick = () => window.open(smartKidUrl, "_blank");
-}
 
 function showNameOnlyMode(name) {
   document.getElementById("loginSubtitle").innerText = "أهلاً بك مجدداً!";
@@ -294,6 +157,7 @@ function showLoadingBar(callback){
   let width=0;
   bar.style.width="0%"; 
   document.getElementById("loadingBarContainer").style.display="block";
+  
   const interval = setInterval(() => {
     width += 1;
     bar.style.width = width + "%";
@@ -357,8 +221,6 @@ async function enterWithNameOnly() {
 }
 
 function setupApp(name, pts) {
-  currentUserName = name;
-  setupSmartLinks(name); // تفعيل الربط بالاسم
   document.getElementById("cardName").innerText = name;
   document.getElementById("cardPoints").innerText = pts;
   const balanceValue = ((pts / 50) * 30).toFixed(2);
@@ -369,7 +231,6 @@ function setupApp(name, pts) {
   pointsCounter.style.display="block";
 }
 
-// الأيقونات العادية
 const balanceIcon=document.getElementById("balanceIcon");
 const digitalCard=document.getElementById("digitalCard");
 
@@ -446,108 +307,41 @@ membersIcon.addEventListener("click",async function(){
 
 function closeMembers(){membersCard.classList.remove("show");}
 
-const rankin<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Leaders DZ</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-<style>
-:root{--gold:#FFD700;--glass:rgba(255,255,255,0.15)}
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif}
-body{height:100vh;background:linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.5)),url("https://images.unsplash.com/photo-1588072432836-e10032774350") center/cover;display:flex;justify-content:center;align-items:center;color:#fff;overflow:hidden}
-.card-ui{background:rgba(255,255,255,0.1);backdrop-filter:blur(15px);border-radius:20px;padding:25px;text-align:center;width:90%;max-width:400px;border:1px solid rgba(255,255,255,0.2);box-shadow:0 15px 35px rgba(0,0,0,0.4)}
-input{width:100%;padding:12px;margin:10px 0;border-radius:10px;border:none;outline:none}
-.btn{width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(45deg,#0f9b0f,#e52d27);color:#fff;font-weight:900;cursor:pointer}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;perspective:1000px}
-.icon{display:flex;flex-direction:column;align-items:center;padding:15px;cursor:pointer;transition:0.4s;transform-style:preserve-3d}
-.circle{width:80px;height:80px;border-radius:50%;background:var(--glass);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:30px;border:1px solid rgba(255,255,255,0.3);box-shadow:0 8px 15px rgba(0,0,0,0.2);transform:translateZ(20px);transition:0.4s}
-.icon:hover{transform:rotateX(10deg) rotateY(10deg) translateY(-5px)}
-.icon:hover .circle{background:rgba(255,255,255,0.3);box-shadow:0 0 20px var(--gold);transform:translateZ(40px) scale(1.1)}
-.label{margin-top:10px;font-weight:bold;font-size:13px;text-shadow:0 2px 4px rgba(0,0,0,0.5)}
-#app{display:none;width:100%;height:100%;padding:20px;background:linear-gradient(to bottom,#0f9b0f,#fff,#e52d27);background-size:100% 400%;animation:bg 10s infinite alternate}
-@keyframes bg{0%{background-position:0% 0%}100%{background-position:0% 100%}}
-.modal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:85%;background:#0b1f3b;padding:20px;border-radius:20px;border:2px solid var(--gold);z-index:100}
-</style>
-</head>
-<body>
+const rankingIcon = document.getElementById("rankingIcon");
+const rankingCard = document.getElementById("rankingCard");
+const rankingInfo = document.getElementById("rankingInfo");
 
-<div id="login" class="card-ui">
-    <h2>Next Leaders DZ</h2>
-    <input type="email" id="email" placeholder="البريد الإلكتروني">
-    <button class="btn" onclick="login()">دخول</button>
-</div>
-
-<div id="app">
-    <h2 style="text-align:center;margin-bottom:20px">الرئيسية</h2>
-    <div class="grid">
-        <div class="icon" id="shabab"><div class="circle">ℹ️</div><div class="label">الشباب</div></div>
-        <div class="icon" id="smart"><div class="circle">📝</div><div class="label">Smart Kid</div></div>
-        <div class="icon" onclick="showM('rank')"><div class="circle">🏆</div><div class="label">الترتيب</div></div>
-        <div class="icon" onclick="showM('bal')"><div class="circle">💰</div><div class="label">رصيدك</div></div>
-        <div class="icon" onclick="window.open('https://facebook.com/share/19UtXj8kRV/')"><div class="circle">📱</div><div class="label">فيسبوك</div></div>
-        <div class="icon" onclick="location.reload()"><div class="circle">🚪</div><div class="label">خروج</div></div>
-    </div>
-</div>
-
-<div id="bal" class="modal">
-    <h3 style="color:var(--gold)">💳 الرصيد</h3>
-    <div id="info" style="margin:15px 0"></div>
-    <button class="btn" onclick="closeM()">إغلاق</button>
-</div>
-
-<div id="rank" class="modal">
-    <h3 style="color:var(--gold)">🏆 المتصدرون</h3>
-    <div id="list" style="margin:15px 0;max-height:200px;overflow:auto"></div>
-    <button class="btn" onclick="closeM()">إغلاق</button>
-</div>
-
-<script>
-const URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?gid=1973938037&single=true&output=csv';
-let user = {n:"", p:0};
-
-async function login() {
-    const e = document.getElementById('email').value.toLowerCase().trim();
-    if(!e) return alert("أدخل البريد");
+rankingIcon.addEventListener("click", async function() {
+  if(!rankingCard.classList.contains("show")) {
+    rankingCard.classList.add("show");
+    rankingInfo.innerHTML="<div style='text-align:center;padding:20px;'>جاري التحميل...</div>";
     try {
-        const res = await fetch(URL);
-        const txt = await res.text();
-        const rows = txt.split('\n');
-        let f = false;
-        for(let i=1; i<rows.length; i++) {
-            let c = rows[i].split(',');
-            if(c[1] && c[1].trim().toLowerCase() === e) {
-                user.n = c[2].replace(/"/g,'').trim();
-                user.p = parseInt(c[c.length-1])||0;
-                f = true; break;
-            }
+      const response = await fetch(dataUrl);
+      const data = await response.text();
+      const rows = data.split('\n').filter(r => r.trim() !== "").slice(1);
+      const rankingData = [];
+      rows.forEach((row) => {
+        const cols = row.split(',');
+        if(cols.length > 2) {
+          let name = cols[2] ? cols[2].replace(/"/g, '').trim() : "غير معروف";
+          const pts = parseInt((cols[cols.length - 1] || '0').replace(/\D/g,'')) || 0;
+          if(name !== "" && !name.includes('@')) rankingData.push({name, pts});
         }
-        if(f) start(); else alert("غير موجود");
-    } catch { alert("خطأ اتصال"); }
-}
+      });
+      rankingData.sort((a,b) => b.pts - a.pts);
+      let tableHtml = '<table class="table-ranking"><thead><tr><th>رقم</th><th>الاسم واللقب</th><th>ن</th></tr></thead><tbody>';
+      rankingData.forEach((item, index) => {
+        tableHtml += `<tr><td class="rank-number">${index+1}</td><td>${item.name}</td><td class="points-cell">${item.pts}</td></tr>`;
+      });
+      tableHtml += '</tbody></table>';
+      rankingInfo.innerHTML = tableHtml;
+    } catch(e) {rankingInfo.innerHTML="فشل تحميل الجدول";}
+  } else closeRanking();
+});
 
-function start() {
-    document.getElementById('login').style.display='none';
-    document.getElementById('app').style.display='block';
-    document.getElementById('info').innerHTML = `الاسم: ${user.n}<br>النقاط: ${user.p}<br>المبلغ: ${((user.p/50)*30).toFixed(2)} دج`;
-    
-    document.getElementById('shabab').onclick = () => window.open("https://docs.google.com/forms/d/e/1FAIpQLSecOGzwMlbed7jZPPf_PHaCtsGrIuKeZKTtTI2pOFmO_Y6tKQ/viewform?entry.1="+user.n);
-    document.getElementById('smart').onclick = () => window.open("https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform?entry.1="+user.n);
-    loadR();
-}
+function closeRanking(){rankingCard.classList.remove("show");}
 
-async function loadR() {
-    const res = await fetch(URL);
-    const txt = await res.text();
-    const rows = txt.split('\n').slice(1,11);
-    let h = '<table width="100%">';
-    rows.forEach(r => { let c=r.split(','); if(c[2]) h+=`<tr><td>${c[2]}</td><td>${c[c.length-1]}</td></tr>` });
-    document.getElementById('list').innerHTML = h+'</table>';
-}
-
-function showM(id){ document.getElementById(id).style.display='block' }
-function closeM(){ document.querySelectorAll('.modal').forEach(m=>m.style.display='none') }
+document.getElementById("galleryIcon").addEventListener("click", ()=>window.open("https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3", "_blank"));
 </script>
 </body>
 </html>
-
