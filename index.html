@@ -180,6 +180,7 @@ async function enter(){
       const data = await response.text();
       const rows = data.split('\n');
       let found = false;
+      
       for(let i=1; i<rows.length; i++){
         const cols = rows[i].split(',');
         if(cols[1] && cols[1].trim().toLowerCase() === email){
@@ -191,7 +192,16 @@ async function enter(){
           break;
         }
       }
-      if(!found){ alert("البريد الإلكتروني غير موجود."); location.reload(); }
+      
+      // التعديل هنا: إذا لم يتم العثور على الإيميل، يتم السماح بالدخول كعضو جديد
+      if(!found){ 
+        let guestName = email.split('@')[0]; // اسم مؤقت من الإيميل
+        alert("أهلاً بك كعضو جديد في Next Leaders! يرجى التواصل مع الإدارة لتثبيت حسابك.");
+        localStorage.setItem("sklab_user_name", guestName);
+        points = 0;
+        setupApp(guestName, points);
+      }
+      
     }catch(e){ alert("حدث خطأ في الاتصال."); }
   });
 }
@@ -215,7 +225,10 @@ async function enterWithNameOnly() {
           break;
         }
       }
-      if(!found) alert("الاسم غير موجود، جرب الدخول بالإيميل.");
+      // إذا كان مسجلاً محلياً ولكن لم يظهر في الجدول (حساب جديد لم يضفه الأدمين بعد)
+      if(!found) {
+        setupApp(inputName, 0);
+      }
     } catch(e) { alert("خطأ في تحديث البيانات."); }
   });
 }
@@ -231,6 +244,7 @@ function setupApp(name, pts) {
   pointsCounter.style.display="block";
 }
 
+// باقي وظائف البطاقة والترتيب ومعرض الصور (بقيت كما هي بدون تغيير لضمان العمل)
 const balanceIcon=document.getElementById("balanceIcon");
 const digitalCard=document.getElementById("digitalCard");
 
