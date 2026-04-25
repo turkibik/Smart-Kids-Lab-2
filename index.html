@@ -527,21 +527,28 @@ function processEntry(val,type){
 }
 
 function renderApp(name,pts,isReg){
-  // النقاط الإجمالية = النقاط من الجدول + النقاط المكسوبة المحفوظة
+  // pts = نقاط الجدول الحالية (تتغير عند الحذف)
+  // earned = نقاط مكسوبة من الكويز (دائمة لا تُحذف)
   const earned=parseInt(localStorage.getItem(_earnedKey(name))||'0');
-  const totalPts=pts+earned;
+  const totalPts=pts+earned; // الإجمالي الدائم للمستوى
   _basePoints=totalPts;
+
   document.getElementById("login").style.display="none";
   document.getElementById("app").style.display="block";
   document.getElementById("userNameTop").innerText=name;
   document.getElementById("userInitial").innerText=getLeaderIcon(name);
+
+  // لوحة التحكم الرئيسية: تُظهر الإجمالي الدائم (لا يتأثر بالحذف)
   document.getElementById("mainPoints").innerHTML=`${totalPts.toLocaleString()} <span>نقطة</span>`;
+
+  // بطاقة رصيدك: تُظهر نقاط الجدول الحالية فقط (تتغير عند الحذف)
   const code=getMemberCode(name);
   document.getElementById("cardName").innerText=name;
   document.getElementById("cardCode").innerText="NLD-"+code;
-  document.getElementById("cardPoints").innerText=totalPts+" نقطة";
-  document.getElementById("cardBalance").innerText=((totalPts/50)*30).toFixed(2)+" دج";
-  // المستوى كل 3000 نقطة (بناءً على النقاط الإجمالية الدائمة)
+  document.getElementById("cardPoints").innerText=pts+" نقطة";
+  document.getElementById("cardBalance").innerText=((pts/50)*30).toFixed(2)+" دج";
+
+  // المستوى يُحسب من الإجمالي الدائم
   const LEVEL_PTS=3000;
   const currentLevel=Math.floor(totalPts/LEVEL_PTS)+1;
   const ptsInLevel=totalPts%LEVEL_PTS;
@@ -594,14 +601,23 @@ async function loadMembers(){
       return {name:fullName,age,pts};
     }).filter(Boolean);
 
-    // استمارة الشباب (C=الاسم، D=السن، K=النقاط)
+    // استمارة الشباب - نجرب أعمدة متعددة للاسم (C=2 أو D=3 حسب بنية الاستمارة)
     const shabaabRows=t3.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
-      const cols=r.split(',');
-      const fullName=(cols[2]||'').replace(/"/g,'').trim();
+      const cols=r.split(',').map(c=>(c||'').replace(/"/g,'').trim());
+      // نجرب العمود C (index 2) أولاً، ثم B (index 1)
+      let fullName=cols[2]||cols[1]||'';
+      fullName=fullName.trim();
       if(!fullName) return null;
-      const age=parseAge(cols[3]);
-      // النقاط: من ptsMap أولاً، ثم من العمود K
-      const pts=ptsMap[norm(fullName)]||(parseInt((cols[10]||'').replace(/[^\d]/g,''))||0);
+      // السن: نجرب D (index 3) ثم E (index 4)
+      const age=parseAge(cols[3])||parseAge(cols[4])||'—';
+      // النقاط: من ptsMap أولاً (الأدق)، ثم من أي عمود رقمي
+      let pts=ptsMap[norm(fullName)]||0;
+      if(!pts){
+        for(let i=cols.length-1;i>=5;i--){
+          const v=parseInt(cols[i]);
+          if(!isNaN(v)&&v>0){pts=v;break;}
+        }
+      }
       return {name:fullName,age,pts};
     }).filter(Boolean);
 
@@ -629,7 +645,7 @@ async function loadMembers(){
       // المستوى بناءً على النقاط الإجمالية
       const LEVEL_PTS=3000;
       const memberLevel=Math.floor(x.pts/LEVEL_PTS)+1;
-      const lvlBadge=`<span style="background:rgba(245,197,24,0.12);color:var(--gold);border-radius:6px;padding:2px 7px;">⭐ المستوى ${memberLevel}</span>`;
+      const lvlBadge=`<span style="background:rgba(168,85,247,0.15);color:#c084fc;border-radius:6px;padding:2px 7px;">⭐ المستوى ${memberLevel}</span>`;
       return `<div class="member-card">
         <div class="member-avatar">${init}</div>
         <div class="member-info">
@@ -689,9 +705,16 @@ async function loadRanking(){
       .filter(x=>x.n && x.n!=='ممتاز');
 
     const namesInData=new Set(fromData.map(x=>x.n));
-    const fromShabaab=t2.split('\n').slice(1)
-      .map(r=>{const c=r.split(',');return{n:(c[2]||'').replace(/"/g,'').trim(),p:parseInt((c[10]||'').replace(/"/g,'').trim())||0};})
-      .filter(x=>x.n && x.n!=='ممتاز' && !namesInData.has(x.n));
+    const fromShabaab=t2.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
+      const cols=r.split(',').map(c=>(c||'').replace(/"/g,'').trim());
+      // نجرب العمود C (index 2) أولاً ثم B (index 1)
+      const n=cols[2]||cols[1]||'';
+      if(!n||n==='ممتاز'||namesInData.has(n)) return null;
+      // النقاط: آخر عمود رقمي
+      let p=0;
+      for(let i=cols.length-1;i>=5;i--){const v=parseInt(cols[i]);if(!isNaN(v)&&v>0){p=v;break;}}
+      return {n,p};
+    }).filter(Boolean);
 
     const list=[...fromData,...fromShabaab].sort((a,b)=>b.p-a.p);
     const m=['gold','silver','bronze'];
@@ -725,19 +748,17 @@ let _basePoints=0;
 /* مفتاح حفظ النقاط المكسوبة */
 function _earnedKey(name){return 'nld_earned_'+name.replace(/\s+/g,'_');}
 
-/* إضافة نقاط للمستخدم فوراً مع حفظ دائم */
+/* إضافة نقاط للمستخدم فوراً مع حفظ دائم - تُحدّث لوحة التحكم فقط */
 function addPointsInstant(pts){
   _basePoints+=pts;
-  // حفظ النقاط المكسوبة في localStorage
   const name=document.getElementById("userNameTop").innerText||'';
   if(name){
     const prev=parseInt(localStorage.getItem(_earnedKey(name))||'0');
     localStorage.setItem(_earnedKey(name),String(prev+pts));
   }
   const newPts=_basePoints;
+  // لوحة التحكم الرئيسية فقط
   document.getElementById("mainPoints").innerHTML=`${newPts.toLocaleString()} <span>نقطة</span>`;
-  document.getElementById("cardPoints").innerText=newPts+" نقطة";
-  document.getElementById("cardBalance").innerText=((newPts/50)*30).toFixed(2)+" دج";
   const LEVEL_PTS=3000;
   const lvl=Math.floor(newPts/LEVEL_PTS)+1;
   const inLvl=newPts%LEVEL_PTS;
@@ -745,6 +766,7 @@ function addPointsInstant(pts){
   document.getElementById("progressStart").innerText=(lvl-1)*LEVEL_PTS;
   document.getElementById("progressEnd").innerText=lvl*LEVEL_PTS;
   document.getElementById("mainBar").style.width=Math.min((inLvl/LEVEL_PTS)*100,100)+"%";
+  // بطاقة رصيدك: لا تتغير هنا (تعكس نقاط الجدول فقط)
 }
 
 async function loadQuiz(){
