@@ -161,8 +161,8 @@ button.auth-btn:active{transform:translateY(0);}
 .member-avatar{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--green),#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:white;flex-shrink:0;box-shadow:0 4px 12px rgba(15,155,15,0.3);}
 .member-info{flex:1;}
 .member-fullname{font-size:13px;font-weight:800;color:var(--text);margin-bottom:3px;}
-.member-meta{font-size:11px;color:var(--muted);display:flex;gap:5px;flex-wrap:wrap;}
-.member-meta span{background:rgba(255,255,255,0.05);border-radius:6px;padding:2px 7px;}
+.member-meta{font-size:10px;color:var(--muted);display:flex;flex-wrap:nowrap;gap:4px;align-items:center;overflow:hidden;}
+.member-meta span{background:rgba(255,255,255,0.05);border-radius:6px;padding:2px 5px;white-space:nowrap;}
 
 /* RANKING */
 .member-row{display:flex;align-items:center;gap:12px;padding:10px 13px;background:var(--surface2);border-radius:13px;margin-bottom:7px;border:1px solid var(--border);}
@@ -258,7 +258,7 @@ button.auth-btn:active{transform:translateY(0);}
         <div class="level-badge" id="levelBadge">🚀 نشط</div>
       </div>
       <div class="points-num" id="mainPoints">0 <span>نقطة</span></div>
-      <div class="points-sub" id="pointsSub">لم يتبقى لك كثير حتى تحقق هدفك وتتأهل للمستوى التاني</div>
+      <div class="points-sub" id="pointsSub">عليك الاجتهاد أكثر حتى تجمع النقاط الكافية لفتح المستوى التالي</div>
       <div class="progress-wrap">
         <span class="progress-label" id="progressStart">0</span>
         <div class="neo-progress"><div class="neo-bar" id="mainBar"></div></div>
@@ -268,7 +268,7 @@ button.auth-btn:active{transform:translateY(0);}
 
     <div class="section-header">
       <span class="section-title">لوحة التحكم</span>
-      <span class="section-year">2024 – 2025</span>
+      <span class="section-year">2026 – 2027</span>
     </div>
 
     <div id="lockedNote"></div>
@@ -321,6 +321,16 @@ button.auth-btn:active{transform:translateY(0);}
   </div>
 </div>
 
+<!-- MODAL: النشاطات -->
+<div class="modal" id="activitiesCard">
+  <div class="modal-content">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🏅 النشاطات</div>
+    <div id="activitiesInfo" style="max-height:370px;overflow-y:auto;"></div>
+    <button class="modal-close" onclick="hideModal('activitiesCard')">رجوع</button>
+  </div>
+</div>
+
 <!-- MODAL: اجمع النقاط (كويز) -->
 <div class="modal" id="quizCard">
   <div class="modal-content">
@@ -336,6 +346,7 @@ const dataUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2
 const membersUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
 const shabaabUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQmdUyatoTvFTxkQ_h4TdNAuYGd5RAySGVYsjFIa04IJ2lhdHJm-kHR2cSQoOshJPRYGHH6HQns-cXJ/pub?output=csv';
 const quizUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQi_JTvEBgrlT-nba8SzIEiuTvPS6sz-eIRLM-cESaztFr35bl6mGq7rzwNc-tiP1BY-44d7x6rcvEf/pubhtml';
+const rankingUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP7Q70E0ey5k7JnnOh7Ju7281ytxEDTViCVRiv4JM0FakJSgxZM47XmZN1bgZSGwCU5fIHzldOQhid/pub?output=csv';
 
 /* ===== جزيئات الخلفية ===== */
 (function(){
@@ -383,7 +394,7 @@ function buildGrid(isReg){
     ['📝','Smart Kid',  'bg-5',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform')", true],
     ['🖼️','المعرض',    'bg-6',"window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3')", false],
     ['🎯','اجمع النقاط','bg-7',"showModal('quizCard')",    false],
-    ['🥇','شارات',      'bg-8','',                          false],
+    ['🏅','النشاطات',    'bg-8',"showModal('activitiesCard')", false],
     ['📱','فيسبوك',     'bg-9',"window.location.href='https://www.facebook.com/share/19UtXj8kRV/'", true],
   ];
   grid.innerHTML=items.map(([icon,label,bg,action,open])=>{
@@ -470,6 +481,7 @@ function handleAuthAction(){document.getElementById("loginNameOnly")?enterWithNa
 
 function showModal(id){
   document.getElementById(id).style.display='flex';
+  if(id==='activitiesCard') loadActivities();
   if(id==='membersCard') loadMembers();
   if(id==='rankingCard') loadRanking();
   if(id==='digitalCard'){startCoins();playGoldSound();}
@@ -515,23 +527,24 @@ function processEntry(val,type){
 }
 
 function renderApp(name,pts,isReg){
-  _basePoints=pts; // حفظ النقاط الأصلية للمنخرط
+  // النقاط الإجمالية = النقاط من الجدول + النقاط المكسوبة المحفوظة
+  const earned=parseInt(localStorage.getItem(_earnedKey(name))||'0');
+  const totalPts=pts+earned;
+  _basePoints=totalPts;
   document.getElementById("login").style.display="none";
   document.getElementById("app").style.display="block";
   document.getElementById("userNameTop").innerText=name;
-  // رمز قيادة فريد حسب الاسم
   document.getElementById("userInitial").innerText=getLeaderIcon(name);
-  document.getElementById("mainPoints").innerHTML=`${pts.toLocaleString()} <span>نقطة</span>`;
+  document.getElementById("mainPoints").innerHTML=`${totalPts.toLocaleString()} <span>نقطة</span>`;
   const code=getMemberCode(name);
   document.getElementById("cardName").innerText=name;
   document.getElementById("cardCode").innerText="NLD-"+code;
-  document.getElementById("cardPoints").innerText=pts+" نقطة";
-  document.getElementById("cardBalance").innerText=((pts/50)*30).toFixed(2)+" دج";
-  // المستوى كل 3000 نقطة
+  document.getElementById("cardPoints").innerText=totalPts+" نقطة";
+  document.getElementById("cardBalance").innerText=((totalPts/50)*30).toFixed(2)+" دج";
+  // المستوى كل 3000 نقطة (بناءً على النقاط الإجمالية الدائمة)
   const LEVEL_PTS=3000;
-  const currentLevel=Math.floor(pts/LEVEL_PTS)+1;
-  const ptsInLevel=pts%LEVEL_PTS;
-  const ptsToNext=LEVEL_PTS-ptsInLevel;
+  const currentLevel=Math.floor(totalPts/LEVEL_PTS)+1;
+  const ptsInLevel=totalPts%LEVEL_PTS;
   document.getElementById("levelBadge").innerText=`⭐ المستوى ${currentLevel}`;
   document.getElementById("progressStart").innerText=(currentLevel-1)*LEVEL_PTS;
   document.getElementById("progressEnd").innerText=currentLevel*LEVEL_PTS;
@@ -613,12 +626,49 @@ async function loadMembers(){
       }
       const catBadge=cat?`<span style="background:rgba(0,229,160,0.12);color:var(--accent);border-radius:6px;padding:2px 7px;">${cat}</span>`:'';
       const ageBadge=`<span>🎂 ${x.age} سنة</span>`;
-      const ptsBadge=`<span style="background:rgba(168,85,247,0.13);color:#c084fc;border-radius:6px;padding:2px 7px;">🎯 ${x.pts} نقطة</span>`;
+      // المستوى بناءً على النقاط الإجمالية
+      const LEVEL_PTS=3000;
+      const memberLevel=Math.floor(x.pts/LEVEL_PTS)+1;
+      const lvlBadge=`<span style="background:rgba(245,197,24,0.12);color:var(--gold);border-radius:6px;padding:2px 7px;">⭐ المستوى ${memberLevel}</span>`;
       return `<div class="member-card">
         <div class="member-avatar">${init}</div>
         <div class="member-info">
           <div class="member-fullname">${x.name}</div>
-          <div class="member-meta">${catBadge}${ageBadge}${ptsBadge}</div>
+          <div class="member-meta">${catBadge}${ageBadge}${lvlBadge}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){div.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">تعذر التحميل</p>';}
+}
+
+/* ===== النشاطات ===== */
+async function loadActivities(){
+  const div=document.getElementById("activitiesInfo");
+  div.innerHTML='<div class="spinner"></div>';
+  try{
+    const res=await fetch(rankingUrl);
+    const text=await res.text();
+    const rows=text.split('\n').slice(1).filter(r=>r.trim());
+    if(rows.length===0){div.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">لا توجد نشاطات حالياً</p>';return;}
+    div.innerHTML=rows.map(r=>{
+      const cols=r.match(/(".*?"|[^,]+)(?=,|$)/g)||r.split(',');
+      const clean=c=>(cols[c]||'').replace(/^"|"$/g,'').trim();
+      // A=0 مهمل، نبدأ من B=1
+      const title =clean(1); // B: النشاط
+      const place =clean(2); // C: مكان النشاط
+      const date  =clean(3); // D: تاريخ النشاط
+      const time  =clean(4); // E: توقيت النشاط
+      const coach =clean(5); // F: المؤطر
+      if(!title) return '';
+      return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:15px;padding:13px 14px;margin-bottom:9px;">
+        <div style="margin-bottom:8px;">
+          <span style="font-size:14px;font-weight:800;color:var(--text);">🏅 ${title}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:11px;">
+          ${place?`<span style="background:rgba(0,229,160,0.1);color:var(--accent);border-radius:6px;padding:2px 8px;">📍 ${place}</span>`:''}
+          ${date?`<span style="background:rgba(79,172,254,0.1);color:#4facfe;border-radius:6px;padding:2px 8px;">📅 ${date}</span>`:''}
+          ${time?`<span style="background:rgba(245,197,24,0.1);color:var(--gold);border-radius:6px;padding:2px 8px;">🕐 ${time}</span>`:''}
+          ${coach?`<span style="background:rgba(168,85,247,0.1);color:#c084fc;border-radius:6px;padding:2px 8px;">👤 ${coach}</span>`:''}
         </div>
       </div>`;
     }).join('');
@@ -630,26 +680,20 @@ async function loadRanking(){
   const div=document.getElementById("rankingInfo");
   div.innerHTML='<div class="spinner"></div>';
   try{
-    // جلب من جدول النقاط + استمارة الشباب
     const [r1,r2]=await Promise.all([fetch(dataUrl),fetch(shabaabUrl)]);
     const t1=await r1.text();
     const t2=await r2.text();
 
-    // الأعضاء من جدول النقاط
     const fromData=t1.split('\n').slice(1)
       .map(r=>{const c=r.split(',');return{n:(c[2]||'').replace(/"/g,'').trim(),p:parseInt(c[c.length-1])||0};})
-      .filter(x=>x.n);
+      .filter(x=>x.n && x.n!=='ممتاز');
 
-    // الأعضاء من استمارة الشباب (الاسم من C، النقاط من K)
     const namesInData=new Set(fromData.map(x=>x.n));
     const fromShabaab=t2.split('\n').slice(1)
       .map(r=>{const c=r.split(',');return{n:(c[2]||'').replace(/"/g,'').trim(),p:parseInt((c[10]||'').replace(/"/g,'').trim())||0};})
-      .filter(x=>x.n && !namesInData.has(x.n));
+      .filter(x=>x.n && x.n!=='ممتاز' && !namesInData.has(x.n));
 
-    const list=[...fromData,...fromShabaab]
-      .filter(x=>x.n)
-      .sort((a,b)=>b.p-a.p);
-
+    const list=[...fromData,...fromShabaab].sort((a,b)=>b.p-a.p);
     const m=['gold','silver','bronze'];
     div.innerHTML=list.map((x,i)=>`
       <div class="member-row">
@@ -675,12 +719,21 @@ function getDoneList(level){return JSON.parse(localStorage.getItem(getDoneKey(le
 /* إضافة سؤال للقائمة المجابة */
 function markDone(level,q){const d=getDoneList(level);if(!d.includes(q)){d.push(q);localStorage.setItem(getDoneKey(level),JSON.stringify(d));}}
 
-/* نحفظ النقاط الأصلية في متغير عام عند الدخول */
+/* نحفظ النقاط الأصلية + المكسوبة بشكل دائم */
 let _basePoints=0;
 
-/* إضافة نقاط للمستخدم فوراً (تجميع فوق النقاط الأصلية) */
+/* مفتاح حفظ النقاط المكسوبة */
+function _earnedKey(name){return 'nld_earned_'+name.replace(/\s+/g,'_');}
+
+/* إضافة نقاط للمستخدم فوراً مع حفظ دائم */
 function addPointsInstant(pts){
   _basePoints+=pts;
+  // حفظ النقاط المكسوبة في localStorage
+  const name=document.getElementById("userNameTop").innerText||'';
+  if(name){
+    const prev=parseInt(localStorage.getItem(_earnedKey(name))||'0');
+    localStorage.setItem(_earnedKey(name),String(prev+pts));
+  }
   const newPts=_basePoints;
   document.getElementById("mainPoints").innerHTML=`${newPts.toLocaleString()} <span>نقطة</span>`;
   document.getElementById("cardPoints").innerText=newPts+" نقطة";
@@ -785,7 +838,7 @@ function startLevel(level, QUESTIONS_PER_LEVEL){
   }
   // نبدأ جلسة بالأسئلة المتبقية (مخلوطة)
   quizData=[...pending].sort(()=>Math.random()-.5);
-  quizIdx=0; quizScore=0;
+  quizIdx=0; quizScore=0; _currentQWrong=false;
   renderQuestion();
 }
 
@@ -845,6 +898,9 @@ function renderQuestion(){
     </div>`;
 }
 
+/* متغير لتتبع إذا السؤال الحالي أُخطئ فيه */
+let _currentQWrong=false;
+
 function answerQuiz(chosen, correct, pts){
   document.querySelectorAll('.quiz-opt').forEach(o=>o.onclick=null);
 
@@ -853,17 +909,21 @@ function answerQuiz(chosen, correct, pts){
     (chosenEl?.innerText?.includes(correct));
 
   if(isCorrect){
-    // ✅ صحيح: أخضر + صوت فوز + نقاط فورية + السؤال يُحذف
+    // ✅ صحيح: أخضر + صوت فوز
     chosenEl?.classList.add('correct');
     const currentQ=quizData[quizIdx]?.q;
     if(currentQ) markDone(currentQuizLevel, currentQ);
     quizScore+=pts||10;
-    addPointsInstant(pts||10);
+    // النقاط فقط إذا أجاب صح من المرة الأولى (لم يخطئ قبلها)
+    if(!_currentQWrong) addPointsInstant(pts||10);
     playQuizSound(true);
-    // ننتقل للسؤال التالي فقط عند الإجابة الصحيحة
-    setTimeout(()=>{quizIdx++;renderQuestion();},1200);
+    setTimeout(()=>{
+      _currentQWrong=false;
+      quizIdx++;renderQuestion();
+    },1200);
   } else {
-    // ❌ خطأ: أحمر + صوت فشل + نفس السؤال يعود (quizIdx لا يتغير أبداً)
+    // ❌ خطأ: أحمر + صوت فشل + نفس السؤال يعود بدون نقطة
+    _currentQWrong=true;
     chosenEl?.classList.add('wrong');
     playQuizSound(false);
     const q=quizData[quizIdx];
@@ -876,7 +936,6 @@ function answerQuiz(chosen, correct, pts){
     const totalInLevel=levelQs.length;
     const leftInLevel=totalInLevel-doneCount;
     const pct=Math.round((doneCount/totalInLevel)*100);
-    // نعيد رسم نفس السؤال بعد ثانية (بدون تغيير quizIdx)
     setTimeout(()=>{
       document.getElementById("quizContent").innerHTML=`
         <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px;">📚 المستوى ${currentQuizLevel} · ${leftInLevel} سؤال متبقٍ من ${totalInLevel}</div>
