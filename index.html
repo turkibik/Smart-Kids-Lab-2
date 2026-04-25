@@ -147,8 +147,13 @@ button.auth-btn:active{transform:translateY(0);}
 .card-holder{font-size:12px;font-weight:800;color:#ffd700;text-shadow:0 1px 4px rgba(0,0,0,0.5);}
 .card-pts-badge{background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800;color:#ffd700;}
 .coin-container{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
-.coin{position:absolute;top:-28px;font-size:17px;animation:coinFall linear infinite;opacity:0;}
-@keyframes coinFall{0%{transform:translateY(0) rotate(0deg);opacity:0;}10%{opacity:.9;}90%{opacity:.9;}100%{transform:translateY(220px) rotate(360deg);opacity:0;}}
+.coin{position:absolute;top:-28px;animation:coinFall ease-in infinite;opacity:0;}
+@keyframes coinFall{
+  0%  {transform:translateY(0) rotate(0deg) scale(0.6);opacity:0;}
+  8%  {opacity:1;}
+  85% {opacity:0.95;}
+  100%{transform:translateY(230px) rotate(720deg) scale(1);opacity:0;}
+}
 
 /* MEMBER CARD */
 .member-card{background:var(--surface2);border:1px solid var(--border);border-radius:15px;padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:12px;text-align:right;transition:border-color .2s,transform .2s;}
@@ -253,11 +258,11 @@ button.auth-btn:active{transform:translateY(0);}
         <div class="level-badge" id="levelBadge">🚀 نشط</div>
       </div>
       <div class="points-num" id="mainPoints">0 <span>نقطة</span></div>
-      <div class="points-sub">باقي القليل لتصل إلى المستوى التالي</div>
+      <div class="points-sub" id="pointsSub">لم يتبقى لك كثير حتى تحقق هدفك وتتأهل للمستوى التاني</div>
       <div class="progress-wrap">
-        <span class="progress-label">0</span>
+        <span class="progress-label" id="progressStart">0</span>
         <div class="neo-progress"><div class="neo-bar" id="mainBar"></div></div>
-        <span class="progress-label">5000</span>
+        <span class="progress-label" id="progressEnd">3000</span>
       </div>
     </div>
 
@@ -329,6 +334,7 @@ button.auth-btn:active{transform:translateY(0);}
 <script>
 const dataUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?gid=1973938037&single=true&output=csv';
 const membersUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
+const shabaabUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQmdUyatoTvFTxkQ_h4TdNAuYGd5RAySGVYsjFIa04IJ2lhdHJm-kHR2cSQoOshJPRYGHH6HQns-cXJ/pub?output=csv';
 const quizUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQi_JTvEBgrlT-nba8SzIEiuTvPS6sz-eIRLM-cESaztFr35bl6mGq7rzwNc-tiP1BY-44d7x6rcvEf/pubhtml';
 
 /* ===== جزيئات الخلفية ===== */
@@ -378,7 +384,7 @@ function buildGrid(isReg){
     ['🖼️','المعرض',    'bg-6',"window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3')", false],
     ['🎯','اجمع النقاط','bg-7',"showModal('quizCard')",    false],
     ['🥇','شارات',      'bg-8','',                          false],
-    ['📱','فيسبوك',     'bg-9',"window.open('https://www.facebook.com/share/19UtXj8kRV/')", false],
+    ['📱','فيسبوك',     'bg-9',"window.location.href='https://www.facebook.com/share/19UtXj8kRV/'", true],
   ];
   grid.innerHTML=items.map(([icon,label,bg,action,open])=>{
     const can=open||isReg;
@@ -389,27 +395,53 @@ function buildGrid(isReg){
   }).join('');
 }
 
-/* ===== عملات ===== */
+/* ===== عملات ذهبية ===== */
 function startCoins(){
   const c=document.getElementById('coinContainer');if(!c)return;c.innerHTML='';
-  for(let i=0;i<15;i++){
-    const coin=document.createElement('div');coin.className='coin';
-    coin.innerText=['🪙','💰','✨','⭐','🌟'][Math.floor(Math.random()*5)];
-    coin.style.cssText=`left:${5+Math.random()*90}%;animation-duration:${1.2+Math.random()*1.8}s;animation-delay:${Math.random()*3}s;`;
+  for(let i=0;i<24;i++){
+    const coin=document.createElement('img');
+    coin.src='https://em-content.zobj.net/source/apple/391/coin_1fa99.png';
+    coin.className='coin';
+    // حجم متوسط إلى صغير: 12px - 22px
+    const sz=12+Math.random()*10;
+    const delay=Math.random()*3;
+    const dur=1.1+Math.random()*1.4;
+    coin.style.cssText=`width:${sz}px;height:${sz}px;left:${3+Math.random()*94}%;animation-duration:${dur}s;animation-delay:${delay}s;object-fit:contain;filter:drop-shadow(0 0 3px rgba(255,215,0,0.8)) saturate(1.4) brightness(1.1);`;
     c.appendChild(coin);
   }
 }
 
-/* ===== صوت ذهب ===== */
+/* ===== صوت ذهب رنان ===== */
 function playGoldSound(){
-  try{const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    [523,659,784,1047].forEach((f,i)=>{
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    // نغمة رنين ذهبية متعددة الطبقات
+    const notes=[
+      {f:880, t:0,    dur:1.8, type:'sine',    gain:.22},
+      {f:1108,t:0.06, dur:1.5, type:'sine',    gain:.16},
+      {f:1318,t:0.12, dur:1.3, type:'sine',    gain:.13},
+      {f:2637,t:0.18, dur:0.8, type:'triangle',gain:.08},
+      {f:659, t:0,    dur:0.4, type:'sine',    gain:.20},
+      {f:784, t:0.1,  dur:0.4, type:'sine',    gain:.18},
+      {f:1047,t:0.22, dur:0.4, type:'sine',    gain:.15},
+      {f:1319,t:0.34, dur:0.35,type:'sine',    gain:.12},
+    ];
+    notes.forEach(({f,t,dur,type,gain})=>{
       const o=ctx.createOscillator(),g=ctx.createGain();
-      o.connect(g);g.connect(ctx.destination);o.frequency.value=f;o.type='sine';
-      g.gain.setValueAtTime(.15,ctx.currentTime+i*.1);
-      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.1+.45);
-      o.start(ctx.currentTime+i*.1);o.stop(ctx.currentTime+i*.1+.5);
+      o.connect(g);g.connect(ctx.destination);
+      o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(0,ctx.currentTime+t);
+      g.gain.linearRampToValueAtTime(gain,ctx.currentTime+t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+dur);
+      o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+dur+0.05);
     });
+    // صوت ضربة عملة معدنية
+    const buf=ctx.createBuffer(1,ctx.sampleRate*.05,ctx.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,4)*.6;
+    const src=ctx.createBufferSource(),gn=ctx.createGain();
+    src.buffer=buf;src.connect(gn);gn.connect(ctx.destination);
+    gn.gain.value=.7;src.start(ctx.currentTime);
   }catch(e){}
 }
 
@@ -418,8 +450,18 @@ window.onload=()=>{
   const saved=localStorage.getItem("sklab_user_name");
   if(saved){
     document.getElementById("loginSubtitle").innerText="سعداء بعودتك! 👋";
-    document.getElementById("authFields").innerHTML=`<div class="input-wrap"><span class="input-icon">👤</span><input type="text" id="loginNameOnly" value="${saved}"></div>`;
+    document.getElementById("authFields").innerHTML=`<div class="input-wrap"><span class="input-icon">👤</span><input type="text" id="loginNameOnly" value="${saved}" onkeydown="if(event.key==='Enter')handleAuthAction()"></div>`;
     document.getElementById("switchAcc").style.display="block";
+    // دخول تلقائي فوري للمستخدمين المحفوظين
+    setTimeout(()=>handleAuthAction(), 80);
+  } else {
+    // إضافة Enter للحقول العادية
+    setTimeout(()=>{
+      const em=document.getElementById("loginEmail");
+      const pw=document.getElementById("loginPassword");
+      if(em) em.onkeydown=e=>{if(e.key==='Enter')handleAuthAction();};
+      if(pw) pw.onkeydown=e=>{if(e.key==='Enter')handleAuthAction();};
+    },50);
   }
 };
 
@@ -449,10 +491,11 @@ function processEntry(val,type){
   const barCont=document.getElementById("loadingBarContainer");
   const bar=document.getElementById("loadingBar");
   barCont.style.display="block";
-  bar.style.width="40%";
+  bar.style.transition="width .08s";
+  bar.style.width="70%";
   fetch(dataUrl).then(r=>r.text()).then(text=>{
     bar.style.width="100%";
-    setTimeout(()=>{barCont.style.display="none";},200);
+    barCont.style.display="none";
     const rows=text.split('\n');
     let user=null;
     for(let i=1;i<rows.length;i++){
@@ -472,6 +515,7 @@ function processEntry(val,type){
 }
 
 function renderApp(name,pts,isReg){
+  _basePoints=pts; // حفظ النقاط الأصلية للمنخرط
   document.getElementById("login").style.display="none";
   document.getElementById("app").style.display="block";
   document.getElementById("userNameTop").innerText=name;
@@ -483,41 +527,98 @@ function renderApp(name,pts,isReg){
   document.getElementById("cardCode").innerText="NLD-"+code;
   document.getElementById("cardPoints").innerText=pts+" نقطة";
   document.getElementById("cardBalance").innerText=((pts/50)*30).toFixed(2)+" دج";
-  document.getElementById("levelBadge").innerText=pts>=5000?"🌟 متقدم":pts>=2000?"🔥 متوسط":"🚀 نشط";
+  // المستوى كل 3000 نقطة
+  const LEVEL_PTS=3000;
+  const currentLevel=Math.floor(pts/LEVEL_PTS)+1;
+  const ptsInLevel=pts%LEVEL_PTS;
+  const ptsToNext=LEVEL_PTS-ptsInLevel;
+  document.getElementById("levelBadge").innerText=`⭐ المستوى ${currentLevel}`;
+  document.getElementById("progressStart").innerText=(currentLevel-1)*LEVEL_PTS;
+  document.getElementById("progressEnd").innerText=currentLevel*LEVEL_PTS;
   buildGrid(isReg);
   if(!isReg) document.getElementById("lockedNote").innerHTML=`<div class="locked-msg">🔒 مرحباً! سجّل عبر <b>الشباب</b> أو <b>Smart Kid</b> لفتح جميع الأقسام</div>`;
-  setTimeout(()=>{document.getElementById("mainBar").style.width=Math.min((pts/5000)*100,100)+"%";},300);
+  setTimeout(()=>{document.getElementById("mainBar").style.width=Math.min((ptsInLevel/LEVEL_PTS)*100,100)+"%";},300);
 }
 
-/* ===== المنخرطون - الاسم من C، السن من D ===== */
+/* ===== المنخرطون ===== */
 async function loadMembers(){
   const div=document.getElementById("membersInfo");
   div.innerHTML='<div class="spinner"></div>';
   try{
-    const res=await fetch(membersUrl);
-    const text=await res.text();
-    const rows=text.split('\n').slice(1).filter(r=>r.trim());
-    div.innerHTML=rows.map((r,i)=>{
+    const [r1,r2,r3]=await Promise.all([fetch(dataUrl),fetch(membersUrl),fetch(shabaabUrl)]);
+    const t1=await r1.text();
+    const t2=await r2.text();
+    const t3=await r3.text();
+
+    // دالة تنظيف الاسم لمقارنة موحدة
+    const norm=s=>s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+
+    // خريطة النقاط: الاسم المُنظَّف → النقاط (من جدول dataUrl، آخر عمود)
+    const ptsMap={};
+    t1.split('\n').slice(1).filter(r=>r.trim()).forEach(r=>{
+      const c=r.split(',');
+      const n=norm(c[2]||'');
+      const p=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+      if(n) ptsMap[n]=p;
+    });
+
+    // دالة استخراج السن
+    function parseAge(colD){
+      const v=(colD||'').replace(/"/g,'').trim();
+      if(/^\d{1,2}$/.test(v)) return v;
+      const y=v.match(/\d{4}/);
+      if(y) return String(new Date().getFullYear()-parseInt(y[0]));
+      return '—';
+    }
+
+    // جدول المنخرطين (C=الاسم، D=السن)
+    const memberRows=t2.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
       const cols=r.split(',');
-      // C = cols[2]  (الاسم الكامل)
       const fullName=(cols[2]||'').replace(/"/g,'').trim();
-      // D = cols[3]  (تاريخ الميلاد أو العمر)
-      const colD=(cols[3]||'').replace(/"/g,'').trim();
-      // استنتاج السن من colD
-      let age='—';
-      // إذا كان رقماً مباشراً
-      if(/^\d{1,2}$/.test(colD)) age=colD;
-      // إذا كان تاريخ ميلاد بصيغة yyyy أو dd/mm/yyyy أو yyyy-mm-dd
-      else if(/\d{4}/.test(colD)){
-        const yearMatch=colD.match(/\d{4}/);
-        if(yearMatch) age=new Date().getFullYear()-parseInt(yearMatch[0]);
+      if(!fullName) return null;
+      const age=parseAge(cols[3]);
+      const pts=ptsMap[norm(fullName)]||0;
+      return {name:fullName,age,pts};
+    }).filter(Boolean);
+
+    // استمارة الشباب (C=الاسم، D=السن، K=النقاط)
+    const shabaabRows=t3.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
+      const cols=r.split(',');
+      const fullName=(cols[2]||'').replace(/"/g,'').trim();
+      if(!fullName) return null;
+      const age=parseAge(cols[3]);
+      // النقاط: من ptsMap أولاً، ثم من العمود K
+      const pts=ptsMap[norm(fullName)]||(parseInt((cols[10]||'').replace(/[^\d]/g,''))||0);
+      return {name:fullName,age,pts};
+    }).filter(Boolean);
+
+    // دمج وإزالة مكررات بالاسم المُنظَّف
+    const seen=new Set();
+    const all=[...memberRows,...shabaabRows].filter(x=>{
+      const k=norm(x.name);
+      if(seen.has(k)) return false;
+      seen.add(k); return true;
+    });
+
+    if(all.length===0){div.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">لا يوجد أعضاء حالياً</p>';return;}
+
+    div.innerHTML=all.map(x=>{
+      const init=x.name.charAt(0)||'؟';
+      const ageNum=parseInt(x.age);
+      let cat='';
+      if(!isNaN(ageNum)){
+        if(ageNum<15) cat='👦 أطفال';
+        else if(ageNum<=35) cat='🌟 شباب';
+        else cat='🦅 رواد';
       }
-      const init=fullName.charAt(0)||'؟';
+      const catBadge=cat?`<span style="background:rgba(0,229,160,0.12);color:var(--accent);border-radius:6px;padding:2px 7px;">${cat}</span>`:'';
+      const ageBadge=`<span>🎂 ${x.age} سنة</span>`;
+      const ptsBadge=`<span style="background:rgba(168,85,247,0.13);color:#c084fc;border-radius:6px;padding:2px 7px;">🎯 ${x.pts} نقطة</span>`;
       return `<div class="member-card">
         <div class="member-avatar">${init}</div>
         <div class="member-info">
-          <div class="member-fullname">${fullName||'—'}</div>
-          <div class="member-meta"><span>🎂 ${age} سنة</span></div>
+          <div class="member-fullname">${x.name}</div>
+          <div class="member-meta">${catBadge}${ageBadge}${ptsBadge}</div>
         </div>
       </div>`;
     }).join('');
@@ -529,27 +630,69 @@ async function loadRanking(){
   const div=document.getElementById("rankingInfo");
   div.innerHTML='<div class="spinner"></div>';
   try{
-    // نجلب من dataUrl (جدول النقاط) ومن membersUrl (قائمة المنخرطين المرتبطة باستمارة الشباب)
-    const [r1]=await Promise.all([fetch(dataUrl)]);
-    const text=await r1.text();
-    const list=text.split('\n').slice(1)
-      .map(r=>{const c=r.split(',');return{n:(c[2]||'').replace(/"/g,''),p:parseInt(c[c.length-1])||0};})
-      .filter(x=>x.n.trim()).sort((a,b)=>b.p-a.p);
+    // جلب من جدول النقاط + استمارة الشباب
+    const [r1,r2]=await Promise.all([fetch(dataUrl),fetch(shabaabUrl)]);
+    const t1=await r1.text();
+    const t2=await r2.text();
+
+    // الأعضاء من جدول النقاط
+    const fromData=t1.split('\n').slice(1)
+      .map(r=>{const c=r.split(',');return{n:(c[2]||'').replace(/"/g,'').trim(),p:parseInt(c[c.length-1])||0};})
+      .filter(x=>x.n);
+
+    // الأعضاء من استمارة الشباب (الاسم من C، النقاط من K)
+    const namesInData=new Set(fromData.map(x=>x.n));
+    const fromShabaab=t2.split('\n').slice(1)
+      .map(r=>{const c=r.split(',');return{n:(c[2]||'').replace(/"/g,'').trim(),p:parseInt((c[10]||'').replace(/"/g,'').trim())||0};})
+      .filter(x=>x.n && !namesInData.has(x.n));
+
+    const list=[...fromData,...fromShabaab]
+      .filter(x=>x.n)
+      .sort((a,b)=>b.p-a.p);
+
     const m=['gold','silver','bronze'];
     div.innerHTML=list.map((x,i)=>`
       <div class="member-row">
         <div class="member-num ${m[i]||''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
         <div class="member-name">${x.n}</div>
-        <div class="member-pts">${x.p}</div>
+        <div class="member-pts">${x.p>0?x.p:'—'}</div>
       </div>`).join('');
   }catch(e){div.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">تعذر التحميل</p>';}
 }
 
 /* ===== كويز: اجمع النقاط ===== */
-let quizData=[], quizIdx=0, quizScore=0;
+let quizData=[], quizIdx=0, quizScore=0, quizLevelData=[], currentQuizLevel=1, allQuizQuestions=[];
 
 /* جلب الأسئلة من جدول Google Sheets عبر CSV مباشرة */
 const quizCsvUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vQi_JTvEBgrlT-nba8SzIEiuTvPS6sz-eIRLM-cESaztFr35bl6mGq7rzwNc-tiP1BY-44d7x6rcvEf/pub?output=csv';
+
+/* الحصول على اسم المستخدم الحالي */
+function getCurrentUser(){return document.getElementById("userNameTop").innerText||'guest';}
+/* مفتاح الأسئلة المجابة في localStorage */
+function getDoneKey(level){const u=getCurrentUser().replace(/\s+/g,'_');return `quiz_done_${u}_lvl${level}`;}
+/* جلب قائمة الأسئلة المجابة */
+function getDoneList(level){return JSON.parse(localStorage.getItem(getDoneKey(level))||'[]');}
+/* إضافة سؤال للقائمة المجابة */
+function markDone(level,q){const d=getDoneList(level);if(!d.includes(q)){d.push(q);localStorage.setItem(getDoneKey(level),JSON.stringify(d));}}
+
+/* نحفظ النقاط الأصلية في متغير عام عند الدخول */
+let _basePoints=0;
+
+/* إضافة نقاط للمستخدم فوراً (تجميع فوق النقاط الأصلية) */
+function addPointsInstant(pts){
+  _basePoints+=pts;
+  const newPts=_basePoints;
+  document.getElementById("mainPoints").innerHTML=`${newPts.toLocaleString()} <span>نقطة</span>`;
+  document.getElementById("cardPoints").innerText=newPts+" نقطة";
+  document.getElementById("cardBalance").innerText=((newPts/50)*30).toFixed(2)+" دج";
+  const LEVEL_PTS=3000;
+  const lvl=Math.floor(newPts/LEVEL_PTS)+1;
+  const inLvl=newPts%LEVEL_PTS;
+  document.getElementById("levelBadge").innerText=`⭐ المستوى ${lvl}`;
+  document.getElementById("progressStart").innerText=(lvl-1)*LEVEL_PTS;
+  document.getElementById("progressEnd").innerText=lvl*LEVEL_PTS;
+  document.getElementById("mainBar").style.width=Math.min((inLvl/LEVEL_PTS)*100,100)+"%";
+}
 
 async function loadQuiz(){
   const div=document.getElementById("quizContent");
@@ -558,8 +701,7 @@ async function loadQuiz(){
     const res=await fetch(quizCsvUrl);
     const text=await res.text();
     const rows=text.split('\n').slice(1).filter(r=>r.trim());
-    quizData=rows.map(r=>{
-      // تقسيم مع مراعاة الفواصل داخل علامات الاقتباس
+    const allQuestions=rows.map(r=>{
       const cols=r.match(/(".*?"|[^,]+)(?=,|$)/g)||r.split(',');
       const clean=cols.map(c=>(c||'').replace(/^"|"$/g,'').trim());
       return {
@@ -572,47 +714,125 @@ async function loadQuiz(){
       };
     }).filter(x=>x.q&&x.ans);
 
-    if(quizData.length===0){
+    if(allQuestions.length===0){
       div.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">لا توجد أسئلة في الجدول حالياً</p>';
       return;
     }
-    // خلط وأخذ 10 أسئلة
-    quizData.sort(()=>Math.random()-.5);
-    quizData=quizData.slice(0,Math.min(10,quizData.length));
-    quizIdx=0; quizScore=0;
-    renderQuestion();
+
+    // حفظ الأسئلة في متغير عام
+    allQuizQuestions=allQuestions;
+    // تقسيم الأسئلة إلى مستويات (30 سؤال لكل مستوى)
+    const QUESTIONS_PER_LEVEL=30;
+    const totalLevels=Math.ceil(allQuestions.length/QUESTIONS_PER_LEVEL);
+
+    // عرض قائمة المستويات
+    showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div);
+
   }catch(e){
     div.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">تعذر تحميل الأسئلة. تحقق من رابط الجدول.</p>';
   }
 }
 
+function showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div){
+  let html=`<div style="padding:4px 0 10px;font-size:13px;font-weight:700;color:var(--muted);text-align:center;">اختر المستوى</div>`;
+  for(let lvl=1;lvl<=totalLevels;lvl++){
+    const start=(lvl-1)*QUESTIONS_PER_LEVEL;
+    const levelQs=allQuizQuestions.slice(start,start+QUESTIONS_PER_LEVEL);
+    const done=getDoneList(lvl); // الأسئلة المجاب عليها صح
+    const remaining=levelQs.filter(x=>!done.includes(x.q)).length;
+    const total=levelQs.length;
+    const pct=Math.round(((total-remaining)/total)*100);
+    const completed=(remaining===0);
+    // المستوى الأول مفتوح دائماً، باقي المستويات تحتاج اكتمال السابق
+    const prevCompleted = lvl===1 ? true : (()=>{
+      const prevQs=allQuizQuestions.slice((lvl-2)*QUESTIONS_PER_LEVEL,(lvl-1)*QUESTIONS_PER_LEVEL);
+      const prevDone=getDoneList(lvl-1);
+      return prevQs.every(x=>prevDone.includes(x.q));
+    })();
+    const locked=!prevCompleted;
+    const color=completed?'var(--accent)':locked?'var(--muted)':'var(--text)';
+    const icon=completed?'✅':locked?'🔒':'📚';
+    html+=`<div onclick="${(!locked&&!completed)?'startLevel('+lvl+','+QUESTIONS_PER_LEVEL+')':''}" style="background:var(--surface2);border:1px solid ${completed?'rgba(0,229,160,0.35)':locked?'rgba(255,255,255,0.04)':'var(--border)'};border-radius:14px;padding:13px 16px;margin-bottom:9px;cursor:${(!locked&&!completed)?'pointer':'not-allowed'};opacity:${locked?0.45:completed?0.7:1};transition:.2s;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+        <span style="font-size:14px;font-weight:800;color:${color}">${icon} المستوى ${lvl}</span>
+        <span style="font-size:12px;color:var(--muted)">${locked?'مقفل':completed?'مكتمل ✓':remaining+' سؤال متبقي / '+total}</span>
+      </div>
+      <div style="height:5px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:10px;transition:width .5s;"></div>
+      </div>
+      ${completed?`<div style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;">🎉 أجبت على جميع الأسئلة بشكل صحيح!</div>`:locked?`<div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center;">أكمل المستوى ${lvl-1} أولاً لفتح هذا المستوى</div>`:''}
+    </div>`;
+  }
+  div.innerHTML=html;
+}
+
+function startLevel(level, QUESTIONS_PER_LEVEL){
+  currentQuizLevel=level;
+  const start=(level-1)*QUESTIONS_PER_LEVEL;
+  const levelQs=allQuizQuestions.slice(start,start+QUESTIONS_PER_LEVEL);
+  // الأسئلة التي لم تُجب عليها صح بعد
+  const done=getDoneList(level);
+  const pending=levelQs.filter(x=>!done.includes(x.q));
+  if(pending.length===0){
+    // كل الأسئلة مجاب عليها صح → مكتمل
+    document.getElementById("quizContent").innerHTML=`
+      <div style="text-align:center;padding:20px">
+        <div style="font-size:42px;margin-bottom:10px">🎉</div>
+        <div style="font-size:15px;font-weight:800;color:var(--accent);margin-bottom:8px">أكملت المستوى ${level} بالكامل!</div>
+        <div onclick="loadQuiz()" style="margin-top:14px;padding:12px;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:12px;font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;">🔙 العودة للمستويات</div>
+      </div>`;
+    return;
+  }
+  // نبدأ جلسة بالأسئلة المتبقية (مخلوطة)
+  quizData=[...pending].sort(()=>Math.random()-.5);
+  quizIdx=0; quizScore=0;
+  renderQuestion();
+}
+
 function renderQuestion(){
   const div=document.getElementById("quizContent");
+
+  // عدد الأسئلة الصحيحة التي أجاب عليها في هذا المستوى
+  const QUESTIONS_PER_LEVEL=30;
+  const start=(currentQuizLevel-1)*QUESTIONS_PER_LEVEL;
+  const levelQs=allQuizQuestions.slice(start,start+QUESTIONS_PER_LEVEL);
+  const doneCount=getDoneList(currentQuizLevel).length;
+  const totalInLevel=levelQs.length;
+  const leftInLevel=totalInLevel-doneCount;
+
+  // إذا انتهت أسئلة الجلسة الحالية (quizData)، تحقق إذا اكتمل المستوى
   if(quizIdx>=quizData.length){
-    // نتيجة نهائية
-    const pct=Math.round((quizScore/(quizData.length*10))*100);
-    const icon=quizScore>=quizData.length*8?'🏆':quizScore>=quizData.length*5?'🥈':'🎯';
-    div.innerHTML=`
-      <div class="quiz-result">
-        <div class="quiz-result-icon">${icon}</div>
-        <div style="font-size:26px;font-weight:900;color:var(--accent);margin-bottom:6px">+${quizScore} نقطة</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:16px">أجبت على ${quizData.length} سؤال</div>
-        <div style="background:var(--surface2);border-radius:14px;padding:12px;border:1px solid var(--border);font-size:12px;color:var(--muted)">
-          🎯 النقاط ستُضاف عند مراجعة المشرف
-        </div>
-        <div onclick="loadQuiz()" style="margin-top:14px;padding:12px;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:12px;font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;">🔄 العب مجدداً</div>
-      </div>`;
-    playQuizSound(true);
+    if(leftInLevel===0){
+      // اكتمل المستوى بالكامل 🎉
+      div.innerHTML=`
+        <div class="quiz-result">
+          <div class="quiz-result-icon">🏆</div>
+          <div style="font-size:24px;font-weight:900;color:var(--accent);margin-bottom:6px">أحسنت! أكملت المستوى ${currentQuizLevel}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:16px">أجبت على جميع ${totalInLevel} سؤال بشكل صحيح</div>
+          <div style="background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:14px;padding:12px;font-size:12px;color:var(--accent)">
+            ✅ تمت إضافة جميع النقاط لرصيدك
+          </div>
+          <div onclick="loadQuiz()" style="margin-top:14px;padding:12px;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:12px;font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;">🔙 العودة للمستويات</div>
+        </div>`;
+      playQuizSound(true);
+    } else {
+      // لا تزال هناك أسئلة خاطئة متبقية → ابدأ جولة جديدة بها
+      const remaining=levelQs.filter(x=>!getDoneList(currentQuizLevel).includes(x.q));
+      quizData=[...remaining].sort(()=>Math.random()-.5);
+      quizIdx=0;
+      renderQuestion();
+    }
     return;
   }
 
   const q=quizData[quizIdx];
   const opts=[{t:q.a,k:'a'},{t:q.b,k:'b'},{t:q.c,k:'c'}].filter(o=>o.t&&o.t.trim());
-  const pct=Math.round((quizIdx/quizData.length)*100);
+  const pct=Math.round((doneCount/totalInLevel)*100);
 
   div.innerHTML=`
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px;">📚 المستوى ${currentQuizLevel} · ${leftInLevel} سؤال متبقٍ من ${totalInLevel}</div>
     <div class="quiz-progress">
-      <span style="font-weight:800">${quizIdx+1}<span style="color:var(--muted)">/${quizData.length}</span></span>
+      <span style="font-weight:800">${doneCount}<span style="color:var(--muted)">/${totalInLevel}</span></span>
       <div class="quiz-bar-wrap"><div class="quiz-bar" id="qbar" style="width:${pct}%"></div></div>
       <span style="color:var(--accent);font-weight:800">+${quizScore}🎯</span>
     </div>
@@ -626,28 +846,54 @@ function renderQuestion(){
 }
 
 function answerQuiz(chosen, correct, pts){
-  // تعطيل كل الخيارات
   document.querySelectorAll('.quiz-opt').forEach(o=>o.onclick=null);
 
+  const chosenEl=document.getElementById('opt_'+chosen);
   const isCorrect = chosen.trim()===correct.trim() ||
-    (document.getElementById('opt_'+chosen)?.innerText?.includes(correct));
-
-  // إظهار الإجابة الصحيحة دائماً
-  document.querySelectorAll('.quiz-opt').forEach(o=>{
-    const k=o.id.replace('opt_','');
-    const txt=o.innerText;
-    if(txt.includes(correct.trim())) o.classList.add('correct');
-    else if(k===chosen && !isCorrect) o.classList.add('wrong');
-  });
+    (chosenEl?.innerText?.includes(correct));
 
   if(isCorrect){
+    // ✅ صحيح: أخضر + صوت فوز + نقاط فورية + السؤال يُحذف
+    chosenEl?.classList.add('correct');
+    const currentQ=quizData[quizIdx]?.q;
+    if(currentQ) markDone(currentQuizLevel, currentQ);
     quizScore+=pts||10;
+    addPointsInstant(pts||10);
     playQuizSound(true);
+    // ننتقل للسؤال التالي فقط عند الإجابة الصحيحة
+    setTimeout(()=>{quizIdx++;renderQuestion();},1200);
   } else {
+    // ❌ خطأ: أحمر + صوت فشل + نفس السؤال يعود (quizIdx لا يتغير أبداً)
+    chosenEl?.classList.add('wrong');
     playQuizSound(false);
+    const q=quizData[quizIdx];
+    if(!q) return;
+    const opts=[{t:q.a,k:'a'},{t:q.b,k:'b'},{t:q.c,k:'c'}].filter(o=>o.t&&o.t.trim());
+    const QUESTIONS_PER_LEVEL=30;
+    const start=(currentQuizLevel-1)*QUESTIONS_PER_LEVEL;
+    const levelQs=allQuizQuestions.slice(start,start+QUESTIONS_PER_LEVEL);
+    const doneCount=getDoneList(currentQuizLevel).length;
+    const totalInLevel=levelQs.length;
+    const leftInLevel=totalInLevel-doneCount;
+    const pct=Math.round((doneCount/totalInLevel)*100);
+    // نعيد رسم نفس السؤال بعد ثانية (بدون تغيير quizIdx)
+    setTimeout(()=>{
+      document.getElementById("quizContent").innerHTML=`
+        <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px;">📚 المستوى ${currentQuizLevel} · ${leftInLevel} سؤال متبقٍ من ${totalInLevel}</div>
+        <div class="quiz-progress">
+          <span style="font-weight:800">${doneCount}<span style="color:var(--muted)">/${totalInLevel}</span></span>
+          <div class="quiz-bar-wrap"><div class="quiz-bar" style="width:${pct}%"></div></div>
+          <span style="color:var(--accent);font-weight:800">+${quizScore}🎯</span>
+        </div>
+        <div class="quiz-q">❓ ${q.q}</div>
+        <div class="quiz-opts">
+          ${opts.map((o,i)=>`
+            <div class="quiz-opt" id="opt_${o.k}" onclick="answerQuiz('${o.k}','${q.ans.trim()}',${q.pts})">
+              <span style="color:var(--muted);margin-left:8px">${['أ','ب','ج'][i]}</span> ${o.t}
+            </div>`).join('')}
+        </div>`;
+    },1200);
   }
-
-  setTimeout(()=>{quizIdx++;renderQuestion();},1100);
 }
 
 /* أصوات الكويز */
