@@ -342,11 +342,13 @@ button.auth-btn:active{transform:translateY(0);}
 </div>
 
 <script>
-const dataUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?gid=1973938037&single=true&output=csv';
-const membersUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
-const shabaabUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQmdUyatoTvFTxkQ_h4TdNAuYGd5RAySGVYsjFIa04IJ2lhdHJm-kHR2cSQoOshJPRYGHH6HQns-cXJ/pub?output=csv';
-const quizUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQi_JTvEBgrlT-nba8SzIEiuTvPS6sz-eIRLM-cESaztFr35bl6mGq7rzwNc-tiP1BY-44d7x6rcvEf/pubhtml';
-const rankingUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP7Q70E0ey5k7JnnOh7Ju7281ytxEDTViCVRiv4JM0FakJSgxZM47XmZN1bgZSGwCU5fIHzldOQhid/pub?output=csv';
+const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?gid=1973938037&single=true&output=csv';
+const membersUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
+const shabaabUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQmdUyatoTvFTxkQ_h4TdNAuYGd5RAySGVYsjFIa04IJ2lhdHJm-kHR2cSQoOshJPRYGHH6HQns-cXJ/pub?gid=220061237&single=true&output=csv';
+/* ▼ جدول الشباب الجديد المربوط باستمارة الشباب (Form) ▼ */
+const newShabaabUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDI3Sw6dUaU02463Rj5xpZ5Q3_vUq4WpaZVLnErKubqDbfBcWt_tPbQSckySuRzeSS0IU-25T2XZcI/pub?output=csv';
+const quizUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQi_JTvEBgrlT-nba8SzIEiuTvPS6sz-eIRLM-cESaztFr35bl6mGq7rzwNc-tiP1BY-44d7x6rcvEf/pubhtml';
+const rankingUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP7Q70E0ey5k7JnnOh7Ju7281ytxEDTViCVRiv4JM0FakJSgxZM47XmZN1bgZSGwCU5fIHzldOQhid/pub?output=csv';
 
 /* ===== جزيئات الخلفية ===== */
 (function(){
@@ -388,7 +390,7 @@ function buildGrid(isReg){
   const grid=document.getElementById('mainGrid');
   const items=[
     ['💰','رصيدك',      'bg-1',"showModal('digitalCard')", true ],
-    ['🏆','المتصدرين',  'bg-2',"showModal('rankingCard')",  true ],
+    ['🏆','جدول الترتيب','bg-2',"showModal('rankingCard')",  true ],
     ['👥','المنخرطون',  'bg-3',"showModal('membersCard')",  true ],
     ['✨','الشباب',      'bg-4',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSecOGzwMlbed7jZPPf_PHaCtsGrIuKeZKTtTI2pOFmO_Y6tKQ/viewform')", true],
     ['📝','Smart Kid',  'bg-5',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform')", true],
@@ -541,12 +543,12 @@ function renderApp(name,pts,isReg){
   // لوحة التحكم الرئيسية: تُظهر الإجمالي الدائم (لا يتأثر بالحذف)
   document.getElementById("mainPoints").innerHTML=`${totalPts.toLocaleString()} <span>نقطة</span>`;
 
-  // بطاقة رصيدك: تُظهر نقاط الجدول الحالية فقط (تتغير عند الحذف)
+  // بطاقة رصيدك: تُظهر الإجمالي الكامل (نقاط الجدول + نقاط الكويز)
   const code=getMemberCode(name);
   document.getElementById("cardName").innerText=name;
   document.getElementById("cardCode").innerText="NLD-"+code;
-  document.getElementById("cardPoints").innerText=pts+" نقطة";
-  document.getElementById("cardBalance").innerText=((pts/50)*30).toFixed(2)+" دج";
+  document.getElementById("cardPoints").innerText=totalPts.toLocaleString()+" نقطة";
+  document.getElementById("cardBalance").innerText=((totalPts/50)*30).toFixed(2)+" دج";
 
   // المستوى يُحسب من الإجمالي الدائم
   const LEVEL_PTS=3000;
@@ -565,10 +567,11 @@ async function loadMembers(){
   const div=document.getElementById("membersInfo");
   div.innerHTML='<div class="spinner"></div>';
   try{
-    const [r1,r2,r3]=await Promise.all([fetch(dataUrl),fetch(membersUrl),fetch(shabaabUrl)]);
+    const [r1,r2,r3,r4]=await Promise.all([fetch(dataUrl),fetch(membersUrl),fetch(shabaabUrl),fetch(newShabaabUrl)]);
     const t1=await r1.text();
     const t2=await r2.text();
     const t3=await r3.text();
+    const t4=await r4.text();
 
     // دالة تنظيف الاسم لمقارنة موحدة
     const norm=s=>s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
@@ -591,6 +594,25 @@ async function loadMembers(){
       return '—';
     }
 
+    // دالة موحدة لتحليل صفوف استمارات الشباب
+    function parseShabaabRows(txt){
+      return txt.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
+        const cols=r.split(',').map(c=>(c||'').replace(/"/g,'').trim());
+        let fullName=cols[2]||cols[1]||'';
+        fullName=fullName.trim();
+        if(!fullName) return null;
+        const age=parseAge(cols[3])||parseAge(cols[4])||'—';
+        let pts=ptsMap[norm(fullName)]||0;
+        if(!pts){
+          for(let i=cols.length-1;i>=5;i--){
+            const v=parseInt(cols[i]);
+            if(!isNaN(v)&&v>0){pts=v;break;}
+          }
+        }
+        return {name:fullName,age,pts};
+      }).filter(Boolean);
+    }
+
     // جدول المنخرطين (C=الاسم، D=السن)
     const memberRows=t2.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
       const cols=r.split(',');
@@ -601,29 +623,12 @@ async function loadMembers(){
       return {name:fullName,age,pts};
     }).filter(Boolean);
 
-    // استمارة الشباب - نجرب أعمدة متعددة للاسم (C=2 أو D=3 حسب بنية الاستمارة)
-    const shabaabRows=t3.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
-      const cols=r.split(',').map(c=>(c||'').replace(/"/g,'').trim());
-      // نجرب العمود C (index 2) أولاً، ثم B (index 1)
-      let fullName=cols[2]||cols[1]||'';
-      fullName=fullName.trim();
-      if(!fullName) return null;
-      // السن: نجرب D (index 3) ثم E (index 4)
-      const age=parseAge(cols[3])||parseAge(cols[4])||'—';
-      // النقاط: من ptsMap أولاً (الأدق)، ثم من أي عمود رقمي
-      let pts=ptsMap[norm(fullName)]||0;
-      if(!pts){
-        for(let i=cols.length-1;i>=5;i--){
-          const v=parseInt(cols[i]);
-          if(!isNaN(v)&&v>0){pts=v;break;}
-        }
-      }
-      return {name:fullName,age,pts};
-    }).filter(Boolean);
+    const shabaabRows    = parseShabaabRows(t3);
+    const newShabaabRows = parseShabaabRows(t4);
 
-    // دمج وإزالة مكررات بالاسم المُنظَّف
+    // دمج وإزالة مكررات بالاسم المُنظَّف من جميع المصادر
     const seen=new Set();
-    const all=[...memberRows,...shabaabRows].filter(x=>{
+    const all=[...memberRows,...shabaabRows,...newShabaabRows].filter(x=>{
       const k=norm(x.name);
       if(seen.has(k)) return false;
       seen.add(k); return true;
@@ -642,7 +647,6 @@ async function loadMembers(){
       }
       const catBadge=cat?`<span style="background:rgba(0,229,160,0.12);color:var(--accent);border-radius:6px;padding:2px 7px;">${cat}</span>`:'';
       const ageBadge=`<span>🎂 ${x.age} سنة</span>`;
-      // المستوى بناءً على النقاط الإجمالية
       const LEVEL_PTS=3000;
       const memberLevel=Math.floor(x.pts/LEVEL_PTS)+1;
       const lvlBadge=`<span style="background:rgba(168,85,247,0.15);color:#c084fc;border-radius:6px;padding:2px 7px;">⭐ المستوى ${memberLevel}</span>`;
@@ -696,39 +700,58 @@ async function loadRanking(){
   const div=document.getElementById("rankingInfo");
   div.innerHTML='<div class="spinner"></div>';
   try{
-    const [r1,r2]=await Promise.all([fetch(dataUrl),fetch(shabaabUrl)]);
+    const [r1,r2,r3]=await Promise.all([fetch(dataUrl),fetch(shabaabUrl),fetch(newShabaabUrl)]);
     const t1=await r1.text();
     const t2=await r2.text();
+    const t3=await r3.text();
+
+    const norm=s=>s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+    const currentUser=getCurrentUser();
+    const earnedByCurrentUser=parseInt(localStorage.getItem(_earnedKey(currentUser))||'0');
 
     const fromData=t1.split('\n').slice(1)
       .map(r=>{const c=r.split(',');return{n:(c[2]||'').replace(/"/g,'').trim(),p:parseInt(c[c.length-1])||0};})
       .filter(x=>x.n && x.n!=='ممتاز');
 
-    const namesInData=new Set(fromData.map(x=>x.n));
-    const fromShabaab=t2.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
-      const cols=r.split(',').map(c=>(c||'').replace(/"/g,'').trim());
-      // نجرب العمود C (index 2) أولاً ثم B (index 1)
-      const n=cols[2]||cols[1]||'';
-      if(!n||n==='ممتاز'||namesInData.has(n)) return null;
-      // النقاط: آخر عمود رقمي
-      let p=0;
-      for(let i=cols.length-1;i>=5;i--){const v=parseInt(cols[i]);if(!isNaN(v)&&v>0){p=v;break;}}
-      return {n,p};
-    }).filter(Boolean);
+    const namesInData=new Set(fromData.map(x=>norm(x.n)));
 
-    const list=[...fromData,...fromShabaab].sort((a,b)=>b.p-a.p);
+    // دالة موحدة لتحليل صفوف استمارات الشباب للترتيب
+    function parseShabaabForRank(txt){
+      return txt.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
+        const cols=r.split(',').map(c=>(c||'').replace(/"/g,'').trim());
+        const n=cols[2]||cols[1]||'';
+        if(!n||n==='ممتاز'||namesInData.has(norm(n))) return null;
+        let p=0;
+        for(let i=cols.length-1;i>=5;i--){const v=parseInt(cols[i]);if(!isNaN(v)&&v>0){p=v;break;}}
+        namesInData.add(norm(n));
+        return {n,p};
+      }).filter(Boolean);
+    }
+
+    const fromShabaab    = parseShabaabForRank(t2);
+    const fromNewShabaab = parseShabaabForRank(t3);
+
+    // دمج الكل وإضافة نقاط الكويز للمستخدم الحالي
+    const list=[...fromData,...fromShabaab,...fromNewShabaab].map(x=>{
+      const extraPts=(norm(x.n)===norm(currentUser))?earnedByCurrentUser:0;
+      return {n:x.n, p:x.p+extraPts};
+    }).sort((a,b)=>b.p-a.p);
+
     const m=['gold','silver','bronze'];
     div.innerHTML=list.map((x,i)=>`
       <div class="member-row">
         <div class="member-num ${m[i]||''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
         <div class="member-name">${x.n}</div>
-        <div class="member-pts">${x.p>0?x.p:'—'}</div>
+        <div class="member-pts">${x.p>0?x.p.toLocaleString():'—'}</div>
       </div>`).join('');
   }catch(e){div.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">تعذر التحميل</p>';}
 }
 
 /* ===== كويز: اجمع النقاط ===== */
 let quizData=[], quizIdx=0, quizScore=0, quizLevelData=[], currentQuizLevel=1, allQuizQuestions=[];
+
+/* مجموعة لتتبع الأسئلة التي أُخطئ فيها في الجلسة الحالية (مقيّد بنص السؤال) */
+let _wrongAnsweredQs = new Set();
 
 /* جلب الأسئلة من جدول Google Sheets عبر CSV مباشرة */
 const quizCsvUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vQi_JTvEBgrlT-nba8SzIEiuTvPS6sz-eIRLM-cESaztFr35bl6mGq7rzwNc-tiP1BY-44d7x6rcvEf/pub?output=csv';
@@ -748,7 +771,7 @@ let _basePoints=0;
 /* مفتاح حفظ النقاط المكسوبة */
 function _earnedKey(name){return 'nld_earned_'+name.replace(/\s+/g,'_');}
 
-/* إضافة نقاط للمستخدم فوراً مع حفظ دائم - تُحدّث لوحة التحكم فقط */
+/* إضافة نقاط للمستخدم فوراً مع حفظ دائم - تُحدّث لوحة التحكم والبطاقة */
 function addPointsInstant(pts){
   _basePoints+=pts;
   const name=document.getElementById("userNameTop").innerText||'';
@@ -757,7 +780,7 @@ function addPointsInstant(pts){
     localStorage.setItem(_earnedKey(name),String(prev+pts));
   }
   const newPts=_basePoints;
-  // لوحة التحكم الرئيسية فقط
+  // لوحة التحكم الرئيسية
   document.getElementById("mainPoints").innerHTML=`${newPts.toLocaleString()} <span>نقطة</span>`;
   const LEVEL_PTS=3000;
   const lvl=Math.floor(newPts/LEVEL_PTS)+1;
@@ -766,7 +789,9 @@ function addPointsInstant(pts){
   document.getElementById("progressStart").innerText=(lvl-1)*LEVEL_PTS;
   document.getElementById("progressEnd").innerText=lvl*LEVEL_PTS;
   document.getElementById("mainBar").style.width=Math.min((inLvl/LEVEL_PTS)*100,100)+"%";
-  // بطاقة رصيدك: لا تتغير هنا (تعكس نقاط الجدول فقط)
+  // بطاقة رصيدك: تتحدث بالتزامن مع لوحة التحكم
+  document.getElementById("cardPoints").innerText=newPts.toLocaleString()+" نقطة";
+  document.getElementById("cardBalance").innerText=((newPts/50)*30).toFixed(2)+" دج";
 }
 
 async function loadQuiz(){
@@ -796,8 +821,8 @@ async function loadQuiz(){
 
     // حفظ الأسئلة في متغير عام
     allQuizQuestions=allQuestions;
-    // تقسيم الأسئلة إلى مستويات (30 سؤال لكل مستوى)
-    const QUESTIONS_PER_LEVEL=30;
+    // تقسيم الأسئلة إلى مستويات (25 سؤال لكل مستوى)
+    const QUESTIONS_PER_LEVEL=25;
     const totalLevels=Math.ceil(allQuestions.length/QUESTIONS_PER_LEVEL);
 
     // عرض قائمة المستويات
@@ -813,16 +838,17 @@ function showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div){
   for(let lvl=1;lvl<=totalLevels;lvl++){
     const start=(lvl-1)*QUESTIONS_PER_LEVEL;
     const levelQs=allQuizQuestions.slice(start,start+QUESTIONS_PER_LEVEL);
-    const done=getDoneList(lvl); // الأسئلة المجاب عليها صح
-    const remaining=levelQs.filter(x=>!done.includes(x.q)).length;
+    const done=getDoneList(lvl);
+    const doneCount=levelQs.filter(x=>done.includes(x.q)).length;
     const total=levelQs.length;
-    const pct=Math.round(((total-remaining)/total)*100);
+    const remaining=total-doneCount;
+    const pct=Math.round((doneCount/total)*100);
     const completed=(remaining===0);
-    // المستوى الأول مفتوح دائماً، باقي المستويات تحتاج اكتمال السابق
+    // المستوى الأول مفتوح دائماً، باقي المستويات تحتاج اكتمال المستوى السابق بالكامل (25 سؤال)
     const prevCompleted = lvl===1 ? true : (()=>{
       const prevQs=allQuizQuestions.slice((lvl-2)*QUESTIONS_PER_LEVEL,(lvl-1)*QUESTIONS_PER_LEVEL);
       const prevDone=getDoneList(lvl-1);
-      return prevQs.every(x=>prevDone.includes(x.q));
+      return prevQs.length>0 && prevQs.every(x=>prevDone.includes(x.q));
     })();
     const locked=!prevCompleted;
     const color=completed?'var(--accent)':locked?'var(--muted)':'var(--text)';
@@ -830,12 +856,12 @@ function showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div){
     html+=`<div onclick="${(!locked&&!completed)?'startLevel('+lvl+','+QUESTIONS_PER_LEVEL+')':''}" style="background:var(--surface2);border:1px solid ${completed?'rgba(0,229,160,0.35)':locked?'rgba(255,255,255,0.04)':'var(--border)'};border-radius:14px;padding:13px 16px;margin-bottom:9px;cursor:${(!locked&&!completed)?'pointer':'not-allowed'};opacity:${locked?0.45:completed?0.7:1};transition:.2s;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
         <span style="font-size:14px;font-weight:800;color:${color}">${icon} المستوى ${lvl}</span>
-        <span style="font-size:12px;color:var(--muted)">${locked?'مقفل':completed?'مكتمل ✓':remaining+' سؤال متبقي / '+total}</span>
+        <span style="font-size:12px;color:var(--muted)">${locked?'مقفل':completed?'مكتمل ✓':doneCount+'/'+total+' سؤال'}</span>
       </div>
       <div style="height:5px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden;">
         <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:10px;transition:width .5s;"></div>
       </div>
-      ${completed?`<div style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;">🎉 أجبت على جميع الأسئلة بشكل صحيح!</div>`:locked?`<div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center;">أكمل المستوى ${lvl-1} أولاً لفتح هذا المستوى</div>`:''}
+      ${completed?`<div style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;">🎉 أجبت على جميع ${total} سؤال بشكل صحيح!</div>`:locked?`<div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center;">أكمل المستوى ${lvl-1} كاملاً (${QUESTIONS_PER_LEVEL} سؤال) لفتح هذا المستوى</div>`:''}
     </div>`;
   }
   div.innerHTML=html;
@@ -858,9 +884,10 @@ function startLevel(level, QUESTIONS_PER_LEVEL){
       </div>`;
     return;
   }
-  // نبدأ جلسة بالأسئلة المتبقية (مخلوطة)
+  // إعادة ضبط الجلسة وبدء المستوى
   quizData=[...pending].sort(()=>Math.random()-.5);
-  quizIdx=0; quizScore=0; _currentQWrong=false;
+  quizIdx=0; quizScore=0;
+  _wrongAnsweredQs = new Set(); // ← تصفير عند بدء مستوى جديد
   renderQuestion();
 }
 
@@ -868,7 +895,7 @@ function renderQuestion(){
   const div=document.getElementById("quizContent");
 
   // عدد الأسئلة الصحيحة التي أجاب عليها في هذا المستوى
-  const QUESTIONS_PER_LEVEL=30;
+  const QUESTIONS_PER_LEVEL=25;
   const start=(currentQuizLevel-1)*QUESTIONS_PER_LEVEL;
   const levelQs=allQuizQuestions.slice(start,start+QUESTIONS_PER_LEVEL);
   const doneCount=getDoneList(currentQuizLevel).length;
@@ -920,60 +947,36 @@ function renderQuestion(){
     </div>`;
 }
 
-/* متغير لتتبع إذا السؤال الحالي أُخطئ فيه */
-let _currentQWrong=false;
-
+/* ===== منطق الإجابة على الكويز (النقاط فقط للإجابة الأولى الصحيحة) ===== */
 function answerQuiz(chosen, correct, pts){
+  // تعطيل جميع الخيارات فور النقر لمنع الضغط المتعدد
   document.querySelectorAll('.quiz-opt').forEach(o=>o.onclick=null);
 
   const chosenEl=document.getElementById('opt_'+chosen);
+  const currentQ=quizData[quizIdx]?.q;
+  // مقارنة مزدوجة: إما الحرف (a/b/c) أو النص الكامل للجواب من الجدول
   const isCorrect = chosen.trim()===correct.trim() ||
-    (chosenEl?.innerText?.includes(correct));
+    !!(chosenEl?.innerText?.trim().includes(correct.trim()));
 
   if(isCorrect){
-    // ✅ صحيح: أخضر + صوت فوز
+    // ✅ إجابة صحيحة
     chosenEl?.classList.add('correct');
-    const currentQ=quizData[quizIdx]?.q;
     if(currentQ) markDone(currentQuizLevel, currentQ);
-    quizScore+=pts||10;
-    // النقاط فقط إذا أجاب صح من المرة الأولى (لم يخطئ قبلها)
-    if(!_currentQWrong) addPointsInstant(pts||10);
+    quizScore += pts||10;
+    // ✨ النقاط تُمنح فقط إذا لم يُخطئ في هذا السؤال من قبل
+    if(currentQ && !_wrongAnsweredQs.has(currentQ)){
+      addPointsInstant(pts||10);
+    }
     playQuizSound(true);
-    setTimeout(()=>{
-      _currentQWrong=false;
-      quizIdx++;renderQuestion();
-    },1200);
+    setTimeout(()=>{ quizIdx++; renderQuestion(); }, 1200);
+
   } else {
-    // ❌ خطأ: أحمر + صوت فشل + نفس السؤال يعود بدون نقطة
-    _currentQWrong=true;
+    // ❌ إجابة خاطئة: تسجيل الخطأ في المجموعة
+    if(currentQ) _wrongAnsweredQs.add(currentQ);
     chosenEl?.classList.add('wrong');
     playQuizSound(false);
-    const q=quizData[quizIdx];
-    if(!q) return;
-    const opts=[{t:q.a,k:'a'},{t:q.b,k:'b'},{t:q.c,k:'c'}].filter(o=>o.t&&o.t.trim());
-    const QUESTIONS_PER_LEVEL=30;
-    const start=(currentQuizLevel-1)*QUESTIONS_PER_LEVEL;
-    const levelQs=allQuizQuestions.slice(start,start+QUESTIONS_PER_LEVEL);
-    const doneCount=getDoneList(currentQuizLevel).length;
-    const totalInLevel=levelQs.length;
-    const leftInLevel=totalInLevel-doneCount;
-    const pct=Math.round((doneCount/totalInLevel)*100);
-    setTimeout(()=>{
-      document.getElementById("quizContent").innerHTML=`
-        <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px;">📚 المستوى ${currentQuizLevel} · ${leftInLevel} سؤال متبقٍ من ${totalInLevel}</div>
-        <div class="quiz-progress">
-          <span style="font-weight:800">${doneCount}<span style="color:var(--muted)">/${totalInLevel}</span></span>
-          <div class="quiz-bar-wrap"><div class="quiz-bar" style="width:${pct}%"></div></div>
-          <span style="color:var(--accent);font-weight:800">+${quizScore}🎯</span>
-        </div>
-        <div class="quiz-q">❓ ${q.q}</div>
-        <div class="quiz-opts">
-          ${opts.map((o,i)=>`
-            <div class="quiz-opt" id="opt_${o.k}" onclick="answerQuiz('${o.k}','${q.ans.trim()}',${q.pts})">
-              <span style="color:var(--muted);margin-left:8px">${['أ','ب','ج'][i]}</span> ${o.t}
-            </div>`).join('')}
-        </div>`;
-    },1200);
+    // إعادة عرض نفس السؤال بعد 1.2 ثانية (دون تغيير quizIdx)
+    setTimeout(()=>{ renderQuestion(); }, 1200);
   }
 }
 
