@@ -834,37 +834,100 @@ async function loadQuiz(){
 }
 
 function showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div){
-  let html=`<div style="padding:4px 0 10px;font-size:13px;font-weight:700;color:var(--muted);text-align:center;">اختر المستوى</div>`;
+  // ألوان المراحل - من سيربح المليون
+  const levelColors=[
+    {from:'#f5c518',to:'#f97316',text:'#fff8e1'},  // 1 - ذهبي
+    {from:'#4facfe',to:'#00f2fe',text:'#e0f7ff'},  // 2 - أزرق
+    {from:'#11998e',to:'#38ef7d',text:'#e0fff5'},  // 3 - أخضر
+    {from:'#667eea',to:'#764ba2',text:'#f0e8ff'},  // 4 - بنفسجي
+    {from:'#f093fb',to:'#f5576c',text:'#ffe8f0'},  // 5 - وردي
+    {from:'#FF9D6C',to:'#BB4E75',text:'#fff0ea'},  // 6
+    {from:'#f97316',to:'#ef4444',text:'#fff0e0'},  // 7
+    {from:'#059669',to:'#34d399',text:'#e0fff5'},  // 8
+    {from:'#1877F2',to:'#0d5bda',text:'#e8f0ff'},  // 9
+  ];
+  const prizeLabels=['🥉 مبتدئ','🥈 متوسط','🥇 متقدم','💎 خبير','🏆 بطل','🌟 أسطورة','👑 نخبة','🚀 خبير مطلق','🌌 الأعلى'];
+
+  let html=`
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:18px;font-weight:900;color:var(--gold);letter-spacing:1px;text-shadow:0 0 18px rgba(245,197,24,0.5);">🎯 من سيربح النقاط؟</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">أكمل كل مستوى (${QUESTIONS_PER_LEVEL} سؤال) لفتح التالي</div>
+    </div>`;
+
   for(let lvl=1;lvl<=totalLevels;lvl++){
     const start=(lvl-1)*QUESTIONS_PER_LEVEL;
     const levelQs=allQuizQuestions.slice(start,start+QUESTIONS_PER_LEVEL);
     const done=getDoneList(lvl);
     const doneCount=levelQs.filter(x=>done.includes(x.q)).length;
     const total=levelQs.length;
-    const remaining=total-doneCount;
     const pct=Math.round((doneCount/total)*100);
-    const completed=(remaining===0);
-    // المستوى الأول مفتوح دائماً، باقي المستويات تحتاج اكتمال المستوى السابق بالكامل (25 سؤال)
+    const completed=(total-doneCount===0);
     const prevCompleted = lvl===1 ? true : (()=>{
       const prevQs=allQuizQuestions.slice((lvl-2)*QUESTIONS_PER_LEVEL,(lvl-1)*QUESTIONS_PER_LEVEL);
       const prevDone=getDoneList(lvl-1);
       return prevQs.length>0 && prevQs.every(x=>prevDone.includes(x.q));
     })();
     const locked=!prevCompleted;
-    const color=completed?'var(--accent)':locked?'var(--muted)':'var(--text)';
-    const icon=completed?'✅':locked?'🔒':'📚';
-    html+=`<div onclick="${(!locked&&!completed)?'startLevel('+lvl+','+QUESTIONS_PER_LEVEL+')':''}" style="background:var(--surface2);border:1px solid ${completed?'rgba(0,229,160,0.35)':locked?'rgba(255,255,255,0.04)':'var(--border)'};border-radius:14px;padding:13px 16px;margin-bottom:9px;cursor:${(!locked&&!completed)?'pointer':'not-allowed'};opacity:${locked?0.45:completed?0.7:1};transition:.2s;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
-        <span style="font-size:14px;font-weight:800;color:${color}">${icon} المستوى ${lvl}</span>
-        <span style="font-size:12px;color:var(--muted)">${locked?'مقفل':completed?'مكتمل ✓':doneCount+'/'+total+' سؤال'}</span>
-      </div>
-      <div style="height:5px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden;">
-        <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:10px;transition:width .5s;"></div>
-      </div>
-      ${completed?`<div style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center;">🎉 أجبت على جميع ${total} سؤال بشكل صحيح!</div>`:locked?`<div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center;">أكمل المستوى ${lvl-1} كاملاً (${QUESTIONS_PER_LEVEL} سؤال) لفتح هذا المستوى</div>`:''}
-    </div>`;
+    const col=levelColors[(lvl-1)%levelColors.length];
+    const prize=prizeLabels[(lvl-1)%prizeLabels.length];
+
+    if(locked){
+      // مستوى مقفل - يظهر ضامراً مع قفل واضح
+      html+=`
+        <div style="background:rgba(13,17,23,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:14px 16px;margin-bottom:8px;opacity:0.55;cursor:not-allowed;position:relative;overflow:hidden;">
+          <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.01) 0px,rgba(255,255,255,0.01) 2px,transparent 2px,transparent 10px);pointer-events:none;"></div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🔒</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.35);">المستوى ${lvl} · ${prize}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:3px;">أكمل المستوى ${lvl-1} لفتح هذا المستوى</div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.2);background:rgba(255,255,255,0.04);border-radius:8px;padding:4px 8px;">مقفل</div>
+          </div>
+        </div>`;
+    } else if(completed){
+      // مستوى مكتمل
+      html+=`
+        <div style="background:linear-gradient(135deg,rgba(0,229,160,0.12),rgba(15,155,15,0.08));border:1px solid rgba(0,229,160,0.35);border-radius:16px;padding:14px 16px;margin-bottom:8px;cursor:default;position:relative;overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,${col.from},${col.to});display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,0.3);">✅</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:800;color:var(--accent);">المستوى ${lvl} · ${prize}</div>
+              <div style="font-size:11px;color:rgba(0,229,160,0.7);margin-top:3px;">🎉 أجبت على جميع ${total} سؤال!</div>
+              <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden;margin-top:6px;">
+                <div style="width:100%;height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:10px;"></div>
+              </div>
+            </div>
+            <div style="font-size:11px;font-weight:800;color:var(--accent);background:rgba(0,229,160,0.12);border-radius:8px;padding:4px 8px;border:1px solid rgba(0,229,160,0.25);">مكتمل ✓</div>
+          </div>
+        </div>`;
+    } else {
+      // مستوى متاح للعب
+      html+=`
+        <div onclick="startLevel(${lvl},${QUESTIONS_PER_LEVEL})" style="background:linear-gradient(135deg,rgba(${hexToRgb(col.from)},0.15),rgba(${hexToRgb(col.to)},0.08));border:1px solid rgba(${hexToRgb(col.from)},0.4);border-radius:16px;padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)';"
+          onmouseout="this.style.transform='';this.style.boxShadow='';">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,${col.from},${col.to});display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,0.3);">📚</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:800;color:var(--text);">المستوى ${lvl} · ${prize}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px;">${doneCount} / ${total} سؤال ${doneCount>0?'· أنت في المنتصف! 🔥':''}</div>
+              <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden;margin-top:6px;">
+                <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,${col.from},${col.to});border-radius:10px;transition:width .5s;box-shadow:0 0 8px ${col.from}66;"></div>
+              </div>
+            </div>
+            <div style="font-size:18px;">▶️</div>
+          </div>
+        </div>`;
+    }
   }
   div.innerHTML=html;
+}
+
+/* مساعدة: تحويل hex إلى rgb */
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
 }
 
 function startLevel(level, QUESTIONS_PER_LEVEL){
@@ -909,12 +972,15 @@ function renderQuestion(){
       div.innerHTML=`
         <div class="quiz-result">
           <div class="quiz-result-icon">🏆</div>
-          <div style="font-size:24px;font-weight:900;color:var(--accent);margin-bottom:6px">أحسنت! أكملت المستوى ${currentQuizLevel}</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:16px">أجبت على جميع ${totalInLevel} سؤال بشكل صحيح</div>
-          <div style="background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:14px;padding:12px;font-size:12px;color:var(--accent)">
+          <div style="font-size:24px;font-weight:900;color:var(--gold);margin-bottom:6px;text-shadow:0 0 20px rgba(245,197,24,0.5);">أحسنت! أكملت المستوى ${currentQuizLevel}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:16px">أجبت على جميع ${totalInLevel} سؤال بنجاح 🎉</div>
+          <div style="background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:14px;padding:12px;font-size:12px;color:var(--accent);margin-bottom:10px;">
             ✅ تمت إضافة جميع النقاط لرصيدك
           </div>
-          <div onclick="loadQuiz()" style="margin-top:14px;padding:12px;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:12px;font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;">🔙 العودة للمستويات</div>
+          <div style="background:rgba(245,197,24,0.08);border:1px solid rgba(245,197,24,0.25);border-radius:14px;padding:10px;font-size:12px;color:var(--gold);">
+            🔓 تم فتح المستوى ${currentQuizLevel+1} الآن!
+          </div>
+          <div onclick="loadQuiz()" style="margin-top:14px;padding:13px;background:linear-gradient(135deg,rgba(0,229,160,0.15),rgba(15,155,15,0.1));border:1px solid rgba(0,229,160,0.35);border-radius:14px;font-size:14px;font-weight:800;color:var(--accent);cursor:pointer;transition:.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">🏅 عودة للمستويات</div>
         </div>`;
       playQuizSound(true);
     } else {
@@ -932,11 +998,15 @@ function renderQuestion(){
   const pct=Math.round((doneCount/totalInLevel)*100);
 
   div.innerHTML=`
-    <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px;">📚 المستوى ${currentQuizLevel} · ${leftInLevel} سؤال متبقٍ من ${totalInLevel}</div>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px;">🎯 المستوى ${currentQuizLevel} · ${leftInLevel} سؤال متبقٍ من ${totalInLevel}</div>
     <div class="quiz-progress">
       <span style="font-weight:800">${doneCount}<span style="color:var(--muted)">/${totalInLevel}</span></span>
       <div class="quiz-bar-wrap"><div class="quiz-bar" id="qbar" style="width:${pct}%"></div></div>
       <span style="color:var(--accent);font-weight:800">+${quizScore}🎯</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;font-size:11px;text-align:center;">
+      <div style="flex:1;background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.2);border-radius:10px;padding:6px;">✅ صح → +نقاط</div>
+      <div style="flex:1;background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.2);border-radius:10px;padding:6px;color:#f87171;">❌ خطأ → −2 نقطة</div>
     </div>
     <div class="quiz-q">❓ ${q.q}</div>
     <div class="quiz-opts" id="quizOpts">
@@ -947,7 +1017,7 @@ function renderQuestion(){
     </div>`;
 }
 
-/* ===== منطق الإجابة على الكويز (النقاط فقط للإجابة الأولى الصحيحة) ===== */
+/* ===== منطق الإجابة على الكويز - نظام من سيربح المليون ===== */
 function answerQuiz(chosen, correct, pts){
   // تعطيل جميع الخيارات فور النقر لمنع الضغط المتعدد
   document.querySelectorAll('.quiz-opt').forEach(o=>o.onclick=null);
@@ -959,8 +1029,10 @@ function answerQuiz(chosen, correct, pts){
     !!(chosenEl?.innerText?.trim().includes(correct.trim()));
 
   if(isCorrect){
-    // ✅ إجابة صحيحة
+    // ✅ إجابة صحيحة - لون أخضر + صوت فوز
     chosenEl?.classList.add('correct');
+    // تأثير وميض أخضر على خلفية الكارت
+    showAnswerFlash(true);
     if(currentQ) markDone(currentQuizLevel, currentQ);
     quizScore += pts||10;
     // ✨ النقاط تُمنح فقط إذا لم يُخطئ في هذا السؤال من قبل
@@ -968,16 +1040,79 @@ function answerQuiz(chosen, correct, pts){
       addPointsInstant(pts||10);
     }
     playQuizSound(true);
-    setTimeout(()=>{ quizIdx++; renderQuestion(); }, 1200);
+    setTimeout(()=>{ quizIdx++; renderQuestion(); }, 1400);
 
   } else {
-    // ❌ إجابة خاطئة: تسجيل الخطأ في المجموعة
+    // ❌ إجابة خاطئة: خصم نقطتين + لون أحمر + صوت فشل
     if(currentQ) _wrongAnsweredQs.add(currentQ);
     chosenEl?.classList.add('wrong');
+    // تأثير وميض أحمر على خلفية الكارت
+    showAnswerFlash(false);
+    // خصم 2 نقطة
+    deductPoints(2);
     playQuizSound(false);
-    // إعادة عرض نفس السؤال بعد 1.2 ثانية (دون تغيير quizIdx)
-    setTimeout(()=>{ renderQuestion(); }, 1200);
+    // إعادة عرض نفس السؤال بعد 1.4 ثانية (دون تغيير quizIdx)
+    setTimeout(()=>{ renderQuestion(); }, 1400);
   }
+}
+
+/* ===== تأثير وميض عند الإجابة ===== */
+function showAnswerFlash(correct){
+  const overlay=document.createElement('div');
+  overlay.style.cssText=`
+    position:fixed;inset:0;z-index:9999;pointer-events:none;
+    background:${correct?'rgba(15,155,15,0.22)':'rgba(229,45,39,0.22)'};
+    animation:flashAnim .5s ease forwards;
+  `;
+  // إضافة keyframe ديناميكياً إن لم يكن موجوداً
+  if(!document.getElementById('flashStyle')){
+    const s=document.createElement('style');
+    s.id='flashStyle';
+    s.textContent='@keyframes flashAnim{0%{opacity:1}100%{opacity:0}}';
+    document.head.appendChild(s);
+  }
+  document.body.appendChild(overlay);
+  setTimeout(()=>overlay.remove(), 500);
+
+  // نص +نقاط أو -نقطتين يطير في المنتصف
+  const pts=document.createElement('div');
+  pts.style.cssText=`
+    position:fixed;top:42%;left:50%;transform:translateX(-50%);z-index:10000;pointer-events:none;
+    font-size:32px;font-weight:900;font-family:'Tajawal',sans-serif;
+    color:${correct?'#4ade80':'#f87171'};
+    text-shadow:0 2px 16px ${correct?'rgba(0,229,160,0.6)':'rgba(229,45,39,0.6)'};
+    animation:ptsFloat .9s ease forwards;
+  `;
+  pts.textContent=correct?'✅ +نقاط':'❌ −2 نقطة';
+  if(!document.getElementById('ptsFloatStyle')){
+    const s=document.createElement('style');
+    s.id='ptsFloatStyle';
+    s.textContent='@keyframes ptsFloat{0%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-48px)}}';
+    document.head.appendChild(s);
+  }
+  document.body.appendChild(pts);
+  setTimeout(()=>pts.remove(), 900);
+}
+
+/* ===== خصم النقاط ===== */
+function deductPoints(n){
+  _basePoints=Math.max(0,_basePoints-n);
+  const name=document.getElementById("userNameTop").innerText||'';
+  if(name){
+    const prev=parseInt(localStorage.getItem(_earnedKey(name))||'0');
+    localStorage.setItem(_earnedKey(name),String(Math.max(0,prev-n)));
+  }
+  const newPts=_basePoints;
+  document.getElementById("mainPoints").innerHTML=`${newPts.toLocaleString()} <span>نقطة</span>`;
+  const LEVEL_PTS=3000;
+  const lvl=Math.floor(newPts/LEVEL_PTS)+1;
+  const inLvl=newPts%LEVEL_PTS;
+  document.getElementById("levelBadge").innerText=`⭐ المستوى ${lvl}`;
+  document.getElementById("progressStart").innerText=(lvl-1)*LEVEL_PTS;
+  document.getElementById("progressEnd").innerText=lvl*LEVEL_PTS;
+  document.getElementById("mainBar").style.width=Math.min((inLvl/LEVEL_PTS)*100,100)+"%";
+  document.getElementById("cardPoints").innerText=newPts.toLocaleString()+" نقطة";
+  document.getElementById("cardBalance").innerText=((newPts/50)*30).toFixed(2)+" دج";
 }
 
 /* أصوات الكويز */
