@@ -342,11 +342,14 @@ button.auth-btn:active{transform:translateY(0);}
 </div>
 
 <script>
-const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?gid=1973938037&single=true&output=csv';
-const membersUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRw7mfYD1jf6KagSbZsy3faQWnN3XFyGJoQVnEQ4eEPsTeWlMn9KMtbK8YUnzxetsHeGMN4F11U8T7B/pub?gid=445090561&single=true&output=csv';
-const shabaabUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQmdUyatoTvFTxkQ_h4TdNAuYGd5RAySGVYsjFIa04IJ2lhdHJm-kHR2cSQoOshJPRYGHH6HQns-cXJ/pub?gid=220061237&single=true&output=csv';
-/* ▼ جدول الشباب الجديد المربوط باستمارة الشباب (Form) ▼ */
-const newShabaabUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDI3Sw6dUaU02463Rj5xpZ5Q3_vUq4WpaZVLnErKubqDbfBcWt_tPbQSckySuRzeSS0IU-25T2XZcI/pub?output=csv';
+/* ▼ جدول البيانات الرئيسي - المصدر الوحيد للنقاط والمنخرطين ▼ */
+const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
+const membersUrl    = dataUrl;
+/* ▼ استمارة الشباب: مغلقة حتى إشعار آخر ▼ */
+const shabaabUrl    = null;
+const newShabaabUrl = null;
+/* ▼ جدول استمارة "انظم إلينا" (Smart) ▼ */
+const smartUrl      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDI3Sw6dUaU02463Rj5xpZ5Q3_vUq4WpaZVLnErKubqDbfBcWt_tPbQSckySuRzeSS0IU-25T2XZcI/pub?output=csv';
 const quizUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQi_JTvEBgrlT-nba8SzIEiuTvPS6sz-eIRLM-cESaztFr35bl6mGq7rzwNc-tiP1BY-44d7x6rcvEf/pubhtml';
 const rankingUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP7Q70E0ey5k7JnnOh7Ju7281ytxEDTViCVRiv4JM0FakJSgxZM47XmZN1bgZSGwCU5fIHzldOQhid/pub?output=csv';
 
@@ -392,8 +395,8 @@ function buildGrid(isReg){
     ['💰','رصيدك',      'bg-1',"showModal('digitalCard')", true ],
     ['🏆','جدول الترتيب','bg-2',"showModal('rankingCard')",  true ],
     ['👥','المنخرطون',  'bg-3',"showModal('membersCard')",  true ],
-    ['✨','الشباب',      'bg-4',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSecOGzwMlbed7jZPPf_PHaCtsGrIuKeZKTtTI2pOFmO_Y6tKQ/viewform')", true],
-    ['📝','Smart Kid',  'bg-5',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform')", true],
+    ['🔒','الشباب',      'bg-4',null, false],
+    ['🌟','انظم إلينا', 'bg-5',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform')", true],
     ['🖼️','المعرض',    'bg-6',"window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3')", false],
     ['🎯','اجمع النقاط','bg-7',"showModal('quizCard')",    false],
     ['🏅','النشاطات',    'bg-8',"showModal('activitiesCard')", false],
@@ -500,7 +503,7 @@ async function enterWithNameOnly(){
   processEntry(document.getElementById("loginNameOnly").value.trim(),"name");
 }
 
-/* دخول سريع جداً - يبحث في جميع الجداول */
+/* دخول - يبحث في dataUrl ثم smartUrl */
 function processEntry(val,type){
   const barCont=document.getElementById("loadingBarContainer");
   const bar=document.getElementById("loadingBar");
@@ -511,74 +514,74 @@ function processEntry(val,type){
   const norm=s=>s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
   const valNorm=norm(val);
 
-  // ===== جلب جميع الجداول معاً =====
+  // دالة تحليل CSV تتعامل مع الفواصل داخل علامات الاقتباس
+  function csvParse(line){
+    const res=[]; let cur=''; let q=false;
+    for(let i=0;i<=line.length;i++){
+      const ch=line[i];
+      if(ch==='"'){q=!q;}
+      else if((ch===','||ch===undefined)&&!q){res.push(cur.replace(/^"|"$/g,'').trim());cur='';}
+      else{cur+=ch||'';}
+    }
+    return res;
+  }
+
   Promise.all([
     fetch(dataUrl).then(r=>r.text()),
-    fetch(shabaabUrl).then(r=>r.text()),
-    fetch(newShabaabUrl).then(r=>r.text())
-  ]).then(([t1,t2,t3])=>{
+    fetch(smartUrl).then(r=>r.text())
+  ]).then(([t1,t2])=>{
     bar.style.width="100%";
     barCont.style.display="none";
 
-    // 1) البحث في الجدول الرئيسي (dataUrl)
-    //    البريد → عمود B (index 1) | الاسم → عمود C (index 2)
-    let user=null;
+    // 1) البحث في الجدول الرئيسي: الاسم C(2)، آخر عمود = النقاط
     const rows1=t1.split('\n');
     for(let i=1;i<rows1.length;i++){
-      const c=rows1[i].split(',');
-      if(type==="email"&&(c[1]||'').replace(/"/g,'').trim().toLowerCase()===valNorm){ user=c; break; }
-      if(type==="name" &&norm(c[2]||'')===valNorm){ user=c; break; }
-    }
-    if(user){
-      const name=user[2].replace(/"/g,'').trim();
-      const pts=parseInt(user[user.length-1])||0;
-      localStorage.setItem("sklab_user_name",name);
-      renderApp(name,pts,true);
-      return;
+      if(!rows1[i].trim()) continue;
+      const c=csvParse(rows1[i]);
+      const rowName=norm(c[2]||'');
+      const rowEmail=(c[1]||'').toLowerCase();
+      const matched=(type==="name"&&rowName===valNorm)||(type==="email"&&rowEmail===valNorm);
+      if(matched){
+        const name=(c[2]||'').trim();
+        const pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+        localStorage.setItem("sklab_user_name",name);
+        renderApp(name,pts,true);
+        return;
+      }
     }
 
-    // 2) البحث في جداول الشباب (shabaabUrl و newShabaabUrl)
-    //    الاستمارة: الاسم → عمود C (index 2) أو عمود B (index 1)
-    //              البريد → عمود D (index 3) أو عمود E (index 4) حسب ترتيب الاستمارة
-    function searchShabaabText(txt){
-      const rows=txt.split('\n').slice(1);
-      for(let i=0;i<rows.length;i++){
-        const cols=rows[i].split(',').map(c=>(c||'').replace(/"/g,'').trim());
-        const nameCol=cols[2]||cols[1]||'';
-        if(!nameCol) continue;
-        // مطابقة بالاسم
-        if(type==="name" && norm(nameCol)===valNorm) return {name:nameCol, cols};
-        // مطابقة بالبريد: نبحث في جميع الأعمدة (D,E,F...)
-        if(type==="email"){
-          for(let j=3;j<cols.length;j++){
-            if(cols[j].toLowerCase()===valNorm) return {name:nameCol, cols};
-          }
+    // 2) البحث في جدول "انظم إلينا" (smartUrl): C(2)=الاسم
+    const rows2=t2.split('\n').slice(1);
+    for(let i=0;i<rows2.length;i++){
+      if(!rows2[i].trim()) continue;
+      const cols=csvParse(rows2[i]);
+      const nameCol=(cols[2]||'').trim();
+      if(!nameCol) continue;
+      const nameMatch=(type==="name"&&norm(nameCol)===valNorm);
+      let emailMatch=false;
+      if(type==="email"){
+        for(let j=1;j<cols.length;j++){
+          if((cols[j]||'').toLowerCase()===valNorm){emailMatch=true;break;}
         }
       }
-      return null;
+      if(nameMatch||emailMatch){
+        // البحث عن النقاط في dataUrl بالاسم
+        let pts=0;
+        for(let k=1;k<rows1.length;k++){
+          if(!rows1[k].trim()) continue;
+          const c=csvParse(rows1[k]);
+          if(norm(c[2]||'')===norm(nameCol)){
+            pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+            break;
+          }
+        }
+        localStorage.setItem("sklab_user_name",nameCol);
+        renderApp(nameCol,pts,true);
+        return;
+      }
     }
 
-    const found = searchShabaabText(t2) || searchShabaabText(t3);
-    if(found){
-      const name=found.name;
-      // نقاط: نبحث عنها في الجدول الرئيسي بالاسم
-      let pts=0;
-      const rows1b=t1.split('\n').slice(1);
-      for(let i=0;i<rows1b.length;i++){
-        const c=rows1b[i].split(',');
-        if(norm(c[2]||'')===norm(name)){pts=parseInt(c[c.length-1])||0;break;}
-      }
-      // إن لم نجد النقاط في الجدول الرئيسي، نأخذها من الاستمارة
-      if(!pts){
-        const cols=found.cols;
-        for(let i=cols.length-1;i>=5;i--){const v=parseInt(cols[i]);if(!isNaN(v)&&v>0){pts=v;break;}}
-      }
-      localStorage.setItem("sklab_user_name",name);
-      renderApp(name,pts,true); // isReg=true → منخرط فعلي من استمارة الشباب
-      return;
-    }
-
-    // 3) لم يُعثر على المستخدم في أي جدول → زائر (غير مسجل)
+    // 3) زائر غير مسجل
     renderApp(val,0,false);
 
   }).catch(()=>alert("عذراً، مشكلة في الاتصال"));
@@ -614,7 +617,7 @@ function renderApp(name,pts,isReg){
   document.getElementById("progressStart").innerText=(currentLevel-1)*LEVEL_PTS;
   document.getElementById("progressEnd").innerText=currentLevel*LEVEL_PTS;
   buildGrid(isReg);
-  if(!isReg) document.getElementById("lockedNote").innerHTML=`<div class="locked-msg">🔒 مرحباً! سجّل عبر <b>الشباب</b> أو <b>Smart Kid</b> لفتح جميع الأقسام</div>`;
+  if(!isReg) document.getElementById("lockedNote").innerHTML=`<div class="locked-msg">🔒 مرحباً! سجّل عبر <b>انظم إلينا</b> 🌟 لفتح جميع الأقسام</div>`;
   setTimeout(()=>{document.getElementById("mainBar").style.width=Math.min((ptsInLevel/LEVEL_PTS)*100,100)+"%";},300);
 }
 
@@ -623,68 +626,60 @@ async function loadMembers(){
   const div=document.getElementById("membersInfo");
   div.innerHTML='<div class="spinner"></div>';
   try{
-    const [r1,r2,r3,r4]=await Promise.all([fetch(dataUrl),fetch(membersUrl),fetch(shabaabUrl),fetch(newShabaabUrl)]);
+    // جلب من dataUrl فقط (المصدر الوحيد للمنخرطين والنقاط)
+    const [r1,r2]=await Promise.all([fetch(dataUrl),fetch(smartUrl)]);
     const t1=await r1.text();
     const t2=await r2.text();
-    const t3=await r3.text();
-    const t4=await r4.text();
 
-    // دالة تنظيف الاسم لمقارنة موحدة
     const norm=s=>s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
 
-    // خريطة النقاط: الاسم المُنظَّف → النقاط (من جدول dataUrl، آخر عمود)
-    const ptsMap={};
-    t1.split('\n').slice(1).filter(r=>r.trim()).forEach(r=>{
-      const c=r.split(',');
-      const n=norm(c[2]||'');
-      const p=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
-      if(n) ptsMap[n]=p;
-    });
+    // دالة تحليل CSV
+    function csvParse(line){
+      const res=[]; let cur=''; let q=false;
+      for(let i=0;i<=line.length;i++){
+        const ch=line[i];
+        if(ch==='"'){q=!q;}
+        else if((ch===','||ch===undefined)&&!q){res.push(cur.replace(/^"|"$/g,'').trim());cur='';}
+        else{cur+=ch||'';}
+      }
+      return res;
+    }
 
     // دالة استخراج السن
-    function parseAge(colD){
-      const v=(colD||'').replace(/"/g,'').trim();
+    function parseAge(v){
+      v=(v||'').replace(/"/g,'').trim();
       if(/^\d{1,2}$/.test(v)) return v;
       const y=v.match(/\d{4}/);
       if(y) return String(new Date().getFullYear()-parseInt(y[0]));
       return '—';
     }
 
-    // دالة موحدة لتحليل صفوف استمارات الشباب
-    function parseShabaabRows(txt){
-      return txt.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
-        const cols=r.split(',').map(c=>(c||'').replace(/"/g,'').trim());
-        let fullName=cols[2]||cols[1]||'';
-        fullName=fullName.trim();
-        if(!fullName) return null;
-        const age=parseAge(cols[3])||parseAge(cols[4])||'—';
-        let pts=ptsMap[norm(fullName)]||0;
-        if(!pts){
-          for(let i=cols.length-1;i>=5;i--){
-            const v=parseInt(cols[i]);
-            if(!isNaN(v)&&v>0){pts=v;break;}
-          }
-        }
-        return {name:fullName,age,pts};
-      }).filter(Boolean);
-    }
-
-    // جدول المنخرطين (C=الاسم، D=السن)
-    const memberRows=t2.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
-      const cols=r.split(',');
-      const fullName=(cols[2]||'').replace(/"/g,'').trim();
-      if(!fullName) return null;
-      const age=parseAge(cols[3]);
-      const pts=ptsMap[norm(fullName)]||0;
-      return {name:fullName,age,pts};
+    // من dataUrl: C(2)=الاسم، D(3)=السن، آخر عمود=النقاط
+    const dataRows=t1.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
+      const c=csvParse(r);
+      const name=(c[2]||'').trim();
+      if(!name||name==='ممتاز') return null;
+      const age=parseAge(c[3]);
+      const pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+      return {name,age,pts};
     }).filter(Boolean);
 
-    const shabaabRows    = parseShabaabRows(t3);
-    const newShabaabRows = parseShabaabRows(t4);
+    // من smartUrl: C(2)=الاسم، D(3)=السن - النقاط من dataUrl
+    const ptsMap={};
+    dataRows.forEach(x=>{ ptsMap[norm(x.name)]=x.pts; });
 
-    // دمج وإزالة مكررات بالاسم المُنظَّف من جميع المصادر
+    const smartRows=t2.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
+      const c=csvParse(r);
+      const name=(c[2]||'').trim();
+      if(!name||name==='ممتاز') return null;
+      const age=parseAge(c[3]);
+      const pts=ptsMap[norm(name)]||0;
+      return {name,age,pts};
+    }).filter(Boolean);
+
+    // دمج مع إزالة مكررات
     const seen=new Set();
-    const all=[...memberRows,...shabaabRows,...newShabaabRows].filter(x=>{
+    const all=[...dataRows,...smartRows].filter(x=>{
       const k=norm(x.name);
       if(seen.has(k)) return false;
       seen.add(k); return true;
@@ -756,39 +751,51 @@ async function loadRanking(){
   const div=document.getElementById("rankingInfo");
   div.innerHTML='<div class="spinner"></div>';
   try{
-    const [r1,r2,r3]=await Promise.all([fetch(dataUrl),fetch(shabaabUrl),fetch(newShabaabUrl)]);
+    const [r1,r2]=await Promise.all([fetch(dataUrl),fetch(smartUrl)]);
     const t1=await r1.text();
     const t2=await r2.text();
-    const t3=await r3.text();
 
     const norm=s=>s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
     const currentUser=getCurrentUser();
     const earnedByCurrentUser=parseInt(localStorage.getItem(_earnedKey(currentUser))||'0');
 
-    const fromData=t1.split('\n').slice(1)
-      .map(r=>{const c=r.split(',');return{n:(c[2]||'').replace(/"/g,'').trim(),p:parseInt(c[c.length-1])||0};})
-      .filter(x=>x.n && x.n!=='ممتاز');
+    function csvParse(line){
+      const res=[]; let cur=''; let q=false;
+      for(let i=0;i<=line.length;i++){
+        const ch=line[i];
+        if(ch==='"'){q=!q;}
+        else if((ch===','||ch===undefined)&&!q){res.push(cur.replace(/^"|"$/g,'').trim());cur='';}
+        else{cur+=ch||'';}
+      }
+      return res;
+    }
+
+    // من dataUrl: C(2)=الاسم، آخر عمود=النقاط
+    const fromData=t1.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
+      const c=csvParse(r);
+      const n=(c[2]||'').trim();
+      const p=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+      if(!n||n==='ممتاز') return null;
+      return {n,p};
+    }).filter(Boolean);
 
     const namesInData=new Set(fromData.map(x=>norm(x.n)));
 
-    // دالة موحدة لتحليل صفوف استمارات الشباب للترتيب
-    function parseShabaabForRank(txt){
-      return txt.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
-        const cols=r.split(',').map(c=>(c||'').replace(/"/g,'').trim());
-        const n=cols[2]||cols[1]||'';
-        if(!n||n==='ممتاز'||namesInData.has(norm(n))) return null;
-        let p=0;
-        for(let i=cols.length-1;i>=5;i--){const v=parseInt(cols[i]);if(!isNaN(v)&&v>0){p=v;break;}}
-        namesInData.add(norm(n));
-        return {n,p};
-      }).filter(Boolean);
-    }
+    // من smartUrl: C(2)=الاسم، النقاط من dataUrl
+    const ptsMapR={};
+    fromData.forEach(x=>{ptsMapR[norm(x.n)]=x.p;});
 
-    const fromShabaab    = parseShabaabForRank(t2);
-    const fromNewShabaab = parseShabaabForRank(t3);
+    const fromSmart=t2.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
+      const cols=csvParse(r);
+      const n=(cols[2]||'').trim();
+      if(!n||n==='ممتاز'||namesInData.has(norm(n))) return null;
+      const p=ptsMapR[norm(n)]||0;
+      namesInData.add(norm(n));
+      return {n,p};
+    }).filter(Boolean);
 
-    // دمج الكل وإضافة نقاط الكويز للمستخدم الحالي
-    const list=[...fromData,...fromShabaab,...fromNewShabaab].map(x=>{
+    // دمج وترتيب مع إضافة نقاط الكويز
+    const list=[...fromData,...fromSmart].map(x=>{
       const extraPts=(norm(x.n)===norm(currentUser))?earnedByCurrentUser:0;
       return {n:x.n, p:x.p+extraPts};
     }).sort((a,b)=>b.p-a.p);
