@@ -500,31 +500,87 @@ async function enterWithNameOnly(){
   processEntry(document.getElementById("loginNameOnly").value.trim(),"name");
 }
 
-/* دخول سريع جداً */
+/* دخول سريع جداً - يبحث في جميع الجداول */
 function processEntry(val,type){
   const barCont=document.getElementById("loadingBarContainer");
   const bar=document.getElementById("loadingBar");
   barCont.style.display="block";
   bar.style.transition="width .08s";
-  bar.style.width="70%";
-  fetch(dataUrl).then(r=>r.text()).then(text=>{
+  bar.style.width="50%";
+
+  const norm=s=>s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+  const valNorm=norm(val);
+
+  // ===== جلب جميع الجداول معاً =====
+  Promise.all([
+    fetch(dataUrl).then(r=>r.text()),
+    fetch(shabaabUrl).then(r=>r.text()),
+    fetch(newShabaabUrl).then(r=>r.text())
+  ]).then(([t1,t2,t3])=>{
     bar.style.width="100%";
     barCont.style.display="none";
-    const rows=text.split('\n');
+
+    // 1) البحث في الجدول الرئيسي (dataUrl)
+    //    البريد → عمود B (index 1) | الاسم → عمود C (index 2)
     let user=null;
-    for(let i=1;i<rows.length;i++){
-      const c=rows[i].split(',');
-      if(type==="email"&&c[1]?.toLowerCase()===val.toLowerCase()) user=c;
-      if(type==="name" &&c[2]?.replace(/"/g,'')===val)            user=c;
+    const rows1=t1.split('\n');
+    for(let i=1;i<rows1.length;i++){
+      const c=rows1[i].split(',');
+      if(type==="email"&&(c[1]||'').replace(/"/g,'').trim().toLowerCase()===valNorm){ user=c; break; }
+      if(type==="name" &&norm(c[2]||'')===valNorm){ user=c; break; }
     }
     if(user){
-      const name=user[2].replace(/"/g,'');
+      const name=user[2].replace(/"/g,'').trim();
       const pts=parseInt(user[user.length-1])||0;
       localStorage.setItem("sklab_user_name",name);
       renderApp(name,pts,true);
-    } else {
-      renderApp(val,0,false);
+      return;
     }
+
+    // 2) البحث في جداول الشباب (shabaabUrl و newShabaabUrl)
+    //    الاستمارة: الاسم → عمود C (index 2) أو عمود B (index 1)
+    //              البريد → عمود D (index 3) أو عمود E (index 4) حسب ترتيب الاستمارة
+    function searchShabaabText(txt){
+      const rows=txt.split('\n').slice(1);
+      for(let i=0;i<rows.length;i++){
+        const cols=rows[i].split(',').map(c=>(c||'').replace(/"/g,'').trim());
+        const nameCol=cols[2]||cols[1]||'';
+        if(!nameCol) continue;
+        // مطابقة بالاسم
+        if(type==="name" && norm(nameCol)===valNorm) return {name:nameCol, cols};
+        // مطابقة بالبريد: نبحث في جميع الأعمدة (D,E,F...)
+        if(type==="email"){
+          for(let j=3;j<cols.length;j++){
+            if(cols[j].toLowerCase()===valNorm) return {name:nameCol, cols};
+          }
+        }
+      }
+      return null;
+    }
+
+    const found = searchShabaabText(t2) || searchShabaabText(t3);
+    if(found){
+      const name=found.name;
+      // نقاط: نبحث عنها في الجدول الرئيسي بالاسم
+      let pts=0;
+      const rows1b=t1.split('\n').slice(1);
+      for(let i=0;i<rows1b.length;i++){
+        const c=rows1b[i].split(',');
+        if(norm(c[2]||'')===norm(name)){pts=parseInt(c[c.length-1])||0;break;}
+      }
+      // إن لم نجد النقاط في الجدول الرئيسي، نأخذها من الاستمارة
+      if(!pts){
+        const cols=found.cols;
+        for(let i=cols.length-1;i>=5;i--){const v=parseInt(cols[i]);if(!isNaN(v)&&v>0){pts=v;break;}}
+      }
+      localStorage.setItem("sklab_user_name",name);
+      renderApp(name,pts,true); // isReg=true → منخرط فعلي من استمارة الشباب
+      return;
+    }
+
+    // 3) لم يُعثر على المستخدم في أي جدول → زائر (غير مسجل)
+    renderApp(val,0,false);
+
   }).catch(()=>alert("عذراً، مشكلة في الاتصال"));
 }
 
