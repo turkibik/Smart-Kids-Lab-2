@@ -197,6 +197,42 @@ button.auth-btn:active{transform:translateY(0);}
 #loadingBar{width:0%;height:100%;background:linear-gradient(90deg,var(--green),var(--accent),var(--red));transition:width .02s;box-shadow:0 0 8px var(--accent);}
 .spinner{width:26px;height:26px;border:3px solid rgba(255,255,255,0.05);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:16px auto;}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== ADMIN PANEL ===== */
+.admin-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(229,45,39,0.3),rgba(245,197,24,0.3));border:1px solid rgba(229,45,39,0.5);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;color:#fbbf24;letter-spacing:1px;margin-right:6px;}
+.admin-panel{background:var(--surface);border:1px solid rgba(229,45,39,0.3);border-radius:22px;padding:20px 16px;margin-bottom:16px;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(229,45,39,0.15);}
+.admin-panel::before{content:'';position:absolute;top:-40%;right:-15%;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(229,45,39,0.08) 0%,transparent 70%);pointer-events:none;}
+.admin-panel-title{font-size:13px;font-weight:800;color:#fbbf24;margin-bottom:14px;display:flex;align-items:center;gap:7px;letter-spacing:0.5px;}
+.admin-section{margin-bottom:14px;}
+.admin-section-label{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:7px;text-transform:uppercase;letter-spacing:1px;}
+.admin-input{width:100%;padding:10px 13px;background:rgba(22,27,34,0.9);border:1px solid rgba(229,45,39,0.3);border-radius:10px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;outline:none;margin-bottom:7px;text-align:right;}
+.admin-input:focus{border-color:rgba(245,197,24,0.5);box-shadow:0 0 0 2px rgba(245,197,24,0.1);}
+.admin-btn{padding:10px 14px;border:none;border-radius:10px;font-size:13px;font-family:'Tajawal',sans-serif;font-weight:800;cursor:pointer;transition:transform .15s,box-shadow .15s;margin-left:6px;margin-bottom:6px;}
+.admin-btn.red{background:linear-gradient(135deg,var(--red),#b91c1c);color:white;box-shadow:0 5px 15px rgba(229,45,39,0.3);}
+.admin-btn.gold{background:linear-gradient(135deg,#f59e0b,#d97706);color:white;box-shadow:0 5px 15px rgba(245,158,11,0.3);}
+.admin-btn.green{background:linear-gradient(135deg,var(--green),#00c853);color:white;box-shadow:0 5px 15px rgba(15,155,15,0.3);}
+.admin-btn.blue{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;box-shadow:0 5px 15px rgba(59,130,246,0.3);}
+.admin-btn:hover{transform:translateY(-1px);}
+.admin-btn:active{transform:translateY(0);}
+.admin-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.admin-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+.admin-msg{font-size:12px;padding:8px 12px;border-radius:8px;margin-top:6px;display:none;font-weight:600;}
+.admin-msg.ok{background:rgba(15,155,15,0.15);color:#4ade80;border:1px solid rgba(15,155,15,0.3);}
+.admin-msg.err{background:rgba(229,45,39,0.15);color:#f87171;border:1px solid rgba(229,45,39,0.3);}
+.admin-divider{height:1px;background:rgba(255,255,255,0.06);margin:14px 0;}
+.admin-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.admin-stat{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 8px;text-align:center;}
+.admin-stat-num{font-size:22px;font-weight:900;color:var(--text);}
+.admin-stat-label{font-size:10px;color:var(--muted);font-weight:600;margin-top:2px;}
+.admin-link-btn{display:block;width:100%;padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;background:var(--surface2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-align:center;margin-bottom:7px;transition:.2s;text-decoration:none;}
+.admin-link-btn:hover{border-color:rgba(0,229,160,0.3);background:rgba(0,229,160,0.06);color:var(--accent);}
+.admin-toggle-btn{position:fixed;bottom:22px;left:16px;width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#7c2d12,#dc2626);border:1px solid rgba(220,38,38,0.4);color:white;font-size:20px;display:none;align-items:center;justify-content:center;cursor:pointer;z-index:100;box-shadow:0 8px 20px rgba(220,38,38,0.35);transition:.2s;}
+.admin-toggle-btn:hover{transform:scale(1.05);}
+
+/* MODAL ADMIN */
+#adminModal .modal-content{max-height:80vh;overflow-y:auto;}
+#adminModal .modal-content::-webkit-scrollbar{width:3px;}
+#adminModal .modal-content::-webkit-scrollbar-thumb{background:rgba(229,45,39,0.3);border-radius:10px;}
 </style>
 </head>
 <body>
@@ -341,9 +377,117 @@ button.auth-btn:active{transform:translateY(0);}
   </div>
 </div>
 
+<!-- زر تبديل لوحة الإدارة (يظهر فقط للمدير) -->
+<div class="admin-toggle-btn" id="adminToggleBtn" onclick="showModal('adminModal')" title="لوحة الإدارة">⚙️</div>
+
+<!-- MODAL: لوحة الإدارة -->
+<div class="modal" id="adminModal">
+  <div class="modal-content" style="border-top:2px solid rgba(229,45,39,0.5);">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:18px;">
+      <span style="font-size:22px;">🛡️</span>
+      <div class="modal-title" style="margin:0;">لوحة الإدارة</div>
+      <span class="admin-badge">ADMIN</span>
+    </div>
+
+    <!-- إحصائيات سريعة -->
+    <div class="admin-stats-grid" id="adminStatsGrid">
+      <div class="admin-stat"><div class="admin-stat-num" id="statMembers">…</div><div class="admin-stat-label">عضو</div></div>
+      <div class="admin-stat"><div class="admin-stat-num" id="statActivities">…</div><div class="admin-stat-label">نشاط</div></div>
+      <div class="admin-stat"><div class="admin-stat-num" id="statQuizQ">…</div><div class="admin-stat-label">سؤال</div></div>
+    </div>
+
+    <div class="admin-divider"></div>
+
+    <!-- تعديل نقاط عضو -->
+    <div class="admin-section">
+      <div class="admin-section-label">✏️ تعديل نقاط كويز لعضو</div>
+      <input class="admin-input" id="adminEditName" placeholder="اسم العضو كاملاً" />
+      <input class="admin-input" id="adminEditPts" placeholder="النقاط الجديدة (رقم)" type="number" min="0"/>
+      <div class="admin-row">
+        <button class="admin-btn gold" onclick="adminEditPoints()">💾 حفظ النقاط</button>
+      </div>
+      <div class="admin-msg" id="adminEditMsg"></div>
+    </div>
+
+    <div class="admin-divider"></div>
+
+    <!-- روابط الجداول -->
+    <div class="admin-section">
+      <div class="admin-section-label">🔗 إدارة الجداول مباشرة</div>
+      <a class="admin-link-btn" id="adminLinkData" href="#" target="_blank">📊 جدول الأعضاء الرئيسي</a>
+      <a class="admin-link-btn" id="adminLinkSmart" href="#" target="_blank">📋 جدول انظم إلينا (Smart)</a>
+      <a class="admin-link-btn" id="adminLinkQuiz" href="#" target="_blank">🎯 جدول أسئلة الكويز</a>
+      <a class="admin-link-btn" id="adminLinkRanking" href="#" target="_blank">🏅 جدول النشاطات</a>
+    </div>
+
+    <div class="admin-divider"></div>
+
+    <!-- أدوات متقدمة -->
+    <div class="admin-section">
+      <div class="admin-section-label">🧹 أدوات متقدمة</div>
+      <div class="admin-row">
+        <button class="admin-btn blue" onclick="adminReloadData()">🔄 تحديث البيانات</button>
+        <button class="admin-btn red" onclick="adminClearLocalStorage()">🗑️ مسح الذاكرة المحلية</button>
+      </div>
+      <div class="admin-msg" id="adminToolMsg"></div>
+    </div>
+
+    <div class="admin-divider"></div>
+
+    <!-- رسالة تنبيه -->
+    <div class="admin-section">
+      <div class="admin-section-label">📢 رسالة تنبيه فورية</div>
+      <input class="admin-input" id="adminNotifMsg" placeholder="اكتب رسالة التنبيه هنا…"/>
+      <div class="admin-row">
+        <button class="admin-btn green" onclick="adminSendNotif()">📤 عرض التنبيه</button>
+      </div>
+      <div class="admin-msg" id="adminNotifStatus"></div>
+    </div>
+
+    <button class="modal-close" onclick="hideModal('adminModal')">إغلاق</button>
+  </div>
+</div>
+
 <script>
 /* ▼ جدول البيانات الرئيسي - المصدر الوحيد للنقاط والمنخرطين ▼ */
 const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
+
+/* =======================================================================
+   إعداد Google Apps Script لمزامنة نقاط الكويز بين جميع المستخدمين
+   =========================================================================
+   1. افتح Google Sheets الخاص بك → Extensions → Apps Script
+   2. أنشئ ملف جديد والصق الكود التالي:
+
+   ───────────────────────────────────────────────────
+   const SHEET='QuizPoints';
+   function doGet(e){
+     const ss=SpreadsheetApp.getActiveSpreadsheet();
+     let sh=ss.getSheetByName(SHEET)||ss.insertSheet(SHEET);
+     const d=sh.getDataRange().getValues();
+     const r={};
+     for(let i=1;i<d.length;i++) if(d[i][0]) r[d[i][0]]=parseInt(d[i][1])||0;
+     return ContentService.createTextOutput(JSON.stringify(r))
+       .setMimeType(ContentService.MimeType.JSON);
+   }
+   function doPost(e){
+     const b=JSON.parse(e.postData.contents);
+     const name=String(b.name||'').trim();
+     const pts=parseInt(b.pts)||0;
+     if(!name) return ContentService.createTextOutput('{}').setMimeType(ContentService.MimeType.JSON);
+     const ss=SpreadsheetApp.getActiveSpreadsheet();
+     let sh=ss.getSheetByName(SHEET)||ss.insertSheet(SHEET);
+     const d=sh.getDataRange().getValues();
+     for(let i=1;i<d.length;i++){
+       if(String(d[i][0]).trim()===name){sh.getRange(i+1,2).setValue(pts);return ContentService.createTextOutput('{"ok":true}').setMimeType(ContentService.MimeType.JSON);}
+     }
+     sh.appendRow([name,pts,new Date().toISOString()]);
+     return ContentService.createTextOutput('{"ok":true}').setMimeType(ContentService.MimeType.JSON);
+   }
+   ───────────────────────────────────────────────────
+   3. Deploy → New deployment → Web app → Anyone → Deploy
+   4. انسخ رابط الـ Web App وضعه في المتغير quizPtsApiUrl أدناه
+   ======================================================================= */
 const membersUrl    = dataUrl;
 /* ▼ استمارة الشباب: مغلقة حتى إشعار آخر ▼ */
 const shabaabUrl    = null;
@@ -352,6 +496,10 @@ const newShabaabUrl = null;
 const smartUrl      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDI3Sw6dUaU02463Rj5xpZ5Q3_vUq4WpaZVLnErKubqDbfBcWt_tPbQSckySuRzeSS0IU-25T2XZcI/pub?output=csv';
 const quizUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQi_JTvEBgrlT-nba8SzIEiuTvPS6sz-eIRLM-cESaztFr35bl6mGq7rzwNc-tiP1BY-44d7x6rcvEf/pubhtml';
 const rankingUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP7Q70E0ey5k7JnnOh7Ju7281ytxEDTViCVRiv4JM0FakJSgxZM47XmZN1bgZSGwCU5fIHzldOQhid/pub?output=csv';
+
+/* ▼ رابط Google Apps Script لحفظ نقاط الكويز المشتركة بين جميع المستخدمين ▼
+   ← ضع رابط الـ Web App الذي ستنشره من Google Apps Script هنا             */
+const quizPtsApiUrl = 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 
 /* ===== جزيئات الخلفية ===== */
 (function(){
@@ -386,6 +534,40 @@ function getMemberCode(name){
     localStorage.setItem(key,code);
   }
   return code;
+}
+
+/* =====================================================================
+   وظائف التخزين المشترك لنقاط الكويز (تُرى من جميع الأجهزة)
+   ===================================================================== */
+
+/** جلب جميع نقاط الكويز من Google Apps Script (قاموس: الاسم → النقاط) */
+async function fetchAllQuizPts(){
+  if(!quizPtsApiUrl || quizPtsApiUrl.includes('YOUR_APPS_SCRIPT')){
+    // fallback: قرأ من localStorage فقط (وضع عدم الإعداد)
+    return {};
+  }
+  try{
+    const res=await fetch(quizPtsApiUrl+'?action=get',{method:'GET'});
+    if(!res.ok) return {};
+    const json=await res.json();
+    return json||{};
+  }catch(e){ return {}; }
+}
+
+/** حفظ نقاط الكويز للمستخدم في localStorage + Google Apps Script */
+async function syncQuizPts(name, pts){
+  if(!name) return;
+  // دائماً احفظ محلياً أولاً (سريع + fallback)
+  localStorage.setItem(_earnedKey(name), String(pts));
+  // ثم حفظ مشترك عبر Apps Script
+  if(!quizPtsApiUrl || quizPtsApiUrl.includes('YOUR_APPS_SCRIPT')) return;
+  try{
+    await fetch(quizPtsApiUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({action:'set', name, pts})
+    });
+  }catch(e){}
 }
 
 /* ===== بناء الشبكة ===== */
@@ -494,10 +676,157 @@ function showModal(id){
 }
 function hideModal(id){document.getElementById(id).style.display='none';}
 
+/* ===== ADMIN CONFIG ===== */
+const ADMIN_EMAIL = 'smartkidslab13@gmail.com';
+let _isAdmin = false;
+
 async function enter(){
   const email=document.getElementById("loginEmail").value.trim();
   if(!email){alert("أدخل البريد!");return;}
+  // كشف إيميل المدير
+  if(email.toLowerCase()===ADMIN_EMAIL.toLowerCase()){
+    _isAdmin=true;
+    enterAsAdmin();
+    return;
+  }
   processEntry(email,"email");
+}
+
+/* ===== دخول المدير ===== */
+function enterAsAdmin(){
+  const barCont=document.getElementById("loadingBarContainer");
+  const bar=document.getElementById("loadingBar");
+  barCont.style.display="block";
+  bar.style.width="100%";
+  setTimeout(()=>{barCont.style.display="none";},600);
+  localStorage.setItem("sklab_user_name","المدير");
+  renderApp("المدير",9999,true,0);
+  // إظهار الزر العائم للمدير
+  const tb=document.getElementById("adminToggleBtn");
+  if(tb) tb.style.display="flex";
+  // تحديث دور المستخدم
+  setTimeout(()=>{
+    const roleEl=document.querySelector(".user-role");
+    if(roleEl) roleEl.innerHTML='<span class="admin-badge">ADMIN</span> مدير التطبيق';
+  },200);
+  // تحميل الإحصائيات
+  setTimeout(()=>loadAdminStats(),800);
+  // تعيين روابط الجداول
+  setAdminLinks();
+  // إظهار بطاقة أدوات المدير في الصفحة الرئيسية
+  setTimeout(()=>{
+    const inner=document.querySelector(".app-inner");
+    if(inner && !document.getElementById("adminQuickCard")){
+      const card=document.createElement("div");
+      card.id="adminQuickCard";
+      card.className="admin-panel";
+      card.innerHTML=`<div class="admin-panel-title">🛡️ أهلاً بك يا مدير التطبيق <span class="admin-badge">ADMIN</span></div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">لديك صلاحية كاملة للتعديل والإدارة.</div>
+        <button class="admin-btn gold" onclick="showModal('adminModal')" style="width:100%;padding:12px;">⚙️ فتح لوحة الإدارة الكاملة</button>`;
+      inner.insertBefore(card, inner.children[1]);
+    }
+  },300);
+}
+
+/* ===== تعيين روابط الجداول ===== */
+function setAdminLinks(){
+  const l1=document.getElementById("adminLinkData");
+  const l2=document.getElementById("adminLinkSmart");
+  const l3=document.getElementById("adminLinkQuiz");
+  const l4=document.getElementById("adminLinkRanking");
+  if(l1) l1.href=dataUrl.replace('?output=csv','');
+  if(l2) l2.href=smartUrl.replace('?output=csv','');
+  if(l3) l3.href=quizUrl;
+  if(l4) l4.href=rankingUrl.replace('?output=csv','');
+}
+
+/* ===== تحميل إحصائيات المدير ===== */
+async function loadAdminStats(){
+  try{
+    const [r1,r2,r3]=await Promise.all([
+      fetch(dataUrl).then(r=>r.text()),
+      fetch(smartUrl).then(r=>r.text()),
+      fetch(rankingUrl).then(r=>r.text())
+    ]);
+    const norm=s=>s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+    function csvRows(t){ return t.split('\n').slice(1).filter(r=>r.trim()); }
+    const seen=new Set();
+    [...csvRows(r1),...csvRows(r2)].forEach(row=>{
+      const c=row.split(',');
+      const n=(c[2]||'').replace(/"/g,'').trim();
+      if(n&&n!=='ممتاز') seen.add(norm(n));
+    });
+    const memEl=document.getElementById("statMembers");
+    const actEl=document.getElementById("statActivities");
+    const quizEl=document.getElementById("statQuizQ");
+    if(memEl) memEl.innerText=seen.size;
+    if(actEl) actEl.innerText=csvRows(r3).length;
+    try{
+      const qr=await fetch(quizUrl);
+      const qt=await qr.text();
+      const qRows=qt.match(/<tr/g)||[];
+      if(quizEl) quizEl.innerText=Math.max(0,qRows.length-2);
+    }catch(e){ if(quizEl) quizEl.innerText='؟'; }
+  }catch(e){
+    const m=document.getElementById("statMembers");
+    if(m) m.innerText='؟';
+  }
+}
+
+/* ===== تعديل نقاط عضو (كويز) ===== */
+function adminEditPoints(){
+  const name=document.getElementById("adminEditName").value.trim();
+  const pts=parseInt(document.getElementById("adminEditPts").value);
+  const msg=document.getElementById("adminEditMsg");
+  if(!name||isNaN(pts)||pts<0){
+    msg.className="admin-msg err"; msg.innerText="⚠️ أدخل اسم العضو والنقاط بشكل صحيح"; msg.style.display="block"; return;
+  }
+  syncQuizPts(name,pts).then(()=>{
+    msg.className="admin-msg ok";
+    msg.innerText='✅ تم تعيين نقاط "'+name+'" إلى '+pts+' نقطة';
+    msg.style.display="block";
+    document.getElementById("adminEditName").value="";
+    document.getElementById("adminEditPts").value="";
+  });
+}
+
+/* ===== تحديث البيانات ===== */
+function adminReloadData(){
+  const msg=document.getElementById("adminToolMsg");
+  msg.className="admin-msg ok"; msg.innerText="🔄 جاري إعادة تحميل البيانات…"; msg.style.display="block";
+  setTimeout(()=>location.reload(),800);
+}
+
+/* ===== مسح الذاكرة المحلية ===== */
+function adminClearLocalStorage(){
+  const msg=document.getElementById("adminToolMsg");
+  if(!confirm("هل أنت متأكد من مسح الذاكرة المحلية؟")) return;
+  localStorage.clear();
+  msg.className="admin-msg ok"; msg.innerText="✅ تم المسح بنجاح";
+  msg.style.display="block";
+  setTimeout(()=>location.reload(),1200);
+}
+
+/* ===== إرسال رسالة تنبيه ===== */
+function adminSendNotif(){
+  const txt=document.getElementById("adminNotifMsg").value.trim();
+  const st=document.getElementById("adminNotifStatus");
+  if(!txt){ st.className="admin-msg err"; st.innerText="⚠️ أدخل نص الرسالة"; st.style.display="block"; return; }
+  localStorage.setItem("nld_admin_notif", JSON.stringify({msg:txt, ts:Date.now()}));
+  st.className="admin-msg ok"; st.innerText="✅ تم عرض الرسالة."; st.style.display="block";
+  document.getElementById("adminNotifMsg").value="";
+  showAdminNotifBanner(txt);
+}
+
+/* ===== عرض بانر الإشعار ===== */
+function showAdminNotifBanner(msg){
+  const old=document.getElementById("adminNotifBanner");
+  if(old) old.remove();
+  const b=document.createElement("div");
+  b.id="adminNotifBanner";
+  b.style.cssText="position:fixed;top:0;left:0;right:0;z-index:20000;background:linear-gradient(135deg,#92400e,#b45309);color:#fef3c7;padding:12px 16px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;text-align:center;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,0.4);";
+  b.innerHTML='<span>📢 '+msg+'</span><span onclick="this.parentElement.remove()" style="cursor:pointer;font-size:16px;opacity:0.7;">✕</span>';
+  document.body.appendChild(b);
 }
 async function enterWithNameOnly(){
   processEntry(document.getElementById("loginNameOnly").value.trim(),"name");
@@ -528,10 +857,31 @@ function processEntry(val,type){
 
   Promise.all([
     fetch(dataUrl).then(r=>r.text()),
-    fetch(smartUrl).then(r=>r.text())
-  ]).then(([t1,t2])=>{
+    fetch(smartUrl).then(r=>r.text()),
+    fetchAllQuizPts()
+  ]).then(([t1,t2,allQuizPts])=>{
     bar.style.width="100%";
     barCont.style.display="none";
+
+    // دالة مساعدة لإيجاد نقاط الكويز من قاموس allQuizPts مع دعم الفروق في المسافات
+    const normKey=s=>s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+    function getApiQuizPts(name){
+      for(const [k,v] of Object.entries(allQuizPts)){
+        if(normKey(k)===normKey(name)) return parseInt(v)||0;
+      }
+      return 0;
+    }
+
+    // دالة تحديد النقاط المكتسبة (API أولاً، ثم localStorage)
+    function resolveEarned(name){
+      const apiPts = getApiQuizPts(name);
+      const localPts = parseInt(localStorage.getItem(_earnedKey(name))||'0');
+      const best = Math.max(apiPts, localPts);
+      // مزامنة: إذا كان الـ localStorage أعلى، ارفعه للـ API
+      if(best > apiPts && best > 0) syncQuizPts(name, best);
+      else if(best > 0) localStorage.setItem(_earnedKey(name), String(best));
+      return best;
+    }
 
     // 1) البحث في الجدول الرئيسي: الاسم C(2)، آخر عمود = النقاط
     const rows1=t1.split('\n');
@@ -545,7 +895,7 @@ function processEntry(val,type){
         const name=(c[2]||'').trim();
         const pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
         localStorage.setItem("sklab_user_name",name);
-        renderApp(name,pts,true);
+        renderApp(name,pts,true, resolveEarned(name));
         return;
       }
     }
@@ -576,21 +926,24 @@ function processEntry(val,type){
           }
         }
         localStorage.setItem("sklab_user_name",nameCol);
-        renderApp(nameCol,pts,true);
+        renderApp(nameCol,pts,true, resolveEarned(nameCol));
         return;
       }
     }
 
     // 3) زائر غير مسجل
-    renderApp(val,0,false);
+    renderApp(val,0,false, 0);
 
   }).catch(()=>alert("عذراً، مشكلة في الاتصال"));
 }
 
-function renderApp(name,pts,isReg){
+function renderApp(name,pts,isReg, externalEarned){
   // pts = نقاط الجدول الحالية (تتغير عند الحذف)
-  // earned = نقاط مكسوبة من الكويز (دائمة لا تُحذف)
-  const earned=parseInt(localStorage.getItem(_earnedKey(name))||'0');
+  // earned = نقاط مكسوبة من الكويز (دائمة - تُقرأ من API أو localStorage)
+  const localEarned=parseInt(localStorage.getItem(_earnedKey(name))||'0');
+  const earned = (externalEarned !== undefined && externalEarned !== null)
+    ? Math.max(externalEarned, localEarned)
+    : localEarned;
   const totalPts=pts+earned; // الإجمالي الدائم للمستوى
   _basePoints=totalPts;
 
@@ -751,13 +1104,25 @@ async function loadRanking(){
   const div=document.getElementById("rankingInfo");
   div.innerHTML='<div class="spinner"></div>';
   try{
-    const [r1,r2]=await Promise.all([fetch(dataUrl),fetch(smartUrl)]);
+    const [r1,r2,allQuizPts]=await Promise.all([fetch(dataUrl),fetch(smartUrl),fetchAllQuizPts()]);
     const t1=await r1.text();
     const t2=await r2.text();
 
     const norm=s=>s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
     const currentUser=getCurrentUser();
-    const earnedByCurrentUser=parseInt(localStorage.getItem(_earnedKey(currentUser))||'0');
+
+    // دالة للحصول على نقاط الكويز من الخريطة المشتركة (لجميع المستخدمين)
+    function getSharedQuizPts(name){
+      // أولاً: ابحث في allQuizPts (API مشتركة)
+      for(const [k,v] of Object.entries(allQuizPts)){
+        if(norm(k)===norm(name)) return parseInt(v)||0;
+      }
+      // ثانياً: إذا كان هو المستخدم الحالي، ابحث في localStorage كـ fallback
+      if(norm(name)===norm(currentUser)){
+        return parseInt(localStorage.getItem(_earnedKey(currentUser))||'0');
+      }
+      return 0;
+    }
 
     function csvParse(line){
       const res=[]; let cur=''; let q=false;
@@ -794,19 +1159,25 @@ async function loadRanking(){
       return {n,p};
     }).filter(Boolean);
 
-    // دمج وترتيب مع إضافة نقاط الكويز
+    // دمج وترتيب مع إضافة نقاط الكويز لجميع المستخدمين (مشتركة ومرئية للجميع)
     const list=[...fromData,...fromSmart].map(x=>{
-      const extraPts=(norm(x.n)===norm(currentUser))?earnedByCurrentUser:0;
-      return {n:x.n, p:x.p+extraPts};
+      const quizExtra = getSharedQuizPts(x.n);
+      return {n:x.n, p:x.p+quizExtra};
     }).sort((a,b)=>b.p-a.p);
 
     const m=['gold','silver','bronze'];
-    div.innerHTML=list.map((x,i)=>`
-      <div class="member-row">
+    const currentUserNorm=norm(currentUser);
+    div.innerHTML=list.map((x,i)=>{
+      const isMe=norm(x.n)===currentUserNorm;
+      const quizPts=getSharedQuizPts(x.n);
+      const quizBadge=quizPts>0?`<span style="font-size:10px;color:#a78bfa;background:rgba(168,85,247,0.15);border-radius:5px;padding:1px 5px;margin-right:4px;" title="نقاط الكويز">🎯+${quizPts}</span>`:'';
+      return `
+      <div class="member-row" style="${isMe?'border-color:rgba(0,229,160,0.5);background:rgba(0,229,160,0.06);':''}" >
         <div class="member-num ${m[i]||''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
-        <div class="member-name">${x.n}</div>
-        <div class="member-pts">${x.p>0?x.p.toLocaleString():'—'}</div>
-      </div>`).join('');
+        <div class="member-name">${x.n}${isMe?' <span style="font-size:10px;color:var(--accent);background:rgba(0,229,160,0.12);border-radius:5px;padding:1px 5px;">أنت</span>':''}</div>
+        <div class="member-pts">${quizBadge}${x.p>0?x.p.toLocaleString():'—'}</div>
+      </div>`;
+    }).join('');
   }catch(e){div.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">تعذر التحميل</p>';}
 }
 
@@ -840,7 +1211,8 @@ function addPointsInstant(pts){
   const name=document.getElementById("userNameTop").innerText||'';
   if(name){
     const prev=parseInt(localStorage.getItem(_earnedKey(name))||'0');
-    localStorage.setItem(_earnedKey(name),String(prev+pts));
+    // حفظ محلي + مشترك (syncQuizPts يحدّث كليهما)
+    syncQuizPts(name, prev+pts);
   }
   const newPts=_basePoints;
   // لوحة التحكم الرئيسية
@@ -1163,7 +1535,9 @@ function deductPoints(n){
   const name=document.getElementById("userNameTop").innerText||'';
   if(name){
     const prev=parseInt(localStorage.getItem(_earnedKey(name))||'0');
-    localStorage.setItem(_earnedKey(name),String(Math.max(0,prev-n)));
+    const newVal=Math.max(0,prev-n);
+    // حفظ محلي + مشترك
+    syncQuizPts(name, newVal);
   }
   const newPts=_basePoints;
   document.getElementById("mainPoints").innerHTML=`${newPts.toLocaleString()} <span>نقطة</span>`;
