@@ -109,7 +109,7 @@ button.auth-btn:active{transform:translateY(0);}
 .bg-1{background:linear-gradient(135deg,#FF9D6C,#BB4E75);}
 .bg-2{background:linear-gradient(135deg,#f5c518,#f97316);}
 .bg-3{background:linear-gradient(135deg,#11998e,#38ef7d);}
-.bg-4{background:linear-gradient(135deg,#4facfe,#00f2fe);}
+.bg-4{background:linear-gradient(135deg,#0099ff,#a855f7);}
 .bg-5{background:linear-gradient(135deg,#667eea,#764ba2);}
 .bg-6{background:linear-gradient(135deg,#f093fb,#f5576c);}
 .bg-7{background:linear-gradient(135deg,#f97316,#ef4444);}
@@ -233,6 +233,87 @@ button.auth-btn:active{transform:translateY(0);}
 #adminModal .modal-content{max-height:80vh;overflow-y:auto;}
 #adminModal .modal-content::-webkit-scrollbar{width:3px;}
 #adminModal .modal-content::-webkit-scrollbar-thumb{background:rgba(229,45,39,0.3);border-radius:10px;}
+
+/* زر الخروج */
+.logout-btn{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(229,45,39,0.12);
+  border:1px solid rgba(229,45,39,0.3);
+  border-radius:10px;padding:6px 11px;
+  font-size:11px;font-weight:800;color:#f87171;
+  cursor:pointer;transition:all .2s;
+  font-family:'Tajawal',sans-serif;
+}
+.logout-btn:hover{background:rgba(229,45,39,0.22);border-color:rgba(229,45,39,0.5);transform:scale(1.04);}
+.logout-btn svg{width:13px;height:13px;fill:none;stroke:#f87171;stroke-width:2;stroke-linecap:round;}
+
+/* ===== CHAT BUBBLES (ماسنجر) ===== */
+.chat-bubble-wrap{display:flex;flex-direction:column;max-width:78%;animation:fadeUp .25s ease;}
+.chat-bubble-wrap.me{align-self:flex-start;}
+.chat-bubble-wrap.them{align-self:flex-end;}
+.chat-bubble{padding:9px 13px;border-radius:18px;font-size:13px;font-weight:600;line-height:1.55;color:var(--text);position:relative;word-break:break-word;}
+.chat-bubble.me{background:linear-gradient(135deg,#b91c1c,#e52d27);color:white;border-bottom-right-radius:5px;box-shadow:0 4px 14px rgba(229,45,39,0.35);}
+.chat-bubble.them{background:linear-gradient(135deg,#0f9b0f,#00c853);color:white;border-bottom-left-radius:5px;box-shadow:0 4px 14px rgba(15,155,15,0.35);}
+.chat-bubble img.chat-img{max-width:220px;max-height:200px;border-radius:12px;display:block;margin-top:6px;cursor:pointer;}
+.chat-bubble video.chat-vid{max-width:220px;border-radius:12px;display:block;margin-top:6px;}
+.chat-bubble audio.chat-aud{width:200px;margin-top:6px;display:block;border-radius:10px;}
+.chat-meta{font-size:9px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:4px;}
+.chat-bubble-wrap.them .chat-meta{justify-content:flex-end;}
+.chat-sender-name{font-size:10px;font-weight:700;color:#60b3ff;margin-bottom:3px;}
+.chat-bubble-wrap.them .chat-sender-name{color:#c084fc;text-align:right;}
+
+/* تحديث modal للماسنجر */
+#messagesModal .modal-content-unused{display:none;}
+
+/* Admin chat section */
+.admin-chat-section{margin-bottom:14px;}
+.admin-chat-inbox{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding:4px 0;}
+.admin-select-member{width:100%;padding:9px 12px;background:rgba(22,27,34,0.9);border:1px solid rgba(229,45,39,0.3);border-radius:10px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;outline:none;text-align:right;margin-bottom:7px;}
+
+/* مؤشر الكتابة */
+.typing-indicator{display:flex;align-items:center;gap:5px;padding:8px 12px;}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:typingBounce 1.2s infinite;}
+.typing-dot:nth-child(2){animation-delay:.2s;}
+.typing-dot:nth-child(3){animation-delay:.4s;}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+/* inbox item hover */
+#inboxList > div:hover { background: rgba(255,255,255,0.03); }
+
+/* chatScreen overlay */
+#chatScreen {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px; height: 100%; z-index: 3000;
+  background: var(--dark); flex-direction: column;
+  animation: fadeUp .2s ease;
+}
+
+  width:100%;padding:11px 13px;
+  background:rgba(22,27,34,0.9);
+  border:1px solid rgba(0,229,160,0.25);
+  border-radius:12px;color:var(--text);
+  font-family:'Tajawal',sans-serif;font-size:13px;
+  outline:none;resize:vertical;min-height:80px;
+  text-align:right;line-height:1.6;
+  transition:border-color .2s;
+}
+.admin-msg-textarea:focus{border-color:rgba(0,229,160,0.5);box-shadow:0 0 0 2px rgba(0,229,160,0.08);}
+.member-select-wrap{position:relative;margin-bottom:7px;}
+.member-select-wrap select{
+  width:100%;padding:10px 13px;
+  background:rgba(22,27,34,0.9);
+  border:1px solid rgba(229,45,39,0.3);
+  border-radius:10px;color:var(--text);
+  font-family:'Tajawal',sans-serif;font-size:13px;
+  outline:none;appearance:none;
+  -webkit-appearance:none;cursor:pointer;
+  text-align:right;
+}
+.member-select-wrap::after{
+  content:'▾';position:absolute;left:12px;top:50%;
+  transform:translateY(-50%);color:var(--muted);
+  pointer-events:none;font-size:14px;
+}
 </style>
 </head>
 <body>
@@ -285,7 +366,16 @@ button.auth-btn:active{transform:translateY(0);}
           <div class="user-role">عضو القادة المستقبليين</div>
         </div>
       </div>
-      <div class="notif-btn" onclick="location.reload()">🔔</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <!-- جرس التنبيهات من المدير -->
+        <div class="notif-btn" id="notifBell" onclick="openNotifications()" title="التنبيهات" style="position:relative;background:linear-gradient(135deg,rgba(255,160,0,0.15),rgba(255,80,0,0.15));border-color:rgba(255,160,0,0.3);font-size:20px;">🔔<span id="notifBadge" style="display:none;position:absolute;top:-5px;left:-5px;min-width:18px;height:18px;border-radius:9px;background:#e52d27;border:2px solid var(--dark);font-size:10px;font-weight:900;color:white;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;"></span></div>
+        <!-- زر الإدارة في الأعلى - للأدمن فقط -->
+        <div class="notif-btn" id="adminNavBtn" onclick="showModal('adminModal')" title="لوحة الإدارة" style="display:none;position:relative;background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(245,158,11,0.2));border-color:rgba(220,38,38,0.4);font-size:18px;">⚙️</div>
+        <button class="logout-btn" onclick="doLogout()" title="العودة للواجهة">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          خروج
+        </button>
+      </div>
     </div>
 
     <div class="main-card">
@@ -377,6 +467,96 @@ button.auth-btn:active{transform:translateY(0);}
   </div>
 </div>
 
+<!-- ===== نظام المراسلة - واتساب ===== -->
+<!-- شاشة 1: قائمة المحادثات (للمدير: قائمة الأعضاء، للعضو: محادثته مع المدير) -->
+<div class="modal" id="messagesModal" style="align-items:stretch;">
+  <div style="display:flex;flex-direction:column;width:100%;max-width:480px;height:100vh;background:var(--dark);margin:0 auto;">
+
+    <!-- هيدر قائمة المحادثات -->
+    <div style="display:flex;align-items:center;gap:11px;padding:14px 16px 12px;background:rgba(13,17,23,0.98);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);flex-shrink:0;">
+      <div onclick="hideModal('messagesModal')" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--surface);border:1px solid var(--border);cursor:pointer;font-size:18px;flex-shrink:0;">‹</div>
+      <div style="width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">💬</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:800;color:var(--text);" id="inboxTitle">الرسائل</div>
+        <div style="font-size:11px;color:var(--accent);" id="inboxSub">محادثاتك الخاصة</div>
+      </div>
+      <span id="totalUnreadBadge" style="display:none;background:linear-gradient(135deg,#0099ff,#a855f7);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800;color:white;"></span>
+    </div>
+
+    <!-- قائمة المحادثات (للمدير) / رسالة ترحيب (للعضو) -->
+    <div id="inboxList" style="flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:0;">
+      <div style="text-align:center;margin:auto;color:var(--muted);padding:40px 20px;">
+        <div style="font-size:48px;margin-bottom:12px;">💬</div>
+        <div style="font-weight:700;">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- شاشة 2: نافذة المحادثة الفردية -->
+<div id="chatScreen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:3000;background:var(--dark);flex-direction:column;max-width:480px;left:50%;transform:translateX(-50%);">
+    <!-- رأس المحادثة الفردية -->
+    <div style="display:flex;align-items:center;gap:11px;padding:14px 16px 12px;background:rgba(13,17,23,0.98);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);flex-shrink:0;z-index:10;">
+      <div onclick="closeChatScreen()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--surface);border:1px solid var(--border);cursor:pointer;font-size:18px;flex-shrink:0;">‹</div>
+      <div id="chatAvatar" style="width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,153,255,0.3);">👤</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:800;color:var(--text);" id="chatTitle">…</div>
+        <div style="font-size:11px;color:var(--accent);">• متصل الآن</div>
+      </div>
+    </div>
+
+    <!-- منطقة الرسائل -->
+    <div id="messagesContent" style="flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:8px;background:var(--dark);"></div>
+
+    <!-- صندوق الكتابة -->
+    <div id="chatInputArea" style="padding:10px 12px;background:rgba(13,17,23,0.98);border-top:1px solid var(--border);display:flex;align-items:flex-end;gap:8px;flex-shrink:0;">
+      <div style="position:relative;flex-shrink:0;">
+        <div onclick="toggleAttachMenu()" id="attachBtn" style="width:40px;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:.2s;" title="إرفاق">📎</div>
+        <div id="attachMenu" style="display:none;position:absolute;bottom:48px;right:0;background:rgba(13,17,23,0.97);border:1px solid var(--border);border-radius:16px;padding:8px;box-shadow:0 -10px 30px rgba(0,0,0,0.5);z-index:100;white-space:nowrap;">
+          <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:16px;">🖼️</span>صورة
+            <input type="file" accept="image/*" style="display:none;" onchange="handleMediaUpload(event,'image')">
+          </label>
+          <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:16px;">🎬</span>فيديو
+            <input type="file" accept="video/*" style="display:none;" onchange="handleMediaUpload(event,'video')">
+          </label>
+          <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:16px;">🎵</span>صوت
+            <input type="file" accept="audio/*" style="display:none;" onchange="handleMediaUpload(event,'audio')">
+          </label>
+          <div onclick="startVoiceRecord()" style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:16px;">🎙️</span>تسجيل صوتي
+          </div>
+        </div>
+      </div>
+      <textarea id="replyText" placeholder="اكتب رسالة…" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 13px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:14px;outline:none;resize:none;max-height:100px;min-height:40px;line-height:1.5;text-align:right;transition:border-color .2s;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
+      <div onclick="sendChatMessage()" style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;box-shadow:0 4px 14px rgba(0,153,255,0.35);transition:.15s;" title="إرسال">➤</div>
+      <div id="micBtn" onclick="startVoiceRecord()" style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;box-shadow:0 4px 14px rgba(17,153,142,0.35);transition:.15s;" title="تسجيل صوتي">🎙️</div>
+    </div>
+
+    <!-- مؤشر التسجيل الصوتي -->
+    <div id="voiceRecordBar" style="display:none;padding:10px 16px;background:rgba(229,45,39,0.12);border-top:1px solid rgba(229,45,39,0.3);flex-shrink:0;align-items:center;gap:10px;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#ef4444;animation:pulse 1s infinite;"></div>
+        <span style="font-size:13px;font-weight:700;color:#f87171;">جاري التسجيل…</span>
+        <span id="voiceTimer" style="font-size:12px;color:var(--muted);">0:00</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div onclick="cancelVoiceRecord()" style="padding:6px 12px;background:rgba(229,45,39,0.15);border:1px solid rgba(229,45,39,0.3);border-radius:8px;font-size:12px;font-weight:700;color:#f87171;cursor:pointer;">إلغاء ✕</div>
+        <div onclick="stopVoiceRecord()" style="padding:6px 12px;background:linear-gradient(135deg,#0099ff,#a855f7);border-radius:8px;font-size:12px;font-weight:700;color:white;cursor:pointer;">إرسال ✓</div>
+      </div>
+    </div>
+
+    <!-- تقدم رفع الملف -->
+    <div id="uploadProgress" style="display:none;padding:8px 16px;background:rgba(0,153,255,0.08);border-top:1px solid rgba(0,153,255,0.2);flex-shrink:0;">
+      <div style="font-size:11px;color:#60b3ff;margin-bottom:4px;">⏳ جاري الرفع…</div>
+      <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden;">
+        <div id="uploadBar" style="height:100%;background:linear-gradient(90deg,#0099ff,#a855f7);width:0%;transition:width .3s;border-radius:10px;"></div>
+      </div>
+    </div>
+</div>
+
 <!-- زر تبديل لوحة الإدارة (يظهر فقط للمدير) -->
 <div class="admin-toggle-btn" id="adminToggleBtn" onclick="showModal('adminModal')" title="لوحة الإدارة">⚙️</div>
 
@@ -395,6 +575,58 @@ button.auth-btn:active{transform:translateY(0);}
       <div class="admin-stat"><div class="admin-stat-num" id="statMembers">…</div><div class="admin-stat-label">عضو</div></div>
       <div class="admin-stat"><div class="admin-stat-num" id="statActivities">…</div><div class="admin-stat-label">نشاط</div></div>
       <div class="admin-stat"><div class="admin-stat-num" id="statQuizQ">…</div><div class="admin-stat-label">سؤال</div></div>
+    </div>
+
+    <div class="admin-divider"></div>
+
+    <!-- إرسال رسائل للمنخرطين -->
+    <div class="admin-section">
+      <div class="admin-section-label">💬 إرسال رسالة</div>
+      <div class="member-select-wrap">
+        <select id="adminMsgTarget">
+          <option value="all">📢 إرسال لجميع المنخرطين</option>
+        </select>
+      </div>
+      <textarea class="admin-msg-textarea" id="adminMsgText" placeholder="اكتب رسالتك هنا…"></textarea>
+
+      <!-- مرفقات المدير -->
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin:7px 0;">
+        <label style="cursor:pointer;padding:7px 11px;background:rgba(0,153,255,0.1);border:1px solid rgba(0,153,255,0.3);border-radius:9px;font-size:12px;font-weight:700;color:#60b3ff;display:flex;align-items:center;gap:5px;">
+          🖼️ صورة <input type="file" accept="image/*" style="display:none;" onchange="adminHandleMedia(event,'image')">
+        </label>
+        <label style="cursor:pointer;padding:7px 11px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:9px;font-size:12px;font-weight:700;color:#c084fc;display:flex;align-items:center;gap:5px;">
+          🎬 فيديو <input type="file" accept="video/*" style="display:none;" onchange="adminHandleMedia(event,'video')">
+        </label>
+        <label style="cursor:pointer;padding:7px 11px;background:rgba(245,197,24,0.1);border:1px solid rgba(245,197,24,0.3);border-radius:9px;font-size:12px;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:5px;">
+          🎵 صوت <input type="file" accept="audio/*" style="display:none;" onchange="adminHandleMedia(event,'audio')">
+        </label>
+      </div>
+      <div id="adminMediaPreview" style="display:none;padding:8px;background:var(--surface2);border-radius:10px;margin-bottom:7px;font-size:12px;color:var(--accent);">📎 تم تحديد الملف</div>
+
+      <div class="admin-row" style="margin-top:7px;">
+        <button class="admin-btn green" onclick="adminSendMessages()">💬 إرسال</button>
+        <button class="admin-btn blue" onclick="adminLoadMembersSelect()" style="font-size:12px;">🔄 تحديث الأعضاء</button>
+      </div>
+      <div class="admin-msg" id="adminMsgSendStatus"></div>
+    </div>
+
+    <div class="admin-divider"></div>
+
+    <!-- سجل الرسائل -->
+    <div class="admin-section">
+      <div class="admin-section-label">📋 المحادثات الأخيرة</div>
+      <div id="adminSentLog" style="max-height:200px;overflow-y:auto;"></div>
+    </div>
+
+    <div class="admin-divider"></div>
+
+    <!-- رسائل الأعضاء للمدير -->
+    <div class="admin-section">
+      <div class="admin-section-label" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>📥 رسائل الأعضاء</span>
+        <button onclick="adminRenderInbox()" style="background:transparent;border:none;font-size:11px;color:var(--muted);cursor:pointer;font-family:'Tajawal',sans-serif;">🔄 تحديث</button>
+      </div>
+      <div id="adminInboxLog" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
     </div>
 
     <div class="admin-divider"></div>
@@ -445,7 +677,41 @@ button.auth-btn:active{transform:translateY(0);}
       <div class="admin-msg" id="adminNotifStatus"></div>
     </div>
 
+    <div class="admin-divider"></div>
+
+    <!-- 📊 نشاط الأعضاء -->
+    <div class="admin-section">
+      <div class="admin-section-label" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>📊 نشاط الأعضاء (الزيارات)</span>
+        <button onclick="adminRenderActivity()" style="background:transparent;border:none;font-size:11px;color:var(--muted);cursor:pointer;font-family:'Tajawal',sans-serif;">🔄 تحديث</button>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;padding:6px 10px;background:rgba(0,229,160,0.05);border:1px solid rgba(0,229,160,0.1);border-radius:8px;">
+        💡 يعرض اسم العضو، وقت الدخول، ومدة الجلسة. عند ربط Apps Script، تُعرض بيانات جميع الأجهزة.
+      </div>
+      <div id="adminActivityLog" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">
+        <p style="color:var(--muted);font-size:12px;text-align:center;padding:10px;">لا توجد زيارات مسجّلة بعد</p>
+      </div>
+    </div>
+
     <button class="modal-close" onclick="hideModal('adminModal')">إغلاق</button>
+  </div>
+</div>
+
+<!-- MODAL: التنبيهات (الجرس) -->
+<div class="modal" id="notifsModal">
+  <div class="modal-content">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:16px;">
+      <span style="font-size:22px;">🔔</span>
+      <div class="modal-title" style="margin:0;">التنبيهات</div>
+    </div>
+    <div id="notifsList" style="max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;">
+      <div style="text-align:center;padding:30px;color:var(--muted);">
+        <div style="font-size:40px;margin-bottom:10px;">🔔</div>
+        <div style="font-weight:700;">لا توجد تنبيهات حالياً</div>
+      </div>
+    </div>
+    <button class="modal-close" onclick="hideModal('notifsModal');clearNotifBadge()">إغلاق</button>
   </div>
 </div>
 
@@ -570,14 +836,26 @@ async function syncQuizPts(name, pts){
   }catch(e){}
 }
 
+/* ===== فتح المنخرطون للمدير فقط ===== */
+function openMembersIfAdmin(){
+  if(_isAdmin) showModal('membersCard');
+  else{
+    const n=document.createElement('div');
+    n.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20000;background:rgba(13,17,23,0.97);border:1px solid rgba(229,45,39,0.4);border-radius:18px;padding:24px 28px;text-align:center;font-family:Tajawal,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,0.7);max-width:280px;width:88%;';
+    n.innerHTML='<div style="font-size:38px;margin-bottom:10px;">🔒</div><div style="font-size:15px;font-weight:800;color:#f87171;margin-bottom:6px;">قسم خاص بالمدير</div><div style="font-size:12px;color:#8b949e;">هذا القسم متاح للمدير فقط 🛡️</div><div onclick="this.parentElement.remove()" style="margin-top:14px;padding:10px;background:rgba(229,45,39,0.12);border:1px solid rgba(229,45,39,0.3);border-radius:10px;font-size:13px;font-weight:700;color:#f87171;cursor:pointer;">إغلاق</div>';
+    document.body.appendChild(n);
+    setTimeout(()=>n.remove&&n.remove(),3000);
+  }
+}
+
 /* ===== بناء الشبكة ===== */
 function buildGrid(isReg){
   const grid=document.getElementById('mainGrid');
   const items=[
     ['💰','رصيدك',      'bg-1',"showModal('digitalCard')", true ],
     ['🏆','جدول الترتيب','bg-2',"showModal('rankingCard')",  true ],
-    ['👥','المنخرطون',  'bg-3',"showModal('membersCard')",  true ],
-    ['🔒','الشباب',      'bg-4',null, false],
+    ['👥','المنخرطون',  'bg-3',"showModal('membersCard')",  true],
+    ['💬','المحادثات',      'bg-4',"openMessages()", true],
     ['🌟','انظم إلينا', 'bg-5',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform')", true],
     ['🖼️','المعرض',    'bg-6',"window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3')", false],
     ['🎯','اجمع النقاط','bg-7',"showModal('quizCard')",    false],
@@ -673,6 +951,13 @@ function showModal(id){
   if(id==='rankingCard') loadRanking();
   if(id==='digitalCard'){startCoins();playGoldSound();}
   if(id==='quizCard')    loadQuiz();
+  if(id==='adminModal'){
+    loadAdminStats();
+    adminRenderSentLog();
+    adminLoadMembersSelect();
+    adminRenderInbox();
+    adminRenderActivity(); // async - يُحدّث تلقائياً
+  }
 }
 function hideModal(id){document.getElementById(id).style.display='none';}
 
@@ -700,21 +985,26 @@ function enterAsAdmin(){
   bar.style.width="100%";
   setTimeout(()=>{barCont.style.display="none";},600);
   localStorage.setItem("sklab_user_name","المدير");
+  localStorage.setItem("sklab_admin_email", ADMIN_EMAIL);
   renderApp("المدير",9999,true,0);
-  // إظهار الزر العائم للمدير
+  // إظهار الزر العائم للمدير + زر الأعلى
   const tb=document.getElementById("adminToggleBtn");
   if(tb) tb.style.display="flex";
+  const nb=document.getElementById("adminNavBtn");
+  if(nb) nb.style.display="flex";
   // تحديث دور المستخدم
   setTimeout(()=>{
     const roleEl=document.querySelector(".user-role");
-    if(roleEl) roleEl.innerHTML='<span class="admin-badge">ADMIN</span> مدير التطبيق';
+    if(roleEl) roleEl.innerText='عضو القادة المستقبليين';
   },200);
   // تحميل الإحصائيات
   setTimeout(()=>loadAdminStats(),800);
   // تعيين روابط الجداول
   setAdminLinks();
-  // إظهار بطاقة أدوات المدير في الصفحة الرئيسية
+  // إظهار بطاقة أدوات المدير فقط لإيميل المدير الرسمي
   setTimeout(()=>{
+    const storedEmail = localStorage.getItem("sklab_admin_email")||'';
+    if(storedEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) return;
     const inner=document.querySelector(".app-inner");
     if(inner && !document.getElementById("adminQuickCard")){
       const card=document.createElement("div");
@@ -938,6 +1228,9 @@ function processEntry(val,type){
 }
 
 function renderApp(name,pts,isReg, externalEarned){
+  // إزالة لوحة المدير السريعة إن بقيت من جلسة سابقة
+  const oldCard=document.getElementById('adminQuickCard');
+  if(oldCard) oldCard.remove();
   // pts = نقاط الجدول الحالية (تتغير عند الحذف)
   // earned = نقاط مكسوبة من الكويز (دائمة - تُقرأ من API أو localStorage)
   const localEarned=parseInt(localStorage.getItem(_earnedKey(name))||'0');
@@ -970,8 +1263,14 @@ function renderApp(name,pts,isReg, externalEarned){
   document.getElementById("progressStart").innerText=(currentLevel-1)*LEVEL_PTS;
   document.getElementById("progressEnd").innerText=currentLevel*LEVEL_PTS;
   buildGrid(isReg);
-  if(!isReg) document.getElementById("lockedNote").innerHTML=`<div class="locked-msg">🔒 مرحباً! سجّل عبر <b>انظم إلينا</b> 🌟 لفتح جميع الأقسام</div>`;
+  if(!isReg) document.getElementById("lockedNote").innerHTML=``;
   setTimeout(()=>{document.getElementById("mainBar").style.width=Math.min((ptsInLevel/LEVEL_PTS)*100,100)+"%";},300);
+  // تحقق من الرسائل الجديدة
+  setTimeout(()=>loadUserMessagesOnLogin(name), 600);
+  // تتبع الزيارة
+  if(!_isAdmin) trackVisitStart(name);
+  // تحديث badge الجرس
+  setTimeout(()=>refreshNotifBadge(), 700);
 }
 
 /* ===== المنخرطون ===== */
@@ -1586,6 +1885,798 @@ function playQuizSound(correct){
    تلقائياً من إعدادات النموذج (Responses → Link to Sheets).
    عند ذلك يتم تحديث جدول الترتيب والمنخرطون تلقائياً عند كل تسجيل جديد.
    الكود أدناه يُحدّث العرض تلقائياً عند فتح النوافذ. */
+
+/* =======================================================================
+   📌 GOOGLE APPS SCRIPT — نظام الرسائل بين المدير والأعضاء
+   =======================================================================
+   1. افتح Google Sheets الخاص بك → Extensions → Apps Script
+   2. أنشئ ملف جديد باسم "MessagesAPI" والصق الكود التالي:
+
+   ───────────────────────────────────────────────────────────────────────
+   const SHEET_MSGS = 'Messages';
+
+   function doGet(e) {
+     const action = e.parameter.action || 'get';
+     const recipient = e.parameter.recipient || '';
+     const ss = SpreadsheetApp.getActiveSpreadsheet();
+     let sh = ss.getSheetByName(SHEET_MSGS);
+     if (!sh) sh = ss.insertSheet(SHEET_MSGS);
+
+     if (action === 'get') {
+       const data = sh.getDataRange().getValues();
+       const msgs = [];
+       for (let i = 1; i < data.length; i++) {
+         const to = String(data[i][1] || '').trim();
+         if (!recipient || to === 'all' || to.toLowerCase() === recipient.toLowerCase()) {
+           msgs.push({
+             id: data[i][0],
+             to: data[i][1],
+             message: data[i][2],
+             from: data[i][3] || 'المدير',
+             timestamp: data[i][4],
+             read: data[i][5] || false
+           });
+         }
+       }
+       return ContentService.createTextOutput(JSON.stringify(msgs))
+         .setMimeType(ContentService.MimeType.JSON);
+     }
+
+     if (action === 'read') {
+       const msgId = e.parameter.id || '';
+       const data = sh.getDataRange().getValues();
+       for (let i = 1; i < data.length; i++) {
+         if (String(data[i][0]) === msgId) {
+           sh.getRange(i + 1, 6).setValue(true);
+           break;
+         }
+       }
+       return ContentService.createTextOutput('{"ok":true}')
+         .setMimeType(ContentService.MimeType.JSON);
+     }
+
+     return ContentService.createTextOutput('{"error":"unknown action"}')
+       .setMimeType(ContentService.MimeType.JSON);
+   }
+
+   function doPost(e) {
+     const b = JSON.parse(e.postData.contents);
+     const ss = SpreadsheetApp.getActiveSpreadsheet();
+     let sh = ss.getSheetByName(SHEET_MSGS);
+     if (!sh) {
+       sh = ss.insertSheet(SHEET_MSGS);
+       sh.appendRow(['ID','To','Message','From','Timestamp','Read']);
+     }
+     const id = 'msg_' + Date.now();
+     const recipients = Array.isArray(b.to) ? b.to : [b.to || 'all'];
+     recipients.forEach(r => {
+       sh.appendRow([id, r, b.message, b.from || 'المدير', new Date().toISOString(), false]);
+     });
+     return ContentService.createTextOutput('{"ok":true,"id":"'+id+'"}')
+       .setMimeType(ContentService.MimeType.JSON);
+   }
+   ───────────────────────────────────────────────────────────────────────
+   3. Deploy → New deployment → Web app
+      - Execute as: Me
+      - Who has access: Anyone
+      - انقر Deploy وانسخ رابط الـ Web App
+   4. ضع الرابط في المتغير messagesApiUrl أدناه
+   ======================================================================= */
+
+const messagesApiUrl = 'YOUR_MESSAGES_APPS_SCRIPT_URL_HERE';
+
+/* =======================================================================
+   📊 رابط Apps Script لتسجيل نشاط الأعضاء (زيارات الدخول والمدة)
+   =======================================================================
+   في نفس ملف Apps Script أضف هذا الكود:
+
+   const SHEET_VISITS = 'Visits';
+   function logVisit(name, enterAt, durationMin){
+     const ss = SpreadsheetApp.getActiveSpreadsheet();
+     let sh = ss.getSheetByName(SHEET_VISITS);
+     if(!sh){ sh = ss.insertSheet(SHEET_VISITS); sh.appendRow(['الاسم','وقت الدخول','المدة (دقائق)']); }
+     sh.appendRow([name, enterAt, durationMin !== null ? durationMin : '…']);
+   }
+   // أضف في doPost:
+   if(b.action === 'visit'){
+     logVisit(b.name, b.enterAt, b.duration);
+     return ContentService.createTextOutput('{"ok":true}').setMimeType(ContentService.MimeType.JSON);
+   }
+   if(b.action === 'getVisits'){
+     const sh = ss.getSheetByName(SHEET_VISITS);
+     if(!sh) return ContentService.createTextOutput('[]').setMimeType(ContentService.MimeType.JSON);
+     const rows = sh.getDataRange().getValues().slice(1).reverse();
+     return ContentService.createTextOutput(JSON.stringify(rows.slice(0,100).map(r=>({name:r[0],enterAt:r[1],duration:r[2]}))))
+       .setMimeType(ContentService.MimeType.JSON);
+   }
+   ======================================================================= */
+const activityApiUrl = 'YOUR_MESSAGES_APPS_SCRIPT_URL_HERE'; // نفس رابط Apps Script
+
+/* ===================================================================
+   💬 نظام المحادثة - واتساب (محادثة خاصة لكل عضو مع المدير)
+   =================================================================== */
+
+let _mediaToSend = null;
+let _adminMediaToSend = null;
+let _mediaRecorder = null;
+let _recordedChunks = [];
+let _voiceTimerInt = null;
+let _voiceSeconds = 0;
+let _currentChatTarget = null; // اسم العضو الذي يتحدث معه المدير حالياً
+
+/* مفتاح تخزين المحادثة الخاصة بين عضو والمدير */
+function _chatKey(memberName){
+  return 'nld_chat_' + memberName.replace(/\s+/g,'_');
+}
+
+/* جلب رسائل محادثة عضو معين */
+function _getChatMsgs(memberName){
+  return JSON.parse(localStorage.getItem(_chatKey(memberName))||'[]');
+}
+
+/* حفظ رسائل محادثة عضو معين */
+function _saveChatMsgs(memberName, msgs){
+  localStorage.setItem(_chatKey(memberName), JSON.stringify(msgs.slice(-200)));
+}
+
+/* ===== فتح قائمة المحادثات ===== */
+function openMessages(){
+  document.getElementById('messagesModal').style.display='flex';
+  renderInboxList();
+}
+
+/* ===== عرض قائمة المحادثات ===== */
+function renderInboxList(){
+  const name = getCurrentUser();
+  const div = document.getElementById('inboxList');
+
+  if(_isAdmin){
+    // المدير يرى قائمة كل الأعضاء الذين تحدث معهم أو لديه محادثات معهم
+    document.getElementById('inboxTitle').innerText = 'محادثات الأعضاء';
+    document.getElementById('inboxSub').innerText = 'اضغط على عضو لفتح محادثته';
+
+    // جمع كل الأعضاء الذين لديهم محادثات
+    const knownMembers = new Set();
+    for(let i=0; i<localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith('nld_chat_')){
+        const mName = k.replace('nld_chat_','').replace(/_/g,' ');
+        knownMembers.add(mName);
+      }
+    }
+
+    if(knownMembers.size === 0){
+      div.innerHTML = `<div style="text-align:center;margin:40px auto;color:var(--muted);">
+        <div style="font-size:48px;margin-bottom:12px;">💬</div>
+        <div style="font-weight:700;margin-bottom:6px;">لا توجد محادثات بعد</div>
+        <div style="font-size:12px;opacity:0.6;">استخدم لوحة الإدارة لإرسال رسالة لعضو</div>
+      </div>`;
+      return;
+    }
+
+    let totalUnread = 0;
+    const rows = [];
+    knownMembers.forEach(mName => {
+      const msgs = _getChatMsgs(mName);
+      const last = msgs[msgs.length-1];
+      const unread = msgs.filter(m=>!m.isMine && !m.read).length;
+      totalUnread += unread;
+      rows.push({mName, last, unread, msgs});
+    });
+
+    // ترتيب حسب آخر رسالة
+    rows.sort((a,b)=>{
+      const ta = a.last?.timestamp||''; const tb = b.last?.timestamp||'';
+      return tb.localeCompare(ta);
+    });
+
+    if(totalUnread>0){
+      const tb = document.getElementById('totalUnreadBadge');
+      tb.style.display='flex'; tb.innerText=totalUnread+' جديد';
+    }
+
+    div.innerHTML = rows.map(({mName, last, unread})=>{
+      const icon = getLeaderIcon(mName);
+      const lastText = last ? (last.message || (last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت')) : 'ابدأ المحادثة';
+      const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+      const unreadBadge = unread>0 ? `<span style="min-width:20px;height:20px;border-radius:10px;background:linear-gradient(135deg,#0099ff,#a855f7);color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;">${unread}</span>` : '';
+      return `<div onclick="openChatWith('${mName.replace(/'/g,"\\'")}','admin')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+        <div style="width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">${icon}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:3px;">${mName}</div>
+          <div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lastText}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">
+          <span style="font-size:10px;color:var(--muted);">${lastTs}</span>
+          ${unreadBadge}
+        </div>
+      </div>`;
+    }).join('');
+
+  } else {
+    // العضو يرى محادثته الخاصة مباشرة مع المدير
+    document.getElementById('inboxTitle').innerText = 'رسائلي';
+    document.getElementById('inboxSub').innerText = 'محادثتك الخاصة مع المدير';
+    openChatWith('المدير','member');
+  }
+}
+
+/* ===== فتح محادثة مع شخص معين ===== */
+function openChatWith(targetName, role){
+  _currentChatTarget = targetName;
+  const cs = document.getElementById('chatScreen');
+  cs.style.display = 'flex';
+  cs.style.flexDirection = 'column';
+
+  // تحديد العنوان
+  if(role === 'admin'){
+    document.getElementById('chatTitle').innerText = targetName;
+    document.getElementById('chatAvatar').innerHTML = getLeaderIcon(targetName);
+    document.getElementById('chatAvatar').style.background = 'linear-gradient(135deg,#0099ff,#a855f7)';
+  } else {
+    document.getElementById('chatTitle').innerText = 'المدير 🛡️';
+    document.getElementById('chatAvatar').innerHTML = '🛡️';
+    document.getElementById('chatAvatar').style.background = 'linear-gradient(135deg,#dc2626,#f59e0b)';
+  }
+
+  // تحميل الرسائل
+  const name = getCurrentUser();
+  const memberName = _isAdmin ? targetName : name;
+  const msgs = _getChatMsgs(memberName);
+
+  // تمييز كمقروءة
+  if(!_isAdmin){
+    msgs.forEach(m=>{ if(!m.isMine) m.read=true; });
+    _saveChatMsgs(memberName, msgs);
+    updateNotifBadge(0);
+  } else {
+    msgs.forEach(m=>{ if(!m.isMine) m.read=true; });
+    _saveChatMsgs(memberName, msgs);
+  }
+
+  renderChatBubbles(msgs, document.getElementById('messagesContent'));
+}
+
+/* ===== إغلاق نافذة المحادثة والرجوع للقائمة ===== */
+function closeChatScreen(){
+  document.getElementById('chatScreen').style.display='none';
+  _currentChatTarget = null;
+  if(_isAdmin) renderInboxList();
+  else hideModal('messagesModal');
+}
+
+/* ===== عرض فقاعات المحادثة ===== */
+function renderChatBubbles(msgs, div){
+  if(!msgs || msgs.length===0){
+    div.innerHTML = `<div style="text-align:center;margin:auto;color:var(--muted);padding:30px 20px;">
+      <div style="font-size:48px;margin-bottom:12px;">💬</div>
+      <div style="font-weight:700;margin-bottom:4px;">ابدأ المحادثة</div>
+      <div style="font-size:12px;opacity:0.6;">ستظهر هنا رسائلك الخاصة</div>
+    </div>`;
+    return;
+  }
+  div.innerHTML = msgs.map(m => renderBubble(m)).join('');
+  setTimeout(()=>{ div.scrollTop = div.scrollHeight; }, 80);
+}
+
+function renderBubble(m){
+  const isMine = m.isMine;
+  const ts = m.timestamp ? new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+  const senderName = isMine ? '' : `<div class="chat-sender-name">${m.from||'المدير'} ${_isAdmin?'👤':'🛡️'}</div>`;
+  let mediaHtml = '';
+  if(m.mediaType==='image' && m.mediaData){
+    mediaHtml = `<img class="chat-img" src="${m.mediaData}" alt="صورة" onclick="viewFullImage('${m.mediaData}')">`;
+  } else if(m.mediaType==='video' && m.mediaData){
+    mediaHtml = `<video class="chat-vid" controls src="${m.mediaData}"></video>`;
+  } else if((m.mediaType==='audio'||m.mediaType==='voice') && m.mediaData){
+    mediaHtml = `<audio class="chat-aud" controls src="${m.mediaData}"></audio>`;
+  }
+  const textHtml = m.message ? `<div>${m.message}</div>` : '';
+  const tick = isMine ? '<span style="color:#60b3ff;font-size:10px;">✓✓</span>' : '';
+  return `<div class="chat-bubble-wrap ${isMine?'me':'them'}">
+    ${senderName}
+    <div class="chat-bubble ${isMine?'me':'them'}">${textHtml}${mediaHtml}</div>
+    <div class="chat-meta">${ts} ${tick}</div>
+  </div>`;
+}
+
+/* ===== إرسال رسالة من حقل الكتابة ===== */
+async function sendChatMessage(){
+  const myName = getCurrentUser();
+  const txt = (document.getElementById('replyText')?.value||'').trim();
+  if(!txt && !_mediaToSend){ return; }
+
+  const ts = new Date().toISOString();
+  const id = 'msg_'+Date.now();
+
+  let memberName; // اسم العضو صاحب المحادثة
+  if(_isAdmin){
+    memberName = _currentChatTarget;
+    if(!memberName){ alert('اختر عضواً أولاً'); return; }
+  } else {
+    memberName = myName;
+  }
+
+  const msgObj = {
+    id,
+    from: _isAdmin ? 'المدير' : myName,
+    to: _isAdmin ? memberName : 'المدير',
+    message: txt,
+    timestamp: ts,
+    read: false,
+    isMine: true,
+    mediaType: _mediaToSend?.type||null,
+    mediaData: _mediaToSend?.data||null
+  };
+
+  // حفظ في مفتاح المحادثة الخاصة بهذا العضو
+  const msgs = _getChatMsgs(memberName);
+  msgs.push(msgObj);
+  _saveChatMsgs(memberName, msgs);
+
+  // إضافة فقاعة فوراً
+  const div = document.getElementById('messagesContent');
+  if(div.querySelector('[style*="margin:auto"]')) div.innerHTML='';
+  const el = document.createElement('div');
+  el.innerHTML = renderBubble(msgObj);
+  div.appendChild(el.firstElementChild);
+  div.scrollTop = div.scrollHeight;
+
+  document.getElementById('replyText').value='';
+  document.getElementById('replyText').style.height='40px';
+  _mediaToSend=null;
+  document.getElementById('attachMenu').style.display='none';
+
+  // تحديث badge للعضو
+  if(_isAdmin) renderInboxBadge();
+  else updateNotifBadge(0);
+}
+
+/* تحديث badge الجرس للمدير */
+function renderInboxBadge(){
+  let total=0;
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith('nld_chat_')){
+      const msgs=JSON.parse(localStorage.getItem(k)||'[]');
+      total+=msgs.filter(m=>!m.isMine&&!m.read).length;
+    }
+  }
+  updateNotifBadge(total);
+}
+
+/* ===== فتح/إغلاق قائمة المرفقات ===== */
+function toggleAttachMenu(){
+  const m = document.getElementById('attachMenu');
+  m.style.display = m.style.display==='none'?'block':'none';
+}
+
+/* ===== رفع وسائط المستخدم ===== */
+function handleMediaUpload(event, type){
+  const file = event.target.files[0];
+  if(!file) return;
+  document.getElementById('attachMenu').style.display='none';
+  const reader = new FileReader();
+  reader.onload = e => {
+    _mediaToSend = { type, data: e.target.result, name: file.name };
+    sendChatMessage();
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ===== تسجيل صوتي ===== */
+async function startVoiceRecord(){
+  document.getElementById('attachMenu').style.display='none';
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    _recordedChunks=[];
+    _mediaRecorder = new MediaRecorder(stream);
+    _mediaRecorder.ondataavailable = e=>{ if(e.data.size>0) _recordedChunks.push(e.data); };
+    _mediaRecorder.start();
+    _voiceSeconds=0;
+    document.getElementById('voiceRecordBar').style.display='flex';
+    _voiceTimerInt = setInterval(()=>{
+      _voiceSeconds++;
+      const m=Math.floor(_voiceSeconds/60), s=_voiceSeconds%60;
+      document.getElementById('voiceTimer').innerText=`${m}:${String(s).padStart(2,'0')}`;
+    },1000);
+  }catch(e){alert('لا يمكن الوصول إلى الميكروفون');}
+}
+
+function stopVoiceRecord(){
+  if(!_mediaRecorder) return;
+  _mediaRecorder.onstop = ()=>{
+    const blob = new Blob(_recordedChunks,{type:'audio/webm'});
+    const reader = new FileReader();
+    reader.onload = e=>{
+      _mediaToSend = {type:'voice', data:e.target.result};
+      sendChatMessage();
+    };
+    reader.readAsDataURL(blob);
+    _mediaRecorder.stream.getTracks().forEach(t=>t.stop());
+  };
+  _mediaRecorder.stop();
+  clearInterval(_voiceTimerInt);
+  document.getElementById('voiceRecordBar').style.display='none';
+}
+
+function cancelVoiceRecord(){
+  if(_mediaRecorder){ _mediaRecorder.stream.getTracks().forEach(t=>t.stop()); _mediaRecorder=null; }
+  clearInterval(_voiceTimerInt);
+  _recordedChunks=[];
+  document.getElementById('voiceRecordBar').style.display='none';
+}
+
+/* ===== عرض صورة كاملة ===== */
+function viewFullImage(src){
+  const ov = document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:50000;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+  ov.innerHTML=`<img src="${src}" style="max-width:95%;max-height:90vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.8);">`;
+  ov.onclick=()=>ov.remove();
+  document.body.appendChild(ov);
+}
+
+/* ===== تحديث badge الجرس ===== */
+function updateNotifBadge(count){
+  const el = document.getElementById('msgBadge');
+  if(!el) return;
+  if(count > 0){
+    el.style.display='flex';
+    el.innerText=count>9?'9+':String(count);
+  } else {
+    el.style.display='none';
+  }
+}
+
+/* ===== تحميل الرسائل عند تسجيل الدخول ===== */
+async function loadUserMessagesOnLogin(name){
+  if(_isAdmin){
+    renderInboxBadge();
+  } else {
+    applyBroadcastMessages(name);
+    const msgs = _getChatMsgs(name);
+    const unread = msgs.filter(m=>!m.isMine && !m.read).length;
+    if(unread > 0) updateNotifBadge(unread);
+  }
+}
+
+/* ===== رفع وسائط المدير (من لوحة الإدارة) ===== */
+function adminHandleMedia(event, type){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    _adminMediaToSend = {type, data:e.target.result, name:file.name};
+    const prev = document.getElementById('adminMediaPreview');
+    prev.style.display='block';
+    prev.innerHTML = `📎 ${file.name} <span onclick="_adminMediaToSend=null;this.parentElement.style.display='none'" style="cursor:pointer;color:#f87171;">✕</span>`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function adminLoadMembersSelect(){
+  const sel = document.getElementById('adminMsgTarget');
+  if(!sel) return;
+  const st = document.getElementById('adminMsgSendStatus');
+  st.className='admin-msg ok'; st.innerText='⏳ جاري تحميل الأعضاء…'; st.style.display='block';
+  try{
+    const [r1,r2] = await Promise.all([fetch(dataUrl).then(r=>r.text()), fetch(smartUrl).then(r=>r.text())]);
+    const norm=s=>s.replace(/"/g,'').replace(/\s+/g,' ').trim();
+    function csvParse(line){const res=[];let cur='';let q=false;for(let i=0;i<=line.length;i++){const ch=line[i];if(ch==='"'){q=!q;}else if((ch===','||ch===undefined)&&!q){res.push(cur.replace(/^"|"$/g,'').trim());cur='';}else{cur+=ch||'';}}return res;}
+    const seen = new Set(); const names = [];
+    [...r1.split('\n').slice(1),...r2.split('\n').slice(1)].forEach(row=>{
+      if(!row.trim()) return;
+      const c=csvParse(row); const n=norm(c[2]||'');
+      if(n && n!=='ممتاز' && !seen.has(n.toLowerCase())){ seen.add(n.toLowerCase()); names.push(n); }
+    });
+    sel.innerHTML = '<option value="all">📢 إرسال لجميع المنخرطين ('+names.length+')</option>';
+    names.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.innerText='👤 '+n; sel.appendChild(o); });
+    st.innerText='✅ تم تحميل '+names.length+' عضو';
+    setTimeout(()=>st.style.display='none',2000);
+  }catch(e){
+    st.className='admin-msg err'; st.innerText='❌ فشل تحميل الأعضاء'; st.style.display='block';
+  }
+}
+
+/* ===== إرسال رسالة من المدير (لوحة الإدارة) ===== */
+async function adminSendMessages(){
+  const target = document.getElementById('adminMsgTarget').value.trim();
+  const msgText = document.getElementById('adminMsgText').value.trim();
+  const st = document.getElementById('adminMsgSendStatus');
+  if(!msgText && !_adminMediaToSend){ st.className='admin-msg err'; st.innerText='⚠️ اكتب نص الرسالة أو أضف ملفاً'; st.style.display='block'; return; }
+
+  const ts = new Date().toISOString();
+  const id = 'msg_'+Date.now();
+  const baseMsg = {
+    id, message: msgText, from: 'المدير', timestamp: ts, read: false, isMine: false,
+    mediaType: _adminMediaToSend?.type||null, mediaData: _adminMediaToSend?.data||null
+  };
+
+  if(target === 'all'){
+    // إرسال لجميع الأعضاء المعروفين
+    const knownMembers = new Set();
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.startsWith('nld_chat_')) knownMembers.add(k.replace('nld_chat_','').replace(/_/g,' '));
+    }
+    knownMembers.forEach(mName=>{
+      const msgs = _getChatMsgs(mName);
+      msgs.push({...baseMsg, to: mName});
+      _saveChatMsgs(mName, msgs);
+    });
+    // حفظ كـ broadcast أيضاً لمن لم يدخل بعد
+    localStorage.setItem('nld_broadcast_'+id, JSON.stringify({...baseMsg, to:'all'}));
+  } else {
+    const msgs = _getChatMsgs(target);
+    msgs.push({...baseMsg, to: target});
+    _saveChatMsgs(target, msgs);
+  }
+
+  st.className='admin-msg ok';
+  st.innerText = target==='all' ? '✅ تم الإرسال لجميع الأعضاء' : '✅ تم الإرسال إلى: '+target;
+  st.style.display='block';
+  document.getElementById('adminMsgText').value='';
+  _adminMediaToSend=null;
+  const prev2=document.getElementById('adminMediaPreview');
+  if(prev2) prev2.style.display='none';
+  adminRenderSentLog();
+  renderInboxBadge();
+}
+
+/* ===== سجل الرسائل المرسلة ===== */
+function adminRenderSentLog(){
+  const div = document.getElementById('adminSentLog');
+  if(!div) return;
+  // جمع آخر الرسائل من كل المحادثات
+  const allSent = [];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith('nld_chat_')){
+      const mName = k.replace('nld_chat_','').replace(/_/g,' ');
+      const msgs = JSON.parse(localStorage.getItem(k)||'[]');
+      msgs.filter(m=>m.isMine===false&&m.from==='المدير').forEach(m=>allSent.push({...m, memberName:mName}));
+    }
+  }
+  allSent.sort((a,b)=>b.timestamp.localeCompare(a.timestamp));
+  if(allSent.length===0){ div.innerHTML='<p style="color:var(--muted);font-size:12px;text-align:center;padding:10px;">لا توجد رسائل مرسلة بعد</p>'; return; }
+  div.innerHTML = allSent.slice(0,20).map(m=>{
+    const ts = new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const mediaIcon = m.mediaType==='image'?'🖼️':m.mediaType==='video'?'🎬':(m.mediaType==='audio'||m.mediaType==='voice')?'🎙️':'';
+    return `<div class="chat-bubble-wrap me" style="max-width:100%;align-self:stretch;">
+      <div class="chat-bubble me" style="max-width:100%;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="color:#60b3ff">👤 ${m.memberName}</span><span style="font-size:9px;color:var(--muted);">${ts}</span></div>
+        ${mediaIcon?`<span style="font-size:10px;margin-left:4px;">${mediaIcon}</span>`:''}
+        <span style="font-size:12px;">${m.message||''}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ===== رسائل الأعضاء في لوحة المدير ===== */
+function adminRenderInbox(){
+  const div = document.getElementById('adminInboxLog');
+  if(!div) return;
+  const allMsgs = [];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith('nld_chat_')){
+      const mName=k.replace('nld_chat_','').replace(/_/g,' ');
+      const msgs=JSON.parse(localStorage.getItem(k)||'[]');
+      msgs.filter(m=>m.from!=='المدير').forEach(m=>allMsgs.push({...m, memberName:mName}));
+    }
+  }
+  allMsgs.sort((a,b)=>b.timestamp.localeCompare(a.timestamp));
+  if(allMsgs.length===0){ div.innerHTML='<p style="color:var(--muted);font-size:12px;text-align:center;padding:10px;">لا توجد رسائل من الأعضاء بعد</p>'; return; }
+  div.innerHTML = allMsgs.slice(0,20).map(m=>{
+    const ts = new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    let mediaHtml='';
+    if(m.mediaType==='image'&&m.mediaData) mediaHtml=`<img src="${m.mediaData}" style="max-width:120px;max-height:90px;border-radius:8px;display:block;margin-top:4px;cursor:pointer;" onclick="viewFullImage('${m.mediaData}')">`;
+    else if(m.mediaType==='video'&&m.mediaData) mediaHtml=`<video controls src="${m.mediaData}" style="max-width:140px;border-radius:8px;display:block;margin-top:4px;"></video>`;
+    else if((m.mediaType==='audio'||m.mediaType==='voice')&&m.mediaData) mediaHtml=`<audio controls src="${m.mediaData}" style="width:160px;margin-top:4px;"></audio>`;
+    return `<div class="chat-bubble-wrap them" style="max-width:100%;align-self:stretch;">
+      <div class="chat-sender-name">${m.from||m.memberName}</div>
+      <div class="chat-bubble them" style="max-width:100%;">
+        ${m.message?`<div>${m.message}</div>`:''}${mediaHtml}
+      </div>
+      <div class="chat-meta">${ts}</div>
+    </div>`;
+  }).join('');
+}
+
+/* تطبيق رسائل البث على العضو عند تسجيل الدخول */
+function applyBroadcastMessages(memberName){
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith('nld_broadcast_')){
+      const bMsg=JSON.parse(localStorage.getItem(k)||'null');
+      if(!bMsg) continue;
+      const msgs=_getChatMsgs(memberName);
+      const exists=msgs.find(m=>m.id===bMsg.id);
+      if(!exists){
+        msgs.push({...bMsg, to:memberName});
+        _saveChatMsgs(memberName, msgs);
+      }
+    }
+  }
+}
+
+/* =======================================================================
+   🔔 نظام التنبيهات (الجرس) — تنبيهات عامة من المدير
+   ======================================================================= */
+
+/* إرسال تنبيه من المدير (يُخزّن ويظهر في جرس كل الأعضاء) */
+function adminSendNotif(){
+  const txt = document.getElementById('adminNotifMsg')?.value?.trim();
+  const st = document.getElementById('adminNotifStatus');
+  if(!txt){ st.className='admin-msg err'; st.innerText='⚠️ اكتب نص التنبيه'; st.style.display='block'; return; }
+  const notif = { id:'notif_'+Date.now(), text: txt, ts: new Date().toISOString(), read: false };
+  const notifs = JSON.parse(localStorage.getItem('nld_notifs')||'[]');
+  notifs.unshift(notif);
+  localStorage.setItem('nld_notifs', JSON.stringify(notifs.slice(0,50)));
+  st.className='admin-msg ok'; st.innerText='✅ تم إرسال التنبيه'; st.style.display='block';
+  document.getElementById('adminNotifMsg').value='';
+  setTimeout(()=>st.style.display='none', 2000);
+}
+
+/* فتح قائمة التنبيهات */
+function openNotifications(){
+  showModal('notifsModal');
+  const notifs = JSON.parse(localStorage.getItem('nld_notifs')||'[]');
+  const div = document.getElementById('notifsList');
+  if(notifs.length===0){
+    div.innerHTML=`<div style="text-align:center;padding:30px;color:var(--muted);"><div style="font-size:40px;margin-bottom:10px;">🔔</div><div style="font-weight:700;">لا توجد تنبيهات حالياً</div></div>`;
+    return;
+  }
+  div.innerHTML = notifs.map(n=>{
+    const ts = new Date(n.ts).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `<div style="background:${n.read?'var(--surface2)':'rgba(245,197,24,0.08)'};border:1px solid ${n.read?'var(--border)':'rgba(245,197,24,0.25)'};border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;">
+      <span style="font-size:20px;flex-shrink:0;">${n.read?'🔔':'🔔'}</span>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.5;">${n.text}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;">${ts}</div>
+      </div>
+      ${!n.read?'<span style="width:8px;height:8px;border-radius:50%;background:#e52d27;flex-shrink:0;margin-top:4px;"></span>':''}
+    </div>`;
+  }).join('');
+  // تمييز كلها كمقروءة
+  notifs.forEach(n=>n.read=true);
+  localStorage.setItem('nld_notifs', JSON.stringify(notifs));
+}
+
+/* مسح badge الجرس */
+function clearNotifBadge(){
+  const el = document.getElementById('notifBadge');
+  if(el) el.style.display='none';
+}
+
+/* تحديث badge الجرس عند تسجيل الدخول */
+function refreshNotifBadge(){
+  const notifs = JSON.parse(localStorage.getItem('nld_notifs')||'[]');
+  const unread = notifs.filter(n=>!n.read).length;
+  const el = document.getElementById('notifBadge');
+  if(!el) return;
+  if(unread>0){ el.style.display='flex'; el.innerText=unread>9?'9+':String(unread); }
+  else el.style.display='none';
+}
+
+/* =======================================================================
+   📊 تسجيل ومتابعة نشاط الأعضاء
+   ======================================================================= */
+
+let _sessionStart = null;
+
+/* تسجيل دخول العضو للتطبيق */
+function trackVisitStart(memberName){
+  _sessionStart = Date.now();
+  const enterAt = new Date().toISOString();
+  const visit = {
+    name: memberName,
+    enterAt: enterAt,
+    duration: null
+  };
+  const visits = JSON.parse(localStorage.getItem('nld_visits')||'[]');
+  visits.unshift(visit);
+  localStorage.setItem('nld_visits', JSON.stringify(visits.slice(0,200)));
+  localStorage.setItem('nld_last_visit_'+memberName.replace(/\s+/g,'_'), enterAt);
+  // إرسال للـ Apps Script إن كان مُعداً
+  if(activityApiUrl && !activityApiUrl.includes('YOUR_')) {
+    fetch(activityApiUrl, {
+      method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({action:'visit', name:memberName, enterAt, duration:null})
+    }).catch(()=>{});
+  }
+}
+
+/* تسجيل خروج العضو (تحديث المدة) */
+function trackVisitEnd(memberName){
+  if(!_sessionStart) return;
+  const durationMs = Date.now() - _sessionStart;
+  const durationMin = Math.round(durationMs/60000);
+  const visits = JSON.parse(localStorage.getItem('nld_visits')||'[]');
+  // تحديث آخر زيارة لهذا العضو بدون مدة
+  const idx = visits.findIndex(v=>v.name===memberName && v.duration===null);
+  if(idx>-1){ visits[idx].duration = durationMin; localStorage.setItem('nld_visits', JSON.stringify(visits)); }
+  _sessionStart = null;
+}
+
+/* عرض سجل النشاط في لوحة المدير */
+async function adminRenderActivity(){
+  const div = document.getElementById('adminActivityLog');
+  if(!div) return;
+  div.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);"><div class="spinner"></div><div style="font-size:12px;margin-top:8px;">جاري التحميل…</div></div>';
+
+  let visits = [];
+
+  // محاولة جلب من Apps Script أولاً (بيانات من جميع الأجهزة)
+  if(activityApiUrl && !activityApiUrl.includes('YOUR_')){
+    try{
+      const res = await fetch(activityApiUrl, {
+        method:'POST', headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({action:'getVisits'})
+      });
+      const data = await res.json();
+      if(Array.isArray(data) && data.length > 0){
+        visits = data.map(v=>({name:v.name, enterAt:v.enterAt, duration:v.duration!==null&&v.duration!=='…'?parseInt(v.duration)||null:null}));
+      }
+    }catch(e){}
+  }
+
+  // fallback: localStorage (نفس الجهاز فقط)
+  if(visits.length === 0){
+    visits = JSON.parse(localStorage.getItem('nld_visits')||'[]');
+  }
+
+  if(visits.length===0){
+    div.innerHTML='<p style="color:var(--muted);font-size:12px;text-align:center;padding:10px;">لا توجد زيارات مسجّلة بعد</p>';
+    return;
+  }
+  div.innerHTML = visits.slice(0,40).map(v=>{
+    const dt = new Date(v.enterAt);
+    const dateStr = dt.toLocaleDateString('ar-DZ',{weekday:'short',month:'2-digit',day:'2-digit'});
+    const timeStr = dt.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+    const dur = v.duration!==null && v.duration!==undefined && v.duration!=='…'
+      ? (parseInt(v.duration) < 1 ? 'أقل من دقيقة' : parseInt(v.duration)+' دقيقة')
+      : '…';
+    const icon = getLeaderIcon(v.name||'؟');
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:800;color:var(--text);">${v.name}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px;">📅 ${dateStr} ⏰ ${timeStr}</div>
+      </div>
+      <div style="text-align:left;flex-shrink:0;">
+        <div style="font-size:10px;color:var(--accent);font-weight:700;background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.2);border-radius:8px;padding:2px 7px;">⏱ ${dur}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ===== دالة الخروج ===== */
+function doLogout(){
+  // تسجيل نهاية الجلسة
+  const name = getCurrentUser();
+  if(name && !_isAdmin) trackVisitEnd(name);
+  localStorage.removeItem('sklab_user_name');
+  // إزالة لوحة المدير السريعة إن وجدت
+  const aqc=document.getElementById('adminQuickCard');
+  if(aqc) aqc.remove();
+  document.getElementById('app').style.display='none';
+  document.getElementById('login').style.display='block';
+  document.getElementById('adminToggleBtn').style.display='none';
+  const nb2=document.getElementById('adminNavBtn'); if(nb2) nb2.style.display='none';
+  document.getElementById('authFields').innerHTML=`
+    <div class="input-wrap">
+      <span class="input-icon">📧</span>
+      <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
+    </div>
+    <div class="input-wrap">
+      <span class="input-icon">🔒</span>
+      <input type="password" id="loginPassword" placeholder="كلمة المرور">
+    </div>`;
+  document.getElementById('loginSubtitle').innerText='مختبر الشباب للذكاء والتعلم والإبداع';
+  document.getElementById('switchAcc').style.display='none';
+  _isAdmin=false;
+}
 </script>
 </body>
 </html>
