@@ -13,6 +13,100 @@
   --muted:#8b949e;--accent:#00e5a0;--purple:#a855f7;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif;}
+
+/* ===== منتقي اللغة ===== */
+#langSelectorOverlay{
+  position:fixed;inset:0;z-index:99999;
+  background:rgba(5,10,14,0.97);
+  display:flex;align-items:center;justify-content:center;
+  animation:fadeIn .4s ease both;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.lang-box{
+  background:rgba(13,17,23,0.95);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:28px;
+  padding:32px 28px;
+  width:90%;max-width:360px;
+  text-align:center;
+  box-shadow:0 30px 80px rgba(0,0,0,0.7);
+  animation:fadeUp .45s ease both;
+}
+.lang-logo{font-size:38px;margin-bottom:10px;}
+.lang-title{font-size:20px;font-weight:900;color:#fff;margin-bottom:4px;letter-spacing:.5px;}
+.lang-sub{font-size:12px;color:var(--muted);margin-bottom:24px;font-weight:500;}
+.lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.lang-btn{
+  background:var(--surface2);
+  border:1.5px solid var(--border);
+  border-radius:16px;
+  padding:14px 10px;
+  cursor:pointer;
+  transition:all .2s;
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+}
+.lang-btn:hover{
+  border-color:rgba(0,229,160,0.5);
+  background:rgba(0,229,160,0.07);
+  transform:translateY(-3px);
+  box-shadow:0 10px 24px rgba(0,0,0,0.4);
+}
+.lang-btn:active{transform:translateY(0);}
+.lang-flag{font-size:28px;line-height:1;}
+.lang-name{font-size:13px;font-weight:800;color:var(--text);}
+.lang-native{font-size:10px;color:var(--muted);font-weight:600;}
+
+/* أزرار اللغة في صفحة الدخول */
+.login-lang-btn{
+  background:var(--surface2);
+  border:1.5px solid var(--border);
+  border-radius:12px;
+  padding:8px 4px;
+  cursor:pointer;
+  transition:all .2s;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.login-lang-btn:hover{
+  border-color:rgba(0,229,160,0.5);
+  background:rgba(0,229,160,0.07);
+  transform:translateY(-2px);
+}
+.login-lang-btn.active-lang{
+  border-color:var(--accent);
+  background:rgba(0,229,160,0.12);
+  box-shadow:0 0 12px rgba(0,229,160,0.2);
+}
+
+/* زر اللغة في شريط التطبيق */
+.lang-switch-btn{
+  width:42px;height:42px;border-radius:12px;
+  background:var(--surface);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;cursor:pointer;transition:.2s;
+  position:relative;
+}
+.lang-switch-btn:hover{background:var(--surface2);}
+
+/* نافذة تغيير اللغة السريعة */
+.lang-quick-panel{
+  display:none;position:fixed;top:70px;left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:18px;padding:14px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.6);
+  z-index:9000;width:240px;
+  animation:fadeUp .2s ease;
+}
+.lang-quick-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:12px;cursor:pointer;transition:.15s;
+}
+.lang-quick-item:hover{background:rgba(255,255,255,0.05);}
+.lang-quick-item.active{background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.25);}
+.lang-quick-item .q-flag{font-size:22px;}
+.lang-quick-item .q-info{flex:1;}
+.lang-quick-item .q-name{font-size:13px;font-weight:800;color:var(--text);}
+.lang-quick-item .q-native{font-size:10px;color:var(--muted);}
+.lang-quick-item .q-check{color:var(--accent);font-size:15px;font-weight:900;}
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
 
@@ -69,6 +163,46 @@ button.auth-btn:active{transform:translateY(0);}
 @keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
 .user-info-box{display:flex;align-items:center;gap:12px;}
 .avatar{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--green),#00c853);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 6px 18px rgba(15,155,15,0.35);border:1px solid rgba(255,255,255,0.1);position:relative;overflow:visible;cursor:pointer;}
+
+/* ===== نقطة الحضر (Online Dot) ===== */
+.online-dot{position:absolute;bottom:-3px;left:-3px;width:13px;height:13px;border-radius:50%;background:#22c55e;border:2.5px solid var(--dark);z-index:10;box-shadow:0 0 8px rgba(34,197,94,0.8);animation:onlinePulse 2.5s ease-in-out infinite;}
+@keyframes onlinePulse{0%,100%{box-shadow:0 0 4px rgba(34,197,94,0.7),0 0 0 0 rgba(34,197,94,0.4);}50%{box-shadow:0 0 12px rgba(34,197,94,1),0 0 0 6px rgba(34,197,94,0);}}
+
+/* ===== شريط المتصلين الآن ===== */
+#onlineBar{display:none;align-items:center;gap:8px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:14px;padding:8px 13px;margin-bottom:14px;animation:fadeUp .4s ease both;cursor:pointer;transition:background .2s;}
+#onlineBar:hover{background:rgba(34,197,94,0.14);}
+.online-bar-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.9);animation:onlinePulse 2s infinite;flex-shrink:0;}
+.online-bar-text{font-size:12px;font-weight:700;color:#4ade80;flex:1;}
+.online-bar-count{background:rgba(34,197,94,0.18);border:1px solid rgba(34,197,94,0.35);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:900;color:#22c55e;}
+
+/* ===== نافذة المتصلين ===== */
+.online-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);backdrop-filter:blur(14px);z-index:5000;align-items:flex-end;justify-content:center;}
+.online-modal-box{background:var(--surface);width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:22px 18px 32px;border:1px solid rgba(34,197,94,0.2);border-bottom:none;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;box-shadow:0 -20px 60px rgba(0,0,0,0.5);}
+.online-modal-handle{width:38px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 16px;}
+.online-member-row{display:flex;align-items:center;gap:11px;padding:10px 12px;background:var(--surface2);border-radius:13px;margin-bottom:7px;border:1px solid rgba(34,197,94,0.12);}
+.online-member-avatar{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--green),#00c853);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:white;flex-shrink:0;position:relative;}
+.online-member-dot{position:absolute;bottom:-2px;left:-2px;width:11px;height:11px;border-radius:50%;background:#22c55e;border:2px solid var(--surface2);box-shadow:0 0 6px rgba(34,197,94,0.8);animation:onlinePulse 2s infinite;}
+
+/* شريط النشطين داخل الرسائل */
+#msgActiveList::-webkit-scrollbar{display:none;}
+.msg-active-item{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;width:56px;}
+.msg-active-avatar{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--green),#00c853);display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;border:2.5px solid rgba(34,197,94,0.5);overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.3);transition:transform .2s;}
+.msg-active-avatar:hover{transform:scale(1.07);}
+.msg-active-avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit;}
+.msg-active-green-dot{position:absolute;bottom:1px;right:1px;width:13px;height:13px;border-radius:50%;background:#22c55e;border:2.5px solid var(--dark);box-shadow:0 0 8px rgba(34,197,94,0.9);animation:onlinePulse 2.5s ease-in-out infinite;}
+.msg-active-name{font-size:10px;font-weight:700;color:var(--muted);text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2;}
+.online-member-name{flex:1;font-size:13px;font-weight:800;color:var(--text);}
+.online-member-time{font-size:10px;color:#4ade80;font-weight:600;}
+
+/* ===== نافذة تأكيد الحظر ===== */
+.block-confirm-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(14px);z-index:9999;align-items:center;justify-content:center;}
+.block-confirm-box{background:var(--surface);border:1px solid rgba(229,45,39,0.35);border-radius:24px;padding:26px 22px;max-width:320px;width:88%;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,0.6);animation:fadeUp .25s ease;}
+.block-confirm-box h3{font-size:17px;font-weight:900;color:#f87171;margin-bottom:8px;}
+.block-confirm-box p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;}
+.block-btn-row{display:flex;gap:10px;}
+.block-btn-cancel{flex:1;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:13px;color:var(--muted);font-family:'Tajawal',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+.block-btn-confirm{flex:1;padding:12px;background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 6px 18px rgba(229,45,39,0.35);}
+.blocked-notice{background:rgba(229,45,39,0.1);border:1px solid rgba(229,45,39,0.3);border-radius:12px;padding:12px 14px;font-size:13px;color:#f87171;font-weight:700;text-align:center;margin:10px 14px;}
 .user-name{font-size:17px;font-weight:800;color:var(--text);}
 .user-role{font-size:11px;color:var(--accent);font-weight:600;}
 .notif-btn{width:42px;height:42px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:.2s;}
@@ -357,6 +491,62 @@ button.auth-btn:active{transform:translateY(0);}
 </head>
 <body>
 
+<!-- ===== منتقي اللغة الأولي ===== -->
+<div id="langSelectorOverlay">
+  <div class="lang-box">
+    <div class="lang-logo">🌐</div>
+    <div class="lang-title">Next Leaders DZ</div>
+    <div class="lang-sub">Choose your language · اختر لغتك · Elige tu idioma · 选择语言</div>
+    <div class="lang-grid">
+      <div class="lang-btn" onclick="setAppLang('ar')">
+        <div class="lang-flag">🇩🇿</div>
+        <div class="lang-name">العربية</div>
+        <div class="lang-native">Arabic</div>
+      </div>
+      <div class="lang-btn" onclick="setAppLang('en')">
+        <div class="lang-flag">🇬🇧</div>
+        <div class="lang-name">English</div>
+        <div class="lang-native">الإنجليزية</div>
+      </div>
+      <div class="lang-btn" onclick="setAppLang('es')">
+        <div class="lang-flag">🇪🇸</div>
+        <div class="lang-name">Español</div>
+        <div class="lang-native">الإسبانية</div>
+      </div>
+      <div class="lang-btn" onclick="setAppLang('zh')">
+        <div class="lang-flag">🇨🇳</div>
+        <div class="lang-name">中文</div>
+        <div class="lang-native">الصينية</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== نافذة تغيير اللغة السريعة ===== -->
+<div class="lang-quick-panel" id="langQuickPanel">
+  <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;padding:0 4px;letter-spacing:1px;text-transform:uppercase;" id="langPanelTitle">اللغة</div>
+  <div class="lang-quick-item" id="li-ar" onclick="setAppLang('ar',true)">
+    <span class="q-flag">🇩🇿</span>
+    <div class="q-info"><div class="q-name">العربية</div><div class="q-native">Arabic</div></div>
+    <span class="q-check" style="display:none;">✓</span>
+  </div>
+  <div class="lang-quick-item" id="li-en" onclick="setAppLang('en',true)">
+    <span class="q-flag">🇬🇧</span>
+    <div class="q-info"><div class="q-name">English</div><div class="q-native">الإنجليزية</div></div>
+    <span class="q-check" style="display:none;">✓</span>
+  </div>
+  <div class="lang-quick-item" id="li-es" onclick="setAppLang('es',true)">
+    <span class="q-flag">🇪🇸</span>
+    <div class="q-info"><div class="q-name">Español</div><div class="q-native">الإسبانية</div></div>
+    <span class="q-check" style="display:none;">✓</span>
+  </div>
+  <div class="lang-quick-item" id="li-zh" onclick="setAppLang('zh',true)">
+    <span class="q-flag">🇨🇳</span>
+    <div class="q-info"><div class="q-name">中文</div><div class="q-native">الصينية</div></div>
+    <span class="q-check" style="display:none;">✓</span>
+  </div>
+</div>
+
 <!-- ===== خلفية حقيقية ===== -->
 <div id="hero-bg"></div>
 <div id="hero-overlay"></div>
@@ -378,14 +568,34 @@ button.auth-btn:active{transform:translateY(0);}
   </div>
   <div class="login-card">
     <p class="login-subtitle" id="loginSubtitle">مختبر الشباب للذكاء والتعلم والإبداع</p>
+
+    <!-- منتقي اللغة داخل صفحة الدخول -->
+    <div id="loginLangSelector" style="margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-align:center;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;" id="loginLangLabel">اللغة · Language</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;">
+        <div class="login-lang-btn" id="llb-ar" onclick="setLoginLang('ar')" title="العربية">
+          <span style="font-size:20px;">🇩🇿</span>
+          <span style="font-size:10px;font-weight:800;color:var(--text);">AR</span>
+        </div>
+        <div class="login-lang-btn" id="llb-en" onclick="setLoginLang('en')" title="English">
+          <span style="font-size:20px;">🇬🇧</span>
+          <span style="font-size:10px;font-weight:800;color:var(--text);">EN</span>
+        </div>
+        <div class="login-lang-btn" id="llb-es" onclick="setLoginLang('es')" title="Español">
+          <span style="font-size:20px;">🇪🇸</span>
+          <span style="font-size:10px;font-weight:800;color:var(--text);">ES</span>
+        </div>
+        <div class="login-lang-btn" id="llb-zh" onclick="setLoginLang('zh')" title="中文">
+          <span style="font-size:20px;">🇨🇳</span>
+          <span style="font-size:10px;font-weight:800;color:var(--text);">ZH</span>
+        </div>
+      </div>
+    </div>
+
     <div id="authFields">
       <div class="input-wrap">
         <span class="input-icon">📧</span>
-        <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
-      </div>
-      <div class="input-wrap">
-        <span class="input-icon">🔒</span>
-        <input type="password" id="loginPassword" placeholder="كلمة المرور">
+        <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" onkeydown="if(event.key==='Enter')handleAuthAction();">
       </div>
     </div>
     <button onclick="handleAuthAction()" class="auth-btn">دخول آمن →</button>
@@ -401,6 +611,7 @@ button.auth-btn:active{transform:translateY(0);}
         <!-- الأفاتار يعرض صورة أو رمز قيادة -->
         <div class="avatar" id="userInitial" onclick="document.getElementById('profilePhotoInput').click()" title="تغيير صورتك الشخصية" style="overflow:hidden;">👑
           <div class="avatar-upload-btn">📷</div>
+          <div class="online-dot" id="onlineDot" style="display:none;"></div>
         </div>
         <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;" onchange="handleProfilePhotoUpload(event)">
         <div>
@@ -409,6 +620,8 @@ button.auth-btn:active{transform:translateY(0);}
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
+        <!-- زر اللغة -->
+        <div class="lang-switch-btn" id="langSwitchBtn" onclick="toggleLangPanel()" title="Language / اللغة">🌐</div>
         <!-- جرس التنبيهات من المدير -->
         <div class="notif-btn" id="notifBell" onclick="openNotifications()" title="التنبيهات" style="position:relative;background:linear-gradient(135deg,rgba(255,160,0,0.15),rgba(255,80,0,0.15));border-color:rgba(255,160,0,0.3);font-size:20px;">🔔<span id="notifBadge" style="display:none;position:absolute;top:-5px;left:-5px;min-width:18px;height:18px;border-radius:9px;background:#e52d27;border:2px solid var(--dark);font-size:10px;font-weight:900;color:white;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;"></span></div>
         <!-- زر الإدارة في الأعلى - للأدمن فقط -->
@@ -432,6 +645,13 @@ button.auth-btn:active{transform:translateY(0);}
         <div class="neo-progress"><div class="neo-bar" id="mainBar"></div></div>
         <span class="progress-label" id="progressEnd">3000</span>
       </div>
+    </div>
+
+    <!-- شريط المتصلين الآن -->
+    <div id="onlineBar" onclick="openOnlineModal()">
+      <div class="online-bar-dot"></div>
+      <span class="online-bar-text">🟢 متصل الآن</span>
+      <span class="online-bar-count" id="onlineCountBadge">1</span>
     </div>
 
     <div class="section-header">
@@ -524,6 +744,13 @@ button.auth-btn:active{transform:translateY(0);}
       <div id="newChatBtn" onclick="showNewChatScreen()" title="محادثة جديدة" style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,rgba(0,153,255,0.2),rgba(168,85,247,0.2));border:1px solid rgba(0,153,255,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;font-weight:900;color:#60b3ff;line-height:1;">+</div>
       <span id="totalUnreadBadge" style="display:none;background:linear-gradient(135deg,#0099ff,#a855f7);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800;color:white;"></span>
     </div>
+    <!-- ===== شريط الأعضاء النشطين (مثل ماسنجر) ===== -->
+    <div id="msgActiveBar" style="flex-shrink:0;border-bottom:1px solid var(--border);background:rgba(13,17,23,0.98);padding:10px 14px 10px;display:none;">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;">نشطون الآن</div>
+      <div id="msgActiveList" style="display:flex;gap:14px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;">
+      </div>
+    </div>
+
     <!-- قائمة المحادثات -->
     <div id="inboxList" style="flex:1;overflow-y:auto;padding:0;display:flex;flex-direction:column;gap:0;">
       <div style="text-align:center;margin:auto;color:var(--muted);padding:40px 20px;">
@@ -559,7 +786,22 @@ button.auth-btn:active{transform:translateY(0);}
         <div style="font-size:15px;font-weight:800;color:var(--text);" id="chatTitle">…</div>
         <div style="font-size:11px;color:var(--accent);">• متصل الآن</div>
       </div>
+      <!-- زر الحظر -->
+      <div id="blockBtn" onclick="showBlockConfirm()" title="حظر" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(229,45,39,0.12);border:1px solid rgba(229,45,39,0.3);cursor:pointer;font-size:17px;flex-shrink:0;transition:.2s;" onmouseover="this.style.background='rgba(229,45,39,0.22)'" onmouseout="this.style.background='rgba(229,45,39,0.12)'">🚫</div>
     </div>
+
+<!-- نافذة تأكيد الحظر -->
+<div class="block-confirm-modal" id="blockConfirmModal">
+  <div class="block-confirm-box">
+    <div style="font-size:44px;margin-bottom:10px;">🚫</div>
+    <h3>حظر هذا العضو؟</h3>
+    <p id="blockConfirmText">هل تريد حظر هذا العضو؟ لن يتمكن من إرسال رسائل إليك ولن تصله رسائلك.</p>
+    <div class="block-btn-row">
+      <button class="block-btn-cancel" onclick="hideBlockConfirm()">إلغاء</button>
+      <button class="block-btn-confirm" onclick="confirmBlock()">حظر ✓</button>
+    </div>
+  </div>
+</div>
 
     <!-- منطقة الرسائل -->
     <div id="messagesContent" style="flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:8px;background:var(--dark);"></div>
@@ -568,7 +810,7 @@ button.auth-btn:active{transform:translateY(0);}
     <div id="chatInputArea" style="padding:10px 12px;background:rgba(13,17,23,0.98);border-top:1px solid var(--border);display:flex;align-items:flex-end;gap:8px;flex-shrink:0;">
       <div style="position:relative;flex-shrink:0;">
         <div onclick="toggleAttachMenu()" id="attachBtn" style="width:40px;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:.2s;" title="إرفاق">📎</div>
-        <div id="attachMenu" style="display:none;position:absolute;bottom:48px;right:0;background:rgba(13,17,23,0.97);border:1px solid var(--border);border-radius:16px;padding:8px;box-shadow:0 -10px 30px rgba(0,0,0,0.5);z-index:100;white-space:nowrap;">
+        <div id="attachMenu" style="display:none;position:fixed;bottom:70px;background:rgba(13,17,23,0.97);border:1px solid var(--border);border-radius:16px;padding:8px;box-shadow:0 -10px 30px rgba(0,0,0,0.5);z-index:10000;white-space:nowrap;">
           <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
             <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:16px;">🖼️</span>صورة
             <input type="file" accept="image/*" style="display:none;" onchange="handleMediaUpload(event,'image')">
@@ -784,6 +1026,20 @@ button.auth-btn:active{transform:translateY(0);}
   </div>
 </div>
 
+<!-- نافذة المتصلين الآن -->
+<div class="online-modal" id="onlineModal">
+  <div class="online-modal-box">
+    <div class="online-modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:9px;justify-content:center;margin-bottom:16px;">
+      <div class="online-bar-dot" style="width:10px;height:10px;"></div>
+      <div style="font-size:17px;font-weight:900;color:#4ade80;">المتصلون الآن</div>
+      <span id="onlineModalCount" style="background:rgba(34,197,94,0.18);border:1px solid rgba(34,197,94,0.35);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:900;color:#22c55e;"></span>
+    </div>
+    <div id="onlineMembersList" style="max-height:340px;overflow-y:auto;"></div>
+    <button class="modal-close" onclick="closeOnlineModal()" style="margin-top:14px;">إغلاق</button>
+  </div>
+</div>
+
 <script>
 /* ▼ جدول البيانات الرئيسي - المصدر الوحيد للنقاط والمنخرطين ▼ */
 const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
@@ -918,18 +1174,24 @@ function openMembersIfAdmin(){
 }
 
 /* ===== بناء الشبكة ===== */
+let _lastIsReg = true;
 function buildGrid(isReg){
+  if(isReg !== undefined) _lastIsReg = isReg;
+  else isReg = _lastIsReg;
   const grid=document.getElementById('mainGrid');
+  const lang = getCurrentLang() || 'ar';
+  const labels = (langData[lang] && langData[lang].gridItems) ? langData[lang].gridItems :
+    ['رصيدك','جدول الترتيب','المنخرطون','المحادثات','انظم إلينا','المعرض','اجمع النقاط','النشاطات','فيسبوك'];
   const items=[
-    ['💰','رصيدك',      'bg-1',"showModal('digitalCard')", true ],
-    ['🏆','جدول الترتيب','bg-2',"showModal('rankingCard')",  true ],
-    ['👥','المنخرطون',  'bg-3',"showModal('membersCard')",  true],
-    ['💬','المحادثات',      'bg-4',"openMessages()", true],
-    ['🌟','انظم إلينا', 'bg-5',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform')", true],
-    ['🖼️','المعرض',    'bg-6',"window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3')", false],
-    ['🎯','اجمع النقاط','bg-7',"showModal('quizCard')",    false],
-    ['🏅','النشاطات',    'bg-8',"showModal('activitiesCard')", false],
-    ['📱','فيسبوك',     'bg-9',"window.location.href='https://www.facebook.com/share/19UtXj8kRV/'", true],
+    ['💰', labels[0], 'bg-1',"showModal('digitalCard')", true ],
+    ['🏆', labels[1], 'bg-2',"showModal('rankingCard')",  true ],
+    ['👥', labels[2], 'bg-3',"showModal('membersCard')",  true],
+    ['💬', labels[3], 'bg-4',"openMessages()", true],
+    ['🌟', labels[4], 'bg-5',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform')", true],
+    ['🖼️',labels[5], 'bg-6',"window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3')", false],
+    ['🎯', labels[6], 'bg-7',"showModal('quizCard')",    false],
+    ['🏅', labels[7], 'bg-8',"showModal('activitiesCard')", false],
+    ['📱', labels[8], 'bg-9',"window.location.href='https://www.facebook.com/share/19UtXj8kRV/'", true],
   ];
   grid.innerHTML=items.map(([icon,label,bg,action,open])=>{
     const can=open||isReg;
@@ -1342,6 +1604,8 @@ function renderApp(name,pts,isReg, externalEarned){
   if(!_isAdmin) trackVisitStart(name);
   // تحديث badge الجرس
   setTimeout(()=>refreshNotifBadge(), 700);
+  // إظهار النقطة الخضراء
+  setTimeout(()=>showOnlineDot(), 200);
 }
 
 /* ===== المنخرطون ===== */
@@ -2198,6 +2462,7 @@ function openMessages(){
   // المدير: إخفاء زر محادثة جديدة (يستخدم لوحة المراقبة)
   const nb = document.getElementById('newChatBtn');
   if(nb) nb.style.display = _isAdmin ? 'none' : 'flex';
+  renderMsgActiveBar();
   renderInboxList();
 }
 
@@ -2333,13 +2598,17 @@ function renderInboxList(){
 
     myConvs.sort((a,b)=>(b.last?.timestamp||'').localeCompare(a.last?.timestamp||''));
 
-    let totalUnread = myConvs.reduce((s,c)=>s+c.unread,0);
+    // إخفاء المحادثات مع المحظورين
+    const myBlocked = getBlockedList(myName);
+    const myConvsFiltered = myConvs.filter(c=>!myBlocked.includes(c.other));
+
+    let totalUnread = myConvsFiltered.reduce((s,c)=>s+c.unread,0);
     if(totalUnread > 0){
       const tb = document.getElementById('totalUnreadBadge');
       if(tb){ tb.style.display='flex'; tb.innerText=totalUnread+' جديد'; }
     }
 
-    if(myConvs.length === 0){
+    if(myConvsFiltered.length === 0){
       div.innerHTML=`<div style="text-align:center;margin:40px auto;color:var(--muted);padding:20px;">
         <div style="font-size:48px;margin-bottom:12px;">💬</div>
         <div style="font-weight:700;margin-bottom:8px;">لا توجد محادثات بعد</div>
@@ -2349,7 +2618,7 @@ function renderInboxList(){
       return;
     }
 
-    div.innerHTML = myConvs.map(({other, last, unread})=>{
+    div.innerHTML = myConvsFiltered.map(({other, last, unread})=>{
       const icon = getLeaderIcon(other);
       const lastText = last ? (last.message||(last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت')) : '';
       const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
@@ -2453,6 +2722,13 @@ function openAdminChat(targetName, readOnly){
   msgs.forEach(m=>{ if(m.to==='المدير' && !m.read){ m.read=true; changed=true; } });
   if(changed) _saveP2PMsgs('المدير', targetName, msgs);
 
+  // تحديث زر الحظر
+  const blockBtnEl = document.getElementById('blockBtn');
+  const blockedNoticeEl = document.getElementById('blockedNotice');
+  if(blockedNoticeEl) blockedNoticeEl.remove();
+  if(blockBtnEl){ blockBtnEl.style.display='flex'; _updateBlockBtnState('المدير', targetName); }
+  if(isBlocked('المدير', targetName)) _applyBlockUI('المدير', targetName);
+
   renderChatBubbles(msgs, document.getElementById('messagesContent'), 'المدير', false);
 }
 
@@ -2500,6 +2776,22 @@ function openP2PChat(targetName, readOnly){
     renderTotalUnreadBadge(myName);
   }
 
+  // تحديث زر الحظر وإظهار واجهة الحظر إن كان محظوراً
+  const blockBtnEl = document.getElementById('blockBtn');
+  const blockedNoticeEl = document.getElementById('blockedNotice');
+  if(blockedNoticeEl) blockedNoticeEl.remove();
+  if(readOnly){
+    if(blockBtnEl) blockBtnEl.style.display='none';
+  } else {
+    if(blockBtnEl) blockBtnEl.style.display='flex';
+    _updateBlockBtnState(myName, targetName);
+    if(isBlocked(myName, targetName)) _applyBlockUI(myName, targetName);
+    else {
+      const ia = document.getElementById('chatInputArea');
+      if(ia) ia.style.display='flex';
+    }
+  }
+
   renderChatBubbles(msgs, document.getElementById('messagesContent'), myName, readOnly);
 }
 
@@ -2520,6 +2812,12 @@ function adminSpyChat(memberA, memberB, convKey){
 
   const inputArea = document.getElementById('chatInputArea');
   if(inputArea) inputArea.style.display='none';
+
+  // إخفاء زر الحظر في وضع المراقبة
+  const blockBtnSpy = document.getElementById('blockBtn');
+  if(blockBtnSpy) blockBtnSpy.style.display='none';
+  const blockedNoticeSpy = document.getElementById('blockedNotice');
+  if(blockedNoticeSpy) blockedNoticeSpy.remove();
 
   const msgs = _getP2PMsgs(memberA, memberB);
   const div = document.getElementById('messagesContent');
@@ -2567,21 +2865,35 @@ function renderChatBubbles(msgs, div, myName, readOnly){
   setTimeout(()=>{ div.scrollTop=div.scrollHeight; },80);
 }
 
+/* كاش Blob URLs للفيديو — يبقى طوال الجلسة */
+const _videoBlobCache = {};
+
 function renderBubble(m, isMe){
   const ts = m.timestamp ? new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
   const senderLabel = !isMe ? `<div class="chat-sender-name">${m.from||''}</div>` : '';
   let mediaHtml='';
+
   if(m.mediaType==='image' && m.mediaData){
-    mediaHtml=`<img class="chat-img" src="${m.mediaData}" alt="صورة" onclick="viewFullImage('${m.mediaData.substring(0,50)}...')" style="cursor:pointer;" onerror="this.style.display='none'">`;
-    // استخدام data-src لتجنب مشاكل escaping
-    mediaHtml=`<img class="chat-img" alt="صورة" style="cursor:pointer;max-width:220px;max-height:200px;border-radius:12px;display:block;margin-top:6px;" onclick="viewFullImageData(this)" data-full="1">`;
-    // نضع الصورة بشكل مباشر
-    mediaHtml=`<a onclick="viewFullImageSrc(this.querySelector('img').src)" style="cursor:pointer;display:inline-block;margin-top:6px;"><img src="${m.mediaData}" style="max-width:220px;max-height:200px;border-radius:12px;display:block;border:1px solid rgba(255,255,255,0.1);" alt="صورة"></a>`;
-  } else if(m.mediaType==='video' && m.mediaData){
-    mediaHtml=`<video controls src="${m.mediaData}" style="max-width:220px;border-radius:12px;display:block;margin-top:6px;background:#000;"></video>`;
+    mediaHtml=`<a onclick="viewFullImageSrc(this.querySelector('img').src)" style="cursor:pointer;display:inline-block;margin-top:6px;">
+      <img src="${m.mediaData}" style="max-width:240px;max-height:220px;border-radius:12px;display:block;border:1px solid rgba(255,255,255,0.1);" alt="صورة">
+    </a>`;
+
+  } else if(m.mediaType==='video'){
+    // ابحث عن blobUrl في الكاش أولاً
+    const blobUrl = m.id ? _videoBlobCache[m.id] : null;
+    if(blobUrl){
+      mediaHtml=`<video controls preload="metadata" style="max-width:280px;width:100%;border-radius:12px;display:block;margin-top:6px;background:#000;" src="${blobUrl}"></video>`;
+    } else if(m.mediaData){
+      // fallback: base64 (للرسائل القديمة)
+      mediaHtml=`<video controls preload="metadata" style="max-width:280px;width:100%;border-radius:12px;display:block;margin-top:6px;background:#000;" src="${m.mediaData}"></video>`;
+    } else {
+      mediaHtml=`<div style="padding:12px;background:rgba(255,255,255,0.05);border-radius:12px;margin-top:6px;font-size:12px;color:var(--muted);text-align:center;">🎬 فيديو<br><span style="font-size:10px;">متاح في هذه الجلسة فقط</span></div>`;
+    }
+
   } else if((m.mediaType==='audio'||m.mediaType==='voice') && m.mediaData){
-    mediaHtml=`<audio controls src="${m.mediaData}" style="width:200px;margin-top:6px;display:block;border-radius:10px;"></audio>`;
+    mediaHtml=`<audio controls src="${m.mediaData}" style="width:220px;margin-top:6px;display:block;border-radius:10px;"></audio>`;
   }
+
   const textHtml = m.message ? `<div style="word-break:break-word;">${m.message}</div>` : '';
   const tick = isMe ? '<span style="color:#90caf9;font-size:10px;">✓✓</span>' : '';
   return `<div class="chat-bubble-wrap ${isMe?'me':'them'}">
@@ -2610,40 +2922,57 @@ async function sendChatMessage(){
   const myName = _isAdmin ? 'المدير' : getCurrentUser();
   const targetName = _currentChatTarget;
   if(!targetName) return;
+
+  // منع الإرسال إذا كان المستخدم محظوراً من الطرفين
+  if(isBlocked(myName, targetName)){
+    showToast('🚫 لقد حظرت هذا العضو — لا يمكنك الإرسال');
+    return;
+  }
+  // منع الإرسال إذا حظرك الطرف الآخر
+  if(isBlocked(targetName, myName)){
+    showToast('⛔ لا يمكنك إرسال رسالة لهذا العضو');
+    return;
+  }
+
   const txt = (document.getElementById('replyText')?.value||'').trim();
   if(!txt && !_mediaToSend) return;
 
+  const isVideo = _mediaToSend?.type==='video';
+  // للفيديو: استخدم msgId الموجود في _mediaToSend للربط مع الكاش
+  const msgId = (isVideo && _mediaToSend.msgId) ? _mediaToSend.msgId : 'msg_'+Date.now();
+
   const ts = new Date().toISOString();
   const msgObj = {
-    id: 'msg_'+Date.now(),
+    id: msgId,
     from: myName,
     to: targetName,
     message: txt,
     timestamp: ts,
     read: false,
-    isMine: true,
     mediaType: _mediaToSend?.type||null,
-    mediaData: _mediaToSend?.data||null
+    // فيديو: لا نخزّن data في localStorage — نعتمد على _videoBlobCache
+    mediaData: isVideo ? null : (_mediaToSend?.data||null)
   };
 
-  const msgs = _getP2PMsgs(myName, targetName);
-  msgs.push(msgObj);
-  _saveP2PMsgs(myName, targetName, msgs);
-
-  // أضف فقاعة
+  // أضف فقاعة فوراً في الواجهة (قبل الحفظ)
   const div = document.getElementById('messagesContent');
-  if(div.querySelector('[style*="margin:auto"]')) div.innerHTML='';
+  if(div.querySelector('[style*="margin:auto"]')||div.querySelector('[style*="padding:30px"]')) div.innerHTML='';
   const el = document.createElement('div');
   el.innerHTML = renderBubble(msgObj, true);
   div.appendChild(el.firstElementChild);
   div.scrollTop = div.scrollHeight;
 
+  // حفظ في localStorage (بدون data الفيديو)
+  try{
+    const msgs = _getP2PMsgs(myName, targetName);
+    msgs.push(msgObj);
+    _saveP2PMsgs(myName, targetName, msgs);
+  }catch(e){ /* localStorage ممتلئ */ }
+
   document.getElementById('replyText').value='';
   document.getElementById('replyText').style.height='40px';
   _mediaToSend=null;
   document.getElementById('attachMenu').style.display='none';
-
-  // تحديث badge
   renderTotalUnreadBadge(myName);
 }
 
@@ -2779,7 +3108,21 @@ function adminHandleMedia(event, type){
 --------------------------------------------------------------- */
 function toggleAttachMenu(){
   const m = document.getElementById('attachMenu');
-  m.style.display = m.style.display==='none'?'block':'none';
+  const btn = document.getElementById('attachBtn');
+  if(m.style.display==='none'){
+    m.style.display='block';
+    const rect = btn.getBoundingClientRect();
+    const isRTL = document.documentElement.dir === 'rtl';
+    if(isRTL){
+      m.style.right = (window.innerWidth - rect.right) + 'px';
+      m.style.left = 'auto';
+    } else {
+      m.style.left = rect.left + 'px';
+      m.style.right = 'auto';
+    }
+  } else {
+    m.style.display = 'none';
+  }
 }
 
 /* ===== رفع وسائط العضو ===== */
@@ -2788,36 +3131,72 @@ function handleMediaUpload(event, type){
   if(!file) return;
   document.getElementById('attachMenu').style.display='none';
 
-  // إظهار شريط التقدم
+  // حدود الحجم المرفوعة
+  const limitsMB = {video:50, image:15, audio:5};
+  const fileMB = file.size/(1024*1024);
+  if(fileMB > limitsMB[type]){
+    showToast(`❌ الحد الأقصى ${limitsMB[type]}MB — حجم ملفك ${fileMB.toFixed(1)}MB`);
+    event.target.value=''; return;
+  }
+
   const prog = document.getElementById('uploadProgress');
-  const bar = document.getElementById('uploadBar');
+  const bar  = document.getElementById('uploadBar');
   if(prog) prog.style.display='block';
-  if(bar) bar.style.width='0%';
+  if(bar)  bar.style.width='0%';
 
-  // تحديث التقدم تدريجياً
-  let pct = 0;
-  const interval = setInterval(()=>{
-    pct = Math.min(pct + 15, 90);
-    if(bar) bar.style.width = pct + '%';
-  }, 80);
+  if(type==='video'){
+    // ✅ الفيديو: ObjectURL مباشرة — لا base64 ولا localStorage
+    const blobUrl = URL.createObjectURL(file);
+    const msgId   = 'msg_'+Date.now();
+    _videoBlobCache[msgId] = blobUrl;
 
+    if(bar) bar.style.width='100%';
+    setTimeout(()=>{ if(prog) prog.style.display='none'; if(bar) bar.style.width='0%'; },300);
+
+    _mediaToSend = { type:'video', data:null, blobUrl, msgId, name:file.name, mime:file.type||'video/mp4' };
+    sendChatMessage();
+    event.target.value=''; return;
+  }
+
+  if(type==='image'){
+    // الصور: ضغط خفيف
+    let pct=0;
+    const iv = setInterval(()=>{ pct=Math.min(pct+20,90); if(bar) bar.style.width=pct+'%'; },80);
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const MAX=1400; let w=img.width, h=img.height;
+        if(w>MAX||h>MAX){ if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;} }
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        const data = cv.toDataURL('image/jpeg', fileMB>4?0.6:0.8);
+        clearInterval(iv);
+        if(bar) bar.style.width='100%';
+        setTimeout(()=>{ if(prog) prog.style.display='none'; if(bar) bar.style.width='0%'; },300);
+        _mediaToSend={type:'image', data, name:file.name};
+        sendChatMessage();
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+    event.target.value=''; return;
+  }
+
+  // صوت: base64
+  let pct=0;
+  const iv = setInterval(()=>{ pct=Math.min(pct+15,90); if(bar) bar.style.width=pct+'%'; },80);
   const reader = new FileReader();
   reader.onload = e=>{
-    clearInterval(interval);
-    if(bar) bar.style.width = '100%';
-    setTimeout(()=>{ if(prog) prog.style.display='none'; if(bar) bar.style.width='0%'; }, 400);
-
-    _mediaToSend = { type, data: e.target.result, name: file.name };
+    clearInterval(iv);
+    if(bar) bar.style.width='100%';
+    setTimeout(()=>{ if(prog) prog.style.display='none'; if(bar) bar.style.width='0%'; },300);
+    _mediaToSend={type, data:e.target.result, name:file.name};
     sendChatMessage();
   };
-  reader.onerror = ()=>{
-    clearInterval(interval);
-    if(prog) prog.style.display='none';
-    showToast('❌ فشل رفع الملف');
-  };
+  reader.onerror=()=>{ clearInterval(iv); if(prog) prog.style.display='none'; showToast('❌ فشل رفع الملف'); };
   reader.readAsDataURL(file);
-  // إعادة تعيين قيمة الإدخال لإتاحة إعادة اختيار نفس الملف
-  event.target.value = '';
+  event.target.value='';
 }
 
 /* ===== تسجيل صوتي ===== */
@@ -3095,11 +3474,606 @@ function applyBroadcastMessages(name){
   }catch(e){}
 }
 
+/* ===================================================================
+   🚫 نظام الحظر (Block System)
+   =================================================================== */
+
+function _blockKey(myName){ return 'nld_block_' + myName.replace(/\s+/g,'_'); }
+
+/** جلب قائمة المحظورين لمستخدم معيّن */
+function getBlockedList(myName){
+  try{ return JSON.parse(localStorage.getItem(_blockKey(myName))||'[]'); }
+  catch(e){ return []; }
+}
+
+/** هل العضو محظور من قِبل myName؟ */
+function isBlocked(myName, targetName){
+  return getBlockedList(myName).includes(targetName);
+}
+
+/** حظر عضو */
+function blockUser(myName, targetName){
+  const list = getBlockedList(myName);
+  if(!list.includes(targetName)){
+    list.push(targetName);
+    localStorage.setItem(_blockKey(myName), JSON.stringify(list));
+  }
+}
+
+/** إلغاء حظر عضو */
+function unblockUser(myName, targetName){
+  let list = getBlockedList(myName).filter(n=>n!==targetName);
+  localStorage.setItem(_blockKey(myName), JSON.stringify(list));
+}
+
+/** إظهار نافذة تأكيد الحظر */
+function showBlockConfirm(){
+  const target = _currentChatTarget;
+  if(!target) return;
+  const myName = _isAdmin ? 'المدير' : getCurrentUser();
+  const alreadyBlocked = isBlocked(myName, target);
+
+  const modal = document.getElementById('blockConfirmModal');
+  const text  = document.getElementById('blockConfirmText');
+  const btn   = document.querySelector('.block-btn-confirm');
+
+  if(alreadyBlocked){
+    text.innerText = `هل تريد إلغاء حظر "${target}"؟ سيتمكن من إرسال الرسائل إليك مجدداً.`;
+    btn.innerText = 'إلغاء الحظر ✓';
+    btn.style.background = 'linear-gradient(135deg,#059669,#34d399)';
+  } else {
+    text.innerText = `هل تريد حظر "${target}"؟ لن يتمكن من إرسال رسائل إليك ولن يظهر في قائمة المحادثات.`;
+    btn.innerText = 'حظر ✓';
+    btn.style.background = 'linear-gradient(135deg,#ef4444,#b91c1c)';
+  }
+  modal.style.display = 'flex';
+}
+
+/** إخفاء نافذة تأكيد الحظر */
+function hideBlockConfirm(){
+  document.getElementById('blockConfirmModal').style.display = 'none';
+}
+
+/** تأكيد الحظر أو إلغاءه */
+function confirmBlock(){
+  const target  = _currentChatTarget;
+  const myName  = _isAdmin ? 'المدير' : getCurrentUser();
+  if(!target){ hideBlockConfirm(); return; }
+
+  if(isBlocked(myName, target)){
+    unblockUser(myName, target);
+    showToast('✅ تم إلغاء حظر ' + target);
+    // إخفاء لافتة الحظر في المحادثة
+    const notice = document.getElementById('blockedNotice');
+    if(notice) notice.remove();
+    // إعادة منطقة الكتابة
+    const ia = document.getElementById('chatInputArea');
+    if(ia) ia.style.display = 'flex';
+    // تحديث زر الحظر
+    _updateBlockBtnState(myName, target);
+  } else {
+    blockUser(myName, target);
+    showToast('🚫 تم حظر ' + target);
+    // إظهار لافتة الحظر وإخفاء منطقة الكتابة
+    _applyBlockUI(myName, target);
+    _updateBlockBtnState(myName, target);
+  }
+  hideBlockConfirm();
+}
+
+/** تطبيق واجهة الحظر على شاشة المحادثة */
+function _applyBlockUI(myName, target){
+  const ia = document.getElementById('chatInputArea');
+  if(ia) ia.style.display = 'none';
+  // إضافة لافتة الحظر إذا لم تكن موجودة
+  let notice = document.getElementById('blockedNotice');
+  if(!notice){
+    notice = document.createElement('div');
+    notice.id = 'blockedNotice';
+    notice.className = 'blocked-notice';
+    notice.innerHTML = `🚫 لقد حظرت <strong>${target}</strong> — <span onclick="showBlockConfirm()" style="color:var(--accent);cursor:pointer;text-decoration:underline;">إلغاء الحظر</span>`;
+    const cs = document.getElementById('chatScreen');
+    cs.appendChild(notice);
+  }
+}
+
+/** تحديث مظهر زر الحظر حسب الحالة */
+function _updateBlockBtnState(myName, target){
+  const btn = document.getElementById('blockBtn');
+  if(!btn) return;
+  if(isBlocked(myName, target)){
+    btn.title = 'إلغاء الحظر';
+    btn.innerText = '🔓';
+    btn.style.background = 'rgba(0,229,160,0.12)';
+    btn.style.borderColor = 'rgba(0,229,160,0.3)';
+  } else {
+    btn.title = 'حظر';
+    btn.innerText = '🚫';
+    btn.style.background = 'rgba(229,45,39,0.12)';
+    btn.style.borderColor = 'rgba(229,45,39,0.3)';
+  }
+}
+
+/* ===================================================================
+   🟢 نظام الحضور المباشر - يُظهر للجميع من هو متصل الآن
+   =================================================================== */
+
+const NLD_ONLINE_KEY = 'nld_online_users';
+const NLD_ONLINE_TTL = 30000; // 30 ثانية - المهلة قبل اعتبار العضو غير متصل
+let _onlineHeartbeatTimer = null;
+let _onlineBroadcast = null;
+
+/** تسجيل الحضور في localStorage */
+function setOnlinePresence(name){
+  if(!name || name === 'المدير') return;
+  try{
+    const now = Date.now();
+    const raw = localStorage.getItem(NLD_ONLINE_KEY);
+    const list = raw ? JSON.parse(raw) : {};
+    list[name] = { ts: now, icon: getLeaderIcon(name) };
+    localStorage.setItem(NLD_ONLINE_KEY, JSON.stringify(list));
+    // إبلاغ التبويبات الأخرى
+    try{ if(_onlineBroadcast) _onlineBroadcast.postMessage({type:'presence', name, ts: now}); }catch(e){}
+  }catch(e){}
+}
+
+/** إزالة الحضور عند الخروج */
+function removeOnlinePresence(name){
+  if(!name) return;
+  try{
+    const raw = localStorage.getItem(NLD_ONLINE_KEY);
+    if(!raw) return;
+    const list = JSON.parse(raw);
+    delete list[name];
+    localStorage.setItem(NLD_ONLINE_KEY, JSON.stringify(list));
+    try{ if(_onlineBroadcast) _onlineBroadcast.postMessage({type:'offline', name}); }catch(e){}
+  }catch(e){}
+}
+
+/** جلب قائمة المتصلين الحاليين (تصفية القديمة) */
+function getOnlineUsers(){
+  try{
+    const raw = localStorage.getItem(NLD_ONLINE_KEY);
+    if(!raw) return {};
+    const list = JSON.parse(raw);
+    const now = Date.now();
+    const valid = {};
+    let changed = false;
+    Object.entries(list).forEach(([name, data])=>{
+      if(now - data.ts < NLD_ONLINE_TTL + 5000){
+        valid[name] = data;
+      } else {
+        changed = true;
+      }
+    });
+    if(changed) localStorage.setItem(NLD_ONLINE_KEY, JSON.stringify(valid));
+    return valid;
+  }catch(e){ return {}; }
+}
+
+/** تحديث شريط المتصلين في الواجهة */
+function refreshOnlineBar(){
+  const users = getOnlineUsers();
+  const count = Object.keys(users).length;
+  const bar = document.getElementById('onlineBar');
+  const badge = document.getElementById('onlineCountBadge');
+  const txt = bar ? bar.querySelector('.online-bar-text') : null;
+  if(!bar) return;
+
+  if(count === 0){
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = 'flex';
+  if(badge) badge.innerText = count;
+  if(txt){
+    if(count === 1) txt.innerText = '🟢 أنت متصل الآن';
+    else txt.innerText = `🟢 ${count} أعضاء متصلون الآن`;
+  }
+
+  // تحديث نافذة المتصلين لو كانت مفتوحة
+  const modal = document.getElementById('onlineModal');
+  if(modal && modal.style.display === 'flex') renderOnlineList(users);
+}
+
+/** عرض قائمة المتصلين في النافذة */
+function renderOnlineList(users){
+  const div = document.getElementById('onlineMembersList');
+  const countEl = document.getElementById('onlineModalCount');
+  if(!div) return;
+  const entries = Object.entries(users);
+  if(countEl) countEl.innerText = entries.length;
+  if(entries.length === 0){
+    div.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">لا يوجد أعضاء متصلون حالياً</div>';
+    return;
+  }
+  const now = Date.now();
+  div.innerHTML = entries.map(([name, data])=>{
+    const secAgo = Math.floor((now - data.ts) / 1000);
+    const timeText = secAgo < 10 ? 'الآن' : secAgo < 60 ? `منذ ${secAgo} ث` : `منذ ${Math.floor(secAgo/60)} د`;
+    const icon = data.icon || getLeaderIcon(name);
+    const photo = localStorage.getItem('nld_photo_'+name.replace(/\s+/g,'_'));
+    const avatarInner = photo
+      ? `<img src="${photo}" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">`
+      : icon;
+    return `<div class="online-member-row">
+      <div class="online-member-avatar">${avatarInner}<div class="online-member-dot"></div></div>
+      <div class="online-member-name">${name}</div>
+      <div class="online-member-time">${timeText}</div>
+    </div>`;
+  }).join('');
+}
+
+/** فتح محادثة من شريط النشطين بالاسم */
+function startChatWithName(name){
+  if(_isAdmin){
+    openAdminChat(name, false);
+  } else {
+    openP2PChat(name, false);
+  }
+}
+
+/** عرض شريط الأعضاء النشطين داخل نافذة الرسائل */
+function renderMsgActiveBar(){
+  const bar = document.getElementById('msgActiveBar');
+  const list = document.getElementById('msgActiveList');
+  if(!bar || !list) return;
+  const users = getOnlineUsers();
+  const entries = Object.entries(users);
+  if(entries.length === 0){
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = 'block';
+  list.innerHTML = entries.map(([name, data])=>{
+    const icon = data.icon || getLeaderIcon(name);
+    const photo = localStorage.getItem('nld_photo_'+name.replace(/\s+/g,'_'));
+    const avatarInner = photo
+      ? `<img src="${photo}" alt="${name}">`
+      : `<span>${icon}</span>`;
+    const shortName = name.split(' ')[0];
+    return `<div class="msg-active-item" onclick="startChatWithName('${name.replace(/'/g,"\\'")}')">
+      <div class="msg-active-avatar">${avatarInner}<div class="msg-active-green-dot"></div></div>
+      <div class="msg-active-name">${shortName}</div>
+    </div>`;
+  }).join('');
+}
+
+/** فتح نافذة المتصلين */
+function openOnlineModal(){
+  const modal = document.getElementById('onlineModal');
+  if(!modal) return;
+  const users = getOnlineUsers();
+  renderOnlineList(users);
+  modal.style.display = 'flex';
+}
+
+/** إغلاق نافذة المتصلين */
+function closeOnlineModal(){
+  const modal = document.getElementById('onlineModal');
+  if(modal) modal.style.display = 'none';
+}
+
+/** بدء إرسال نبضات الحضور (heartbeat) */
+function startOnlineHeartbeat(name){
+  if(!name || name === 'المدير') return;
+  // إرسال أول نبضة فوراً
+  setOnlinePresence(name);
+  refreshOnlineBar();
+  // إرسال نبضة كل 15 ثانية
+  _onlineHeartbeatTimer = setInterval(()=>{
+    setOnlinePresence(name);
+    refreshOnlineBar();
+  }, 15000);
+
+  // الاستماع لتغييرات localStorage من التبويبات الأخرى
+  window.addEventListener('storage', (e)=>{
+    if(e.key === NLD_ONLINE_KEY) refreshOnlineBar();
+  });
+
+  // BroadcastChannel للتحديث الفوري بين التبويبات
+  try{
+    _onlineBroadcast = new BroadcastChannel('nld_online');
+    _onlineBroadcast.onmessage = ()=> refreshOnlineBar();
+  }catch(e){}
+
+  // إزالة الحضور عند إغلاق الصفحة
+  window.addEventListener('beforeunload', ()=>{
+    removeOnlinePresence(name);
+  });
+}
+
+/* ===================================================================
+   🌐 نظام اللغات – Language System
+   =================================================================== */
+
+const LANG_KEY = 'nld_app_lang';
+
+const langData = {
+  ar: {
+    dir: 'rtl', lang: 'ar', font: 'Tajawal',
+    loginTitle: 'القادة<br>المستقبليون',
+    loginSubtitle: 'مختبر الشباب للذكاء والتعلم والإبداع',
+    loginEmail: 'البريد الإلكتروني',
+    loginBtn: 'دخول آمن →',
+    switchAcc: 'تغيير الحساب',
+    userRole: 'عضو القادة المستقبليين',
+    logout: 'خروج',
+    pointsTitle: 'مجموع النقاط',
+    levelActive: '🚀 نشط',
+    pointsSub: 'عليك الاجتهاد أكثر حتى تجمع النقاط الكافية لفتح المستوى التالي',
+    progressEnd: '3000',
+    onlineNow: '🟢 متصل الآن',
+    dashTitle: 'لوحة التحكم',
+    dashYear: '2026 – 2027',
+    langPanelTitle: 'اللغة',
+    flagLabel: '🇩🇿',
+    gridItems: ['رصيدك','جدول الترتيب','المنخرطون','المحادثات','انظم إلينا','المعرض','اجمع النقاط','النشاطات','فيسبوك'],
+    chatPlaceholder: 'اكتب رسالة…',
+    attachImage: 'صورة', attachVideo: 'فيديو', attachAudio: 'صوت', attachVoice: 'تسجيل صوتي',
+  },
+  en: {
+    dir: 'ltr', lang: 'en', font: 'Tajawal',
+    loginTitle: 'Future<br>Leaders',
+    loginSubtitle: 'Youth Lab for Intelligence, Learning & Creativity',
+    loginEmail: 'Email address',
+    loginBtn: 'Secure Login →',
+    switchAcc: 'Switch account',
+    userRole: 'Next Leaders DZ Member',
+    logout: 'Logout',
+    pointsTitle: 'Total Points',
+    levelActive: '🚀 Active',
+    pointsSub: 'Keep working hard to earn enough points to unlock the next level',
+    progressEnd: '3000',
+    onlineNow: '🟢 Online Now',
+    dashTitle: 'Dashboard',
+    dashYear: '2026 – 2027',
+    langPanelTitle: 'Language',
+    flagLabel: '🇬🇧',
+    gridItems: ['Balance','Leaderboard','Members','Messages','Join Us','Gallery','Earn Points','Activities','Facebook'],
+    chatPlaceholder: 'Write a message…',
+    attachImage: 'Image', attachVideo: 'Video', attachAudio: 'Audio', attachVoice: 'Voice Note',
+  },
+  es: {
+    dir: 'ltr', lang: 'es', font: 'Tajawal',
+    loginTitle: 'Líderes<br>del Futuro',
+    loginSubtitle: 'Laboratorio Juvenil de Inteligencia, Aprendizaje y Creatividad',
+    loginEmail: 'Correo electrónico',
+    loginBtn: 'Acceso Seguro →',
+    switchAcc: 'Cambiar cuenta',
+    userRole: 'Miembro de Next Leaders DZ',
+    logout: 'Salir',
+    pointsTitle: 'Puntos Totales',
+    levelActive: '🚀 Activo',
+    pointsSub: 'Esfuérzate más para ganar suficientes puntos y desbloquear el siguiente nivel',
+    progressEnd: '3000',
+    onlineNow: '🟢 En línea ahora',
+    dashTitle: 'Panel de Control',
+    dashYear: '2026 – 2027',
+    langPanelTitle: 'Idioma',
+    flagLabel: '🇪🇸',
+    gridItems: ['Saldo','Clasificación','Miembros','Mensajes','Únete','Galería','Ganar Puntos','Actividades','Facebook'],
+    chatPlaceholder: 'Escribe un mensaje…',
+    attachImage: 'Imagen', attachVideo: 'Video', attachAudio: 'Audio', attachVoice: 'Nota de voz',
+  },
+  zh: {
+    dir: 'ltr', lang: 'zh', font: 'Tajawal',
+    loginTitle: '未来<br>领袖',
+    loginSubtitle: '青年智慧、学习与创造力实验室',
+    loginEmail: '电子邮件',
+    loginBtn: '安全登录 →',
+    switchAcc: '切换账户',
+    userRole: 'Next Leaders DZ 成员',
+    logout: '退出',
+    pointsTitle: '总积分',
+    levelActive: '🚀 活跃',
+    pointsSub: '继续努力，积累足够积分以解锁下一等级',
+    progressEnd: '3000',
+    onlineNow: '🟢 当前在线',
+    dashTitle: '控制面板',
+    dashYear: '2026 – 2027',
+    langPanelTitle: '语言',
+    flagLabel: '🇨🇳',
+    gridItems: ['余额','排行榜','成员','消息','加入我们','相册','获取积分','活动','脸书'],
+    chatPlaceholder: '写消息…',
+    attachImage: '图片', attachVideo: '视频', attachAudio: '音频', attachVoice: '语音',
+  }
+};
+
+function getCurrentLang(){
+  return localStorage.getItem(LANG_KEY) || null;
+}
+
+function applyLang(code, skipOverlay){
+  const d = langData[code];
+  if(!d) return;
+  // اتجاه الصفحة
+  document.documentElement.lang = d.lang;
+  document.documentElement.dir = d.dir;
+
+  // صفحة الدخول
+  const lt = document.querySelector('.login-title');
+  if(lt) lt.innerHTML = d.loginTitle;
+  const ls = document.getElementById('loginSubtitle');
+  if(ls) ls.innerText = d.loginSubtitle;
+  const le = document.getElementById('loginEmail');
+  if(le) le.placeholder = d.loginEmail;
+  const lb = document.querySelector('button.auth-btn');
+  if(lb) lb.innerText = d.loginBtn;
+  const sa = document.getElementById('switchAcc');
+  if(sa) sa.innerText = d.switchAcc;
+
+  // لوحة التطبيق
+  const ur = document.querySelector('.user-role');
+  if(ur) ur.innerText = d.userRole;
+  const logBtn = document.querySelector('.logout-btn');
+  if(logBtn) logBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>${d.logout}`;
+  const pt = document.querySelector('.points-title');
+  if(pt) pt.innerText = d.pointsTitle;
+  const lb2 = document.getElementById('levelBadge');
+  if(lb2 && lb2.innerText.includes('نشط')||lb2&&lb2.innerText.includes('Active')||lb2&&lb2.innerText.includes('Activo')||lb2&&lb2.innerText.includes('活跃')) lb2.innerText = d.levelActive;
+  const ps = document.getElementById('pointsSub');
+  if(ps) ps.innerText = d.pointsSub;
+  const pe = document.getElementById('progressEnd');
+  if(pe) pe.innerText = d.progressEnd;
+  const obt = document.querySelector('.online-bar-text');
+  if(obt) obt.innerText = d.onlineNow;
+  const sti = document.querySelector('.section-title');
+  if(sti) sti.innerText = d.dashTitle;
+  const sy = document.querySelector('.section-year');
+  if(sy) sy.innerText = d.dashYear;
+
+  // زر اللغة في اللوحة
+  const lsb = document.getElementById('langSwitchBtn');
+  if(lsb) lsb.innerText = d.flagLabel;
+  const lpt = document.getElementById('langPanelTitle');
+  if(lpt) lpt.innerText = d.langPanelTitle;
+
+  // علامة الاختيار في النافذة السريعة
+  ['ar','en','es','zh'].forEach(c=>{
+    const el = document.getElementById('li-'+c);
+    if(el){
+      const chk = el.querySelector('.q-check');
+      if(chk) chk.style.display = (c===code)?'block':'none';
+      el.classList.toggle('active', c===code);
+    }
+  });
+
+  // إعادة بناء شبكة الميزات بالترجمة الجديدة (إذا كانت الشبكة موجودة)
+  const grid = document.getElementById('mainGrid');
+  if(grid && grid.children.length > 0) buildGrid();
+
+  // ترجمة واجهة المحادثة
+  const replyTxt = document.getElementById('replyText');
+  if(replyTxt){
+    replyTxt.placeholder = d.chatPlaceholder;
+    replyTxt.style.textAlign = d.dir==='rtl' ? 'right' : 'left';
+  }
+  // إعادة بناء قائمة المرفقات بالترجمة الجديدة
+  const attachMenu = document.getElementById('attachMenu');
+  if(attachMenu){
+    attachMenu.innerHTML = `
+      <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+        <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:16px;">🖼️</span>${d.attachImage}
+        <input type="file" accept="image/*" style="display:none;" onchange="handleMediaUpload(event,'image')">
+      </label>
+      <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+        <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:16px;">🎬</span>${d.attachVideo}
+        <input type="file" accept="video/*" style="display:none;" onchange="handleMediaUpload(event,'video')">
+      </label>
+      <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+        <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:16px;">🎵</span>${d.attachAudio}
+        <input type="file" accept="audio/*" style="display:none;" onchange="handleMediaUpload(event,'audio')">
+      </label>
+      <div onclick="startVoiceRecord()" style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+        <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:16px;">🎙️</span>${d.attachVoice}
+      </div>`;
+  }
+}
+
+function setLoginLang(code){
+  localStorage.setItem(LANG_KEY, code);
+  applyLang(code);
+  updateLoginLangButtons(code);
+}
+
+function updateLoginLangButtons(code){
+  ['ar','en','es','zh'].forEach(c=>{
+    const btn = document.getElementById('llb-'+c);
+    if(btn) btn.classList.toggle('active-lang', c===code);
+  });
+}
+
+function setAppLang(code, fromPanel){
+  localStorage.setItem(LANG_KEY, code);
+  applyLang(code);
+  // إخفاء الشاشة الأولى
+  const overlay = document.getElementById('langSelectorOverlay');
+  if(overlay){
+    overlay.style.animation='fadeOut .35s ease forwards';
+    setTimeout(()=>overlay.style.display='none', 350);
+  }
+  if(fromPanel) closeLangPanel();
+}
+
+function toggleLangPanel(){
+  const p = document.getElementById('langQuickPanel');
+  if(!p) return;
+  p.style.display = p.style.display==='block'?'none':'block';
+}
+function closeLangPanel(){
+  const p = document.getElementById('langQuickPanel');
+  if(p) p.style.display='none';
+}
+
+// إضافة animation fadeOut
+(function(){
+  const s=document.createElement('style');
+  s.textContent='@keyframes fadeOut{from{opacity:1}to{opacity:0}}';
+  document.head.appendChild(s);
+})();
+
+// إغلاق اللوحة عند النقر خارجها
+document.addEventListener('click', function(e){
+  const panel=document.getElementById('langQuickPanel');
+  const btn=document.getElementById('langSwitchBtn');
+  if(panel&&btn&&!panel.contains(e.target)&&!btn.contains(e.target)){
+    closeLangPanel();
+  }
+});
+
+// تطبيق اللغة المحفوظة عند بدء التشغيل
+(function(){
+  const saved = getCurrentLang();
+  if(saved){
+    // اللغة موجودة → تخطّي الشاشة الأولى مباشرة
+    const overlay=document.getElementById('langSelectorOverlay');
+    if(overlay) overlay.style.display='none';
+    applyLang(saved);
+    updateLoginLangButtons(saved);
+  } else {
+    // لا توجد لغة محفوظة → تعيين العربية كافتراضية في أزرار الدخول
+    updateLoginLangButtons('ar');
+  }
+  // إذا لم تُختر لغة → تبقى الشاشة الأولى ظاهرة
+})();
+
+/** إيقاف الـ heartbeat */
+function stopOnlineHeartbeat(name){
+  if(_onlineHeartbeatTimer) clearInterval(_onlineHeartbeatTimer);
+  _onlineHeartbeatTimer = null;
+  if(name) removeOnlinePresence(name);
+  try{ if(_onlineBroadcast){ _onlineBroadcast.close(); _onlineBroadcast=null; } }catch(e){}
+  refreshOnlineBar();
+}
+
+/* ===================================================================
+   🟢 النقطة الخضراء عند تسجيل الدخول
+   =================================================================== */
+
+function showOnlineDot(){
+  const dot = document.getElementById('onlineDot');
+  if(dot) dot.style.display = 'block';
+  // بدء نظام الحضور المباشر
+  const name = getCurrentUser();
+  if(name) startOnlineHeartbeat(name);
+}
+
+function hideOnlineDot(){
+  const dot = document.getElementById('onlineDot');
+  if(dot) dot.style.display = 'none';
+  // إيقاف نظام الحضور
+  const name = getCurrentUser();
+  stopOnlineHeartbeat(name);
+}
+
 /* ===== دالة الخروج ===== */
 function doLogout(){
   // تسجيل نهاية الجلسة
   const name = getCurrentUser();
   if(name && !_isAdmin) trackVisitEnd(name);
+  // إخفاء النقطة الخضراء
+  hideOnlineDot();
   localStorage.removeItem('sklab_user_name');
   localStorage.removeItem('sklab_admin_email');
   _isAdmin = false;
@@ -3123,14 +4097,13 @@ function doLogout(){
     <div class="input-wrap">
       <span class="input-icon">📧</span>
       <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" onkeydown="if(event.key==='Enter')handleAuthAction();">
-    </div>
-    <div class="input-wrap">
-      <span class="input-icon">🔒</span>
-      <input type="password" id="loginPassword" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')handleAuthAction();">
     </div>`;
   document.getElementById('loginSubtitle').innerText='مختبر الشباب للذكاء والتعلم والإبداع';
   document.getElementById('switchAcc').style.display='none';
   _isAdmin=false;
+  // تحديث أزرار اللغة في صفحة الدخول
+  const currentLang = getCurrentLang() || 'ar';
+  updateLoginLangButtons(currentLang);
 }
 </script>
 </body>
