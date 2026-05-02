@@ -1341,22 +1341,23 @@ body.member-mode #onlineBar{
 .logout-btn svg{width:13px;height:13px;fill:none;stroke:#f87171;stroke-width:2;stroke-linecap:round;}
 
 /* ===== CHAT BUBBLES (ماسنجر) ===== */
-.chat-bubble-wrap{display:flex;flex-direction:column;max-width:78%;animation:fadeUp .25s ease;}
-.chat-bubble-wrap.me{align-self:flex-start;}
-.chat-bubble-wrap.them{align-self:flex-end;}
-.chat-bubble{padding:9px 13px;border-radius:18px;font-size:13px;font-weight:600;line-height:1.55;color:var(--text);position:relative;word-break:break-word;}
-.chat-bubble.me{background:linear-gradient(135deg,#1565C0,#1976D2);color:white;border-bottom-right-radius:5px;box-shadow:0 4px 14px rgba(21,101,192,0.35);}
-.chat-bubble.them{background:var(--surface2);color:var(--text);border-bottom-left-radius:5px;box-shadow:0 2px 8px rgba(0,0,0,0.2);border:1px solid var(--border);}
+.chat-bubble-wrap{display:flex;flex-direction:column;max-width:75%;animation:fadeUp .2s ease;}
+.chat-bubble-wrap.me{align-self:flex-start;align-items:flex-start;}
+.chat-bubble-wrap.them{align-self:flex-end;align-items:flex-end;}
+.chat-bubble{padding:10px 14px;border-radius:20px;font-size:14px;font-weight:500;line-height:1.5;position:relative;word-break:break-word;}
+.chat-bubble.me{background:linear-gradient(135deg,#00B2FF,#0078FF);color:white;border-bottom-left-radius:4px;box-shadow:0 2px 8px rgba(0,120,255,0.3);}
+.chat-bubble.them{background:#F0F2F5;color:#1C1E21;border-bottom-right-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,0.08);}
 .chat-bubble img.chat-img{max-width:220px;max-height:200px;border-radius:12px;display:block;margin-top:6px;cursor:pointer;}
 .chat-bubble video.chat-vid{max-width:220px;border-radius:12px;display:block;margin-top:6px;}
 .chat-bubble audio.chat-aud{width:200px;margin-top:6px;display:block;border-radius:10px;}
-.chat-meta{font-size:9px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:4px;}
+.chat-meta{font-size:9px;color:#8A8D91;margin-top:3px;display:flex;align-items:center;gap:4px;}
 .chat-bubble-wrap.them .chat-meta{justify-content:flex-end;}
-.chat-sender-name{font-size:10px;font-weight:700;color:#60b3ff;margin-bottom:3px;}
-.chat-bubble-wrap.them .chat-sender-name{color:#c084fc;text-align:right;}
+.chat-bubble-wrap.me .chat-meta{justify-content:flex-start;}
+.chat-sender-name{font-size:10px;font-weight:700;color:#0078FF;margin-bottom:3px;}
+.chat-bubble-wrap.them .chat-sender-name{color:#0078FF;text-align:right;}
 /* شاشة اختيار عضو للمحادثة */
-.member-pick-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;}
-.member-pick-item:hover{background:rgba(255,255,255,0.04);}
+.member-pick-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(0,0,0,0.06);cursor:pointer;transition:.15s;background:transparent;}
+.member-pick-item:hover{background:rgba(0,120,255,0.05);}
 .member-pick-avatar{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 /* مراقبة المدير */
 .spy-tab{padding:7px 14px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;border:1px solid transparent;}
@@ -1741,27 +1742,27 @@ body.member-mode #onlineBar{
 <!-- ===== نظام المراسلة بين الأعضاء ===== -->
 <!-- شاشة 1: قائمة المحادثات -->
 <div class="modal" id="messagesModal" style="align-items:stretch;">
-  <div style="display:flex;flex-direction:column;width:100%;max-width:480px;height:100vh;background:var(--dark);margin:0 auto;">
+  <div style="display:flex;flex-direction:column;width:100%;max-width:480px;height:100vh;background:linear-gradient(180deg,rgba(240,248,255,0.98) 0%,rgba(248,252,255,0.98) 100%);margin:0 auto;backdrop-filter:blur(20px);">
     <!-- هيدر -->
-    <div style="display:flex;align-items:center;gap:11px;padding:14px 16px 12px;background:rgba(13,17,23,0.98);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);flex-shrink:0;">
-      <div onclick="closeMessagesModal()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--surface);border:1px solid var(--border);cursor:pointer;font-size:18px;flex-shrink:0;">&#x2039;</div>
-      <div style="width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">&#x1F4AC;</div>
+    <div style="display:flex;align-items:center;gap:11px;padding:14px 16px 12px;background:rgba(255,255,255,0.95);border-bottom:1px solid rgba(0,0,0,0.08);backdrop-filter:blur(20px);flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+      <div onclick="closeMessagesModal()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,120,255,0.1);border:none;cursor:pointer;font-size:22px;flex-shrink:0;color:#0078FF;font-weight:700;">‹</div>
+      <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#00B2FF,#0078FF,#0040C1);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px rgba(0,120,255,0.4);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='22' height='22' fill='white'><path d='M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z'/></svg></div>
       <div style="flex:1;">
-        <div style="font-size:15px;font-weight:800;color:var(--text);" id="inboxTitle">المحادثات</div>
-        <div style="font-size:11px;color:var(--accent);" id="inboxSub">رسائلك الخاصة</div>
+        <div style="font-size:17px;font-weight:900;color:#1C1E21;" id="inboxTitle">المحادثات</div>
+        <div style="font-size:11px;color:#0078FF;" id="inboxSub">رسائلك الخاصة</div>
       </div>
-      <div id="newChatBtn" onclick="showNewChatScreen()" title="محادثة جديدة" style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,rgba(0,153,255,0.2),rgba(168,85,247,0.2));border:1px solid rgba(0,153,255,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;font-weight:900;color:#60b3ff;line-height:1;">+</div>
+      <div id="newChatBtn" onclick="showNewChatScreen()" title="محادثة جديدة" style="width:36px;height:36px;border-radius:50%;background:rgba(0,120,255,0.1);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;font-weight:900;color:#0078FF;line-height:1;">✏️</div>
       <span id="totalUnreadBadge" style="display:none;background:linear-gradient(135deg,#0099ff,#a855f7);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800;color:white;"></span>
     </div>
     <!-- ===== شريط الأعضاء النشطين (مثل ماسنجر) ===== -->
-    <div id="msgActiveBar" style="flex-shrink:0;border-bottom:1px solid var(--border);background:rgba(13,17,23,0.98);padding:10px 14px 10px;display:none;">
-      <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;">نشطون الآن</div>
+    <div id="msgActiveBar" style="flex-shrink:0;border-bottom:1px solid rgba(0,0,0,0.08);background:rgba(255,255,255,0.97);padding:10px 14px 10px;display:none;">
+      <div style="font-size:10px;font-weight:800;color:#0078FF;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;">نشطون الآن</div>
       <div id="msgActiveList" style="display:flex;gap:14px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;">
       </div>
     </div>
 
     <!-- قائمة المحادثات -->
-    <div id="inboxList" style="flex:1;overflow-y:auto;padding:0;display:flex;flex-direction:column;gap:0;">
+    <div id="inboxList" style="flex:1;overflow-y:auto;padding:0;display:flex;flex-direction:column;gap:0;background:rgba(255,255,255,0.96);">
       <div style="text-align:center;margin:auto;color:var(--muted);padding:40px 20px;">
         <div style="font-size:48px;margin-bottom:12px;">&#x1F4AC;</div>
         <div style="font-weight:700;">جاري التحميل&#x2026;</div>
@@ -1771,29 +1772,29 @@ body.member-mode #onlineBar{
 </div>
 
 <!-- شاشة اختيار عضو لبدء محادثة جديدة -->
-<div id="newChatScreen" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:100%;z-index:3500;background:var(--dark);flex-direction:column;">
-  <div style="display:flex;align-items:center;gap:11px;padding:14px 16px 12px;background:rgba(13,17,23,0.98);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);flex-shrink:0;">
-    <div onclick="closeNewChatScreen()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--surface);border:1px solid var(--border);cursor:pointer;font-size:18px;flex-shrink:0;">&#x2039;</div>
+<div id="newChatScreen" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:100%;z-index:3500;background:linear-gradient(180deg,rgba(240,248,255,0.98),rgba(248,252,255,0.98));flex-direction:column;">
+  <div style="display:flex;align-items:center;gap:11px;padding:14px 16px 12px;background:rgba(255,255,255,0.97);border-bottom:1px solid rgba(0,0,0,0.08);backdrop-filter:blur(20px);flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+    <div onclick="closeNewChatScreen()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,120,255,0.1);border:none;cursor:pointer;font-size:22px;flex-shrink:0;color:#0078FF;font-weight:700;">‹</div>
     <div style="flex:1;">
-      <div style="font-size:15px;font-weight:800;color:var(--text);">محادثة جديدة</div>
-      <div style="font-size:11px;color:var(--accent);">اختر عضواً للتحدث معه</div>
+      <div style="font-size:16px;font-weight:900;color:#1C1E21;">محادثة جديدة</div>
+      <div style="font-size:11px;color:#0078FF;">اختر عضواً للتحدث معه</div>
     </div>
   </div>
-  <div style="padding:10px 14px;background:rgba(13,17,23,0.98);border-bottom:1px solid var(--border);flex-shrink:0;">
-    <input id="memberSearchInput" type="text" placeholder="ابحث عن عضو..." oninput="filterMemberList(this.value)" style="width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;">
+  <div style="padding:10px 14px;background:rgba(255,255,255,0.97);border-bottom:1px solid rgba(0,0,0,0.08);flex-shrink:0;">
+    <input id="memberSearchInput" type="text" placeholder="ابحث عن عضو..." oninput="filterMemberList(this.value)" style="width:100%;padding:10px 16px;background:#F0F2F5;border:none;border-radius:22px;color:#1C1E21;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;">
   </div>
-  <div id="memberPickList" style="flex:1;overflow-y:auto;padding:8px 0;"></div>
+  <div id="memberPickList" style="flex:1;overflow-y:auto;padding:8px 0;background:rgba(255,255,255,0.96);"></div>
 </div>
 
 <!-- شاشة 2: نافذة المحادثة الفردية -->
-<div id="chatScreen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:3000;background:var(--dark);flex-direction:column;max-width:480px;left:50%;transform:translateX(-50%);">
+<div id="chatScreen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:3000;background:linear-gradient(180deg,rgba(235,245,255,0.98) 0%,rgba(245,250,255,0.97) 100%);flex-direction:column;max-width:480px;left:50%;transform:translateX(-50%);">
     <!-- رأس المحادثة الفردية -->
-    <div style="display:flex;align-items:center;gap:11px;padding:14px 16px 12px;background:rgba(13,17,23,0.98);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);flex-shrink:0;z-index:10;">
-      <div onclick="closeChatScreen()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--surface);border:1px solid var(--border);cursor:pointer;font-size:18px;flex-shrink:0;">‹</div>
-      <div id="chatAvatar" style="width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,153,255,0.3);">👤</div>
+    <div style="display:flex;align-items:center;gap:11px;padding:14px 16px 12px;background:rgba(255,255,255,0.97);border-bottom:1px solid rgba(0,0,0,0.08);backdrop-filter:blur(20px);flex-shrink:0;z-index:10;box-shadow:0 2px 12px rgba(0,0,0,0.05);">
+      <div onclick="closeChatScreen()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,120,255,0.1);border:none;cursor:pointer;font-size:22px;flex-shrink:0;color:#0078FF;font-weight:700;">‹</div>
+      <div id="chatAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#00B2FF,#0078FF);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,120,255,0.35);border:2px solid rgba(0,120,255,0.2);">👤</div>
       <div style="flex:1;">
-        <div style="font-size:15px;font-weight:800;color:var(--text);" id="chatTitle">…</div>
-        <div style="font-size:11px;color:var(--accent);">• متصل الآن</div>
+        <div style="font-size:15px;font-weight:900;color:#1C1E21;" id="chatTitle">…</div>
+        <div style="font-size:11px;color:#0078FF;font-weight:700;">● متصل الآن</div>
       </div>
       <!-- زر الحظر -->
       <div id="blockBtn" onclick="showBlockConfirm()" title="حظر" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(229,45,39,0.12);border:1px solid rgba(229,45,39,0.3);cursor:pointer;font-size:17px;flex-shrink:0;transition:.2s;" onmouseover="this.style.background='rgba(229,45,39,0.22)'" onmouseout="this.style.background='rgba(229,45,39,0.12)'">🚫</div>
@@ -1813,12 +1814,12 @@ body.member-mode #onlineBar{
 </div>
 
     <!-- منطقة الرسائل -->
-    <div id="messagesContent" style="flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:8px;background:var(--dark);"></div>
+    <div id="messagesContent" style="flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:6px;background:transparent;"></div>
 
     <!-- صندوق الكتابة -->
-    <div id="chatInputArea" style="padding:10px 12px;background:rgba(13,17,23,0.98);border-top:1px solid var(--border);display:flex;align-items:flex-end;gap:8px;flex-shrink:0;">
+    <div id="chatInputArea" style="padding:10px 12px;background:rgba(255,255,255,0.97);border-top:1px solid rgba(0,0,0,0.08);display:flex;align-items:flex-end;gap:8px;flex-shrink:0;box-shadow:0 -2px 12px rgba(0,0,0,0.05);">
       <div style="position:relative;flex-shrink:0;">
-        <div onclick="toggleAttachMenu()" id="attachBtn" style="width:40px;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:.2s;" title="إرفاق">📎</div>
+        <div onclick="toggleAttachMenu()" id="attachBtn" style="width:40px;height:40px;border-radius:50%;background:rgba(0,120,255,0.1);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:.2s;" title="إرفاق">📎</div>
         <div id="attachMenu" style="display:none;position:fixed;bottom:70px;background:rgba(13,17,23,0.97);border:1px solid var(--border);border-radius:16px;padding:8px;box-shadow:0 -10px 30px rgba(0,0,0,0.5);z-index:10000;white-space:nowrap;">
           <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
             <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:16px;">🖼️</span>صورة
@@ -1837,13 +1838,13 @@ body.member-mode #onlineBar{
           </div>
         </div>
       </div>
-      <textarea id="replyText" placeholder="اكتب رسالة…" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 13px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:14px;outline:none;resize:none;max-height:100px;min-height:40px;line-height:1.5;text-align:right;transition:border-color .2s;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
-      <div onclick="sendChatMessage()" style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;box-shadow:0 4px 14px rgba(0,153,255,0.35);transition:.15s;" title="إرسال">➤</div>
-      <div id="micBtn" onclick="startVoiceRecord()" style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;box-shadow:0 4px 14px rgba(17,153,142,0.35);transition:.15s;" title="تسجيل صوتي">🎙️</div>
+      <textarea id="replyText" placeholder="اكتب رسالة…" style="flex:1;background:#F0F2F5;border:none;border-radius:22px;padding:10px 16px;color:#1C1E21;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;resize:none;max-height:100px;min-height:40px;line-height:1.5;text-align:right;transition:all .2s;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
+      <div onclick="sendChatMessage()" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00B2FF,#0078FF);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;box-shadow:0 4px 14px rgba(0,120,255,0.4);transition:.15s;" title="إرسال">➤</div>
+      <div id="micBtn" onclick="startVoiceRecord()" style="width:40px;height:40px;border-radius:50%;background:rgba(0,120,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;transition:.15s;border:none;" title="تسجيل صوتي">🎙️</div>
     </div>
 
     <!-- مؤشر التسجيل الصوتي -->
-    <div id="voiceRecordBar" style="display:none;padding:10px 16px;background:rgba(229,45,39,0.12);border-top:1px solid rgba(229,45,39,0.3);flex-shrink:0;align-items:center;gap:10px;justify-content:space-between;">
+    <div id="voiceRecordBar" style="display:none;padding:10px 16px;background:rgba(255,240,240,0.97);border-top:1px solid rgba(229,45,39,0.2);flex-shrink:0;align-items:center;gap:10px;justify-content:space-between;">
       <div style="display:flex;align-items:center;gap:8px;">
         <div style="width:10px;height:10px;border-radius:50%;background:#ef4444;animation:pulse 1s infinite;"></div>
         <span style="font-size:13px;font-weight:700;color:#f87171;">جاري التسجيل…</span>
@@ -1856,7 +1857,7 @@ body.member-mode #onlineBar{
     </div>
 
     <!-- تقدم رفع الملف -->
-    <div id="uploadProgress" style="display:none;padding:8px 16px;background:rgba(0,153,255,0.08);border-top:1px solid rgba(0,153,255,0.2);flex-shrink:0;">
+    <div id="uploadProgress" style="display:none;padding:8px 16px;background:rgba(240,248,255,0.97);border-top:1px solid rgba(0,120,255,0.15);flex-shrink:0;">
       <div style="font-size:11px;color:#60b3ff;margin-bottom:4px;">⏳ جاري الرفع…</div>
       <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden;">
         <div id="uploadBar" style="height:100%;background:linear-gradient(90deg,#0099ff,#a855f7);width:0%;transition:width .3s;border-radius:10px;"></div>
@@ -2301,7 +2302,7 @@ function buildGrid(isReg){
     ['💰', labels[0], 'bg-1',"showModal('digitalCard')", true ],
     ['🏆', labels[1], 'bg-2',"showModal('rankingCard')",  true ],
     ['👥', labels[2], 'bg-3',"showModal('membersCard')",  true],
-    ['💬', labels[3], 'bg-4',"openMessages()", true],
+    ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="white"><path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z"/></svg>', labels[3], 'bg-4',"openMessages()", true],
     ['🌟', labels[4], 'bg-5',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform')", true],
     ['🖼️',labels[5], 'bg-6',"window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3')", false],
     ['🎯', labels[6], 'bg-7',"showModal('quizCard')",    false],
@@ -2313,7 +2314,7 @@ function buildGrid(isReg){
     const lock=!can?`<div class="lock-overlay">🔒</div>`:'';
     const cls=!can?' locked':'';
     const oc=can&&action?`onclick="${action}"`:'';
-    return `<div class="glass-item${cls}" ${oc}>${lock}<div class="icon-box ${bg}">${icon}</div><div class="item-label">${label}</div></div>`;
+    const isHtml = icon.startsWith('<'); return `<div class="glass-item${cls}" ${oc}>${lock}<div class="icon-box ${bg}" style="display:flex;align-items:center;justify-content:center;">${icon}</div><div class="item-label">${label}</div></div>`;
   }).join('');
 }
 
@@ -3607,10 +3608,10 @@ function showToast(msg){
 function getMemberAvatarHtml(name, size=44, radius=13){
   const photo = getProfilePhoto(name);
   if(photo){
-    return `<img src="${photo}" style="width:${size}px;height:${size}px;border-radius:${radius}px;object-fit:cover;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);" alt="${name}">`;
+    return `<img src="${photo}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.15);border:2px solid rgba(0,120,255,0.15);" alt="${name}">`;
   }
   const icon = getLeaderIcon(name);
-  return `<div style="width:${size}px;height:${size}px;border-radius:${radius}px;background:linear-gradient(135deg,var(--green),#00c853);display:flex;align-items:center;justify-content:center;font-size:${Math.floor(size*0.45)}px;font-weight:900;color:white;flex-shrink:0;box-shadow:0 4px 12px rgba(15,155,15,0.3);">${icon}</div>`;
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,#00B2FF,#0078FF);display:flex;align-items:center;justify-content:center;font-size:${Math.floor(size*0.45)}px;font-weight:900;color:white;flex-shrink:0;box-shadow:0 4px 12px rgba(0,120,255,0.3);">${icon}</div>`;
 }
 
 function getChatAvatarHtml(name){
@@ -3739,11 +3740,11 @@ function renderInboxList(){
         const lastText = last ? (last.message||(last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت')) : '';
         const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
         const unreadBadge = unread>0 ? `<span style="min-width:20px;height:20px;border-radius:10px;background:linear-gradient(135deg,#e52d27,#b91c1c);color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;">${unread}</span>` : '';
-        return `<div onclick="openAdminChat('${other.replace(/'/g,"\'")}',false)" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+        return `<div onclick="openAdminChat('${other.replace(/'/g,"\'")}',false)" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(0,120,255,0.05)'" onmouseout="this.style.background='transparent'">
           ${getMemberAvatarHtml(other, 48, 15)}
           <div style="flex:1;min-width:0;">
-            <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:3px;">${other}</div>
-            <div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lastText}</div>
+            <div style="font-size:14px;font-weight:800;color:#1C1E21;margin-bottom:3px;">${other}</div>
+            <div style="font-size:12px;color:#65676B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lastText}</div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">
             <span style="font-size:10px;color:var(--muted);">${lastTs}</span>
@@ -3762,7 +3763,7 @@ function renderInboxList(){
         const lastText = last ? (last.message||(last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت')) : '';
         const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
         const convKey = _p2pKey(a,b);
-        return `<div onclick="adminSpyChat('${a.replace(/'/g,"\'")}','${b.replace(/'/g,"\'")}','${convKey}')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+        return `<div onclick="adminSpyChat('${a.replace(/'/g,"\'")}','${b.replace(/'/g,"\'")}','${convKey}')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(0,120,255,0.05)'" onmouseout="this.style.background='transparent'">
           <div style="position:relative;width:48px;height:48px;flex-shrink:0;">
             <div style="position:absolute;top:0;right:0;width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:16px;">${iconA}</div>
             <div style="position:absolute;bottom:0;left:0;width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#059669,#34d399);display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid var(--dark);">${iconB}</div>
@@ -3840,11 +3841,11 @@ function renderInboxList(){
       const lastText = last ? (last.message||(last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت')) : '';
       const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
       const unreadBadge = unread>0 ? `<span style="min-width:20px;height:20px;border-radius:10px;background:linear-gradient(135deg,#0099ff,#a855f7);color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;">${unread}</span>` : '';
-      return `<div onclick="openP2PChat('${other.replace(/'/g,"\'")}',false)" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+      return `<div onclick="openP2PChat('${other.replace(/'/g,"\'")}',false)" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(0,120,255,0.05)'" onmouseout="this.style.background='transparent'">
         ${getMemberAvatarHtml(other, 48, 15)}
         <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:3px;">${other}</div>
-          <div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lastText}</div>
+          <div style="font-size:14px;font-weight:800;color:#1C1E21;margin-bottom:3px;">${other}</div>
+          <div style="font-size:12px;color:#65676B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lastText}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">
           <span style="font-size:10px;color:var(--muted);">${lastTs}</span>
