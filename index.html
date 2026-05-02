@@ -1674,11 +1674,349 @@ body.member-mode #onlineBar{
   </div>
 </div>
 
-<!-- MODAL: رصيدك -->
-<div class="modal" id="digitalCard">
-  <div class="modal-content">
-    <div class="modal-handle"></div>
-    <div class="modal-title">💳 رصيدك</div>
+<!-- ══════════════════════════════════════════
+     🌐 صفحة الشبكة الاجتماعية (Next Leaders Social)
+     ══════════════════════════════════════════ -->
+<div id="socialHomeCard" style="display:none;position:fixed;inset:0;z-index:2900;background:#F0F2F5;flex-direction:column;overflow:hidden;">
+
+  <!-- ── Top Bar ── -->
+  <div style="background:white;padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E4E6EB;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+    <div style="font-size:18px;font-weight:900;color:#1877F2;letter-spacing:.5px;">Next Leaders 🌐</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <div onclick="openSocialNotifs()" style="position:relative;width:38px;height:38px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;" title="الإشعارات">
+        🔔
+        <span id="socialNotifBadge" style="display:none;position:absolute;top:2px;right:2px;width:16px;height:16px;background:#e53935;border-radius:50%;font-size:9px;font-weight:900;color:white;display:flex;align-items:center;justify-content:center;border:2px solid white;">0</span>
+      </div>
+      <div onclick="hideSocialHome()" style="width:38px;height:38px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;font-weight:900;color:#65676B;">✕</div>
+    </div>
+  </div>
+
+  <!-- ── Scrollable Content ── -->
+  <div id="socialMainScroll" style="flex:1;overflow-y:auto;padding-bottom:70px;">
+
+    <!-- ── HOME PANEL ── -->
+    <div id="socialPanel_home" style="display:block;">
+
+      <!-- Create Post Box -->
+      <div style="background:white;margin-bottom:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div id="socialPostAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;overflow:hidden;">👑</div>
+          <div onclick="openSocialCreatePost()" style="flex:1;background:#F0F2F5;border-radius:22px;padding:10px 16px;font-size:13px;color:#65676B;cursor:pointer;font-family:'Tajawal',sans-serif;">بماذا تفكر؟</div>
+        </div>
+        <div style="display:flex;border-top:1px solid #E4E6EB;padding-top:8px;gap:4px;">
+          <div onclick="openSocialCreatePost('photo')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🖼️ صورة</div>
+          <div onclick="openSocialCreatePost('feeling')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">😊 شعور</div>
+          <div onclick="openSocialCreatePost('achievement')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F3425F;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🏆 إنجاز</div>
+        </div>
+      </div>
+
+      <!-- Social Feed -->
+      <div id="socialFeedContainer"></div>
+    </div>
+
+    <!-- ── MY PROFILE PANEL ── -->
+    <div id="socialPanel_myprofile" style="display:none;padding:20px 14px;text-align:center;">
+      <div style="font-size:64px;margin-bottom:12px;">👤</div>
+      <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:8px;">ملفك الشخصي</div>
+      <div style="font-size:13px;color:#65676B;margin-bottom:18px;">اعرض وعدّل ملفك الشخصي الكامل</div>
+      <button onclick="openMyFullProfile()" style="background:#1877F2;border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:800;padding:12px 32px;cursor:pointer;box-shadow:0 4px 14px rgba(24,119,242,0.35);">فتح ملفي الشخصي ←</button>
+    </div>
+
+    <!-- ── FRIENDS PANEL ── -->
+    <div id="socialPanel_friends" style="display:none;">
+      <div style="background:white;padding:14px 16px;margin-bottom:8px;">
+        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:12px;">طلبات الصداقة</div>
+        <div id="friendRequestsList" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+      <div style="background:white;padding:14px 16px;margin-bottom:8px;">
+        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:12px;">أصدقاؤك</div>
+        <div id="myFriendsList" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+      <div style="background:white;padding:14px 16px;">
+        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:12px;">أعضاء تعرفهم؟</div>
+        <div id="suggestedFriendsList" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+    </div>
+
+    <!-- ── GROUPS PANEL ── -->
+    <div id="socialPanel_groups" style="display:none;padding:14px;">
+      <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;">المجموعات</div>
+      <div id="groupsList" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <button onclick="createGroup()" style="width:100%;margin-top:14px;padding:13px;background:#1877F2;border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><span>+</span> إنشاء مجموعة جديدة</button>
+    </div>
+
+    <!-- ── PAGES PANEL ── -->
+    <div id="socialPanel_pages" style="display:none;padding:14px;">
+      <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;">الصفحات</div>
+      <div id="pagesList" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <button onclick="createPage()" style="width:100%;margin-top:14px;padding:13px;background:#1877F2;border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><span>+</span> إنشاء صفحة جديدة</button>
+    </div>
+
+  </div><!-- end scrollable -->
+
+  <!-- ── Bottom Tab Bar ── -->
+  <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-top:1px solid #E4E6EB;display:flex;z-index:10;box-shadow:0 -2px 10px rgba(0,0,0,0.07);">
+    <div id="sTab_home" onclick="switchSocialTab('home')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid #1877F2;transition:.2s;">
+      <span style="font-size:22px;">🏠</span>
+      <span style="font-size:10px;font-weight:800;color:#1877F2;">الرئيسية</span>
+    </div>
+    <div id="sTab_friends" onclick="switchSocialTab('friends')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
+      <span style="font-size:22px;">👥</span>
+      <span style="font-size:10px;font-weight:700;color:#65676B;">الأصدقاء</span>
+    </div>
+    <div id="sTab_groups" onclick="switchSocialTab('groups')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
+      <span style="font-size:22px;">📋</span>
+      <span style="font-size:10px;font-weight:700;color:#65676B;">مجموعات</span>
+    </div>
+    <div id="sTab_pages" onclick="switchSocialTab('pages')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
+      <span style="font-size:22px;">📄</span>
+      <span style="font-size:10px;font-weight:700;color:#65676B;">الصفحات</span>
+    </div>
+    <div id="sTab_myprofile" onclick="switchSocialTab('myprofile')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
+      <span style="font-size:22px;">👤</span>
+      <span style="font-size:10px;font-weight:700;color:#65676B;">صفحتي</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── نافذة إنشاء منشور اجتماعي ── -->
+<div id="socialCreatePostModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:5500;align-items:flex-end;justify-content:center;">
+  <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 28px;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;overflow:hidden;">
+    <div style="padding:14px 16px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;justify-content:space-between;">
+      <div onclick="closeSocialCreatePost()" style="width:30px;height:30px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;cursor:pointer;color:#050505;">✕</div>
+      <div style="font-size:16px;font-weight:900;color:#050505;">إنشاء منشور</div>
+      <button onclick="submitSocialPost()" style="background:#1877F2;border:none;border-radius:20px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;padding:7px 18px;cursor:pointer;">نشر</button>
+    </div>
+    <div style="padding:14px 16px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div id="scpAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;">👑</div>
+        <div>
+          <div id="scpName" style="font-size:14px;font-weight:900;color:#050505;"></div>
+          <div style="background:#F0F2F5;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;color:#65676B;margin-top:3px;display:inline-flex;align-items:center;gap:4px;">🌐 عام</div>
+        </div>
+      </div>
+      <div id="scpFeelBadge" style="display:none;background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;"></div>
+      <textarea id="scpTextInput" placeholder="بماذا تفكر؟" style="width:100%;border:none;background:transparent;color:#050505;font-family:'Tajawal',sans-serif;font-size:16px;outline:none;resize:none;min-height:100px;line-height:1.6;text-align:right;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <div id="scpImagePreview" style="display:none;border-radius:12px;overflow:hidden;margin-top:8px;position:relative;">
+        <img id="scpImagePreviewImg" style="width:100%;max-height:200px;object-fit:cover;">
+        <div onclick="document.getElementById('scpImagePreview').style.display='none';_scpImageData=null;" style="position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:white;">✕</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;padding:0 16px;flex-wrap:wrap;">
+      <label style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#F0F2F5;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;">
+        🖼️ صورة
+        <input type="file" accept="image/*" style="display:none;" onchange="handleScpImage(event)">
+      </label>
+      <div onclick="toggleScpFeeling()" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#F0F2F5;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;">😊 شعور/نشاط</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── نافذة الإشعارات الاجتماعية ── -->
+<div id="socialNotifsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:5600;align-items:flex-end;justify-content:center;">
+  <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 28px;animation:slideUp .3s ease both;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;">
+    <div style="padding:16px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="font-size:16px;font-weight:900;color:#050505;">🔔 الإشعارات</div>
+      <div onclick="document.getElementById('socialNotifsModal').style.display='none';" style="width:30px;height:30px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;font-weight:900;color:#65676B;">✕</div>
+    </div>
+    <div id="socialNotifsList" style="overflow-y:auto;flex:1;padding:10px 14px;"></div>
+  </div>
+</div>
+
+<!-- ── نافذة ملف شخصي عضو آخر ── -->
+<div id="memberProfileView" style="display:none;position:fixed;inset:0;z-index:5400;background:#F0F2F5;flex-direction:column;overflow-y:auto;">
+  <!-- Cover -->
+  <div style="width:100%;max-width:480px;margin:0 auto;position:relative;">
+    <div id="mpvCover" style="width:100%;height:180px;background:linear-gradient(135deg,#1877F2 0%,#00c853 60%,#a855f7 100%);position:relative;overflow:hidden;">
+      <div id="mpvCoverImg" style="width:100%;height:100%;background-size:cover;background-position:center;"></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,0.35));"></div>
+    </div>
+    <div onclick="closeMemberProfileView()" style="position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:white;font-weight:900;z-index:5;">✕</div>
+    <div style="position:absolute;bottom:-46px;right:14px;z-index:5;">
+      <div id="mpvAvatar" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:38px;border:4px solid white;overflow:hidden;">👑</div>
+    </div>
+  </div>
+  <div style="width:100%;max-width:480px;margin:0 auto;background:white;padding:54px 16px 14px;border-bottom:1px solid #E4E6EB;">
+    <div id="mpvName" style="font-size:20px;font-weight:900;color:#050505;margin-bottom:3px;"></div>
+    <div style="font-size:12px;color:#65676B;margin-bottom:14px;">عضو القادة المستقبليين • الجزائر 🇩🇿</div>
+    <div style="display:flex;gap:8px;">
+      <button id="mpvFriendBtn" onclick="handleMpvFriendAction()" style="flex:1;padding:9px;background:#1877F2;border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">👥 إضافة صديق</button>
+      <button onclick="closeMemberProfileView()" style="flex:1;padding:9px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">رجوع</button>
+    </div>
+  </div>
+  <div id="mpvPostsFeed" style="width:100%;max-width:480px;margin:8px auto 0;padding-bottom:40px;"></div>
+</div>
+
+<!-- MODAL: صفحتي – Facebook Style Profile -->
+<div id="digitalCard" style="display:none;position:fixed;inset:0;z-index:3000;background:#F0F2F5;overflow-y:auto;flex-direction:column;align-items:center;">
+
+  <!-- ── Cover Photo ── -->
+  <div id="profileCoverArea" style="width:100%;max-width:480px;margin:0 auto;position:relative;">
+    <div id="profileCover" style="width:100%;height:200px;background:linear-gradient(135deg,#1877F2 0%,#00c853 60%,#a855f7 100%);position:relative;overflow:hidden;cursor:pointer;" onclick="document.getElementById('coverPhotoInput').click()" title="تغيير صورة الغلاف">
+      <div id="profileCoverImg" style="width:100%;height:100%;background-size:cover;background-position:center;"></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,0.35));"></div>
+      <div style="position:absolute;bottom:10px;right:12px;background:rgba(0,0,0,0.45);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:white;">📷 تغيير الغلاف</div>
+    </div>
+    <input type="file" id="coverPhotoInput" accept="image/*" style="display:none;" onchange="handleCoverUpload(event)">
+
+    <!-- Close Button -->
+    <div onclick="hideMyProfile()" style="position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:white;font-weight:900;z-index:10;">✕</div>
+
+    <!-- ── Profile Avatar overlapping cover ── -->
+    <div style="position:absolute;bottom:-50px;right:16px;z-index:5;">
+      <div id="profilePageAvatar" onclick="document.getElementById('profilePhotoInput').click()" style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:44px;border:4px solid white;box-shadow:0 4px 16px rgba(0,0,0,0.25);cursor:pointer;overflow:hidden;position:relative;">👑
+        <div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:28px;height:28px;background:#1877F2;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid white;">📷</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Profile Info Header ── -->
+  <div style="width:100%;max-width:480px;margin:0 auto;background:white;padding:60px 16px 16px;border-bottom:1px solid #E4E6EB;position:relative;">
+    <div style="margin-bottom:6px;">
+      <div id="profilePageName" style="font-size:22px;font-weight:900;color:#050505;">…</div>
+      <div id="profilePageRole" style="font-size:13px;color:#1877F2;font-weight:700;margin-top:2px;">عضو القادة المستقبليين</div>
+    </div>
+    <div style="font-size:12px;color:#65676B;margin-bottom:14px;">Next Leaders DZ • الجزائر 🇩🇿</div>
+
+    <!-- Action Buttons -->
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button onclick="showBalanceModal()" style="flex:1;padding:8px;background:#1877F2;border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 8px rgba(24,119,242,0.35);">💰 رصيدك</button>
+      <button onclick="showProfileEditMenu()" style="flex:1;padding:8px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">✏️ تعديل الملف</button>
+    </div>
+
+    <!-- Quick Stats Bar -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;">
+      <div style="background:#F0F2F5;border-radius:10px;padding:10px 6px;text-align:center;">
+        <div id="ppStatPoints" style="font-size:18px;font-weight:900;color:#050505;">0</div>
+        <div style="font-size:10px;color:#65676B;font-weight:700;">النقاط</div>
+      </div>
+      <div style="background:#F0F2F5;border-radius:10px;padding:10px 6px;text-align:center;">
+        <div id="ppStatLevel" style="font-size:18px;font-weight:900;color:#1877F2;">1</div>
+        <div style="font-size:10px;color:#65676B;font-weight:700;">المستوى</div>
+      </div>
+      <div style="background:#F0F2F5;border-radius:10px;padding:10px 6px;text-align:center;">
+        <div id="ppStatBalance" style="font-size:16px;font-weight:900;color:#00c853;">0 دج</div>
+        <div style="font-size:10px;color:#65676B;font-weight:700;">الرصيد</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tab Bar ── -->
+  <div style="width:100%;max-width:480px;margin:0 auto;background:white;border-bottom:1px solid #E4E6EB;display:flex;sticky:top:0;position:sticky;top:0;z-index:10;">
+    <div id="ppTab_posts" onclick="switchProfileTab('posts')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:800;color:#1877F2;border-bottom:3px solid #1877F2;cursor:pointer;transition:.2s;">منشوراتي</div>
+    <div id="ppTab_info" onclick="switchProfileTab('info')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">معلومات</div>
+    <div id="ppTab_activity" onclick="switchProfileTab('activity')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">إنجازاتي</div>
+  </div>
+
+  <!-- ── Page Content ── -->
+  <div style="width:100%;max-width:480px;margin:0 auto;padding-bottom:40px;">
+
+    <!-- ── TAB: منشوراتي ── -->
+    <div id="ppPanel_posts">
+      <!-- Create Post Box -->
+      <div style="background:white;margin-top:8px;padding:12px 16px;border-bottom:8px solid #F0F2F5;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div id="postBoxAvatar" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden;">👑</div>
+          <div onclick="openCreatePost()" style="flex:1;background:#F0F2F5;border-radius:22px;padding:10px 16px;font-size:13px;color:#65676B;cursor:pointer;font-family:'Tajawal',sans-serif;">بماذا تفكر؟</div>
+        </div>
+        <div style="display:flex;border-top:1px solid #E4E6EB;padding-top:8px;gap:4px;">
+          <div onclick="openCreatePost('photo')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🖼️ صورة</div>
+          <div onclick="openCreatePost('feeling')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">😊 شعور</div>
+          <div onclick="openCreatePost('achievement')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F3425F;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🏆 إنجاز</div>
+        </div>
+      </div>
+
+      <!-- Posts Feed -->
+      <div id="profilePostsFeed" style="display:flex;flex-direction:column;gap:8px;padding-top:8px;"></div>
+    </div>
+
+    <!-- ── TAB: معلومات ── -->
+    <div id="ppPanel_info" style="display:none;">
+      <div style="background:white;margin-top:8px;padding:16px;">
+        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;">معلومات عنك</div>
+
+        <div style="background:#F7F8FA;border-radius:12px;padding:14px;margin-bottom:10px;">
+          <div style="font-size:12px;color:#65676B;font-weight:700;margin-bottom:8px;letter-spacing:.5px;">📌 الملف الشخصي</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:18px;">🏢</span>
+              <div><div style="font-size:13px;font-weight:800;color:#050505;">Next Leaders DZ</div><div style="font-size:11px;color:#65676B;">المنظمة</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:18px;">📍</span>
+              <div><div style="font-size:13px;font-weight:800;color:#050505;">الجزائر 🇩🇿</div><div style="font-size:11px;color:#65676B;">الموقع</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:18px;">🗓️</span>
+              <div><div style="font-size:13px;font-weight:800;color:#050505;" id="ppJoinDate">…</div><div style="font-size:11px;color:#65676B;">تاريخ الانضمام</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:18px;">🎯</span>
+              <div><div style="font-size:13px;font-weight:800;color:#050505;" id="ppMemberCode">…</div><div style="font-size:11px;color:#65676B;">رمز العضو</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:#F7F8FA;border-radius:12px;padding:14px;">
+          <div style="font-size:12px;color:#65676B;font-weight:700;margin-bottom:10px;letter-spacing:.5px;">📊 الإحصائيات</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
+              <div style="font-size:20px;margin-bottom:3px;">🏆</div>
+              <div id="ppInfoPoints" style="font-size:16px;font-weight:900;color:#050505;">0</div>
+              <div style="font-size:10px;color:#65676B;">إجمالي النقاط</div>
+            </div>
+            <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
+              <div style="font-size:20px;margin-bottom:3px;">⭐</div>
+              <div id="ppInfoLevel" style="font-size:16px;font-weight:900;color:#1877F2;">1</div>
+              <div style="font-size:10px;color:#65676B;">المستوى الحالي</div>
+            </div>
+            <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
+              <div style="font-size:20px;margin-bottom:3px;">💰</div>
+              <div id="ppInfoBalance" style="font-size:14px;font-weight:900;color:#00c853;">0 دج</div>
+              <div style="font-size:10px;color:#65676B;">رصيد قابل للسحب</div>
+            </div>
+            <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
+              <div style="font-size:20px;margin-bottom:3px;">🎯</div>
+              <div id="ppInfoQuiz" style="font-size:16px;font-weight:900;color:#a855f7;">0</div>
+              <div style="font-size:10px;color:#65676B;">نقاط الكويز</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: إنجازاتي ── -->
+    <div id="ppPanel_activity" style="display:none;">
+      <div style="background:white;margin-top:8px;padding:16px;">
+        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;">🏅 إنجازاتي وشاراتي</div>
+        <div id="profileBadgesGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
+      </div>
+      <!-- Progress Section -->
+      <div style="background:white;margin-top:8px;padding:16px;">
+        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:12px;">📈 تقدمك نحو المستوى التالي</div>
+        <div style="background:#F0F2F5;border-radius:12px;padding:14px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:12px;font-weight:700;color:#65676B;" id="ppProgressFrom">المستوى الحالي</span>
+            <span style="font-size:12px;font-weight:700;color:#1877F2;" id="ppProgressPct">0%</span>
+          </div>
+          <div style="height:8px;background:#E4E6EB;border-radius:10px;overflow:hidden;margin-bottom:8px;">
+            <div id="ppProgressBar" style="height:100%;background:linear-gradient(90deg,#1877F2,#00c853);width:0%;transition:width 1.5s ease;border-radius:10px;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:11px;color:#65676B;" id="ppProgressCurrent">0 نقطة</span>
+            <span style="font-size:11px;color:#65676B;" id="ppProgressNext">3000 نقطة</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── نافذة الرصيد (داخل صفحتي) ── -->
+<div id="balanceModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:4000;align-items:flex-end;justify-content:center;flex-direction:column;">
+  <div style="background:var(--surface);width:100%;max-width:480px;margin:0 auto;border-radius:28px 28px 0 0;padding:24px 20px 32px;border:1px solid var(--border);border-bottom:none;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;box-shadow:0 -20px 60px rgba(0,0,0,0.5);">
+    <div style="width:38px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 16px;"></div>
+    <div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:16px;text-align:center;">💳 رصيدك</div>
     <div class="bank-card">
       <div class="coin-container" id="coinContainer"></div>
       <div class="card-shine"></div>
@@ -1695,7 +2033,36 @@ body.member-mode #onlineBar{
       <span class="account-key">💎 الرصيد القابل للسحب</span>
       <span class="account-val green" id="cardBalance"></span>
     </div>
-    <button class="modal-close" onclick="hideModal('digitalCard')">إغلاق</button>
+    <button onclick="hideBalanceModal()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:13px;width:100%;border-radius:14px;font-family:'Tajawal',sans-serif;font-weight:700;font-size:14px;margin-top:16px;cursor:pointer;transition:.2s;">إغلاق</button>
+  </div>
+</div>
+
+<!-- ── نافذة إنشاء منشور ── -->
+<div id="createPostModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:4500;align-items:flex-end;justify-content:center;">
+  <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 28px;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;overflow:hidden;">
+    <div style="padding:16px 20px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:16px;font-weight:900;color:#050505;">إنشاء منشور</div>
+      <div onclick="closeCreatePost()" style="width:32px;height:32px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:900;color:#65676B;">✕</div>
+    </div>
+    <div style="padding:14px 20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div id="cpAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;">👑</div>
+        <div>
+          <div id="cpName" style="font-size:14px;font-weight:900;color:#050505;">…</div>
+          <div style="background:#E4E6EB;border-radius:6px;padding:2px 8px;font-size:11px;color:#65676B;display:inline-flex;align-items:center;gap:4px;margin-top:2px;">🌐 عام</div>
+        </div>
+      </div>
+      <div id="cpFeelBadge" style="display:none;background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;"></div>
+      <textarea id="postTextInput" placeholder="بماذا تفكر؟" style="width:100%;min-height:90px;border:none;outline:none;font-family:'Tajawal',sans-serif;font-size:15px;color:#050505;resize:none;background:transparent;text-align:right;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <div id="postImagePreview" style="display:none;margin-top:8px;border-radius:12px;overflow:hidden;"><img id="postImagePreviewImg" style="width:100%;max-height:180px;object-fit:cover;"></div>
+    </div>
+    <div style="padding:0 20px;display:flex;gap:8px;margin-bottom:12px;">
+      <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#F0F2F5;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;">🖼️ صورة<input type="file" accept="image/*" style="display:none;" onchange="handlePostImage(event)"></label>
+      <div onclick="togglePostFeeling()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#F0F2F5;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;">😊 شعور</div>
+    </div>
+    <div style="padding:0 20px;">
+      <button onclick="submitPost()" style="width:100%;padding:13px;background:#1877F2;border:none;border-radius:12px;color:white;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 4px 16px rgba(24,119,242,0.4);">نشر</button>
+    </div>
   </div>
 </div>
 
@@ -2297,9 +2664,9 @@ function buildGrid(isReg){
   const grid=document.getElementById('mainGrid');
   const lang = getCurrentLang() || 'ar';
   const labels = (langData[lang] && langData[lang].gridItems) ? langData[lang].gridItems :
-    ['رصيدك','جدول الترتيب','المنخرطون','المحادثات','انظم إلينا','المعرض','اجمع النقاط','النشاطات','فيسبوك'];
+    ['صفحتي','جدول الترتيب','المنخرطون','المحادثات','انظم إلينا','المعرض','اجمع النقاط','النشاطات','فيسبوك'];
   const items=[
-    ['💰', labels[0], 'bg-1',"showModal('digitalCard')", true ],
+    ['👤', labels[0], 'bg-1',"showMyProfile()", true ],
     ['🏆', labels[1], 'bg-2',"showModal('rankingCard')",  true ],
     ['👥', labels[2], 'bg-3',"showModal('membersCard')",  true],
     ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="white"><path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z"/></svg>', labels[3], 'bg-4',"openMessages()", true],
@@ -2396,17 +2763,371 @@ function showModal(id){
   if(id==='activitiesCard') loadActivities();
   if(id==='membersCard') loadMembers();
   if(id==='rankingCard') loadRanking();
-  if(id==='digitalCard'){startCoins();playGoldSound();}
   if(id==='quizCard')    loadQuiz();
   if(id==='adminModal'){
     loadAdminStats();
     adminRenderSentLog();
     adminLoadMembersSelect();
     adminRenderInbox();
-    adminRenderActivity(); // async - يُحدّث تلقائياً
+    adminRenderActivity();
   }
 }
 function hideModal(id){document.getElementById(id).style.display='none';}
+
+/* ===================================================================
+   👤 صفحتي – Facebook Style Profile
+   =================================================================== */
+
+let _postFeelingMode = false;
+let _postImageData = null;
+const _profilePostsKey = 'nld_profile_posts_';
+
+function showMyProfile(){
+  const name = getCurrentUser();
+  if(!name) return;
+  showSocialHome();
+}
+
+function openMyFullProfile(){
+  const name = getCurrentUser();
+  if(!name) return;
+  const el = document.getElementById('digitalCard');
+  if(el){ el.style.display='flex'; el.style.flexDirection='column'; }
+  updateProfilePageData(name);
+  renderProfilePosts(name);
+  renderProfileBadges(name);
+  switchProfileTab('posts');
+  const cover = localStorage.getItem('nld_cover_'+name.replace(/\s+/g,'_'));
+  const coverDiv = document.getElementById('profileCoverImg');
+  if(coverDiv && cover){ coverDiv.style.backgroundImage = 'url('+cover+')'; }
+  syncProfilePageAvatar(name);
+  const joinEl = document.getElementById('ppJoinDate');
+  if(joinEl){
+    const stored = localStorage.getItem('nld_joined_'+name.replace(/\s+/g,'_'));
+    if(!stored){ const d=new Date(); localStorage.setItem('nld_joined_'+name.replace(/\s+/g,'_'), d.toLocaleDateString('ar-DZ',{year:'numeric',month:'long'})); }
+    joinEl.innerText = localStorage.getItem('nld_joined_'+name.replace(/\s+/g,'_')) || new Date().toLocaleDateString('ar-DZ',{year:'numeric',month:'long'});
+  }
+  const codeEl = document.getElementById('ppMemberCode');
+  if(codeEl) codeEl.innerText = 'NLD-' + getMemberCode(name);
+}
+
+function hideMyProfile(){
+  const el = document.getElementById('digitalCard');
+  if(el) el.style.display='none';
+}
+
+function syncProfilePageAvatar(name){
+  const photo = getProfilePhoto ? getProfilePhoto(name) : null;
+  ['profilePageAvatar','postBoxAvatar','cpAvatar'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(photo){ el.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`; }
+    else{ el.innerHTML = getLeaderIcon(name) || '👑'; }
+  });
+}
+
+function updateProfilePageData(name){
+  const pts = _basePoints || 0;
+  const LEVEL_PTS = 3000;
+  const lv = Math.floor(pts/LEVEL_PTS)+1;
+  const ptsInLv = pts % LEVEL_PTS;
+  const bal = ((pts/50)*30).toFixed(2);
+  const quizPts = parseInt(localStorage.getItem(_earnedKey ? _earnedKey(name) : 'nld_earned_'+name)||'0');
+
+  const setTxt = (id,v) => { const e=document.getElementById(id); if(e) e.innerText=v; };
+  setTxt('profilePageName', name);
+  setTxt('ppStatPoints', pts.toLocaleString());
+  setTxt('ppStatLevel', lv);
+  setTxt('ppStatBalance', bal+' دج');
+  setTxt('ppInfoPoints', pts.toLocaleString());
+  setTxt('ppInfoLevel', lv);
+  setTxt('ppInfoBalance', bal+' دج');
+  setTxt('ppInfoQuiz', quizPts.toLocaleString());
+  setTxt('cpName', name);
+
+  // Progress bar
+  const pct = Math.min(Math.round((ptsInLv/LEVEL_PTS)*100), 100);
+  setTxt('ppProgressPct', pct+'%');
+  setTxt('ppProgressCurrent', ptsInLv.toLocaleString()+' نقطة');
+  setTxt('ppProgressNext', (lv*LEVEL_PTS).toLocaleString()+' نقطة');
+  setTxt('ppProgressFrom', 'المستوى '+lv+' → '+(lv+1));
+  setTimeout(()=>{
+    const bar = document.getElementById('ppProgressBar');
+    if(bar) bar.style.width = pct+'%';
+  }, 300);
+}
+
+function renderProfileBadges(name){
+  const pts = _basePoints || 0;
+  const lv = Math.floor(pts/3000)+1;
+  const quizPts = parseInt(localStorage.getItem(_earnedKey ? _earnedKey(name) : 'nld_earned_'+name)||'0');
+  const badges = [
+    { icon:'🌟', label:'عضو مسجّل', desc:'انضممت للتطبيق', earned:true },
+    { icon:'🎯', label:'مشارك الكويز', desc:'أجبت على أسئلة', earned:quizPts>0 },
+    { icon:'⭐', label:'المستوى '+lv, desc:'وصلت للمستوى '+lv, earned:lv>=1 },
+    { icon:'💎', label:'جامع النقاط', desc:'حصلت على نقاط', earned:pts>0 },
+    { icon:'🏆', label:'بطل النقاط', desc:'تجاوزت 500 نقطة', earned:pts>=500 },
+    { icon:'🔥', label:'المتميز', desc:'تجاوزت 1000 نقطة', earned:pts>=1000 },
+    { icon:'🚀', label:'القائد', desc:'تجاوزت 3000 نقطة', earned:pts>=3000 },
+    { icon:'👑', label:'الأسطورة', desc:'تجاوزت 5000 نقطة', earned:pts>=5000 },
+    { icon:'💡', label:'الفضولي', desc:'فتحت جميع الأقسام', earned:true },
+  ];
+  const grid = document.getElementById('profileBadgesGrid');
+  if(!grid) return;
+  grid.innerHTML = badges.map(b=>`
+    <div style="background:${b.earned?'white':'#F0F2F5'};border:1.5px solid ${b.earned?'#E4E6EB':'#E4E6EB'};border-radius:14px;padding:12px 6px;text-align:center;opacity:${b.earned?1:0.4};transition:.2s;" ${b.earned?'onmouseover="this.style.transform=\'translateY(-3px)\'"  onmouseout="this.style.transform=\'none\'"':''}>
+      <div style="font-size:24px;margin-bottom:5px;">${b.icon}</div>
+      <div style="font-size:10px;font-weight:900;color:#050505;line-height:1.3;">${b.label}</div>
+      <div style="font-size:9px;color:#65676B;margin-top:2px;line-height:1.3;">${b.desc}</div>
+      ${b.earned?'<div style="margin-top:4px;font-size:9px;color:#45BD62;font-weight:800;">✓ مكتسبة</div>':'<div style="margin-top:4px;font-size:9px;color:#BCC0C4;">مقفلة</div>'}
+    </div>
+  `).join('');
+}
+
+function switchProfileTab(tab){
+  ['posts','info','activity'].forEach(t=>{
+    const tabEl = document.getElementById('ppTab_'+t);
+    const panEl = document.getElementById('ppPanel_'+t);
+    if(tabEl){
+      tabEl.style.color = t===tab ? '#1877F2' : '#65676B';
+      tabEl.style.borderBottom = t===tab ? '3px solid #1877F2' : '3px solid transparent';
+      tabEl.style.fontWeight = t===tab ? '800' : '700';
+    }
+    if(panEl) panEl.style.display = t===tab ? 'block' : 'none';
+  });
+}
+
+function showBalanceModal(){
+  startCoins(); playGoldSound();
+  const bm = document.getElementById('balanceModal');
+  if(bm) bm.style.display = 'flex';
+}
+function hideBalanceModal(){
+  const bm = document.getElementById('balanceModal');
+  if(bm) bm.style.display = 'none';
+}
+
+function handleCoverUpload(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const data = e.target.result;
+    const name = getCurrentUser();
+    if(name) localStorage.setItem('nld_cover_'+name.replace(/\s+/g,'_'), data);
+    const coverDiv = document.getElementById('profileCoverImg');
+    if(coverDiv){ coverDiv.style.backgroundImage='url('+data+')'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+function showProfileEditMenu(){
+  const name = getCurrentUser();
+  const n = document.createElement('div');
+  n.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5000;display:flex;align-items:flex-end;justify-content:center;';
+  n.innerHTML=`<div style="background:white;width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:20px;animation:slideUp .3s ease;">
+    <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;text-align:center;">تعديل ملفك الشخصي</div>
+    <div onclick="document.getElementById('profilePhotoInput').click();this.closest('[style*=fixed]').remove();" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=''">📷 تغيير صورة الملف الشخصي</div>
+    <div onclick="document.getElementById('coverPhotoInput').click();this.closest('[style*=fixed]').remove();" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=''">🖼️ تغيير صورة الغلاف</div>
+    <div onclick="this.closest('[style*=fixed]').remove();" style="margin-top:8px;padding:12px;background:#F0F2F5;border-radius:12px;text-align:center;font-size:14px;font-weight:700;color:#65676B;cursor:pointer;">إلغاء</div>
+  </div>`;
+  n.onclick = e=>{ if(e.target===n) n.remove(); };
+  document.body.appendChild(n);
+}
+
+// ── منشورات الملف الشخصي ──
+function getProfilePostsKey(name){ return _profilePostsKey + name.replace(/\s+/g,'_'); }
+
+function renderProfilePosts(name){
+  const feed = document.getElementById('profilePostsFeed');
+  if(!feed) return;
+  const posts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
+  if(posts.length===0){
+    feed.innerHTML=`<div style="background:white;padding:30px 20px;text-align:center;margin:0 0 8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. شارك أول منشور!</div></div>`;
+    return;
+  }
+  feed.innerHTML = posts.slice().reverse().map((p,ri)=>{
+    const i = posts.length-1-ri;
+    const photo = getProfilePhoto ? getProfilePhoto(name) : null;
+    const avatarHtml = photo ? `<img src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;">${getLeaderIcon(name)}</div>`;
+    const postId = 'pp_'+name.replace(/\s+/g,'_')+'_'+i;
+    const reactions = p.reactions||{};
+    const totalReacts = Object.values(reactions).flat().length;
+    const myReact = Object.keys(reactions).find(r=>(reactions[r]||[]).includes(name));
+    const reactEmojis = ['👍','❤️','😂','😮','😢','😡'];
+    const comments = p.comments||[];
+    return `<div id="pppost_${postId}" style="background:white;padding:14px 16px;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        ${avatarHtml}
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:900;color:#050505;">${name}</div>
+          <div style="font-size:11px;color:#65676B;">${p.date} • 🌐</div>
+        </div>
+        <div onclick="deletePost('${name}',${i})" style="width:30px;height:30px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:#65676B;">🗑️</div>
+      </div>
+      ${p.feeling?`<div style="background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;">${p.feeling}</div>`:''}
+      ${p.text?`<div style="font-size:14px;color:#050505;line-height:1.6;margin-bottom:${p.image?'10px':'0'};text-align:right;">${p.text}</div>`:''}
+      ${p.image?`<div style="border-radius:12px;overflow:hidden;"><img src="${p.image}" style="width:100%;max-height:260px;object-fit:cover;display:block;"></div>`:''}
+      ${totalReacts>0||comments.length>0?`<div style="padding:6px 0;display:flex;justify-content:space-between;border-top:1px solid #F0F2F5;margin-top:8px;"><div style="font-size:12px;color:#65676B;">${totalReacts>0?getTopReactEmojis(reactions)+' '+totalReacts:''} ${totalReacts>0&&comments.length>0?'·':''} ${comments.length>0?comments.length+' تعليق':''}</div></div>`:''}
+      <div style="display:flex;border-top:1px solid #E4E6EB;margin-top:8px;padding-top:2px;gap:4px;">
+        <div style="position:relative;flex:1;">
+          <div onclick="toggleReactPicker('${postId}')" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:${myReact?'#1877F2':'#65676B'};transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+            ${myReact||'👍'} ${myReact?'معجب':'إعجاب'}
+          </div>
+          <div id="reactPicker_${postId}" style="display:none;position:absolute;bottom:40px;left:50%;transform:translateX(-50%);background:white;border-radius:30px;padding:8px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);display:flex;gap:8px;z-index:100;border:1px solid #E4E6EB;white-space:nowrap;">
+            ${reactEmojis.map(e=>`<span onclick="addProfilePostReaction('${name}',${i},'${e}')" style="font-size:24px;cursor:pointer;transition:.15s;display:inline-block;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`).join('')}
+          </div>
+        </div>
+        <div onclick="toggleComments('${postId}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">💬 تعليق</div>
+        <div onclick="shareProfilePost('${name}',${i})" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">↗️ مشاركة</div>
+      </div>
+      <div id="commentsSection_${postId}" style="display:none;padding:8px 0 4px;background:#FAFAFA;border-top:1px solid #F0F2F5;">
+        ${comments.map(c=>renderCommentItem(c)).join('')}
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+          <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;overflow:hidden;">${getLeaderIcon(name)}</div>
+          <div style="flex:1;background:#F0F2F5;border-radius:20px;display:flex;align-items:center;padding:0 10px 0 6px;">
+            <input id="commentInput_${postId}" type="text" placeholder="اكتب تعليقاً…" style="flex:1;border:none;background:transparent;padding:8px 0;font-family:'Tajawal',sans-serif;font-size:13px;color:#050505;outline:none;text-align:right;" onkeydown="if(event.key==='Enter'){submitProfileComment('${name}',${i},'${postId}');event.preventDefault();}">
+            <span onclick="submitProfileComment('${name}',${i},'${postId}')" style="cursor:pointer;font-size:15px;">➤</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addProfilePostReaction(ownerName, idx, emoji){
+  const viewer = getCurrentUser(); if(!viewer) return;
+  const posts = JSON.parse(localStorage.getItem(getProfilePostsKey(ownerName)) || '[]');
+  const post = posts[idx]; if(!post) return;
+  if(!post.reactions) post.reactions={};
+  Object.keys(post.reactions).forEach(e=>{ post.reactions[e]=(post.reactions[e]||[]).filter(u=>u!==viewer); });
+  if(!post.reactions[emoji]) post.reactions[emoji]=[];
+  if(!post.reactions[emoji].includes(viewer)){
+    post.reactions[emoji].push(viewer);
+    if(ownerName!==viewer) addSocialNotif(ownerName, `${viewer} تفاعل مع منشورك بـ ${emoji}`, emoji);
+  }
+  localStorage.setItem(getProfilePostsKey(ownerName), JSON.stringify(posts));
+  document.querySelectorAll('[id^="reactPicker_"]').forEach(el=>{ el.style.display='none'; });
+  renderProfilePosts(ownerName);
+}
+
+function submitProfileComment(ownerName, idx, postId){
+  const viewer = getCurrentUser(); if(!viewer) return;
+  const inp = document.getElementById('commentInput_'+postId);
+  const text = inp ? inp.value.trim() : ''; if(!text) return;
+  const posts = JSON.parse(localStorage.getItem(getProfilePostsKey(ownerName)) || '[]');
+  const post = posts[idx]; if(!post) return;
+  if(!post.comments) post.comments=[];
+  post.comments.push({ author:viewer, text, ts:Date.now() });
+  localStorage.setItem(getProfilePostsKey(ownerName), JSON.stringify(posts));
+  if(ownerName!==viewer) addSocialNotif(ownerName, `${viewer} علّق على منشورك: "${text.substring(0,30)}"`, '💬');
+  renderProfilePosts(ownerName);
+  setTimeout(()=>{
+    const section = document.getElementById('commentsSection_'+postId);
+    if(section) section.style.display='block';
+  },50);
+}
+
+function shareProfilePost(ownerName, idx){
+  const posts = JSON.parse(localStorage.getItem(getProfilePostsKey(ownerName)) || '[]');
+  const post = posts[idx]; if(!post) return;
+  const text = `${ownerName}: ${post.text||''}`;
+  if(navigator.share){ navigator.share({title:'Next Leaders DZ',text,url:window.location.href}).catch(()=>{}); }
+  else { navigator.clipboard.writeText(text).then(()=>showToast('تم النسخ 📋')).catch(()=>showToast('تمت المشاركة ↗️')); }
+}
+
+function togglePostLike(btn){
+  const liked = btn.dataset.liked === '1';
+  btn.dataset.liked = liked ? '0' : '1';
+  btn.innerHTML = liked ? '👍 إعجاب' : '❤️ معجب';
+  btn.style.color = liked ? '#65676B' : '#F3425F';
+}
+
+function deletePost(name, idx){
+  const posts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
+  posts.splice(idx,1);
+  localStorage.setItem(getProfilePostsKey(name), JSON.stringify(posts));
+  renderProfilePosts(name);
+}
+
+const _feelings = ['😊 سعيد','😍 متحمس','🔥 نشيط','💪 مصمم','🤩 رائع','🎉 منتصر','🧠 مفكر','😤 مجتهد','🌟 متألق'];
+let _feelingIdx = 0;
+function togglePostFeeling(){
+  _postFeelingMode = !_postFeelingMode;
+  _feelingIdx = (_feelingIdx+1) % _feelings.length;
+  const badge = document.getElementById('cpFeelBadge');
+  if(badge){
+    if(_postFeelingMode){ badge.style.display='inline-flex'; badge.innerText=_feelings[_feelingIdx]; }
+    else{ badge.style.display='none'; }
+  }
+}
+
+function handlePostImage(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    _postImageData = e.target.result;
+    const prev = document.getElementById('postImagePreview');
+    const img = document.getElementById('postImagePreviewImg');
+    if(prev && img){ img.src=_postImageData; prev.style.display='block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+function openCreatePost(type){
+  _postFeelingMode = false; _postImageData = null;
+  const modal = document.getElementById('createPostModal');
+  if(modal) modal.style.display='flex';
+  const textEl = document.getElementById('postTextInput');
+  if(textEl){ textEl.value=''; textEl.style.height='auto'; }
+  const prev = document.getElementById('postImagePreview');
+  if(prev) prev.style.display='none';
+  const badge = document.getElementById('cpFeelBadge');
+  if(badge) badge.style.display='none';
+  const name = getCurrentUser();
+  syncProfilePageAvatar(name);
+  if(type==='achievement'){
+    if(textEl) textEl.value='🏆 لقد حققت إنجازاً جديداً! ';
+    _postFeelingMode = true; _feelingIdx = 5;
+    if(badge){ badge.style.display='inline-flex'; badge.innerText=_feelings[5]; }
+  } else if(type==='feeling'){
+    _postFeelingMode = true;
+    if(badge){ badge.style.display='inline-flex'; badge.innerText=_feelings[0]; }
+  }
+}
+
+function closeCreatePost(){
+  const modal = document.getElementById('createPostModal');
+  if(modal) modal.style.display='none';
+}
+
+function submitPost(){
+  const name = getCurrentUser();
+  const text = (document.getElementById('postTextInput')||{}).value?.trim() || '';
+  if(!text && !_postImageData){ alert('اكتب شيئاً أو أضف صورة!'); return; }
+  const posts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
+  posts.push({
+    text, image: _postImageData,
+    feeling: _postFeelingMode ? _feelings[_feelingIdx] : null,
+    date: dateStr, ts: Date.now(), reactions:{}, comments:[]
+  });
+  localStorage.setItem(getProfilePostsKey(name), JSON.stringify(posts));
+  // نشر في الفيد العام أيضاً
+  const socialPosts = getSocialPosts();
+  socialPosts.push({
+    id: 'sp_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
+    author: name, text, image: _postImageData,
+    feeling: _postFeelingMode ? _feelings[_feelingIdx] : null,
+    date: dateStr, ts: Date.now(), reactions:{}, comments:[]
+  });
+  saveSocialPosts(socialPosts);
+  closeCreatePost();
+  renderProfilePosts(name);
+  switchProfileTab('posts');
+}
 
 /* ===== ADMIN CONFIG ===== */
 const ADMIN_EMAIL = 'smartkidslab13@gmail.com';
@@ -3571,6 +4292,8 @@ function handleProfilePhotoUpload(event){
       localStorage.setItem(_photoKey(name), data);
       // تحديث الأفاتار في الهيدر
       updateTopNavAvatar(name);
+      // تحديث الأفاتار في صفحتي
+      if(typeof syncProfilePageAvatar === 'function') syncProfilePageAvatar(name);
       showToast('✅ تم حفظ صورتك الشخصية!');
     };
     img.src = e.target.result;
@@ -3593,15 +4316,6 @@ function updateTopNavAvatar(name){
     if(photo){ mpa.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`; }
     else{ mpa.innerText=getLeaderIcon(name); }
   }
-}
-
-// دالة مساعدة لعرض توست
-function showToast(msg){
-  const t = document.createElement('div');
-  t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.4);border-radius:12px;padding:10px 18px;font-size:13px;font-weight:700;color:var(--accent);z-index:99999;font-family:Tajawal,sans-serif;backdrop-filter:blur(12px);transition:opacity .3s;';
-  t.innerText = msg;
-  document.body.appendChild(t);
-  setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2500);
 }
 
 // دالة لعرض أفاتار العضو مع صورته أو رمزه
@@ -5026,7 +5740,7 @@ const langData = {
     dashYear: '2026 – 2027',
     langPanelTitle: 'اللغة',
     flagLabel: '🇩🇿',
-    gridItems: ['رصيدك','جدول الترتيب','المنخرطون','المحادثات','انظم إلينا','المعرض','اجمع النقاط','النشاطات','فيسبوك'],
+    gridItems: ['صفحتي','جدول الترتيب','المنخرطون','المحادثات','انظم إلينا','المعرض','اجمع النقاط','النشاطات','فيسبوك'],
     chatPlaceholder: 'اكتب رسالة…',
     attachImage: 'صورة', attachVideo: 'فيديو', attachAudio: 'صوت', attachVoice: 'تسجيل صوتي',
   },
@@ -5048,7 +5762,7 @@ const langData = {
     dashYear: '2026 – 2027',
     langPanelTitle: 'Language',
     flagLabel: '🇬🇧',
-    gridItems: ['Balance','Leaderboard','Members','Messages','Join Us','Gallery','Earn Points','Activities','Facebook'],
+    gridItems: ['My Profile','Leaderboard','Members','Messages','Join Us','Gallery','Earn Points','Activities','Facebook'],
     chatPlaceholder: 'Write a message…',
     attachImage: 'Image', attachVideo: 'Video', attachAudio: 'Audio', attachVoice: 'Voice Note',
   },
@@ -5070,7 +5784,7 @@ const langData = {
     dashYear: '2026 – 2027',
     langPanelTitle: 'Idioma',
     flagLabel: '🇪🇸',
-    gridItems: ['Saldo','Clasificación','Miembros','Mensajes','Únete','Galería','Ganar Puntos','Actividades','Facebook'],
+    gridItems: ['Mi Perfil','Clasificación','Miembros','Mensajes','Únete','Galería','Ganar Puntos','Actividades','Facebook'],
     chatPlaceholder: 'Escribe un mensaje…',
     attachImage: 'Imagen', attachVideo: 'Video', attachAudio: 'Audio', attachVoice: 'Nota de voz',
   },
@@ -5240,6 +5954,728 @@ document.addEventListener('click', function(e){
   }
 });
 
+/* ═══════════════════════════════════════════════════════════════
+   🌐 الشبكة الاجتماعية – Next Leaders Social
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── مفاتيح التخزين ─── */
+const _socialPostsKey   = 'nld_social_posts';
+const _friendsKey       = n => 'nld_friends_' + n.replace(/\s+/g,'_');
+const _friendReqKey     = n => 'nld_freq_' + n.replace(/\s+/g,'_');
+const _profileVisitsKey = n => 'nld_visits_' + n.replace(/\s+/g,'_');
+const _groupsKey        = 'nld_groups';
+const _pagesKey         = 'nld_pages';
+const _socialNotifsKey  = n => 'nld_snotifs_' + n.replace(/\s+/g,'_');
+
+/* ─── مساعدات ─── */
+function getSocialPosts(){ return JSON.parse(localStorage.getItem(_socialPostsKey)||'[]'); }
+function saveSocialPosts(arr){ localStorage.setItem(_socialPostsKey, JSON.stringify(arr)); }
+function getFriends(name){ return JSON.parse(localStorage.getItem(_friendsKey(name))||'[]'); }
+function getFriendRequests(name){ return JSON.parse(localStorage.getItem(_friendReqKey(name))||'[]'); }
+function getSocialNotifs(name){ return JSON.parse(localStorage.getItem(_socialNotifsKey(name))||'[]'); }
+function addSocialNotif(toUser, msg, icon){
+  if(!toUser) return;
+  const notifs = getSocialNotifs(toUser);
+  notifs.unshift({ msg, icon: icon||'🔔', ts: Date.now() });
+  if(notifs.length>50) notifs.splice(50);
+  localStorage.setItem(_socialNotifsKey(toUser), JSON.stringify(notifs));
+  // تحديث الشارة إذا كان صاحب الملف مفتوحاً
+  const curUser = getCurrentUser();
+  if(toUser === curUser) refreshSocialNotifBadge();
+}
+function refreshSocialNotifBadge(){
+  const name = getCurrentUser();
+  if(!name) return;
+  const notifs = getSocialNotifs(name);
+  const badge = document.getElementById('socialNotifBadge');
+  if(!badge) return;
+  const unseen = notifs.filter(n=>!n.seen).length;
+  if(unseen>0){
+    badge.style.display='flex';
+    badge.innerText = unseen > 9 ? '9+' : String(unseen);
+  } else {
+    badge.style.display='none';
+  }
+}
+
+/* ─── فتح / إغلاق الصفحة الاجتماعية ─── */
+function showSocialHome(){
+  const el = document.getElementById('socialHomeCard');
+  if(el){ el.style.display='flex'; }
+  const name = getCurrentUser();
+  if(!name) return;
+  // مزامنة الأفاتار
+  syncSocialAvatar(name);
+  const scpNameEl = document.getElementById('scpName');
+  if(scpNameEl) scpNameEl.innerText = name;
+  switchSocialTab('home');
+  refreshSocialNotifBadge();
+}
+
+function hideSocialHome(){
+  const el = document.getElementById('socialHomeCard');
+  if(el) el.style.display='none';
+}
+
+function syncSocialAvatar(name){
+  if(!name) return;
+  const photo = typeof getProfilePhoto === 'function' ? getProfilePhoto(name) : null;
+  ['socialPostAvatar','scpAvatar'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(photo){ el.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`; }
+    else{ el.innerHTML = (typeof getLeaderIcon==='function'?getLeaderIcon(name):'👑'); }
+  });
+}
+
+/* ─── التنقل بين تبويبات الصفحة الاجتماعية ─── */
+const _socialTabs = ['home','friends','groups','pages','myprofile'];
+function switchSocialTab(tab){
+  _socialTabs.forEach(t=>{
+    const tabEl = document.getElementById('sTab_'+t);
+    const panEl = document.getElementById('socialPanel_'+t);
+    const active = t===tab;
+    if(tabEl){
+      tabEl.querySelector('span:last-child').style.color = active ? '#1877F2' : '#65676B';
+      tabEl.style.borderBottom = active ? '3px solid #1877F2' : '3px solid transparent';
+    }
+    if(panEl) panEl.style.display = active ? 'block' : 'none';
+  });
+  // تحميل محتوى التبويب
+  if(tab==='home')      renderSocialFeed();
+  if(tab==='friends')   renderFriendsPanel();
+  if(tab==='groups')    renderGroupsPanel();
+  if(tab==='pages')     renderPagesPanel();
+  // إعادة تعيين التمرير
+  const scroll = document.getElementById('socialMainScroll');
+  if(scroll) scroll.scrollTop = 0;
+}
+
+/* ══════════════════════════════════════════
+   📰 الفيد الاجتماعي (كل المنشورات)
+   ══════════════════════════════════════════ */
+function renderSocialFeed(){
+  const container = document.getElementById('socialFeedContainer');
+  if(!container) return;
+  const posts = getSocialPosts();
+  if(posts.length===0){
+    container.innerHTML=`<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. كن أول من ينشر!</div></div>`;
+    return;
+  }
+  container.innerHTML = posts.slice().reverse().map(p => renderSocialPostCard(p)).join('');
+}
+
+function renderSocialPostCard(p){
+  const name = getCurrentUser();
+  const photo = typeof getProfilePhoto==='function' ? getProfilePhoto(p.author) : null;
+  const avatarHtml = photo
+    ? `<img src="${photo}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;cursor:pointer;" onclick="viewMemberProfile('${p.author}')">`
+    : `<div onclick="viewMemberProfile('${p.author}')" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;">${typeof getLeaderIcon==='function'?getLeaderIcon(p.author):'👑'}</div>`;
+
+  const reactions = p.reactions || {};
+  const allReactors = Object.values(reactions).flat();
+  const totalReacts = allReactors.length;
+  const myReact = Object.keys(reactions).find(r=> (reactions[r]||[]).includes(name));
+  const reactEmojis = ['👍','❤️','😂','😮','😢','😡'];
+
+  const comments = p.comments || [];
+
+  const isOwner = p.author === name;
+
+  return `<div id="spost_${p.id}" style="background:white;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+    <div style="padding:12px 14px 8px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        ${avatarHtml}
+        <div style="flex:1;">
+          <div onclick="viewMemberProfile('${p.author}')" style="font-size:14px;font-weight:900;color:#050505;cursor:pointer;">${p.author}</div>
+          <div style="font-size:11px;color:#65676B;">${p.date} • 🌐</div>
+        </div>
+        ${isOwner ? `<div onclick="deleteSocialPost('${p.id}')" style="width:30px;height:30px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;" title="حذف">🗑️</div>` : ''}
+      </div>
+      ${p.feeling ? `<div style="background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;">${p.feeling}</div>` : ''}
+      ${p.text ? `<div style="font-size:14px;color:#050505;line-height:1.6;margin-bottom:${p.image?'10px':'0'};text-align:right;">${p.text}</div>` : ''}
+      ${p.image ? `<div style="border-radius:12px;overflow:hidden;margin:8px -14px 0;"><img src="${p.image}" style="width:100%;max-height:300px;object-fit:cover;display:block;"></div>` : ''}
+    </div>
+
+    <!-- إحصائيات التفاعل -->
+    ${totalReacts>0 || comments.length>0 ? `<div style="padding:6px 14px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #F0F2F5;">
+      <div style="font-size:12px;color:#65676B;">${totalReacts>0?`<span>${getTopReactEmojis(reactions)} ${totalReacts}</span>`:''}${totalReacts>0&&comments.length>0?' · ':''} ${comments.length>0?`${comments.length} تعليق`:''}</div>
+    </div>` : ''}
+
+    <!-- أزرار التفاعل -->
+    <div style="display:flex;border-top:1px solid #E4E6EB;padding:2px 4px;">
+      <div style="position:relative;flex:1;">
+        <div onclick="toggleReactPicker('${p.id}')" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:${myReact?'#1877F2':'#65676B'};transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+          ${myReact||'👍'} ${myReact?'معجب':'إعجاب'}
+        </div>
+        <div id="reactPicker_${p.id}" style="display:none;position:absolute;bottom:44px;left:50%;transform:translateX(-50%);background:white;border-radius:30px;padding:8px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);display:flex;gap:8px;z-index:100;border:1px solid #E4E6EB;white-space:nowrap;">
+          ${reactEmojis.map(e=>`<span onclick="addReaction('${p.id}','${e}')" style="font-size:26px;cursor:pointer;transition:.15s;display:inline-block;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`).join('')}
+        </div>
+      </div>
+      <div onclick="toggleComments('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">💬 تعليق</div>
+      <div onclick="sharePost('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">↗️ مشاركة</div>
+    </div>
+
+    <!-- قسم التعليقات -->
+    <div id="commentsSection_${p.id}" style="display:none;padding:8px 14px 12px;background:#FAFAFA;border-top:1px solid #F0F2F5;">
+      ${comments.map(c=>renderCommentItem(c)).join('')}
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+        <div id="commentAvatar_${p.id}" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;overflow:hidden;">${typeof getLeaderIcon==='function'?getLeaderIcon(name||'?'):'👑'}</div>
+        <div style="flex:1;background:#F0F2F5;border-radius:20px;display:flex;align-items:center;padding:0 12px 0 6px;">
+          <input id="commentInput_${p.id}" type="text" placeholder="اكتب تعليقاً…" style="flex:1;border:none;background:transparent;padding:9px 0;font-family:'Tajawal',sans-serif;font-size:13px;color:#050505;outline:none;text-align:right;" onkeydown="if(event.key==='Enter'){submitComment('${p.id}');event.preventDefault();}">
+          <span onclick="submitComment('${p.id}')" style="cursor:pointer;font-size:16px;padding:4px 4px;">➤</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderCommentItem(c){
+  return `<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;">
+    <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(c.author||'?'):'👑'}</div>
+    <div style="background:white;border-radius:16px;padding:8px 12px;flex:1;border:1px solid #E4E6EB;">
+      <div style="font-size:12px;font-weight:900;color:#050505;margin-bottom:2px;">${c.author}</div>
+      <div style="font-size:13px;color:#050505;line-height:1.5;">${c.text}</div>
+    </div>
+  </div>`;
+}
+
+function getTopReactEmojis(reactions){
+  const totals = Object.entries(reactions).map(([e,a])=>({e,count:a.length})).sort((a,b)=>b.count-a.count);
+  return totals.slice(0,3).map(r=>r.e).join('');
+}
+
+function toggleReactPicker(postId){
+  const picker = document.getElementById('reactPicker_'+postId);
+  if(!picker) return;
+  const isVisible = picker.style.display !== 'none' && picker.style.display !== '';
+  // إخفاء جميع الـ pickers الأخرى
+  document.querySelectorAll('[id^="reactPicker_"]').forEach(el=>{ el.style.display='none'; });
+  picker.style.display = isVisible ? 'none' : 'flex';
+}
+
+function addReaction(postId, emoji){
+  const name = getCurrentUser();
+  if(!name) return;
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  if(!post.reactions) post.reactions = {};
+  // إزالة التفاعل السابق
+  Object.keys(post.reactions).forEach(e=>{
+    post.reactions[e] = (post.reactions[e]||[]).filter(u=>u!==name);
+  });
+  // إضافة التفاعل الجديد (أو إلغاؤه إذا هو نفس القديم)
+  if(!post.reactions[emoji]) post.reactions[emoji]=[];
+  const alreadyReacted = post.reactions[emoji].includes(name);
+  if(!alreadyReacted){
+    post.reactions[emoji].push(name);
+    // إشعار لصاحب المنشور
+    if(post.author !== name) addSocialNotif(post.author, `${name} تفاعل مع منشورك بـ ${emoji}`, emoji);
+  }
+  saveSocialPosts(posts);
+  // إخفاء picker وتحديث الكارت
+  document.querySelectorAll('[id^="reactPicker_"]').forEach(el=>{ el.style.display='none'; });
+  refreshPostCard(postId);
+}
+
+function toggleComments(postId){
+  const section = document.getElementById('commentsSection_'+postId);
+  if(!section) return;
+  const isOpen = section.style.display !== 'none';
+  section.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    const inp = document.getElementById('commentInput_'+postId);
+    if(inp) inp.focus();
+    // مزامنة الأفاتار
+    const name = getCurrentUser();
+    if(name){
+      const photo = typeof getProfilePhoto==='function' ? getProfilePhoto(name) : null;
+      const avatarEl = document.getElementById('commentAvatar_'+postId);
+      if(avatarEl && photo){ avatarEl.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`; }
+    }
+  }
+}
+
+function submitComment(postId){
+  const name = getCurrentUser();
+  if(!name) return;
+  const inp = document.getElementById('commentInput_'+postId);
+  const text = inp ? inp.value.trim() : '';
+  if(!text) return;
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  if(!post.comments) post.comments=[];
+  post.comments.push({ author:name, text, ts:Date.now() });
+  saveSocialPosts(posts);
+  if(inp) inp.value='';
+  // إشعار لصاحب المنشور
+  if(post.author !== name) addSocialNotif(post.author, `${name} علّق على منشورك: "${text.substring(0,30)}…"`, '💬');
+  refreshPostCard(postId);
+  // إبقاء قسم التعليقات مفتوحاً
+  const section = document.getElementById('commentsSection_'+postId);
+  if(section) section.style.display = 'block';
+}
+
+function sharePost(postId){
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  const text = `${post.author}: ${post.text||''}`;
+  if(navigator.share){
+    navigator.share({ title:'Next Leaders DZ', text, url: window.location.href }).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(text).then(()=>{
+      showToast('تم نسخ المنشور 📋');
+    }).catch(()=>{
+      showToast('تم مشاركة المنشور ↗️');
+    });
+  }
+}
+
+function refreshPostCard(postId){
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  const cardEl = document.getElementById('spost_'+postId);
+  if(cardEl){ cardEl.outerHTML = renderSocialPostCard(post); }
+}
+
+function deleteSocialPost(postId){
+  if(!confirm('هل تريد حذف هذا المنشور؟')) return;
+  let posts = getSocialPosts();
+  posts = posts.filter(p=>p.id!==postId);
+  saveSocialPosts(posts);
+  renderSocialFeed();
+}
+
+/* ── إنشاء منشور اجتماعي ── */
+let _scpFeelingMode = false;
+let _scpImageData = null;
+const _scpFeelings = ['😊 سعيد','😍 متحمس','🔥 نشيط','💪 مصمم','🤩 رائع','🎉 منتصر','🧠 مفكر','😤 مجتهد','🌟 متألق'];
+let _scpFeelingIdx = 0;
+
+function openSocialCreatePost(type){
+  _scpFeelingMode = false; _scpImageData = null;
+  const modal = document.getElementById('socialCreatePostModal');
+  if(modal) modal.style.display='flex';
+  const textEl = document.getElementById('scpTextInput');
+  if(textEl){ textEl.value=''; textEl.style.height='auto'; }
+  const prev = document.getElementById('scpImagePreview');
+  if(prev) prev.style.display='none';
+  const badge = document.getElementById('scpFeelBadge');
+  if(badge) badge.style.display='none';
+  const name = getCurrentUser();
+  if(name) syncSocialAvatar(name);
+  if(type==='achievement'){
+    if(textEl) textEl.value='🏆 لقد حققت إنجازاً جديداً! ';
+    _scpFeelingMode = true; _scpFeelingIdx = 5;
+    if(badge){ badge.style.display='inline-flex'; badge.innerText=_scpFeelings[5]; }
+  } else if(type==='feeling'){
+    _scpFeelingMode = true;
+    if(badge){ badge.style.display='inline-flex'; badge.innerText=_scpFeelings[0]; }
+  }
+}
+function closeSocialCreatePost(){
+  const modal = document.getElementById('socialCreatePostModal');
+  if(modal) modal.style.display='none';
+}
+function toggleScpFeeling(){
+  _scpFeelingMode = !_scpFeelingMode;
+  _scpFeelingIdx = (_scpFeelingIdx+1) % _scpFeelings.length;
+  const badge = document.getElementById('scpFeelBadge');
+  if(badge){
+    if(_scpFeelingMode){ badge.style.display='inline-flex'; badge.innerText=_scpFeelings[_scpFeelingIdx]; }
+    else { badge.style.display='none'; }
+  }
+}
+function handleScpImage(event){
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    _scpImageData = e.target.result;
+    const prev = document.getElementById('scpImagePreview');
+    const img  = document.getElementById('scpImagePreviewImg');
+    if(prev && img){ img.src=_scpImageData; prev.style.display='block'; }
+  };
+  reader.readAsDataURL(file);
+}
+function submitSocialPost(){
+  const name = getCurrentUser();
+  const text = (document.getElementById('scpTextInput')||{}).value?.trim() || '';
+  if(!text && !_scpImageData){ alert('اكتب شيئاً أو أضف صورة!'); return; }
+  const posts = getSocialPosts();
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
+  const newPost = {
+    id: 'sp_' + Date.now() + '_' + Math.random().toString(36).substr(2,5),
+    author: name,
+    text,
+    image: _scpImageData,
+    feeling: _scpFeelingMode ? _scpFeelings[_scpFeelingIdx] : null,
+    date: dateStr,
+    ts: Date.now(),
+    reactions: {},
+    comments: []
+  };
+  posts.push(newPost);
+  saveSocialPosts(posts);
+  // حفظ أيضاً في منشورات الملف الشخصي
+  const profilePosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
+  profilePosts.push({ text, image: _scpImageData, feeling: _scpFeelingMode ? _scpFeelings[_scpFeelingIdx] : null, date: dateStr, ts: Date.now() });
+  localStorage.setItem(getProfilePostsKey(name), JSON.stringify(profilePosts));
+  closeSocialCreatePost();
+  renderSocialFeed();
+  showToast('تم نشر منشورك ✅');
+}
+
+/* ══════════════════════════════════════════
+   👥 الأصدقاء
+   ══════════════════════════════════════════ */
+function renderFriendsPanel(){
+  const name = getCurrentUser(); if(!name) return;
+  const myFriends = getFriends(name);
+  const myRequests = getFriendRequests(name);
+
+  // طلبات الصداقة الواردة
+  const reqEl = document.getElementById('friendRequestsList');
+  if(reqEl){
+    if(myRequests.length===0){
+      reqEl.innerHTML=`<div style="font-size:13px;color:#65676B;text-align:center;padding:10px;">لا توجد طلبات صداقة</div>`;
+    } else {
+      reqEl.innerHTML = myRequests.map(req=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#F7F8FA;border-radius:12px;">
+          <div onclick="viewMemberProfile('${req.from}')" style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(req.from):'👑'}</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:900;color:#050505;">${req.from}</div>
+            <div style="font-size:11px;color:#65676B;">أرسل لك طلب صداقة</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="acceptFriendRequest('${req.from}')" style="padding:7px 12px;background:#1877F2;border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">قبول</button>
+            <button onclick="declineFriendRequest('${req.from}')" style="padding:7px 12px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">رفض</button>
+          </div>
+        </div>`).join('');
+    }
+  }
+
+  // الأصدقاء الحاليين
+  const friendsEl = document.getElementById('myFriendsList');
+  if(friendsEl){
+    if(myFriends.length===0){
+      friendsEl.innerHTML=`<div style="font-size:13px;color:#65676B;text-align:center;padding:10px;">لا يوجد أصدقاء بعد</div>`;
+    } else {
+      friendsEl.innerHTML = myFriends.map(f=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#F7F8FA;border-radius:12px;">
+          <div onclick="viewMemberProfile('${f}')" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(f):'👑'}</div>
+          <div onclick="viewMemberProfile('${f}')" style="flex:1;cursor:pointer;">
+            <div style="font-size:14px;font-weight:900;color:#050505;">${f}</div>
+            <div style="font-size:11px;color:#65676B;">صديق</div>
+          </div>
+          <button onclick="removeFriend('${f}')" style="padding:6px 10px;background:#E4E6EB;border:none;border-radius:8px;color:#65676B;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">إزالة</button>
+        </div>`).join('');
+    }
+  }
+
+  // اقتراحات الصداقة – من المنشورات
+  renderSuggestedFriends();
+}
+
+function renderSuggestedFriends(){
+  const name = getCurrentUser(); if(!name) return;
+  const myFriends = getFriends(name);
+  const myRequests = getFriendRequests(name);
+  const sentKeys = Object.keys(localStorage).filter(k=>k.startsWith('nld_freq_'));
+  const posts = getSocialPosts();
+  // جمع كل الكتّاب
+  const allAuthors = [...new Set(posts.map(p=>p.author))].filter(a=>a!==name && !myFriends.includes(a));
+  const el = document.getElementById('suggestedFriendsList');
+  if(!el) return;
+  if(allAuthors.length===0){
+    el.innerHTML=`<div style="font-size:13px;color:#65676B;text-align:center;padding:10px;">لا توجد اقتراحات حالياً</div>`;
+    return;
+  }
+  el.innerHTML = allAuthors.slice(0,6).map(a=>{
+    const alreadySent = (JSON.parse(localStorage.getItem(_friendReqKey(a))||'[]')).some(r=>r.from===name);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#F7F8FA;border-radius:12px;">
+      <div onclick="viewMemberProfile('${a}')" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(a):'👑'}</div>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:900;color:#050505;">${a}</div>
+        <div style="font-size:11px;color:#65676B;">عضو في المجموعة</div>
+      </div>
+      <button onclick="sendFriendRequest('${a}')" id="frBtn_${a.replace(/\s+/g,'_')}" style="padding:7px 12px;background:${alreadySent?'#E4E6EB':'#1877F2'};border:none;border-radius:8px;color:${alreadySent?'#65676B':'white'};font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">${alreadySent?'تم الإرسال':'إضافة'}</button>
+    </div>`;
+  }).join('');
+}
+
+function sendFriendRequest(toUser){
+  const name = getCurrentUser(); if(!name || name===toUser) return;
+  const reqs = JSON.parse(localStorage.getItem(_friendReqKey(toUser))||'[]');
+  if(reqs.some(r=>r.from===name)){ showToast('تم إرسال الطلب مسبقاً'); return; }
+  reqs.push({ from:name, ts:Date.now() });
+  localStorage.setItem(_friendReqKey(toUser), JSON.stringify(reqs));
+  addSocialNotif(toUser, `${name} أرسل لك طلب صداقة 👥`, '👥');
+  showToast('تم إرسال طلب الصداقة ✅');
+  renderFriendsPanel();
+  // تحديث زر في ملف العضو
+  updateMpvFriendBtn(toUser);
+}
+
+function acceptFriendRequest(fromUser){
+  const name = getCurrentUser(); if(!name) return;
+  // إزالة من الطلبات
+  let reqs = JSON.parse(localStorage.getItem(_friendReqKey(name))||'[]');
+  reqs = reqs.filter(r=>r.from!==fromUser);
+  localStorage.setItem(_friendReqKey(name), JSON.stringify(reqs));
+  // إضافة للأصدقاء (طرفين)
+  const myFriends = getFriends(name);
+  if(!myFriends.includes(fromUser)){ myFriends.push(fromUser); localStorage.setItem(_friendsKey(name), JSON.stringify(myFriends)); }
+  const theirFriends = getFriends(fromUser);
+  if(!theirFriends.includes(name)){ theirFriends.push(name); localStorage.setItem(_friendsKey(fromUser), JSON.stringify(theirFriends)); }
+  addSocialNotif(fromUser, `${name} قبل طلب صداقتك! أنتما الآن أصدقاء 🎉`, '🎉');
+  showToast('تمت إضافة الصديق ✅');
+  renderFriendsPanel();
+}
+
+function declineFriendRequest(fromUser){
+  const name = getCurrentUser(); if(!name) return;
+  let reqs = JSON.parse(localStorage.getItem(_friendReqKey(name))||'[]');
+  reqs = reqs.filter(r=>r.from!==fromUser);
+  localStorage.setItem(_friendReqKey(name), JSON.stringify(reqs));
+  renderFriendsPanel();
+}
+
+function removeFriend(friendName){
+  const name = getCurrentUser(); if(!name) return;
+  let myFriends = getFriends(name).filter(f=>f!==friendName);
+  localStorage.setItem(_friendsKey(name), JSON.stringify(myFriends));
+  let theirFriends = getFriends(friendName).filter(f=>f!==name);
+  localStorage.setItem(_friendsKey(friendName), JSON.stringify(theirFriends));
+  renderFriendsPanel();
+}
+
+/* ══════════════════════════════════════════
+   👤 مشاهدة ملف شخصي عضو آخر
+   ══════════════════════════════════════════ */
+let _mpvCurrentUser = null;
+function viewMemberProfile(memberName){
+  const myName = getCurrentUser();
+  _mpvCurrentUser = memberName;
+
+  // تسجيل الزيارة وإشعار صاحب الملف
+  if(myName && myName !== memberName){
+    const visits = JSON.parse(localStorage.getItem(_profileVisitsKey(memberName))||'[]');
+    // تجنب التكرار في نفس الجلسة
+    const lastVisit = visits.find(v=>v.visitor===myName);
+    const now = Date.now();
+    if(!lastVisit || (now - lastVisit.ts) > 3600000){ // كل ساعة
+      visits.unshift({ visitor: myName, ts: now });
+      if(visits.length>100) visits.splice(100);
+      localStorage.setItem(_profileVisitsKey(memberName), JSON.stringify(visits));
+      addSocialNotif(memberName, `${myName} زار ملفك الشخصي 👀`, '👀');
+    }
+  }
+
+  const el = document.getElementById('memberProfileView');
+  if(el) el.style.display = 'flex';
+
+  // بيانات الأفاتار والغلاف
+  const photo = typeof getProfilePhoto==='function' ? getProfilePhoto(memberName) : null;
+  const avatarEl = document.getElementById('mpvAvatar');
+  if(avatarEl){
+    if(photo){ avatarEl.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`; }
+    else{ avatarEl.innerHTML = typeof getLeaderIcon==='function'?getLeaderIcon(memberName):'👑'; }
+  }
+  const cover = localStorage.getItem('nld_cover_'+memberName.replace(/\s+/g,'_'));
+  const coverImg = document.getElementById('mpvCoverImg');
+  if(coverImg){ coverImg.style.backgroundImage = cover ? 'url('+cover+')' : ''; }
+
+  const nameEl = document.getElementById('mpvName');
+  if(nameEl) nameEl.innerText = memberName;
+
+  // زر الصداقة
+  updateMpvFriendBtn(memberName);
+
+  // منشورات العضو
+  renderMpvPosts(memberName);
+}
+
+function updateMpvFriendBtn(memberName){
+  const name = getCurrentUser(); if(!name) return;
+  const btn = document.getElementById('mpvFriendBtn');
+  if(!btn) return;
+  if(memberName === name){
+    btn.style.display='none'; return;
+  }
+  btn.style.display='';
+  const myFriends = getFriends(name);
+  const alreadySent = (JSON.parse(localStorage.getItem(_friendReqKey(memberName))||'[]')).some(r=>r.from===name);
+  if(myFriends.includes(memberName)){
+    btn.innerText='✅ أصدقاء';
+    btn.style.background='#E4E6EB'; btn.style.color='#050505';
+  } else if(alreadySent){
+    btn.innerText='⏳ تم الإرسال';
+    btn.style.background='#E4E6EB'; btn.style.color='#65676B';
+  } else {
+    btn.innerText='👥 إضافة صديق';
+    btn.style.background='#1877F2'; btn.style.color='white';
+  }
+}
+
+function handleMpvFriendAction(){
+  if(!_mpvCurrentUser) return;
+  const name = getCurrentUser(); if(!name) return;
+  const myFriends = getFriends(name);
+  if(myFriends.includes(_mpvCurrentUser)){
+    removeFriend(_mpvCurrentUser);
+    updateMpvFriendBtn(_mpvCurrentUser);
+  } else {
+    sendFriendRequest(_mpvCurrentUser);
+  }
+}
+
+function renderMpvPosts(memberName){
+  const feed = document.getElementById('mpvPostsFeed');
+  if(!feed) return;
+  // جمع منشورات هذا العضو من الفيد العام
+  const allPosts = getSocialPosts().filter(p=>p.author===memberName);
+  // أيضاً من منشورات الملف الشخصي القديمة
+  const profilePosts = JSON.parse(localStorage.getItem(getProfilePostsKey(memberName)) || '[]');
+  if(allPosts.length===0 && profilePosts.length===0){
+    feed.innerHTML=`<div style="background:white;padding:28px 20px;text-align:center;margin-bottom:8px;"><div style="font-size:40px;margin-bottom:10px;">✍️</div><div style="font-size:13px;color:#65676B;">لا توجد منشورات بعد</div></div>`;
+    return;
+  }
+  feed.innerHTML = allPosts.slice().reverse().map(p=>renderSocialPostCard(p)).join('');
+}
+
+function closeMemberProfileView(){
+  const el = document.getElementById('memberProfileView');
+  if(el) el.style.display='none';
+  _mpvCurrentUser = null;
+}
+
+/* ══════════════════════════════════════════
+   📋 المجموعات
+   ══════════════════════════════════════════ */
+const _defaultGroups = [
+  { id:'g1', name:'القادة المستقبليون 🌟', desc:'المجموعة الرسمية للأعضاء', members:[], icon:'🌟', cover:'linear-gradient(135deg,#1877F2,#a855f7)' },
+  { id:'g2', name:'تحديات وإنجازات 🏆', desc:'شاركنا إنجازاتك وانتصاراتك', members:[], icon:'🏆', cover:'linear-gradient(135deg,#f5c518,#f97316)' },
+  { id:'g3', name:'التعلم والتطوير 📚', desc:'مصادر تعليمية وتطوير مهاري', members:[], icon:'📚', cover:'linear-gradient(135deg,#11998e,#38ef7d)' },
+];
+function getGroups(){
+  const stored = localStorage.getItem(_groupsKey);
+  if(!stored) return _defaultGroups;
+  return JSON.parse(stored);
+}
+function renderGroupsPanel(){
+  const groups = getGroups();
+  const el = document.getElementById('groupsList');
+  if(!el) return;
+  el.innerHTML = groups.map(g=>`
+    <div onclick="openGroupView('${g.id}')" style="background:white;border-radius:14px;overflow:hidden;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+      <div style="height:70px;background:${g.cover||'#1877F2'};display:flex;align-items:center;justify-content:center;font-size:32px;">${g.icon||'👥'}</div>
+      <div style="padding:10px 12px;">
+        <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:3px;">${g.name}</div>
+        <div style="font-size:12px;color:#65676B;">${g.desc}</div>
+        <div style="font-size:11px;color:#1877F2;font-weight:700;margin-top:6px;">${(g.members||[]).length} عضو</div>
+      </div>
+    </div>`).join('');
+}
+function openGroupView(groupId){
+  showToast('📋 ميزة المجموعات قريباً...');
+}
+function createGroup(){
+  const name = prompt('اسم المجموعة الجديدة:');
+  if(!name) return;
+  const groups = getGroups();
+  groups.push({ id:'g'+Date.now(), name, desc:'مجموعة جديدة', members:[], icon:'👥', cover:'linear-gradient(135deg,#667eea,#764ba2)' });
+  localStorage.setItem(_groupsKey, JSON.stringify(groups));
+  renderGroupsPanel();
+  showToast('تم إنشاء المجموعة ✅');
+}
+
+/* ══════════════════════════════════════════
+   📄 الصفحات
+   ══════════════════════════════════════════ */
+const _defaultPages = [
+  { id:'p1', name:'Next Leaders DZ الرسمية', desc:'الصفحة الرسمية للتطبيق', followers:0, icon:'🏢', cover:'linear-gradient(135deg,#0f9b0f,#00c853)' },
+  { id:'p2', name:'أخبار وإعلانات 📢', desc:'آخر الأخبار والتحديثات', followers:0, icon:'📢', cover:'linear-gradient(135deg,#e52d27,#b31217)' },
+  { id:'p3', name:'مسابقات وجوائز 🏆', desc:'المسابقات والجوائز الحصرية', followers:0, icon:'🏆', cover:'linear-gradient(135deg,#f5c518,#f97316)' },
+];
+function getPages(){
+  const stored = localStorage.getItem(_pagesKey);
+  if(!stored) return _defaultPages;
+  return JSON.parse(stored);
+}
+function renderPagesPanel(){
+  const pages = getPages();
+  const el = document.getElementById('pagesList');
+  if(!el) return;
+  el.innerHTML = pages.map(p=>`
+    <div style="background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <div style="height:60px;background:${p.cover||'#1877F2'};display:flex;align-items:center;justify-content:center;font-size:28px;">${p.icon||'📄'}</div>
+      <div style="padding:10px 12px;display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:2px;">${p.name}</div>
+          <div style="font-size:11px;color:#65676B;">${p.desc}</div>
+        </div>
+        <button onclick="followPage('${p.id}')" style="padding:7px 14px;background:#1877F2;border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">متابعة</button>
+      </div>
+    </div>`).join('');
+}
+function followPage(pageId){
+  showToast('تمت المتابعة ✅');
+}
+function createPage(){
+  const name = prompt('اسم الصفحة الجديدة:');
+  if(!name) return;
+  const pages = getPages();
+  pages.push({ id:'p'+Date.now(), name, desc:'صفحة جديدة', followers:0, icon:'📄', cover:'linear-gradient(135deg,#667eea,#764ba2)' });
+  localStorage.setItem(_pagesKey, JSON.stringify(pages));
+  renderPagesPanel();
+  showToast('تم إنشاء الصفحة ✅');
+}
+
+/* ══════════════════════════════════════════
+   🔔 الإشعارات
+   ══════════════════════════════════════════ */
+function openSocialNotifs(){
+  const name = getCurrentUser(); if(!name) return;
+  const modal = document.getElementById('socialNotifsModal');
+  if(modal) modal.style.display='flex';
+  const notifs = getSocialNotifs(name);
+  const el = document.getElementById('socialNotifsList');
+  if(!el) return;
+  if(notifs.length===0){
+    el.innerHTML=`<div style="text-align:center;padding:30px;font-size:13px;color:#65676B;">لا توجد إشعارات</div>`;
+  } else {
+    el.innerHTML = notifs.map(n=>`
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #F0F2F5;">
+        <div style="width:38px;height:38px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${n.icon||'🔔'}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;color:#050505;line-height:1.5;">${n.msg}</div>
+          <div style="font-size:11px;color:#65676B;margin-top:3px;">${new Date(n.ts).toLocaleDateString('ar-DZ',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+      </div>`).join('');
+  }
+  // وضع علامة "تمت القراءة"
+  notifs.forEach(n=>n.seen=true);
+  localStorage.setItem(_socialNotifsKey(name), JSON.stringify(notifs));
+  refreshSocialNotifBadge();
+}
+
+/* ── Toast ── */
+function showToast(msg){
+  const old = document.getElementById('socialToast');
+  if(old) old.remove();
+  const t = document.createElement('div');
+  t.id='socialToast';
+  t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.82);color:white;padding:10px 20px;border-radius:20px;font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;z-index:99999;animation:fadeUp .25s ease;white-space:nowrap;max-width:90%;text-align:center;';
+  t.innerText = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove&&t.remove(),2500);
+}
+
 // تطبيق اللغة المحفوظة عند بدء التشغيل
 (function(){
   const saved = getCurrentLang();
@@ -5313,7 +6749,7 @@ function doLogout(){
   if(heroOv){ heroOv.style.opacity="1"; }
 
   // إغلاق أي نوافذ مفتوحة
-  ['messagesModal','chatScreen','newChatScreen','notifsModal','adminModal','digitalCard','membersCard','rankingCard','activitiesCard','quizCard'].forEach(id=>{
+  ['messagesModal','chatScreen','newChatScreen','notifsModal','adminModal','digitalCard','balanceModal','createPostModal','membersCard','rankingCard','activitiesCard','quizCard','socialHomeCard','socialCreatePostModal','socialNotifsModal','memberProfileView'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.style.display='none';
   });
