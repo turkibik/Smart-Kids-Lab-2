@@ -1859,7 +1859,9 @@ body.member-mode #onlineBar{
       <button onclick="closeMemberProfileView()" style="flex:1;padding:9px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">رجوع</button>
     </div>
   </div>
-  <div id="mpvPostsFeed" style="width:100%;max-width:480px;margin:8px auto 0;padding-bottom:40px;"></div>
+  <div id="mpvPostsFeed" style="width:100%;max-width:480px;margin:0 auto 0;padding-bottom:40px;">
+    <div id="mpvExtendedInfo"></div>
+  </div>
 </div>
 
 <!-- MODAL: صفحتي – Facebook Style Profile -->
@@ -2512,6 +2514,15 @@ body.member-mode #onlineBar{
           <input class="admin-input" id="adminReelTitle" placeholder="عنوان الريلز (اختياري)"/>
           <textarea class="admin-msg-textarea" id="adminReelText" placeholder="وصف الريلز (اختياري)…" style="min-height:60px;"></textarea>
           <input class="admin-input" id="adminReelUrl" placeholder="رابط الفيديو (URL - اختياري)"/>
+          <!-- زر رفع فيديو من الهاتف -->
+          <div style="margin-bottom:8px;">
+            <label style="cursor:pointer;padding:9px 13px;background:linear-gradient(135deg,rgba(168,85,247,0.1),rgba(99,102,241,0.1));border:1.5px solid rgba(168,85,247,0.35);border-radius:12px;font-size:13px;font-weight:800;color:#7c3aed;display:flex;align-items:center;gap:7px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.8);transition:.2s;width:100%;justify-content:center;">
+              <span style="font-size:18px;">🎬</span> رفع فيديو من الهاتف
+              <input type="file" accept="video/*" capture="environment" style="display:none;" onchange="adminReelHandleVideo(event)">
+            </label>
+            <video id="adminReelVideoPrev" style="display:none;width:100%;border-radius:12px;max-height:200px;margin-top:8px;background:#000;" controls preload="metadata"></video>
+          </div>
+          <!-- زر رفع صورة -->
           <div style="margin-bottom:8px;">
             <label style="cursor:pointer;padding:7px 11px;background:rgba(168,85,247,0.08);border:1.5px solid rgba(168,85,247,0.22);border-radius:10px;font-size:12px;font-weight:700;color:#7c3aed;display:inline-flex;align-items:center;gap:5px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.8);">
               🖼️ رفع صورة مصاحبة <input type="file" accept="image/*" style="display:none;" onchange="adminReelHandleImg(event)">
@@ -6258,11 +6269,11 @@ function renderSocialPostCard(p){
     <!-- أزرار التفاعل -->
     <div style="display:flex;border-top:1px solid #E4E6EB;padding:2px 4px;">
       <div style="position:relative;flex:1;">
-        <div onclick="toggleReactPicker('${p.id}')" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:${myReact?'#1877F2':'#65676B'};transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div id="likeBtn_${p.id}" onmousedown="_startReactTimer('${p.id}')" onmouseup="_cancelReactTimer()" ontouchstart="_startReactTimer('${p.id}')" ontouchend="_cancelReactTimer()" onclick="_handleLikeClick('${p.id}')" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:${myReact?'#1877F2':'#65676B'};transition:.15s;user-select:none;-webkit-user-select:none;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
           ${myReact||'👍'} ${myReact?'معجب':'إعجاب'}
         </div>
-        <div id="reactPicker_${p.id}" style="display:none;position:absolute;bottom:44px;left:50%;transform:translateX(-50%);background:white;border-radius:30px;padding:8px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);display:flex;gap:8px;z-index:100;border:1px solid #E4E6EB;white-space:nowrap;">
-          ${reactEmojis.map(e=>`<span onclick="addReaction('${p.id}','${e}')" style="font-size:26px;cursor:pointer;transition:.15s;display:inline-block;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`).join('')}
+        <div id="reactPicker_${p.id}" style="display:none;position:absolute;bottom:48px;left:50%;transform:translateX(-50%);background:white;border-radius:30px;padding:8px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.25);gap:8px;z-index:200;border:1px solid #E4E6EB;white-space:nowrap;flex-direction:row;animation:reactPickerIn .2s ease;">
+          ${reactEmojis.map(e=>`<span onclick="addReaction('${p.id}','${e}')" style="font-size:28px;cursor:pointer;transition:.15s;display:inline-block;" onmouseover="this.style.transform='scale(1.35) translateY(-4px)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`).join('')}
         </div>
       </div>
       <div onclick="toggleComments('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">💬 تعليق</div>
@@ -6274,9 +6285,9 @@ function renderSocialPostCard(p){
       ${comments.map(c=>renderCommentItem(c, p.id)).join('')}
       <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
         <div id="commentAvatar_${p.id}" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;overflow:hidden;">${typeof getLeaderIcon==='function'?getLeaderIcon(name||'?'):'👑'}</div>
-        <div style="flex:1;background:#F0F2F5;border-radius:20px;display:flex;align-items:center;padding:0 12px 0 6px;">
-          <input id="commentInput_${p.id}" type="text" placeholder="اكتب تعليقاً…" style="flex:1;border:none;background:transparent;padding:9px 0;font-family:'Tajawal',sans-serif;font-size:13px;color:#050505;outline:none;text-align:right;" onkeydown="if(event.key==='Enter'){submitComment('${p.id}');event.preventDefault();}">
-          <span onclick="submitComment('${p.id}')" style="cursor:pointer;font-size:16px;padding:4px 4px;">➤</span>
+        <div style="flex:1;background:#F0F2F5;border-radius:20px;display:flex;align-items:center;padding:0 6px 0 6px;gap:4px;">
+          <input id="commentInput_${p.id}" type="text" placeholder="اكتب تعليقاً…" style="flex:1;border:none;background:transparent;padding:9px 4px;font-family:'Tajawal',sans-serif;font-size:13px;color:#050505;outline:none;text-align:right;" onkeydown="if(event.key==='Enter'){submitComment('${p.id}');event.preventDefault();}">
+          <button onclick="submitComment('${p.id}')" style="background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 6px rgba(24,119,242,0.35);transition:.15s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"><svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='white'><path d='M2 21l21-9L2 3v7l15 2-15 2v7z'/></svg></button>
         </div>
       </div>
     </div>
@@ -6988,6 +6999,400 @@ function showToast(msg){
   t.innerText = msg;
   document.body.appendChild(t);
   setTimeout(()=>t.remove&&t.remove(),2500);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   👍 نظام الإعجاب والتفاعل المحسّن – الإعجاب بنقرة، التفاعلات بالضغط المطوّل
+   ══════════════════════════════════════════════════════════════════ */
+let _reactTimerHandle = null;
+let _reactLongPress = false;
+
+function _startReactTimer(postId){
+  _reactLongPress = false;
+  _reactTimerHandle = setTimeout(()=>{
+    _reactLongPress = true;
+    toggleReactPicker(postId);
+  }, 500); // 500ms للضغط المطوّل
+}
+
+function _cancelReactTimer(){
+  if(_reactTimerHandle){ clearTimeout(_reactTimerHandle); _reactTimerHandle = null; }
+}
+
+function _handleLikeClick(postId){
+  if(_reactLongPress){ _reactLongPress = false; return; } // تجاهل بعد الضغط المطوّل
+  const name = getCurrentUser(); if(!name) return;
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  if(!post.reactions) post.reactions = {};
+  const defaultEmoji = '👍';
+  if(!post.reactions[defaultEmoji]) post.reactions[defaultEmoji]=[];
+  const idx = post.reactions[defaultEmoji].indexOf(name);
+  if(idx === -1){
+    // إضافة إعجاب
+    post.reactions[defaultEmoji].push(name);
+    if(post.author !== name) addSocialNotif(post.author, `${name} أعجب بمنشورك 👍`, '👍');
+    saveSocialPosts(posts);
+    refreshPostCard(postId);
+    // تأثير قفز صغير
+    const btn = document.getElementById('likeBtn_'+postId);
+    if(btn){ btn.style.transform='scale(1.2)'; setTimeout(()=>btn.style.transform='scale(1)',200); }
+  } else {
+    // إلغاء الإعجاب
+    post.reactions[defaultEmoji].splice(idx, 1);
+    saveSocialPosts(posts);
+    refreshPostCard(postId);
+  }
+}
+
+// إضافة animation للـ reactPicker
+(function(){
+  const s=document.createElement('style');
+  s.textContent='@keyframes reactPickerIn{from{opacity:0;transform:translateX(-50%) translateY(8px) scale(0.8)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}';
+  document.head.appendChild(s);
+})();
+
+/* ══════════════════════════════════════════════════════════════════
+   👤 ملف العضو المفتوح للأصدقاء كاملاً
+   ══════════════════════════════════════════════════════════════════ */
+
+// تحقق إذا كان العضو صديقاً
+function _isFriendOf(myName, otherName){
+  if(!myName || !otherName) return false;
+  return getFriends(myName).includes(otherName);
+}
+
+// عند فتح ملف عضو آخر: إذا كان صديقاً، تظهر المعلومات كاملة
+const _origViewMemberProfile = viewMemberProfile;
+function viewMemberProfile(memberName){
+  const myName = getCurrentUser();
+
+  // تسجيل الزيارة وإشعار صاحب الملف
+  if(myName && myName !== memberName){
+    const visits = JSON.parse(localStorage.getItem(_profileVisitsKey(memberName))||'[]');
+    const now = Date.now();
+    const lastVisit = visits.find(v=>v.visitor===myName);
+    if(!lastVisit || (now - lastVisit.ts) > 3600000){
+      visits.unshift({ visitor: myName, ts: now });
+      if(visits.length>100) visits.splice(100);
+      localStorage.setItem(_profileVisitsKey(memberName), JSON.stringify(visits));
+      addSocialNotif(memberName, `${myName} زار ملفك الشخصي 👀`, '👀');
+    }
+  }
+
+  _mpvCurrentUser = memberName;
+  const el = document.getElementById('memberProfileView');
+  if(el) el.style.display = 'flex';
+
+  const photo = typeof getProfilePhoto==='function' ? getProfilePhoto(memberName) : null;
+  const avatarEl = document.getElementById('mpvAvatar');
+  if(avatarEl){
+    if(photo){ avatarEl.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`; }
+    else{ avatarEl.innerHTML = typeof getLeaderIcon==='function'?getLeaderIcon(memberName):'👑'; }
+  }
+  const cover = localStorage.getItem('nld_cover_'+memberName.replace(/\s+/g,'_'));
+  const coverImg = document.getElementById('mpvCoverImg');
+  if(coverImg){ coverImg.style.backgroundImage = cover ? 'url('+cover+')' : ''; }
+
+  const nameEl = document.getElementById('mpvName');
+  if(nameEl) nameEl.innerText = memberName;
+
+  const isFriend = myName && _isFriendOf(myName, memberName);
+  const isMe = myName === memberName;
+
+  // إضافة معلومات العضو التفصيلية إذا كان صديقاً أو نفسه
+  _renderMpvExtendedInfo(memberName, isFriend || isMe);
+
+  updateMpvFriendBtn(memberName);
+  renderMpvPosts(memberName, isFriend || isMe);
+}
+
+function _renderMpvExtendedInfo(memberName, canSeeAll){
+  const infoEl = document.getElementById('mpvExtendedInfo');
+  if(!infoEl) return;
+
+  if(!canSeeAll){
+    // ملف مقيّد: يظهر فقط الاسم وزر إضافة صديق
+    infoEl.innerHTML=`<div style="background:#F7F8FA;border-radius:12px;padding:16px;text-align:center;margin:10px 16px;">
+      <div style="font-size:32px;margin-bottom:8px;">🔒</div>
+      <div style="font-size:14px;font-weight:800;color:#050505;margin-bottom:6px;">الملف مقيّد</div>
+      <div style="font-size:12px;color:#65676B;line-height:1.6;">أضف هذا العضو كصديق لترى ملفه الكامل</div>
+    </div>`;
+    return;
+  }
+
+  // ملف كامل للأصدقاء
+  const pts = (() => {
+    const raw = localStorage.getItem('sklab_pts_'+memberName.replace(/\s+/g,'_'));
+    if(raw) try{ return JSON.parse(raw).total||0; }catch(e){}
+    return parseInt(localStorage.getItem('nld_earned_'+memberName.replace(/\s+/g,'_'))||'0');
+  })();
+  const level = Math.floor(pts/3000)+1;
+  const balance = ((pts/50)*30).toFixed(2);
+  const code = localStorage.getItem('nld_code_'+memberName.replace(/\s+/g,'_')) || '—';
+  const joinDate = localStorage.getItem('nld_join_'+memberName.replace(/\s+/g,'_')) || 'عضو';
+
+  infoEl.innerHTML=`
+    <div style="margin:10px 16px;">
+      <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">📋 معلومات العضو</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:18px;font-weight:900;color:#050505;">${pts.toLocaleString()}</div>
+            <div style="font-size:10px;color:#65676B;margin-top:2px;">🏆 النقاط</div>
+          </div>
+          <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:18px;font-weight:900;color:#1877F2;">${level}</div>
+            <div style="font-size:10px;color:#65676B;margin-top:2px;">⭐ المستوى</div>
+          </div>
+          <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:15px;font-weight:900;color:#00c853;">${balance} دج</div>
+            <div style="font-size:10px;color:#65676B;margin-top:2px;">💰 الرصيد</div>
+          </div>
+          <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:13px;font-weight:900;color:#a855f7;">NLD-${code}</div>
+            <div style="font-size:10px;color:#65676B;margin-top:2px;">🎯 رمز العضو</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:8px;background:#F0F2F5;border-radius:10px;padding:10px 12px;">
+          <span style="font-size:16px;">📍</span>
+          <div>
+            <div style="font-size:12px;font-weight:800;color:#050505;">الجزائر 🇩🇿</div>
+            <div style="font-size:10px;color:#65676B;">Next Leaders DZ</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// override renderMpvPosts to respect friendship
+const _origRenderMpvPosts = renderMpvPosts;
+function renderMpvPosts(memberName, canSeeAll){
+  const feed = document.getElementById('mpvPostsFeed');
+  if(!feed) return;
+
+  if(canSeeAll === undefined){
+    const myName = getCurrentUser();
+    canSeeAll = myName === memberName || _isFriendOf(myName, memberName);
+  }
+
+  if(!canSeeAll){
+    feed.innerHTML=`<div style="background:white;padding:28px 20px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:10px;">🔒</div>
+      <div style="font-size:14px;font-weight:700;color:#65676B;">المنشورات متاحة للأصدقاء فقط</div>
+    </div>`;
+    return;
+  }
+
+  const allPosts = getSocialPosts().filter(p=>p.author===memberName);
+  if(allPosts.length===0){
+    feed.innerHTML=`<div style="background:white;padding:28px 20px;text-align:center;"><div style="font-size:40px;margin-bottom:10px;">✍️</div><div style="font-size:13px;color:#65676B;">لا توجد منشورات بعد</div></div>`;
+    return;
+  }
+  feed.innerHTML = allPosts.slice().reverse().map(p=>renderSocialPostCard(p)).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   👥 الأصدقاء المقترحون: جميع أعضاء التطبيق
+   ══════════════════════════════════════════════════════════════════ */
+
+// Override renderSuggestedFriends to show ALL registered members
+function renderSuggestedFriends(){
+  const name = getCurrentUser(); if(!name) return;
+  const myFriends = getFriends(name);
+  const el = document.getElementById('suggestedFriendsList');
+  if(!el) return;
+  el.innerHTML = `<div style="text-align:center;padding:12px;"><div style="font-size:22px;">⏳</div><div style="font-size:12px;color:#65676B;margin-top:4px;">جاري تحميل الأعضاء…</div></div>`;
+
+  _fetchAllMembers().then(allNames => {
+    // استبعاد نفس المستخدم والأصدقاء الحاليين
+    const suggestions = allNames.filter(n => n && n !== name && !myFriends.includes(n));
+
+    if(suggestions.length === 0){
+      el.innerHTML=`<div style="font-size:13px;color:#65676B;text-align:center;padding:14px;">أضفت جميع الأعضاء! 🎉</div>`;
+      return;
+    }
+
+    el.innerHTML = suggestions.map(a=>{
+      const photo = typeof getProfilePhoto==='function' ? getProfilePhoto(a) : null;
+      const avatarHtml = photo
+        ? `<img src="${photo}" style="width:46px;height:46px;border-radius:50%;object-fit:cover;">`
+        : `<div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:20px;">${typeof getLeaderIcon==='function'?getLeaderIcon(a):'👑'}</div>`;
+      const alreadySent = (JSON.parse(localStorage.getItem(_friendReqKey(a))||'[]')).some(r=>r.from===name);
+      const safeName = a.replace(/'/g,"\\'");
+      const safeId = a.replace(/\s+/g,'_');
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#F7F8FA;border-radius:12px;margin-bottom:6px;">
+        <div onclick="viewMemberProfile('${safeName}')" style="cursor:pointer;flex-shrink:0;">${avatarHtml}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:900;color:#050505;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a}</div>
+          <div style="font-size:11px;color:#65676B;">عضو في Next Leaders DZ</div>
+        </div>
+        <button onclick="sendFriendRequest('${safeName}')" id="frBtn_${safeId}" style="padding:7px 12px;background:${alreadySent?'#E4E6EB':'#1877F2'};border:none;border-radius:8px;color:${alreadySent?'#65676B':'white'};font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">${alreadySent?'تم الإرسال':'+ إضافة'}</button>
+      </div>`;
+    }).join('');
+  }).catch(()=>{
+    // Fallback from localStorage
+    const raw = localStorage.getItem('sklab_members');
+    let allNames2 = [];
+    try{ allNames2 = raw ? JSON.parse(raw).map(m=>m.name||m.fullName||'') : []; }catch(e){}
+    if(allNames2.length === 0){
+      el.innerHTML=`<div style="font-size:13px;color:#65676B;text-align:center;padding:14px;">لا توجد اقتراحات حالياً</div>`;
+      return;
+    }
+    const suggestions = allNames2.filter(n => n && n !== name && !myFriends.includes(n));
+    if(suggestions.length === 0){
+      el.innerHTML=`<div style="font-size:13px;color:#65676B;text-align:center;padding:14px;">أضفت جميع الأعضاء! 🎉</div>`;
+      return;
+    }
+    el.innerHTML = suggestions.map(a=>{
+      const alreadySent = (JSON.parse(localStorage.getItem(_friendReqKey(a))||'[]')).some(r=>r.from===name);
+      const safeName = a.replace(/'/g,"\\'");
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#F7F8FA;border-radius:12px;margin-bottom:6px;">
+        <div onclick="viewMemberProfile('${safeName}')" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(a):'👑'}</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#050505;">${a}</div><div style="font-size:11px;color:#65676B;">عضو مسجّل</div></div>
+        <button onclick="sendFriendRequest('${safeName}')" style="padding:7px 12px;background:${alreadySent?'#E4E6EB':'#1877F2'};border:none;border-radius:8px;color:${alreadySent?'#65676B':'white'};font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">${alreadySent?'تم الإرسال':'+ إضافة'}</button>
+      </div>`;
+    }).join('');
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   🎬 ريلز المدير: رفع فيديو من الهاتف مباشرة
+   ══════════════════════════════════════════════════════════════════ */
+
+let _adminReelVideoData = null; // base64 للفيديو المرفوع
+
+function adminReelHandleVideo(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('adminReelStatus');
+  // التحقق من الحجم (حد 50MB)
+  if(file.size > 50 * 1024 * 1024){
+    if(statusEl){ statusEl.style.color='#e53935'; statusEl.innerText='⚠️ حجم الفيديو كبير جداً (الحد 50MB)'; }
+    return;
+  }
+  if(statusEl){ statusEl.style.color='#1877F2'; statusEl.innerText='⏳ جاري تحميل الفيديو…'; }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    _adminReelVideoData = e.target.result;
+    const prev = document.getElementById('adminReelVideoPrev');
+    if(prev){
+      prev.src = _adminReelVideoData;
+      prev.style.display = 'block';
+    }
+    if(statusEl){ statusEl.style.color='#00c853'; statusEl.innerText='✅ تم تحميل الفيديو بنجاح'; }
+  };
+  reader.onerror = () => {
+    if(statusEl){ statusEl.style.color='#e53935'; statusEl.innerText='❌ فشل تحميل الفيديو'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+// تعديل adminSubmitReel لاستخدام الفيديو المرفوع
+const _origAdminSubmitReel = adminSubmitReel;
+function adminSubmitReel(){
+  const title = (document.getElementById('adminReelTitle')||{}).value?.trim()||'';
+  const text = (document.getElementById('adminReelText')||{}).value?.trim()||'';
+  const videoUrl = (document.getElementById('adminReelUrl')||{}).value?.trim()||'';
+  const statusEl = document.getElementById('adminReelStatus');
+
+  if(!title && !text && !videoUrl && !_adminReelImgData && !_adminReelVideoData){
+    if(statusEl){ statusEl.style.color='#e53935'; statusEl.innerText='⚠️ أضف عنواناً أو نصاً أو فيديو أو صورة'; }
+    return;
+  }
+  const now = new Date();
+  const date = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
+  const reels = getReels();
+  reels.push({
+    id: 'r'+Date.now(),
+    title,
+    text,
+    videoUrl,
+    videoData: _adminReelVideoData, // الفيديو المرفوع من الهاتف
+    image: _adminReelImgData,
+    date,
+    ts: Date.now()
+  });
+  saveReels(reels);
+  // تنظيف
+  if(document.getElementById('adminReelTitle')) document.getElementById('adminReelTitle').value='';
+  if(document.getElementById('adminReelText')) document.getElementById('adminReelText').value='';
+  if(document.getElementById('adminReelUrl')) document.getElementById('adminReelUrl').value='';
+  const prev = document.getElementById('adminReelImgPreview');
+  if(prev) prev.style.display='none';
+  const vidPrev = document.getElementById('adminReelVideoPrev');
+  if(vidPrev){ vidPrev.style.display='none'; vidPrev.src=''; }
+  _adminReelImgData = null;
+  _adminReelVideoData = null;
+  if(statusEl){ statusEl.style.color='#22c55e'; statusEl.innerText='✅ تم نشر الريلز بنجاح'; setTimeout(()=>{ if(statusEl) statusEl.innerText=''; }, 3000); }
+  showToast('🎬 تم نشر الريلز ✅');
+  renderReelsPanel();
+}
+
+// تعديل renderReelsPanel لعرض الفيديو المرفوع
+const _origRenderReelsPanel = renderReelsPanel;
+function renderReelsPanel(){
+  const feed = document.getElementById('reelsFeed');
+  const emptyMsg = document.getElementById('reelsEmptyMsg');
+  if(!feed) return;
+  const reels = getReels();
+  if(reels.length===0){
+    feed.innerHTML='';
+    if(emptyMsg) emptyMsg.style.display='block';
+    return;
+  }
+  if(emptyMsg) emptyMsg.style.display='none';
+  feed.innerHTML = reels.slice().reverse().map(r=>`
+    <div id="reel_${r.id}" style="background:white;margin-bottom:8px;border-radius:0;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+      <div style="padding:12px 14px 8px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#e52d27,#f5c518);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 2px 8px rgba(229,45,39,0.3);">🛡️</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:900;color:#050505;">المدير</div>
+            <div style="font-size:11px;color:#65676B;">${r.date||''} • 🎬 ريلز</div>
+          </div>
+        </div>
+        ${r.title ? `<div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:8px;">${r.title}</div>` : ''}
+        ${r.text ? `<div style="font-size:13px;color:#050505;margin-bottom:10px;line-height:1.6;">${r.text}</div>` : ''}
+      </div>
+      ${(r.videoData || r.videoUrl) ? `
+        <div style="position:relative;background:#000;">
+          <video controls playsinline preload="metadata" style="width:100%;max-height:420px;display:block;background:#000;object-fit:contain;" ${r.videoData?`src="${r.videoData}"`:`src="${r.videoUrl}"`}>
+            ${!r.videoData && r.videoUrl ? `<source src="${r.videoUrl}">` : ''}
+            متصفحك لا يدعم تشغيل الفيديو
+          </video>
+        </div>` : ''}
+      ${r.image && !r.videoData && !r.videoUrl ? `<img src="${r.image}" style="width:100%;max-height:380px;object-fit:cover;display:block;" alt="ريلز">` : ''}
+      <div style="padding:8px 14px;display:flex;gap:16px;border-top:1px solid #F0F2F5;">
+        <div onclick="reelLike('${r.id}')" id="reelLike_${r.id}" style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;padding:6px 10px;border-radius:8px;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+          👍 <span id="reelLikeCount_${r.id}">${(r.likes||[]).length}</span>
+        </div>
+        <div onclick="shareReelPost('${r.id}')" style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;padding:6px 10px;border-radius:8px;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">↗️ مشاركة</div>
+      </div>
+    </div>`).join('');
+}
+
+function reelLike(reelId){
+  const name = getCurrentUser(); if(!name) return;
+  const reels = getReels();
+  const reel = reels.find(r=>r.id===reelId);
+  if(!reel) return;
+  if(!reel.likes) reel.likes=[];
+  const idx = reel.likes.indexOf(name);
+  if(idx===-1){ reel.likes.push(name); }
+  else { reel.likes.splice(idx,1); }
+  saveReels(reels);
+  const countEl = document.getElementById('reelLikeCount_'+reelId);
+  if(countEl) countEl.innerText = reel.likes.length;
+  const btn = document.getElementById('reelLike_'+reelId);
+  if(btn){ btn.style.color = reel.likes.includes(name) ? '#1877F2' : '#65676B'; }
+}
+
+function shareReelPost(reelId){
+  if(navigator.share){ navigator.share({ title:'ريلز Next Leaders DZ', url: window.location.href }).catch(()=>{}); }
+  else { navigator.clipboard?.writeText(window.location.href).then(()=>showToast('تم نسخ الرابط 📋')).catch(()=>showToast('تم مشاركة الريلز ↗️')); }
 }
 
 // تطبيق اللغة المحفوظة عند بدء التشغيل
