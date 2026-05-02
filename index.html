@@ -1680,14 +1680,37 @@ body.member-mode #onlineBar{
 <div id="socialHomeCard" style="display:none;position:fixed;inset:0;z-index:2900;background:#F0F2F5;flex-direction:column;overflow:hidden;">
 
   <!-- ── Top Bar ── -->
-  <div style="background:white;padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E4E6EB;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-    <div style="font-size:18px;font-weight:900;color:#1877F2;letter-spacing:.5px;">Next Leaders 🌐</div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <div onclick="openSocialNotifs()" style="position:relative;width:38px;height:38px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;" title="الإشعارات">
-        🔔
-        <span id="socialNotifBadge" style="display:none;position:absolute;top:2px;right:2px;width:16px;height:16px;background:#e53935;border-radius:50%;font-size:9px;font-weight:900;color:white;display:flex;align-items:center;justify-content:center;border:2px solid white;">0</span>
+  <div style="background:white;border-bottom:1px solid #E4E6EB;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+    <!-- Title row -->
+    <div style="padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:18px;font-weight:900;color:#1877F2;letter-spacing:.5px;">Next Leaders 🌐</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div onclick="hideSocialHome()" style="width:38px;height:38px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;font-weight:900;color:#65676B;">✕</div>
       </div>
-      <div onclick="hideSocialHome()" style="width:38px;height:38px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;font-weight:900;color:#65676B;">✕</div>
+    </div>
+    <!-- ── Top Tab Bar ── -->
+    <div style="display:flex;border-top:1px solid #E4E6EB;">
+      <div id="sTab_home" onclick="switchSocialTab('home')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid #1877F2;transition:.2s;">
+        <span style="font-size:20px;">🏠</span>
+        <span style="font-size:10px;font-weight:800;color:#1877F2;">الرئيسية</span>
+      </div>
+      <div id="sTab_friends" onclick="switchSocialTab('friends')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
+        <span style="font-size:20px;">👥</span>
+        <span style="font-size:10px;font-weight:700;color:#65676B;">الأعضاء</span>
+      </div>
+      <div id="sTab_notifs" onclick="switchSocialTab('notifs')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
+        <span style="font-size:20px;">🔔</span>
+        <span style="font-size:10px;font-weight:700;color:#65676B;">الإشعارات</span>
+        <span id="socialNotifBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:2px;width:16px;height:16px;background:#e53935;border-radius:50%;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;">0</span>
+      </div>
+      <div id="sTab_pages" onclick="switchSocialTab('pages')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
+        <span style="font-size:20px;">📄</span>
+        <span style="font-size:10px;font-weight:700;color:#65676B;">الصفحات</span>
+      </div>
+      <div id="sTab_myprofile" onclick="openMyFullProfile()" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
+        <span style="font-size:20px;">👤</span>
+        <span style="font-size:10px;font-weight:700;color:#65676B;">صفحتي</span>
+      </div>
     </div>
   </div>
 
@@ -1714,35 +1737,22 @@ body.member-mode #onlineBar{
       <div id="socialFeedContainer"></div>
     </div>
 
-    <!-- ── MY PROFILE PANEL ── -->
-    <div id="socialPanel_myprofile" style="display:none;padding:20px 14px;text-align:center;">
-      <div style="font-size:64px;margin-bottom:12px;">👤</div>
-      <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:8px;">ملفك الشخصي</div>
-      <div style="font-size:13px;color:#65676B;margin-bottom:18px;">اعرض وعدّل ملفك الشخصي الكامل</div>
-      <button onclick="openMyFullProfile()" style="background:#1877F2;border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:800;padding:12px 32px;cursor:pointer;box-shadow:0 4px 14px rgba(24,119,242,0.35);">فتح ملفي الشخصي ←</button>
+    <!-- ── MY PROFILE: directly opens full profile on tab click ── -->
+
+    <!-- ── MEMBERS PANEL (المنخرطون) ── -->
+    <div id="socialPanel_friends" style="display:none;padding:14px;">
+      <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:4px;">👥 المنخرطون</div>
+      <div id="membersCountLabel" style="font-size:12px;color:#65676B;margin-bottom:14px;"></div>
+      <div id="membersPanelSearch" style="margin-bottom:12px;">
+        <input oninput="filterMembersPanel(this.value)" placeholder="🔍 ابحث عن عضو..." style="width:100%;padding:10px 14px;border:1.5px solid #E4E6EB;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;outline:none;background:#F7F8FA;color:#050505;text-align:right;">
+      </div>
+      <div id="membersPanelList" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
 
-    <!-- ── FRIENDS PANEL ── -->
-    <div id="socialPanel_friends" style="display:none;">
-      <div style="background:white;padding:14px 16px;margin-bottom:8px;">
-        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:12px;">طلبات الصداقة</div>
-        <div id="friendRequestsList" style="display:flex;flex-direction:column;gap:10px;"></div>
-      </div>
-      <div style="background:white;padding:14px 16px;margin-bottom:8px;">
-        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:12px;">أصدقاؤك</div>
-        <div id="myFriendsList" style="display:flex;flex-direction:column;gap:10px;"></div>
-      </div>
-      <div style="background:white;padding:14px 16px;">
-        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:12px;">أعضاء تعرفهم؟</div>
-        <div id="suggestedFriendsList" style="display:flex;flex-direction:column;gap:10px;"></div>
-      </div>
-    </div>
-
-    <!-- ── GROUPS PANEL ── -->
-    <div id="socialPanel_groups" style="display:none;padding:14px;">
-      <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;">المجموعات</div>
-      <div id="groupsList" style="display:flex;flex-direction:column;gap:10px;"></div>
-      <button onclick="createGroup()" style="width:100%;margin-top:14px;padding:13px;background:#1877F2;border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><span>+</span> إنشاء مجموعة جديدة</button>
+    <!-- ── NOTIFS PANEL ── -->
+    <div id="socialPanel_notifs" style="display:none;padding:14px;">
+      <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;">🔔 الإشعارات</div>
+      <div id="socialNotifsInlineList" style="display:flex;flex-direction:column;gap:0;"></div>
     </div>
 
     <!-- ── PAGES PANEL ── -->
@@ -1754,29 +1764,7 @@ body.member-mode #onlineBar{
 
   </div><!-- end scrollable -->
 
-  <!-- ── Bottom Tab Bar ── -->
-  <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-top:1px solid #E4E6EB;display:flex;z-index:10;box-shadow:0 -2px 10px rgba(0,0,0,0.07);">
-    <div id="sTab_home" onclick="switchSocialTab('home')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid #1877F2;transition:.2s;">
-      <span style="font-size:22px;">🏠</span>
-      <span style="font-size:10px;font-weight:800;color:#1877F2;">الرئيسية</span>
-    </div>
-    <div id="sTab_friends" onclick="switchSocialTab('friends')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
-      <span style="font-size:22px;">👥</span>
-      <span style="font-size:10px;font-weight:700;color:#65676B;">الأصدقاء</span>
-    </div>
-    <div id="sTab_groups" onclick="switchSocialTab('groups')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
-      <span style="font-size:22px;">📋</span>
-      <span style="font-size:10px;font-weight:700;color:#65676B;">مجموعات</span>
-    </div>
-    <div id="sTab_pages" onclick="switchSocialTab('pages')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
-      <span style="font-size:22px;">📄</span>
-      <span style="font-size:10px;font-weight:700;color:#65676B;">الصفحات</span>
-    </div>
-    <div id="sTab_myprofile" onclick="switchSocialTab('myprofile')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
-      <span style="font-size:22px;">👤</span>
-      <span style="font-size:10px;font-weight:700;color:#65676B;">صفحتي</span>
-    </div>
-  </div>
+  <!-- ── (removed bottom tab bar – moved to top) ── -->
 </div>
 
 <!-- ── نافذة إنشاء منشور اجتماعي ── -->
@@ -6029,7 +6017,7 @@ function syncSocialAvatar(name){
 }
 
 /* ─── التنقل بين تبويبات الصفحة الاجتماعية ─── */
-const _socialTabs = ['home','friends','groups','pages','myprofile'];
+const _socialTabs = ['home','friends','notifs','pages'];
 function switchSocialTab(tab){
   _socialTabs.forEach(t=>{
     const tabEl = document.getElementById('sTab_'+t);
@@ -6043,12 +6031,114 @@ function switchSocialTab(tab){
   });
   // تحميل محتوى التبويب
   if(tab==='home')      renderSocialFeed();
-  if(tab==='friends')   renderFriendsPanel();
-  if(tab==='groups')    renderGroupsPanel();
+  if(tab==='friends')   renderMembersPanel();
+  if(tab==='notifs')    renderNotifsPanel();
   if(tab==='pages')     renderPagesPanel();
   // إعادة تعيين التمرير
   const scroll = document.getElementById('socialMainScroll');
   if(scroll) scroll.scrollTop = 0;
+}
+
+/* ══════════════════════════════════════════
+   👥 لوحة الأعضاء المنخرطون
+   ══════════════════════════════════════════ */
+let _membersCache = [];
+function renderMembersPanel(){
+  const list = document.getElementById('membersPanelList');
+  const label = document.getElementById('membersCountLabel');
+  if(!list) return;
+  list.innerHTML = `<div style="text-align:center;padding:20px;"><div style="font-size:24px;margin-bottom:6px;">⏳</div><div style="font-size:13px;color:#65676B;">جاري تحميل الأعضاء…</div></div>`;
+
+  // جلب الأعضاء من مصدر البيانات الرئيسي
+  _fetchAllMembers().then(names => {
+    // بناء قائمة الأعضاء مع نقاطهم من localStorage
+    const members = names.map(name => {
+      const raw = localStorage.getItem('sklab_pts_' + name.replace(/\s+/g,'_'));
+      const pts = raw ? (JSON.parse(raw).total || 0) : 0;
+      const levelData = typeof getLevel === 'function' ? getLevel(pts) : { level: 1 };
+      return { name, points: pts, level: levelData.level || 1 };
+    });
+    // ترتيب حسب النقاط تنازلياً
+    members.sort((a,b) => b.points - a.points);
+    _membersCache = members;
+    if(label) label.innerText = `${members.length} عضو منخرط`;
+    renderMembersPanelList(members);
+  }).catch(() => {
+    // fallback: من localStorage العادي
+    try {
+      const raw = localStorage.getItem('sklab_members');
+      const members = raw ? JSON.parse(raw).map(m=>({ name: m.name||m.fullName||m.email||'عضو', points: m.points||0, level: m.level||1 })) : [];
+      _membersCache = members;
+      if(label) label.innerText = `${members.length} عضو منخرط`;
+      renderMembersPanelList(members);
+    } catch(e){
+      if(list) list.innerHTML = `<div style="text-align:center;padding:20px;font-size:13px;color:#65676B;">تعذر تحميل بيانات الأعضاء</div>`;
+    }
+  });
+}
+
+function renderMembersPanelList(members){
+  const list = document.getElementById('membersPanelList');
+  if(!list) return;
+  if(!members || members.length===0){
+    list.innerHTML = `<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:10px;">👥</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا يوجد أعضاء منخرطون بعد</div></div>`;
+    return;
+  }
+  const curUser = getCurrentUser();
+  list.innerHTML = members.map((m,i)=>{
+    const name = m.name || m.fullName || m.email || 'عضو';
+    const photo = typeof getProfilePhoto==='function' ? getProfilePhoto(name) : null;
+    const icon = typeof getLeaderIcon==='function' ? getLeaderIcon(name) : '👤';
+    const pts = m.points || 0;
+    const level = m.level || 1;
+    const avatarHtml = photo
+      ? `<img src="${photo}" style="width:46px;height:46px;border-radius:50%;object-fit:cover;">`
+      : `<div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:20px;">${icon}</div>`;
+    const isOnline = typeof _onlinePresenceKey==='function' || false;
+    return `<div onclick="viewMemberProfile('${name}')" style="display:flex;align-items:center;gap:12px;background:white;padding:12px 14px;border-radius:14px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:.15s;" onmouseover="this.style.background='#F7F8FA'" onmouseout="this.style.background='white'">
+      <div style="position:relative;flex-shrink:0;">${avatarHtml}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:2px;">${name}${name===curUser?'  <span style="font-size:10px;background:#E8F4FD;color:#1877F2;border-radius:6px;padding:1px 6px;font-weight:700;">أنت</span>':''}</div>
+        <div style="font-size:11px;color:#65676B;">⭐ ${pts} نقطة  •  المستوى ${level}</div>
+      </div>
+      <div style="font-size:18px;color:#BCC0C4;">›</div>
+    </div>`;
+  }).join('');
+}
+
+function filterMembersPanel(q){
+  const filtered = q.trim()==='' ? _membersCache : _membersCache.filter(m=>{
+    const name = (m.name||m.fullName||m.email||'').toLowerCase();
+    return name.includes(q.toLowerCase());
+  });
+  renderMembersPanelList(filtered);
+}
+
+/* ══════════════════════════════════════════
+   🔔 لوحة الإشعارات داخل الصفحة
+   ══════════════════════════════════════════ */
+function renderNotifsPanel(){
+  const el = document.getElementById('socialNotifsInlineList');
+  if(!el) return;
+  const name = getCurrentUser();
+  if(!name){ el.innerHTML=`<div style="text-align:center;padding:30px;font-size:13px;color:#65676B;">سجّل دخولك أولاً</div>`; return; }
+  const notifs = getSocialNotifs(name);
+  if(notifs.length===0){
+    el.innerHTML=`<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:10px;">🔔</div><div style="font-size:13px;color:#65676B;">لا توجد إشعارات</div></div>`;
+  } else {
+    el.innerHTML = notifs.map(n=>`
+      <div style="display:flex;align-items:flex-start;gap:12px;background:white;padding:14px;border-radius:14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.05);${!n.seen?'border-right:3px solid #1877F2;':''}">
+        <div style="width:42px;height:42px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">${n.icon||'🔔'}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;color:#050505;line-height:1.5;font-weight:${n.seen?'600':'800'};">${n.msg}</div>
+          <div style="font-size:11px;color:#65676B;margin-top:4px;">${new Date(n.ts).toLocaleDateString('ar-DZ',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+      </div>`).join('');
+  }
+  // تعيين علامة "تمت القراءة"
+  notifs.forEach(n=>n.seen=true);
+  localStorage.setItem(_socialNotifsKey(name), JSON.stringify(notifs));
+  refreshSocialNotifBadge();
 }
 
 /* ══════════════════════════════════════════
