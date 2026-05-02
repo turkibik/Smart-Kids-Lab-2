@@ -107,8 +107,62 @@
 .lang-quick-item .q-name{font-size:13px;font-weight:800;color:var(--text);}
 .lang-quick-item .q-native{font-size:10px;color:var(--muted);}
 .lang-quick-item .q-check{color:var(--accent);font-size:15px;font-weight:900;}
-::-webkit-scrollbar{width:4px;}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+@keyframes slideInLeft{from{transform:translateX(-100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ===== حلقة القصة على صورة الملف الشخصي ===== */
+.story-ring{
+  position:relative;display:inline-block;
+  padding:3px;
+  border-radius:50%;
+  background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+  cursor:pointer;
+  transition:transform .2s;
+}
+.story-ring.no-story{
+  background:rgba(255,255,255,0.2);
+  padding:2px;
+}
+.story-ring:hover{transform:scale(1.08);}
+.story-ring-inner{
+  background:#fff;
+  border-radius:50%;
+  padding:2px;
+  display:flex;align-items:center;justify-content:center;
+}
+.story-ring-inner img,.story-ring-inner .story-avatar-inner{
+  width:54px;height:54px;border-radius:50%;object-fit:cover;display:flex;align-items:center;justify-content:center;
+}
+/* Add story button overlay */
+.story-add-btn{
+  position:absolute;bottom:-2px;right:-2px;
+  width:22px;height:22px;border-radius:50%;
+  background:#1877F2;border:2.5px solid white;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;color:white;
+  cursor:pointer;line-height:1;
+  transition:transform .2s;
+  z-index:5;
+}
+.story-add-btn:hover{transform:scale(1.15);}
+
+/* Story viewer overlay */
+.story-viewer{
+  position:fixed;inset:0;background:#000;z-index:99998;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  animation:fadeIn .25s ease;
+}
+.story-progress-bar{
+  position:absolute;top:12px;left:10px;right:10px;
+  display:flex;gap:4px;z-index:10;
+}
+.story-progress-seg{
+  flex:1;height:3px;background:rgba(255,255,255,0.4);border-radius:2px;overflow:hidden;
+}
+.story-progress-fill{
+  height:100%;background:white;border-radius:2px;
+  animation:storyFill 5s linear forwards;
+}
+@keyframes storyFill{from{width:0%}to{width:100%}}
 
 body{min-height:100vh;background:var(--dark);color:var(--text);display:flex;justify-content:center;align-items:center;overflow:hidden;}
 
@@ -1688,7 +1742,12 @@ body.member-mode #onlineBar{
         <div style="font-size:18px;font-weight:900;color:#1877F2;letter-spacing:.5px;">Next Leaders 🌐</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <div onclick="hideSocialHome()" style="width:38px;height:38px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;font-weight:900;color:#65676B;">✕</div>
+        <!-- زر القائمة الجانبية (ثلاث شرطات) -->
+        <div onclick="toggleSocialSideMenu()" id="socialMenuBtn" style="width:38px;height:38px;border-radius:50%;background:#F0F2F5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;font-size:16px;font-weight:900;color:#65676B;padding:10px;">
+          <span style="display:block;width:18px;height:2.5px;background:#444;border-radius:2px;"></span>
+          <span style="display:block;width:18px;height:2.5px;background:#444;border-radius:2px;"></span>
+          <span style="display:block;width:18px;height:2.5px;background:#444;border-radius:2px;"></span>
+        </div>
       </div>
     </div>
     <!-- ── Top Tab Bar ── -->
@@ -1706,9 +1765,10 @@ body.member-mode #onlineBar{
         <span style="font-size:10px;font-weight:700;color:#65676B;">الإشعارات</span>
         <span id="socialNotifBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:2px;width:16px;height:16px;background:#e53935;border-radius:50%;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;">0</span>
       </div>
-      <div id="sTab_pages" onclick="switchSocialTab('pages')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
-        <span style="font-size:20px;">🎮</span>
-        <span style="font-size:10px;font-weight:700;color:#65676B;">ألعاب</span>
+      <div id="sTab_pages" onclick="switchSocialTab('pages')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
+        <span style="font-size:20px;">💬</span>
+        <span style="font-size:10px;font-weight:700;color:#65676B;">مسنجر</span>
+        <span id="socialMsgBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;width:16px;height:16px;background:#e53935;border-radius:50%;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;"></span>
       </div>
       <div id="sTab_myprofile" onclick="switchSocialTab('myprofile')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
         <span style="font-size:20px;">🎬</span>
@@ -1717,7 +1777,140 @@ body.member-mode #onlineBar{
     </div>
   </div>
 
-  <!-- ── Scrollable Content ── -->
+  <!-- ── Side Menu Overlay ── -->
+  <div id="socialSideMenuOverlay" onclick="closeSocialSideMenu()" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:50;"></div>
+  <!-- ── Side Menu Drawer ── -->
+  <div id="socialSideMenu" style="display:none;position:absolute;top:0;left:0;width:78%;max-width:300px;height:100%;background:white;z-index:51;flex-direction:column;box-shadow:4px 0 24px rgba(0,0,0,0.18);animation:slideInLeft .25s ease;overflow-y:auto;">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#1877F2,#0d5bda);padding:24px 18px 18px;color:white;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <div id="sideMenuAvatar" style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid rgba(255,255,255,0.5);overflow:hidden;">👑</div>
+        <div>
+          <div id="sideMenuName" style="font-size:16px;font-weight:900;">اسم العضو</div>
+          <div style="font-size:11px;opacity:0.8;">Next Leaders DZ</div>
+        </div>
+      </div>
+    </div>
+    <!-- Menu Items -->
+    <div style="padding:8px 0;">
+      <!-- الإعدادات والخصوصية -->
+      <div onclick="openSideMenuItem('settings')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:18px;">⚙️</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">الإعدادات والخصوصية</div><div style="font-size:11px;color:#65676B;">تحكم في حسابك وبياناتك</div></div>
+      </div>
+      <!-- النمط الليلي -->
+      <div onclick="toggleSideNightMode()" id="sideNightModeItem" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;font-size:18px;">🌙</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">النمط الليلي</div><div id="sideNightModeStatus" style="font-size:11px;color:#65676B;">غير مفعّل</div></div>
+        <div id="sideNightToggle" style="width:42px;height:24px;border-radius:12px;background:#E4E6EB;position:relative;transition:.3s;flex-shrink:0;">
+          <div id="sideNightKnob" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:white;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,0.2);"></div>
+        </div>
+      </div>
+      <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
+      <!-- المجموعات -->
+      <div onclick="openSideMenuItem('groups')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:18px;">👥</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">المجموعات</div><div style="font-size:11px;color:#65676B;">انضم إلى مجموعات الأعضاء</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      </div>
+      <!-- الصفحات -->
+      <div onclick="openSideMenuItem('social_pages')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:18px;">📄</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">الصفحات</div><div style="font-size:11px;color:#65676B;">تابع صفحاتك المفضلة</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      </div>
+      <!-- الألعاب -->
+      <div onclick="openSideMenuItem('games')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:18px;">🎮</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">الألعاب</div><div style="font-size:11px;color:#65676B;">العب وتسلى مع الأعضاء</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      </div>
+      <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
+      <!-- اللغة -->
+      <div onclick="toggleSideLanguagePanel()" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:18px;">🌐</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">اللغة</div><div id="sideCurrentLangLabel" style="font-size:11px;color:#65676B;">العربية 🇩🇿</div></div>
+        <div id="sideLangChevron" style="font-size:18px;color:#BCC0C4;">›</div>
+      </div>
+      <!-- Language Sub-panel -->
+      <div id="sideLangPanel" style="display:none;background:#F7F8FA;padding:6px 14px 10px;margin:0 14px;border-radius:12px;margin-bottom:6px;">
+        <div onclick="setSideLang('ar')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='transparent'">
+          <span style="font-size:22px;">🇩🇿</span>
+          <span style="font-size:13px;font-weight:800;color:#050505;">العربية</span>
+          <span id="sideLangCheck_ar" style="margin-right:auto;color:#1877F2;font-size:16px;font-weight:900;display:none;">✓</span>
+        </div>
+        <div onclick="setSideLang('en')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='transparent'">
+          <span style="font-size:22px;">🇬🇧</span>
+          <span style="font-size:13px;font-weight:800;color:#050505;">English</span>
+          <span id="sideLangCheck_en" style="margin-right:auto;color:#1877F2;font-size:16px;font-weight:900;display:none;">✓</span>
+        </div>
+        <div onclick="setSideLang('es')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='transparent'">
+          <span style="font-size:22px;">🇪🇸</span>
+          <span style="font-size:13px;font-weight:800;color:#050505;">Español</span>
+          <span id="sideLangCheck_es" style="margin-right:auto;color:#1877F2;font-size:16px;font-weight:900;display:none;">✓</span>
+        </div>
+        <div onclick="setSideLang('zh')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='transparent'">
+          <span style="font-size:22px;">🇨🇳</span>
+          <span style="font-size:13px;font-weight:800;color:#050505;">中文</span>
+          <span id="sideLangCheck_zh" style="margin-right:auto;color:#1877F2;font-size:16px;font-weight:900;display:none;">✓</span>
+        </div>
+      </div>
+      <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
+      <!-- خروج -->
+      <div onclick="hideSocialHome()" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:rgba(229,45,39,0.1);display:flex;align-items:center;justify-content:center;font-size:18px;">🚪</div>
+        <div style="font-size:14px;font-weight:800;color:#e53935;">إغلاق الصفحة</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Side Menu Sub-Panels ── -->
+  <!-- Settings Panel -->
+  <div id="sideSettingsPanel" style="display:none;position:absolute;inset:0;background:white;z-index:60;flex-direction:column;animation:slideInLeft .25s ease;">
+    <div style="padding:14px 16px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;gap:12px;">
+      <div onclick="closeSideSubPanel('sideSettingsPanel')" style="width:34px;height:34px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:#1877F2;font-weight:700;">‹</div>
+      <div style="font-size:16px;font-weight:900;color:#050505;">⚙️ الإعدادات والخصوصية</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:14px;">
+      <div style="background:#F0F2F5;border-radius:12px;padding:14px 16px;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:8px;">🔒 الخصوصية</div>
+        <div style="font-size:12px;color:#65676B;line-height:1.8;">• من يمكنه رؤية منشوراتك: الأصدقاء فقط<br>• من يمكنه إرسال رسائل: الأعضاء المسجلون<br>• ظهور ملفك في الاقتراحات: مفعّل</div>
+      </div>
+      <div style="background:#F0F2F5;border-radius:12px;padding:14px 16px;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:8px;">📱 الإشعارات</div>
+        <div style="font-size:12px;color:#65676B;line-height:1.8;">• إشعارات الرسائل: مفعّلة<br>• إشعارات طلبات الصداقة: مفعّلة<br>• إشعارات التفاعل مع المنشورات: مفعّلة</div>
+      </div>
+      <div style="background:#F0F2F5;border-radius:12px;padding:14px 16px;">
+        <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:8px;">🗑️ إدارة البيانات</div>
+        <div style="font-size:12px;color:#65676B;line-height:1.8;">يتم حفظ بياناتك محلياً على جهازك بأمان.</div>
+      </div>
+    </div>
+  </div>
+  <!-- Groups Panel -->
+  <div id="sideGroupsPanel" style="display:none;position:absolute;inset:0;background:white;z-index:60;flex-direction:column;animation:slideInLeft .25s ease;">
+    <div style="padding:14px 16px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;gap:12px;">
+      <div onclick="closeSideSubPanel('sideGroupsPanel')" style="width:34px;height:34px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:#1877F2;font-weight:700;">‹</div>
+      <div style="font-size:16px;font-weight:900;color:#050505;">👥 المجموعات</div>
+      <button onclick="createGroup()" style="margin-right:auto;background:#1877F2;border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;padding:7px 12px;cursor:pointer;">+ جديد</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:14px;"><div id="groupsList" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div></div>
+  </div>
+  <!-- Social Pages Panel -->
+  <div id="sidePagesPanel" style="display:none;position:absolute;inset:0;background:white;z-index:60;flex-direction:column;animation:slideInLeft .25s ease;">
+    <div style="padding:14px 16px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;gap:12px;">
+      <div onclick="closeSideSubPanel('sidePagesPanel')" style="width:34px;height:34px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:#1877F2;font-weight:700;">‹</div>
+      <div style="font-size:16px;font-weight:900;color:#050505;">📄 الصفحات</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:14px;"><div id="pagesList" style="display:flex;flex-direction:column;gap:10px;"></div></div>
+  </div>
+  <!-- Games Panel -->
+  <div id="sideGamesPanel" style="display:none;position:absolute;inset:0;background:white;z-index:60;flex-direction:column;animation:slideInLeft .25s ease;">
+    <div style="padding:14px 16px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;gap:12px;">
+      <div onclick="closeSideSubPanel('sideGamesPanel')" style="width:34px;height:34px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:#1877F2;font-weight:700;">‹</div>
+      <div style="font-size:16px;font-weight:900;color:#050505;">🎮 الألعاب</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:14px;"><div id="gamesList" style="display:flex;flex-direction:column;gap:10px;"></div></div>
+  </div>
   <div id="socialMainScroll" style="flex:1;overflow-y:auto;padding-bottom:70px;">
 
     <!-- ── HOME PANEL ── -->
@@ -1726,7 +1919,14 @@ body.member-mode #onlineBar{
       <!-- Create Post Box -->
       <div style="background:white;margin-bottom:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-          <div id="socialPostAvatar" onclick="openMyFullProfile()" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;overflow:hidden;cursor:pointer;" title="ملفي الشخصي">👑</div>
+          <div id="socialPostAvatarWrap" onclick="openMyStory()" style="flex-shrink:0;cursor:pointer;position:relative;">
+            <div class="story-ring" id="myStoryRing">
+              <div class="story-ring-inner">
+                <div id="socialPostAvatar" style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;" title="قصتي">👑</div>
+              </div>
+            </div>
+            <div class="story-add-btn" onclick="event.stopPropagation();addMyStory()" title="إضافة قصة">+</div>
+          </div>
           <div onclick="openSocialCreatePost()" style="flex:1;background:#F0F2F5;border-radius:22px;padding:10px 16px;font-size:13px;color:#65676B;cursor:pointer;font-family:'Tajawal',sans-serif;">بماذا تفكر؟</div>
         </div>
         <div style="display:flex;border-top:1px solid #E4E6EB;padding-top:8px;gap:4px;">
@@ -1767,11 +1967,20 @@ body.member-mode #onlineBar{
       <div id="socialNotifsInlineList" style="display:flex;flex-direction:column;gap:0;"></div>
     </div>
 
-    <!-- ── GAMES PANEL (ألعاب) ── -->
-    <div id="socialPanel_pages" style="display:none;padding:14px;">
-      <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:6px;">🎮 ألعاب</div>
-      <div style="font-size:12px;color:#65676B;margin-bottom:14px;">العب وتسلى مع الأعضاء</div>
-      <div id="gamesList" style="display:flex;flex-direction:column;gap:10px;"></div>
+    <!-- ── MESSENGER PANEL (مسنجر) ── -->
+    <div id="socialPanel_pages" style="display:none;flex-direction:column;height:100%;">
+      <!-- شريط النشطين الآن -->
+      <div id="smActiveBar" style="background:white;border-bottom:1px solid #E4E6EB;padding:10px 14px;flex-shrink:0;display:none;">
+        <div style="font-size:10px;font-weight:800;color:#0078FF;margin-bottom:8px;letter-spacing:1px;">نشطون الآن</div>
+        <div id="smActiveList" style="display:flex;gap:14px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;"></div>
+      </div>
+      <!-- قائمة المحادثات -->
+      <div id="smInboxList" style="flex:1;overflow-y:auto;background:#F0F2F5;padding:8px;"></div>
+      <!-- زر محادثة جديدة -->
+      <div style="padding:10px 14px;background:white;border-top:1px solid #E4E6EB;display:flex;align-items:center;gap:10px;">
+        <input id="smSearchInput" type="text" placeholder="ابحث عن عضو للدردشة…" oninput="filterSmInbox(this.value)" style="flex:1;padding:10px 14px;background:#F0F2F5;border:none;border-radius:22px;font-family:'Tajawal',sans-serif;font-size:13px;color:#050505;outline:none;text-align:right;">
+        <div onclick="showNewChatScreen();hideSocialHome();" title="محادثة جديدة" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0099ff,#0055cc);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,120,255,0.35);font-size:20px;">✏️</div>
+      </div>
     </div>
 
     <!-- ── REELS PANEL (ريلز) ── -->
@@ -6075,12 +6284,24 @@ function hideSocialHome(){
 function syncSocialAvatar(name){
   if(!name) return;
   const photo = typeof getProfilePhoto === 'function' ? getProfilePhoto(name) : null;
-  ['socialPostAvatar','scpAvatar'].forEach(id=>{
+  // تحديث أفاتار إنشاء المنشور (داخل حلقة القصة)
+  const socialPostAvatar = document.getElementById('socialPostAvatar');
+  if(socialPostAvatar){
+    if(photo){ socialPostAvatar.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; }
+    else{ socialPostAvatar.innerHTML = (typeof getLeaderIcon==='function'?getLeaderIcon(name):'👑'); }
+  }
+  ['scpAvatar'].forEach(id=>{
     const el = document.getElementById(id);
     if(!el) return;
     if(photo){ el.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`; }
     else{ el.innerHTML = (typeof getLeaderIcon==='function'?getLeaderIcon(name):'👑'); }
   });
+  // تحديث حلقة القصة
+  const ring = document.getElementById('myStoryRing');
+  if(ring){
+    const stories = getMyStories ? getMyStories(name).filter(s=>Date.now()<s.expires) : [];
+    ring.className = stories.length > 0 ? 'story-ring' : 'story-ring no-story';
+  }
 }
 
 /* ─── التنقل بين تبويبات الصفحة الاجتماعية ─── */
@@ -7395,7 +7616,464 @@ function shareReelPost(reelId){
   else { navigator.clipboard?.writeText(window.location.href).then(()=>showToast('تم نسخ الرابط 📋')).catch(()=>showToast('تم مشاركة الريلز ↗️')); }
 }
 
-// تطبيق اللغة المحفوظة عند بدء التشغيل
+
+/* ═══════════════════════════════════════════════════════════
+   📋 قائمة جانبية – Social Side Menu
+   ═══════════════════════════════════════════════════════════ */
+let _sideNightMode = localStorage.getItem('nld_night_mode') === '1';
+
+function toggleSocialSideMenu(){
+  const menu = document.getElementById('socialSideMenu');
+  const overlay = document.getElementById('socialSideMenuOverlay');
+  if(!menu || !overlay) return;
+  const isOpen = menu.style.display === 'flex';
+  if(isOpen){ closeSocialSideMenu(); return; }
+  // تحديث بيانات المستخدم في القائمة
+  const name = getCurrentUser();
+  const sideNameEl = document.getElementById('sideMenuName');
+  if(sideNameEl) sideNameEl.innerText = name || 'عضو';
+  const sideAvatarEl = document.getElementById('sideMenuAvatar');
+  if(sideAvatarEl && name){
+    const photo = typeof getProfilePhoto==='function' ? getProfilePhoto(name) : null;
+    if(photo){ sideAvatarEl.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; }
+    else { sideAvatarEl.innerText = typeof getLeaderIcon==='function'?getLeaderIcon(name):'👑'; }
+  }
+  // تحديث اللغة الحالية
+  _updateSideLangLabel();
+  // تحديث النمط الليلي
+  _updateSideNightToggle();
+  overlay.style.display = 'block';
+  menu.style.display = 'flex';
+}
+
+function closeSocialSideMenu(){
+  const menu = document.getElementById('socialSideMenu');
+  const overlay = document.getElementById('socialSideMenuOverlay');
+  if(menu) menu.style.display = 'none';
+  if(overlay) overlay.style.display = 'none';
+  // أغلق أي sub-panels
+  ['sideSettingsPanel','sideGroupsPanel','sidePagesPanel','sideGamesPanel'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+}
+
+function openSideMenuItem(type){
+  closeSocialSideMenu();
+  if(type==='settings'){ const el=document.getElementById('sideSettingsPanel'); if(el){ el.style.display='flex'; } }
+  else if(type==='groups'){ const el=document.getElementById('sideGroupsPanel'); if(el){ el.style.display='flex'; renderGroupsPanel(); } }
+  else if(type==='social_pages'){ const el=document.getElementById('sidePagesPanel'); if(el){ el.style.display='flex'; renderPagesPanel(); } }
+  else if(type==='games'){ const el=document.getElementById('sideGamesPanel'); if(el){ el.style.display='flex'; renderGamesPanel(); } }
+}
+
+function closeSideSubPanel(panelId){
+  const el = document.getElementById(panelId);
+  if(el) el.style.display = 'none';
+}
+
+function toggleSideLanguagePanel(){
+  const panel = document.getElementById('sideLangPanel');
+  const chevron = document.getElementById('sideLangChevron');
+  if(!panel) return;
+  const open = panel.style.display === 'block';
+  panel.style.display = open ? 'none' : 'block';
+  if(chevron) chevron.innerText = open ? '›' : '˅';
+  // تحديث الإشارات
+  _updateSideLangChecks();
+}
+
+function _updateSideLangLabel(){
+  const lang = (typeof getCurrentLang==='function' ? getCurrentLang() : null) || 'ar';
+  const labels = { ar:'العربية 🇩🇿', en:'English 🇬🇧', es:'Español 🇪🇸', zh:'中文 🇨🇳' };
+  const el = document.getElementById('sideCurrentLangLabel');
+  if(el) el.innerText = labels[lang] || labels.ar;
+}
+
+function _updateSideLangChecks(){
+  const lang = (typeof getCurrentLang==='function' ? getCurrentLang() : null) || 'ar';
+  ['ar','en','es','zh'].forEach(code=>{
+    const el = document.getElementById('sideLangCheck_'+code);
+    if(el) el.style.display = code===lang ? 'block' : 'none';
+  });
+}
+
+function setSideLang(code){
+  if(typeof applyLang==='function') applyLang(code);
+  localStorage.setItem('nld_app_lang', code);
+  _updateSideLangLabel();
+  _updateSideLangChecks();
+  toggleSideLanguagePanel();
+  if(typeof showToast==='function') showToast('✅ تم تغيير اللغة');
+}
+
+function toggleSideNightMode(){
+  _sideNightMode = !_sideNightMode;
+  localStorage.setItem('nld_night_mode', _sideNightMode ? '1' : '0');
+  _applyNightMode(_sideNightMode);
+  _updateSideNightToggle();
+}
+
+function _updateSideNightToggle(){
+  const toggle = document.getElementById('sideNightToggle');
+  const knob = document.getElementById('sideNightKnob');
+  const status = document.getElementById('sideNightModeStatus');
+  if(toggle) toggle.style.background = _sideNightMode ? '#1877F2' : '#E4E6EB';
+  if(knob) knob.style.right = _sideNightMode ? '20px' : '2px';
+  if(status) status.innerText = _sideNightMode ? 'مفعّل 🌙' : 'غير مفعّل';
+}
+
+function _applyNightMode(on){
+  const socialHome = document.getElementById('socialHomeCard');
+  if(!socialHome) return;
+  if(on){
+    socialHome.style.background = '#18191A';
+    socialHome.style.color = '#E4E6EB';
+    // تلوين الهيدر
+    const headers = socialHome.querySelectorAll('[style*="background:white"]');
+    headers.forEach(h=>{ h.style.background='#242526'; });
+  } else {
+    socialHome.style.background = '#F0F2F5';
+    socialHome.style.color = '';
+  }
+  if(typeof showToast==='function') showToast(on ? '🌙 النمط الليلي مفعّل' : '☀️ النمط النهاري مفعّل');
+}
+
+// تطبيق النمط الليلي عند فتح الصفحة
+(function(){ if(localStorage.getItem('nld_night_mode')==='1'){ _sideNightMode=true; } })();
+
+/* ═══════════════════════════════════════════════════════════
+   💬 تبويب المسنجر داخل الصفحة الاجتماعية
+   ═══════════════════════════════════════════════════════════ */
+function renderSocialMessengerPanel(){
+  // شريط النشطين
+  const activeBar = document.getElementById('smActiveBar');
+  const activeList = document.getElementById('smActiveList');
+  if(activeBar && activeList){
+    const users = typeof getOnlineUsers==='function' ? getOnlineUsers() : {};
+    const entries = Object.entries(users);
+    if(entries.length > 0){
+      activeBar.style.display='block';
+      activeList.innerHTML = entries.map(([name, data])=>{
+        const photo = localStorage.getItem('nld_photo_'+name.replace(/\s+/g,'_'));
+        const icon = typeof getLeaderIcon==='function' ? getLeaderIcon(name) : '👑';
+        const avatarInner = photo ? `<img src="${photo}" alt="${name}">` : `<span>${icon}</span>`;
+        const shortName = name.split(' ')[0];
+        return `<div class="msg-active-item" onclick="startChatWithName('${name.replace(/'/g,"\\'")}');hideSocialHome();">
+          <div class="msg-active-avatar">${avatarInner}<div class="msg-active-green-dot"></div></div>
+          <div class="msg-active-name">${shortName}</div>
+        </div>`;
+      }).join('');
+    } else {
+      activeBar.style.display='none';
+    }
+  }
+  // قائمة المحادثات
+  _renderSmInbox(getCurrentUser());
+}
+
+function _renderSmInbox(myName, filter=''){
+  const listEl = document.getElementById('smInboxList');
+  if(!listEl) return;
+  if(!myName){ listEl.innerHTML=`<div style="text-align:center;padding:40px 20px;font-size:13px;color:#65676B;">سجّل دخولك أولاً</div>`; return; }
+
+  // جمع كل المحادثات
+  const convMap = {};
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(!k || !k.startsWith('nld_p2p_')) continue;
+    const msgs = JSON.parse(localStorage.getItem(k)||'[]');
+    const conv = msgs.filter(m=>m.from===myName||m.to===myName);
+    if(conv.length===0) continue;
+    const other = conv[0].from===myName ? conv[0].to : conv[0].from;
+    if(!other || other===myName) continue;
+    const last = conv[conv.length-1];
+    const unread = conv.filter(m=>m.to===myName&&!m.read).length;
+    if(!convMap[other] || last.timestamp > convMap[other].last.timestamp){
+      convMap[other] = { other, last, unread };
+    }
+  }
+  // أيضاً: المحادثات مع المدير
+  const adminMsgs = JSON.parse(localStorage.getItem('nld_p2p_المدير_'+myName.replace(/\s+/g,'_'))||'[]');
+  if(adminMsgs.length>0){
+    const last = adminMsgs[adminMsgs.length-1];
+    const unread = adminMsgs.filter(m=>m.to===myName&&!m.read).length;
+    convMap['المدير'] = { other:'المدير', last, unread };
+  }
+
+  let convList = Object.values(convMap).sort((a,b)=>new Date(b.last.timestamp)-new Date(a.last.timestamp));
+  if(filter.trim()) convList = convList.filter(c=>c.other.toLowerCase().includes(filter.toLowerCase()));
+
+  if(convList.length===0){
+    listEl.innerHTML=`<div style="text-align:center;padding:50px 20px;"><div style="font-size:48px;margin-bottom:12px;">💬</div><div style="font-size:14px;font-weight:700;color:#65676B;">ابدأ محادثة جديدة</div><div style="font-size:12px;color:#65676B;margin-top:6px;">استخدم زر ✏️ للتحدث مع أحد الأعضاء</div></div>`;
+    return;
+  }
+
+  listEl.innerHTML = convList.map(({other, last, unread})=>{
+    const photo = localStorage.getItem('nld_photo_'+other.replace(/\s+/g,'_'));
+    const icon = typeof getLeaderIcon==='function' ? getLeaderIcon(other) : '👑';
+    const avatarHtml = photo
+      ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+      : `<div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#00B2FF,#0078FF);display:flex;align-items:center;justify-content:center;font-size:22px;">${other==='المدير'?'🛡️':icon}</div>`;
+    const msgPreview = last.message
+      ? (last.message.length>35 ? last.message.substring(0,35)+'…' : last.message)
+      : (last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت');
+    const ts = last.timestamp ? new Date(last.timestamp).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'}) : '';
+    const isMine = last.from === myName;
+    const safeName = other.replace(/'/g,"\\'");
+    return `<div onclick="openP2PChat('${safeName}',false);hideSocialHome();" style="display:flex;align-items:center;gap:12px;background:white;padding:12px 14px;border-radius:14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:.15s;position:relative;" onmouseover="this.style.background='#F7F8FA'" onmouseout="this.style.background='white'">
+      <div style="position:relative;flex-shrink:0;">${avatarHtml}${!isMine && unread>0 ? `<div style="position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid white;"></div>` : ''}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:${unread>0?'900':'700'};color:#050505;margin-bottom:2px;">${other}</div>
+        <div style="font-size:12px;color:${unread>0?'#050505':'#65676B'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:${unread>0?'700':'400'};">${isMine?'أنت: ':''}${msgPreview}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+        <div style="font-size:10px;color:#65676B;">${ts}</div>
+        ${unread>0?`<div style="min-width:20px;height:20px;border-radius:10px;background:#1877F2;color:white;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 5px;">${unread}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterSmInbox(q){
+  _renderSmInbox(getCurrentUser(), q);
+}
+
+// Override switchSocialTab to handle messenger
+const _origSwitchSocialTab = switchSocialTab;
+function switchSocialTab(tab){
+  _socialTabs.forEach(t=>{
+    const tabEl = document.getElementById('sTab_'+t);
+    const panEl = document.getElementById('socialPanel_'+t);
+    const active = t===tab;
+    if(tabEl){
+      const spans = tabEl.querySelectorAll('span');
+      const lastSpan = spans[spans.length-1];
+      if(lastSpan && (lastSpan.id==='' || lastSpan.id==='socialNotifBadge' || lastSpan.id==='socialMsgBadge' || !lastSpan.id.includes('Badge'))){
+        // color update for non-badge spans
+        spans.forEach(s=>{ if(!s.id.includes('Badge') && !s.id.includes('badge')) s.style.color = active ? '#1877F2' : '#65676B'; });
+      }
+      tabEl.style.borderBottom = active ? '3px solid #1877F2' : '3px solid transparent';
+    }
+    if(panEl){
+      panEl.style.display = active ? (t==='pages'?'flex':'block') : 'none';
+    }
+  });
+  if(tab==='home')      renderSocialFeed();
+  if(tab==='friends')   renderFriendsPanel();
+  if(tab==='notifs')    renderNotifsPanel();
+  if(tab==='pages')     renderSocialMessengerPanel();
+  if(tab==='myprofile') renderReelsPanel();
+  const scroll = document.getElementById('socialMainScroll');
+  if(scroll) scroll.scrollTop = 0;
+}
+
+// تحديث badge المسنجر
+function refreshSocialMsgBadge(){
+  const name = getCurrentUser(); if(!name) return;
+  let total=0;
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith('nld_p2p_')){
+      const msgs=JSON.parse(localStorage.getItem(k)||'[]');
+      total+=msgs.filter(m=>m.to===name&&!m.read).length;
+    }
+  }
+  const badge = document.getElementById('socialMsgBadge');
+  if(!badge) return;
+  if(total>0){ badge.style.display='flex'; badge.innerText=total>9?'9+':String(total); }
+  else { badge.style.display='none'; }
+}
+
+// Override showSocialHome to also update messenger badge
+const _origShowSocialHome = showSocialHome;
+function showSocialHome(){
+  const el = document.getElementById('socialHomeCard');
+  if(el){ el.style.display='flex'; }
+  const name = getCurrentUser();
+  if(!name) return;
+  syncSocialAvatar(name);
+  const scpNameEl = document.getElementById('scpName');
+  if(scpNameEl) scpNameEl.innerText = name;
+  // تطبيق النمط الليلي إذا كان مفعلاً
+  if(_sideNightMode) _applyNightMode(true);
+  switchSocialTab('home');
+  refreshSocialNotifBadge();
+  refreshSocialMsgBadge();
+  // تحديث صورة الملف الشخصي في منطقة القصة
+  _refreshMyStoryAvatar(name);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   📖 نظام القصص (Stories)
+   ═══════════════════════════════════════════════════════════ */
+const _storiesKey = n => 'nld_stories_' + n.replace(/\s+/g,'_');
+
+function getMyStories(name){
+  if(!name) return [];
+  return JSON.parse(localStorage.getItem(_storiesKey(name))||'[]');
+}
+
+function saveMyStories(name, arr){
+  localStorage.setItem(_storiesKey(name), JSON.stringify(arr));
+}
+
+function _refreshMyStoryAvatar(name){
+  if(!name) return;
+  const photo = typeof getProfilePhoto==='function' ? getProfilePhoto(name) : null;
+  const el = document.getElementById('socialPostAvatar');
+  if(el){
+    if(photo){ el.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; }
+    else { el.innerHTML = typeof getLeaderIcon==='function'?getLeaderIcon(name):'👑'; }
+  }
+  // تحديث حلقة القصة
+  const ring = document.getElementById('myStoryRing');
+  if(ring){
+    const stories = getMyStories(name);
+    const hasStories = stories.length > 0;
+    ring.className = hasStories ? 'story-ring' : 'story-ring no-story';
+  }
+}
+
+function addMyStory(){
+  const name = getCurrentUser(); if(!name) return;
+  // إنشاء input file مخفي
+  const inp = document.createElement('input');
+  inp.type='file'; inp.accept='image/*,video/*';
+  inp.style.display='none';
+  inp.onchange = e=>{
+    const file = e.target.files[0]; if(!file) return;
+    const isVideo = file.type.startsWith('video');
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      const stories = getMyStories(name);
+      const story = {
+        id: 's'+Date.now(),
+        type: isVideo ? 'video' : 'image',
+        data: ev.target.result,
+        ts: Date.now(),
+        expires: Date.now() + 24*60*60*1000 // 24 ساعة
+      };
+      stories.push(story);
+      // احتفظ بآخر 10 قصص فقط
+      if(stories.length>10) stories.splice(0, stories.length-10);
+      saveMyStories(name, stories);
+      _refreshMyStoryAvatar(name);
+      if(typeof showToast==='function') showToast('✅ تمت إضافة قصتك!');
+    };
+    reader.readAsDataURL(file);
+    inp.remove();
+  };
+  document.body.appendChild(inp);
+  inp.click();
+}
+
+function openMyStory(){
+  const name = getCurrentUser(); if(!name) return;
+  const stories = getMyStories(name).filter(s=>Date.now()<s.expires);
+  if(stories.length===0){
+    // لا توجد قصص → اعرض خيار إضافة
+    if(typeof showToast==='function') showToast('لا توجد قصص. اضغط + لإضافة قصة 📸');
+    return;
+  }
+  _showStoryViewer(name, stories, 0);
+}
+
+function _showStoryViewer(authorName, stories, startIdx){
+  let currentIdx = startIdx;
+  let _storyTimer = null;
+
+  const ov = document.createElement('div');
+  ov.className = 'story-viewer';
+  ov.id = 'storyViewerOverlay';
+
+  function buildViewer(idx){
+    const s = stories[idx];
+    const progress = stories.map((_,i)=>`
+      <div class="story-progress-seg">
+        <div class="story-progress-fill" id="sProg_${i}" style="${i<idx?'width:100%;animation:none;':i===idx?'':'width:0%;animation:none;'}"></div>
+      </div>`).join('');
+    const authorPhoto = typeof getProfilePhoto==='function' ? getProfilePhoto(authorName) : null;
+    const authorAvatar = authorPhoto
+      ? `<img src="${authorPhoto}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">`
+      : `<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;">${typeof getLeaderIcon==='function'?getLeaderIcon(authorName):'👑'}</div>`;
+    const ts = new Date(s.ts).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+
+    ov.innerHTML=`
+      <div class="story-progress-bar">${progress}</div>
+      <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:94%;max-width:460px;z-index:10;display:flex;align-items:center;gap:10px;padding:0 4px;">
+        ${authorAvatar}
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:900;color:white;text-shadow:0 1px 6px rgba(0,0,0,0.6);">${authorName}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.8);">${ts}</div>
+        </div>
+        <div onclick="closeStoryViewer()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:900;color:white;">✕</div>
+      </div>
+      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;">
+        ${s.type==='video'
+          ? `<video src="${s.data}" autoplay muted playsinline style="max-width:100%;max-height:100vh;object-fit:contain;" onended="nextStory()"></video>`
+          : `<img src="${s.data}" style="max-width:100%;max-height:100vh;object-fit:contain;" onclick="nextStory()">`
+        }
+      </div>
+      <!-- Navigation -->
+      <div onclick="prevStory()" style="position:absolute;top:0;right:0;width:40%;height:100%;cursor:pointer;z-index:5;"></div>
+      <div onclick="nextStory()" style="position:absolute;top:0;left:0;width:60%;height:100%;cursor:pointer;z-index:5;"></div>
+    `;
+    // مؤقت 5 ثواني للصور
+    if(s.type==='image'){
+      _storyTimer = setTimeout(()=>nextStory(), 5000);
+    }
+  }
+
+  window.nextStory = ()=>{
+    if(_storyTimer) clearTimeout(_storyTimer);
+    currentIdx++;
+    if(currentIdx >= stories.length){ closeStoryViewer(); return; }
+    buildViewer(currentIdx);
+  };
+  window.prevStory = ()=>{
+    if(_storyTimer) clearTimeout(_storyTimer);
+    currentIdx = Math.max(0, currentIdx-1);
+    buildViewer(currentIdx);
+  };
+  window.closeStoryViewer = ()=>{
+    if(_storyTimer) clearTimeout(_storyTimer);
+    ov.remove();
+    delete window.nextStory;
+    delete window.prevStory;
+    delete window.closeStoryViewer;
+  };
+
+  document.body.appendChild(ov);
+  buildViewer(currentIdx);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🤝 عرض ملف كامل بعد قبول الصداقة
+   ═══════════════════════════════════════════════════════════ */
+// تعديل acceptFriendRequest لفتح ملف الصديق بعد القبول
+const _origAcceptFriendRequest = typeof acceptFriendRequest !== 'undefined' ? acceptFriendRequest : null;
+function acceptFriendRequest(fromUser){
+  const name = getCurrentUser(); if(!name) return;
+  let reqs = JSON.parse(localStorage.getItem(_friendReqKey(name))||'[]');
+  reqs = reqs.filter(r=>r.from!==fromUser);
+  localStorage.setItem(_friendReqKey(name), JSON.stringify(reqs));
+  const myFriends = getFriends(name);
+  if(!myFriends.includes(fromUser)){ myFriends.push(fromUser); localStorage.setItem(_friendsKey(name), JSON.stringify(myFriends)); }
+  const theirFriends = getFriends(fromUser);
+  if(!theirFriends.includes(name)){ theirFriends.push(name); localStorage.setItem(_friendsKey(fromUser), JSON.stringify(theirFriends)); }
+  addSocialNotif(fromUser, `${name} قبل طلب صداقتك! أنتما الآن أصدقاء 🎉`, '🎉');
+  showToast('🎉 تمت إضافة الصديق! يمكنك الآن مشاهدة ملفه');
+  renderFriendsPanel();
+  // فتح ملف الصديق مباشرة بعد 600ms
+  setTimeout(()=>{ viewMemberProfile(fromUser); }, 700);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🔄 تهيئة عند فتح التطبيق
+   ═══════════════════════════════════════════════════════════ */
+// مزامنة badge المسنجر كل 10 ثواني
+setInterval(()=>{ if(document.getElementById('socialHomeCard')?.style.display==='flex') refreshSocialMsgBadge(); }, 10000);
+
 (function(){
   const saved = getCurrentLang();
   if(saved){
