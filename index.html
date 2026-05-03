@@ -9470,18 +9470,15 @@ function doLogout(){
 
 /* ══════════════════════════════════════════════════════════
    📘 Facebook Feed — Next Leaders DZ
-   Page ID : 100063909619487
-   Token   : 977955201612020|2FYnAKMj5IhItBVrvWYL9yqQn1I
+   Method  : RSS via rss2json (بدون Token)
+   Page    : next.leaders.dz
    ══════════════════════════════════════════════════════════ */
-const _FB_PAGE_ID = '100063909619487';
-const _FB_TOKEN   = '977955201612020|2FYnAKMj5IhItBVrvWYL9yqQn1I';
-const _FB_LIMIT   = 15;
+const _FB_PAGE_NAME = 'next.leaders.dz';
 
 function openFbFeedPanel(){
   const panel = document.getElementById('fbFeedPanel');
   panel.style.display = 'flex';
   const container = document.getElementById('fbFeedContainer');
-  // Load only if empty
   if(!container.innerHTML.trim() || container.innerHTML.includes('fbSpinner')){
     loadFbFeed();
   }
@@ -9497,46 +9494,44 @@ async function loadFbFeed(){
   <style>@keyframes fbSpin{to{transform:rotate(360deg);}}</style>`;
   subtitle.textContent = 'جارٍ التحميل…';
 
-  const fields = 'id,message,created_time,full_picture,attachments,reactions.summary(true),comments.summary(true),shares';
-  const url = `https://graph.facebook.com/v19.0/${_FB_PAGE_ID}/posts?fields=${fields}&limit=${_FB_LIMIT}&access_token=${_FB_TOKEN}`;
+  // استخدام rss2json لتحويل RSS فيسبوك إلى JSON
+  const rssUrl = `https://www.facebook.com/feeds/page.php?id=100063909619487&format=rss20`;
+  const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=15`;
 
   try {
-    const res  = await fetch(url);
+    const res  = await fetch(apiUrl);
     const data = await res.json();
 
-    if(data.error){
-      container.innerHTML = _fbErrorHTML(data.error.message);
-      subtitle.textContent = 'خطأ في التحميل';
-      return;
-    }
-    if(!data.data || data.data.length === 0){
-      container.innerHTML = _fbErrorHTML('لا توجد منشورات أو الصلاحيات غير كافية.');
-      subtitle.textContent = 'لا توجد منشورات';
+    if(data.status !== 'ok' || !data.items || data.items.length === 0){
+      // إذا فشل RSS، نعرض رابط الصفحة مباشرة
+      container.innerHTML = _fbDirectLink();
+      subtitle.textContent = 'الصفحة الرسمية';
       return;
     }
 
-    subtitle.textContent = `${data.data.length} منشور • الصفحة الرسمية`;
-    container.innerHTML = data.data.map((p,i) => _fbPostCard(p, i)).join('');
+    subtitle.textContent = `${data.items.length} منشور • الصفحة الرسمية`;
+    container.innerHTML = data.items.map((p,i) => _fbPostCard(p, i)).join('');
 
   } catch(err) {
-    container.innerHTML = _fbErrorHTML('تعذّر الاتصال بـ Facebook. تأكد من الاتصال بالإنترنت.');
-    subtitle.textContent = 'تعذّر الاتصال';
+    container.innerHTML = _fbDirectLink();
+    subtitle.textContent = 'الصفحة الرسمية';
   }
 }
 
 function _fbPostCard(p, idx){
-  const date = new Date(p.created_time).toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
-  const msg  = p.message || '';
-  const pic  = p.full_picture || '';
-  const reactions = p.reactions?.summary?.total_count || 0;
-  const comments  = p.comments?.summary?.total_count  || 0;
-  const shares    = p.shares?.count || 0;
-  const postUrl   = `https://facebook.com/${p.id}`;
-  const delay     = idx * 0.05;
+  const date = new Date(p.pubDate).toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
+  // استخراج النص من محتوى RSS
+  const tmpDiv = document.createElement('div');
+  tmpDiv.innerHTML = p.description || '';
+  const msg = tmpDiv.textContent || tmpDiv.innerText || p.title || '';
+  // استخراج الصورة إن وجدت
+  const imgMatch = (p.description||'').match(/<img[^>]+src="([^"]+)"/);
+  const pic = p.thumbnail || (imgMatch ? imgMatch[1] : '');
+  const postUrl = p.link || `https://facebook.com/${_FB_PAGE_NAME}`;
+  const delay = idx * 0.05;
 
   return `<div style="background:white;border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);animation:fbFadeUp .4s ${delay}s ease both;">
     <style>@keyframes fbFadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}</style>
-    <!-- Post Header -->
     <div style="display:flex;align-items:center;gap:10px;padding:12px 14px 8px;">
       <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#0a5dc2);display:flex;align-items:center;justify-content:center;font-size:18px;color:white;font-weight:900;flex-shrink:0;">N</div>
       <div style="flex:1;">
@@ -9547,12 +9542,21 @@ function _fbPostCard(p, idx){
     </div>
     ${msg ? `<div style="padding:4px 14px 10px;font-size:13px;color:#050505;line-height:1.65;white-space:pre-wrap;word-break:break-word;">${_fbEscape(msg.length>280 ? msg.slice(0,280)+'…' : msg)}</div>` : ''}
     ${pic ? `<img src="${pic}" style="width:100%;max-height:240px;object-fit:cover;display:block;" onerror="this.style.display='none'" loading="lazy">` : ''}
-    <!-- Reactions bar -->
-    <div style="display:flex;align-items:center;gap:0;padding:8px 14px;border-top:1px solid #E4E6EB;">
-      ${reactions ? `<span style="font-size:12px;color:#65676B;display:flex;align-items:center;gap:4px;margin-left:14px;"><span style="font-size:15px;">👍</span>${reactions}</span>` : ''}
-      ${comments  ? `<span style="font-size:12px;color:#65676B;display:flex;align-items:center;gap:4px;margin-left:14px;"><span style="font-size:15px;">💬</span>${comments}</span>` : ''}
-      ${shares    ? `<span style="font-size:12px;color:#65676B;display:flex;align-items:center;gap:4px;"><span style="font-size:15px;">↩️</span>${shares}</span>` : ''}
+    <div style="padding:8px 14px;border-top:1px solid #E4E6EB;">
+      <span style="font-size:12px;color:#1877F2;font-weight:700;">👍 إعجاب • 💬 تعليق • ↗ مشاركة</span>
     </div>
+  </div>`;
+}
+
+function _fbDirectLink(){
+  return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;">
+    <div style="font-size:48px;margin-bottom:14px;">📘</div>
+    <div style="font-size:14px;font-weight:800;color:#050505;margin-bottom:8px;">صفحة Next Leaders DZ</div>
+    <div style="font-size:12px;color:#65676B;line-height:1.6;margin-bottom:18px;">تابع آخر منشوراتنا مباشرة على فيسبوك</div>
+    <a href="https://www.facebook.com/share/1FvQyTzddK/" target="_blank" style="background:#1877F2;color:white;border-radius:10px;padding:12px 28px;font-size:14px;font-weight:800;text-decoration:none;display:inline-block;">
+      📘 فتح الصفحة على فيسبوك
+    </a>
+    <div onclick="loadFbFeed()" style="margin-top:14px;color:#1877F2;font-size:12px;font-weight:700;cursor:pointer;">↺ إعادة المحاولة</div>
   </div>`;
 }
 
