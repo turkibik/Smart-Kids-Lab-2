@@ -151,6 +151,34 @@
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   animation:fadeIn .25s ease;
 }
+
+/* ===== Night Mode CSS for socialHomeCard ===== */
+#socialHomeCard.night-mode { background:#18191A !important; color:#E4E6EB !important; }
+#socialHomeCard.night-mode #socialTopBar,
+#socialHomeCard.night-mode [style*="background:white"],
+#socialHomeCard.night-mode [style*="background: white"] {
+  background:#242526 !important; border-color:#3A3B3C !important;
+}
+#socialHomeCard.night-mode [style*="background:#F0F2F5"],
+#socialHomeCard.night-mode [style*="background: #F0F2F5"] { background:#3A3B3C !important; }
+#socialHomeCard.night-mode [style*="background:#F7F8FA"],
+#socialHomeCard.night-mode [style*="background:#FAFAFA"] { background:#2D2E2F !important; }
+#socialHomeCard.night-mode [style*="color:#050505"],
+#socialHomeCard.night-mode [style*="color: #050505"] { color:#E4E6EB !important; }
+#socialHomeCard.night-mode [style*="color:#65676B"],
+#socialHomeCard.night-mode [style*="color: #65676B"] { color:#B0B3B8 !important; }
+#socialHomeCard.night-mode [style*="border-bottom:1px solid #E4E6EB"],
+#socialHomeCard.night-mode [style*="border-top:1px solid #E4E6EB"],
+#socialHomeCard.night-mode [style*="border:1px solid #E4E6EB"] { border-color:#3A3B3C !important; }
+#socialHomeCard.night-mode input[type="text"],
+#socialHomeCard.night-mode textarea { background:#3A3B3C !important; color:#E4E6EB !important; }
+#socialHomeCard.night-mode #sTab_home,
+#socialHomeCard.night-mode #sTab_friends,
+#socialHomeCard.night-mode #sTab_notifs,
+#socialHomeCard.night-mode #sTab_pages,
+#socialHomeCard.night-mode #sTab_myprofile { background:#242526 !important; }
+#socialHomeCard.night-mode svg:not([style*="fill:#1877"]) { fill:#B0B3B8 !important; }
+
 .story-progress-bar{
   position:absolute;top:12px;left:10px;right:10px;
   display:flex;gap:4px;z-index:10;
@@ -1733,46 +1761,62 @@ body.member-mode #onlineBar{
      ══════════════════════════════════════════ -->
 <div id="socialHomeCard" style="display:none;position:fixed;inset:0;z-index:2900;background:#F0F2F5;flex-direction:column;overflow:hidden;">
 
-  <!-- ── Top Bar ── -->
-  <div style="background:white;border-bottom:1px solid #E4E6EB;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-    <!-- Title row -->
-    <div style="padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div onclick="hideSocialHome()" style="width:34px;height:34px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;font-weight:700;color:#1877F2;">‹</div>
-        <div style="font-size:18px;font-weight:900;color:#1877F2;letter-spacing:.5px;">Next Leaders 🌐</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <!-- زر القائمة الجانبية (ثلاث شرطات) -->
-        <div onclick="toggleSocialSideMenu()" id="socialMenuBtn" style="width:38px;height:38px;border-radius:50%;background:#F0F2F5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;font-size:16px;font-weight:900;color:#65676B;padding:10px;">
-          <span style="display:block;width:18px;height:2.5px;background:#444;border-radius:2px;"></span>
-          <span style="display:block;width:18px;height:2.5px;background:#444;border-radius:2px;"></span>
-          <span style="display:block;width:18px;height:2.5px;background:#444;border-radius:2px;"></span>
+  <!-- ── Top Bar (Facebook-style) ── -->
+  <div id="socialTopBar" style="background:white;border-bottom:1px solid #E4E6EB;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+    <!-- Row 1: Logo + Actions -->
+    <div style="padding:8px 12px 6px;display:flex;align-items:center;gap:8px;">
+      <!-- Logo -->
+      <div style="font-size:22px;font-weight:900;color:#1877F2;letter-spacing:-.5px;flex:1;font-family:'Tajawal',sans-serif;">Next Leaders</div>
+      <!-- Action buttons row (Facebook-like circles) -->
+      <div style="display:flex;gap:7px;align-items:center;">
+        <!-- Search -->
+        <div onclick="toggleSocialSearch()" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;" title="بحث" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#050505" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <!-- Messenger -->
+        <div onclick="switchSocialTab('pages')" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;position:relative;" title="مسنجر" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">
+          <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='#050505'><path d='M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z'/></svg>
+          <span id="socialTopMsgBadge" style="display:none;position:absolute;top:0;right:0;min-width:16px;height:16px;border-radius:8px;background:#e53935;border:2px solid white;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;padding:0 3px;font-family:'Tajawal',sans-serif;"></span>
+        </div>
+        <!-- Hamburger Menu (3 lines) -->
+        <div onclick="toggleSocialSideMenu()" id="socialMenuBtn" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:.15s;flex-shrink:0;" title="القائمة" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">
+          <span style="display:block;width:16px;height:2px;background:#050505;border-radius:2px;"></span>
+          <span style="display:block;width:16px;height:2px;background:#050505;border-radius:2px;"></span>
+          <span style="display:block;width:16px;height:2px;background:#050505;border-radius:2px;"></span>
         </div>
       </div>
     </div>
-    <!-- ── Top Tab Bar ── -->
+    <!-- Search bar (hidden by default) -->
+    <div id="socialSearchBar" style="display:none;padding:4px 12px 8px;">
+      <div style="display:flex;align-items:center;background:#F0F2F5;border-radius:22px;padding:0 14px;gap:8px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#65676B" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="socialSearchInput" type="text" placeholder="ابحث في Next Leaders…" style="flex:1;border:none;background:transparent;padding:8px 0;font-family:'Tajawal',sans-serif;font-size:14px;color:#050505;outline:none;text-align:right;" oninput="handleSocialSearch(this.value)">
+        <div onclick="toggleSocialSearch()" style="font-size:12px;font-weight:700;color:#1877F2;cursor:pointer;white-space:nowrap;">إلغاء</div>
+      </div>
+    </div>
+    <!-- ── Top Tab Bar (Facebook-style icons) ── -->
     <div style="display:flex;border-top:1px solid #E4E6EB;">
-      <div id="sTab_home" onclick="switchSocialTab('home')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid #1877F2;transition:.2s;">
-        <span style="font-size:20px;">🏠</span>
-        <span style="font-size:10px;font-weight:800;color:#1877F2;">الرئيسية</span>
+      <div id="sTab_home" onclick="switchSocialTab('home')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid #1877F2;transition:.2s;position:relative;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#1877F2"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span style="font-size:9px;font-weight:800;color:#1877F2;">الرئيسية</span>
       </div>
-      <div id="sTab_friends" onclick="switchSocialTab('friends')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
-        <span style="font-size:20px;">👫</span>
-        <span style="font-size:10px;font-weight:700;color:#65676B;">الأصدقاء</span>
+      <div id="sTab_friends" onclick="switchSocialTab('friends')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#65676B"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        <span style="font-size:9px;font-weight:700;color:#65676B;">الأصدقاء</span>
       </div>
-      <div id="sTab_notifs" onclick="switchSocialTab('notifs')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
-        <span style="font-size:20px;">🔔</span>
-        <span style="font-size:10px;font-weight:700;color:#65676B;">الإشعارات</span>
-        <span id="socialNotifBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:2px;width:16px;height:16px;background:#e53935;border-radius:50%;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;">0</span>
+      <div id="sTab_notifs" onclick="switchSocialTab('notifs')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#65676B"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span style="font-size:9px;font-weight:700;color:#65676B;">الإشعارات</span>
+        <span id="socialNotifBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;">0</span>
       </div>
-      <div id="sTab_pages" onclick="switchSocialTab('pages')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
-        <span style="font-size:20px;">💬</span>
-        <span style="font-size:10px;font-weight:700;color:#65676B;">مسنجر</span>
-        <span id="socialMsgBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;width:16px;height:16px;background:#e53935;border-radius:50%;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;"></span>
+      <div id="sTab_pages" onclick="switchSocialTab('pages')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
+        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='22' height='22' fill='#65676B'><path d='M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z'/></svg>
+        <span style="font-size:9px;font-weight:700;color:#65676B;">مسنجر</span>
+        <span id="socialMsgBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;"></span>
       </div>
-      <div id="sTab_myprofile" onclick="switchSocialTab('myprofile')" style="flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
-        <span style="font-size:20px;">🎬</span>
-        <span style="font-size:10px;font-weight:700;color:#65676B;">ريلز</span>
+      <div id="sTab_myprofile" onclick="switchSocialTab('myprofile')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#65676B"><path d="M4 6l2.5 2.5L12 3l5.5 5.5L20 6l-8-8-8 8zm8 15l-5.5-5.5L4 18l8 8 8-8-2.5-2.5L12 21z"/></svg>
+        <span style="font-size:9px;font-weight:700;color:#65676B;">ريلز</span>
       </div>
     </div>
   </div>
@@ -1784,10 +1828,11 @@ body.member-mode #onlineBar{
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#1877F2,#0d5bda);padding:24px 18px 18px;color:white;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
-        <div id="sideMenuAvatar" style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid rgba(255,255,255,0.5);overflow:hidden;">👑</div>
+        <div id="sideMenuAvatar" onclick="closeSocialSideMenu();setTimeout(()=>showMyProfile(),200);" style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid rgba(255,255,255,0.5);overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='scale(1.08)';this.style.boxShadow='0 0 0 3px rgba(255,255,255,0.5)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none'" title="عرض ملفي الشخصي">👑</div>
         <div>
-          <div id="sideMenuName" style="font-size:16px;font-weight:900;">اسم العضو</div>
+          <div id="sideMenuName" onclick="closeSocialSideMenu();setTimeout(()=>showMyProfile(),200);" style="font-size:16px;font-weight:900;cursor:pointer;text-decoration:underline;text-underline-offset:2px;opacity:.9;">اسم العضو</div>
           <div style="font-size:11px;opacity:0.8;">Next Leaders DZ</div>
+          <div onclick="closeSocialSideMenu();setTimeout(()=>showMyProfile(),200);" style="font-size:10px;color:rgba(255,255,255,0.75);cursor:pointer;margin-top:2px;">👆 اضغط لعرض ملفك</div>
         </div>
       </div>
     </div>
@@ -6165,6 +6210,40 @@ function applyLang(code, skipOverlay){
         <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:16px;">🎙️</span>${d.attachVoice}
       </div>`;
   }
+
+  // ترجمة الشبكة الاجتماعية (صفحتي)
+  try{
+    // التبويبات
+    const tabLabels = {
+      ar:{ home:'الرئيسية', friends:'الأصدقاء', notifs:'الإشعارات', pages:'مسنجر', myprofile:'ريلز' },
+      en:{ home:'Home', friends:'Friends', notifs:'Notifications', pages:'Messenger', myprofile:'Reels' },
+      es:{ home:'Inicio', friends:'Amigos', notifs:'Notificaciones', pages:'Mensajes', myprofile:'Reels' },
+      zh:{ home:'主页', friends:'朋友', notifs:'通知', pages:'消息', myprofile:'视频' }
+    };
+    const tl = tabLabels[code] || tabLabels['ar'];
+    ['home','friends','notifs','pages','myprofile'].forEach(t=>{
+      const el = document.getElementById('sTab_'+t);
+      if(el){
+        const spans = el.querySelectorAll('span');
+        spans.forEach(s=>{ if(!s.id) s.innerText = tl[t]; });
+      }
+    });
+    // مربع كتابة المنشور
+    const postBox = document.querySelector('#socialPanel_home [onclick="openSocialCreatePost()"]');
+    if(postBox){
+      const placeholders = { ar:'بماذا تفكر؟', en:"What's on your mind?", es:'¿Qué estás pensando?', zh:'你在想什么？' };
+      postBox.innerText = placeholders[code] || placeholders['ar'];
+    }
+    // زر الإغلاق
+    const sideClose = document.querySelector('#socialSideMenu [onclick="hideSocialHome()"] div:last-child');
+    if(sideClose){
+      const closeLabels = { ar:'إغلاق الصفحة', en:'Close Page', es:'Cerrar página', zh:'关闭页面' };
+      sideClose.innerText = closeLabels[code] || closeLabels['ar'];
+    }
+    // تحديث اتجاه socialHomeCard
+    const sc = document.getElementById('socialHomeCard');
+    if(sc){ sc.dir = d.dir; }
+  }catch(e){}
 }
 
 function setLoginLang(code){
@@ -7725,17 +7804,71 @@ function _updateSideNightToggle(){
 function _applyNightMode(on){
   const socialHome = document.getElementById('socialHomeCard');
   if(!socialHome) return;
+
+  // إضافة / إزالة class على socialHomeCard
   if(on){
-    socialHome.style.background = '#18191A';
-    socialHome.style.color = '#E4E6EB';
-    // تلوين الهيدر
-    const headers = socialHome.querySelectorAll('[style*="background:white"]');
-    headers.forEach(h=>{ h.style.background='#242526'; });
+    socialHome.classList.add('night-mode');
   } else {
-    socialHome.style.background = '#F0F2F5';
-    socialHome.style.color = '';
+    socialHome.classList.remove('night-mode');
   }
+
+  // تطبيق النمط على الخلفية الرئيسية
+  socialHome.style.background = on ? '#18191A' : '#F0F2F5';
+  socialHome.style.color = on ? '#E4E6EB' : '';
+
+  // ── الشريط العلوي ──
+  const topBar = socialHome.querySelector('[style*="border-bottom:1px solid #E4E6EB"]');
+  if(topBar){ topBar.style.background = on ? '#242526' : 'white'; topBar.style.borderColor = on ? '#3A3B3C' : '#E4E6EB'; }
+
+  // كل العناصر ذات الخلفية البيضاء داخل socialHomeCard
+  socialHome.querySelectorAll('[style*="background:white"],[style*="background: white"]').forEach(el=>{
+    el.style.background = on ? '#242526' : 'white';
+    el.style.borderColor = on ? '#3A3B3C' : '';
+  });
+
+  // النصوص الداكنة
+  socialHome.querySelectorAll('[style*="color:#050505"],[style*="color: #050505"]').forEach(el=>{
+    el.style.color = on ? '#E4E6EB' : '#050505';
+  });
+  socialHome.querySelectorAll('[style*="color:#65676B"],[style*="color: #65676B"]').forEach(el=>{
+    el.style.color = on ? '#B0B3B8' : '#65676B';
+  });
+
+  // بطاقات المنشور F0F2F5 الرمادية
+  socialHome.querySelectorAll('[style*="background:#F0F2F5"],[style*="background: #F0F2F5"]').forEach(el=>{
+    el.style.background = on ? '#3A3B3C' : '#F0F2F5';
+  });
+  socialHome.querySelectorAll('[style*="background:#F7F8FA"],[style*="background:#F7F7F7"],[style*="background:#FAFAFA"]').forEach(el=>{
+    el.style.background = on ? '#2D2E2F' : '';
+  });
+
+  // الحدود
+  socialHome.querySelectorAll('[style*="border-bottom:1px solid #E4E6EB"],[style*="border-top:1px solid #E4E6EB"],[style*="border:1px solid #E4E6EB"]').forEach(el=>{
+    if(on){ el.style.borderColor='#3A3B3C'; }
+    else { el.style.borderColor='#E4E6EB'; }
+  });
+
+  // التبويبات
+  const tabs = ['home','friends','notifs','pages','myprofile'];
+  tabs.forEach(t=>{
+    const tabEl = document.getElementById('sTab_'+t);
+    if(tabEl){
+      tabEl.style.background = on ? '#242526' : 'transparent';
+    }
+  });
+
+  // حقول الإدخال
+  socialHome.querySelectorAll('input[type="text"],textarea').forEach(el=>{
+    el.style.background = on ? '#3A3B3C' : '';
+    el.style.color = on ? '#E4E6EB' : '';
+  });
+
   if(typeof showToast==='function') showToast(on ? '🌙 النمط الليلي مفعّل' : '☀️ النمط النهاري مفعّل');
+
+  // حفظ الحالة وإعادة رسم الفيد لتطبيق الألوان
+  setTimeout(()=>{
+    if(typeof renderSocialFeed==='function') renderSocialFeed();
+  }, 100);
 }
 
 // تطبيق النمط الليلي عند فتح الصفحة
@@ -7846,13 +7979,17 @@ function switchSocialTab(tab){
     const panEl = document.getElementById('socialPanel_'+t);
     const active = t===tab;
     if(tabEl){
-      const spans = tabEl.querySelectorAll('span');
-      const lastSpan = spans[spans.length-1];
-      if(lastSpan && (lastSpan.id==='' || lastSpan.id==='socialNotifBadge' || lastSpan.id==='socialMsgBadge' || !lastSpan.id.includes('Badge'))){
-        // color update for non-badge spans
-        spans.forEach(s=>{ if(!s.id.includes('Badge') && !s.id.includes('badge')) s.style.color = active ? '#1877F2' : '#65676B'; });
-      }
       tabEl.style.borderBottom = active ? '3px solid #1877F2' : '3px solid transparent';
+      // Update SVG fill and text color
+      const svgs = tabEl.querySelectorAll('svg');
+      const spans = tabEl.querySelectorAll('span');
+      svgs.forEach(svg=>{ svg.setAttribute('fill', active ? '#1877F2' : '#65676B'); });
+      spans.forEach(s=>{
+        if(!s.id || (!s.id.includes('Badge') && !s.id.includes('badge'))){
+          s.style.color = active ? '#1877F2' : '#65676B';
+          if(active) s.style.fontWeight='800';
+        }
+      });
     }
     if(panEl){
       panEl.style.display = active ? (t==='pages'?'flex':'block') : 'none';
@@ -7879,9 +8016,42 @@ function refreshSocialMsgBadge(){
     }
   }
   const badge = document.getElementById('socialMsgBadge');
-  if(!badge) return;
-  if(total>0){ badge.style.display='flex'; badge.innerText=total>9?'9+':String(total); }
-  else { badge.style.display='none'; }
+  const topBadge = document.getElementById('socialTopMsgBadge');
+  if(badge){
+    if(total>0){ badge.style.display='flex'; badge.innerText=total>9?'9+':String(total); }
+    else { badge.style.display='none'; }
+  }
+  if(topBadge){
+    if(total>0){ topBadge.style.display='flex'; topBadge.innerText=total>9?'9+':String(total); }
+    else { topBadge.style.display='none'; }
+  }
+}
+
+/* ── Social Search ── */
+function toggleSocialSearch(){
+  const bar = document.getElementById('socialSearchBar');
+  if(!bar) return;
+  const open = bar.style.display === 'block';
+  bar.style.display = open ? 'none' : 'block';
+  if(!open){ setTimeout(()=>{ const inp=document.getElementById('socialSearchInput'); if(inp) inp.focus(); }, 100); }
+}
+
+function handleSocialSearch(q){
+  if(!q.trim()){ renderSocialFeed(); return; }
+  const posts = getSocialPosts().filter(p=>
+    (p.text&&p.text.includes(q)) ||
+    (p.author&&p.author.includes(q))
+  );
+  const feed = document.getElementById('socialFeedContainer');
+  if(!feed) return;
+  if(posts.length===0){
+    feed.innerHTML=`<div style="text-align:center;padding:40px 20px;background:white;margin-bottom:8px;">
+      <div style="font-size:40px;margin-bottom:10px;">🔍</div>
+      <div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد نتائج لـ "${q}"</div>
+    </div>`;
+    return;
+  }
+  feed.innerHTML = posts.slice().reverse().map(p=>renderSocialPostCard(p)).join('');
 }
 
 // Override showSocialHome to also update messenger badge
@@ -7936,35 +8106,142 @@ function _refreshMyStoryAvatar(name){
 
 function addMyStory(){
   const name = getCurrentUser(); if(!name) return;
-  // إنشاء input file مخفي
-  const inp = document.createElement('input');
-  inp.type='file'; inp.accept='image/*,video/*';
-  inp.style.display='none';
-  inp.onchange = e=>{
+
+  // إنشاء نافذة إضافة القصة
+  const storyCreator = document.createElement('div');
+  storyCreator.id = 'storyCreatorOverlay';
+  storyCreator.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn .25s ease;';
+
+  storyCreator.innerHTML = `
+    <div style="background:#1c1e21;border-radius:20px;width:90%;max-width:380px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.7);">
+      <!-- Header -->
+      <div style="padding:16px 18px;border-bottom:1px solid #3A3B3C;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:16px;font-weight:900;color:white;">📖 إنشاء قصة</div>
+        <div onclick="document.getElementById('storyCreatorOverlay').remove()" style="width:30px;height:30px;border-radius:50%;background:#3A3B3C;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:white;">✕</div>
+      </div>
+      <!-- Preview -->
+      <div id="storyPreviewArea" style="background:#000;width:100%;height:200px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+        <div style="color:#65676B;font-size:13px;text-align:center;"><div style="font-size:40px;margin-bottom:8px;">📸</div>اختر صورة أو فيديو</div>
+        <div id="storyPreviewText" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);max-width:90%;background:rgba(0,0,0,0.6);border-radius:10px;padding:7px 14px;font-size:15px;font-weight:700;color:white;display:none;text-align:center;"></div>
+      </div>
+      <!-- Controls -->
+      <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+        <!-- Media buttons -->
+        <div style="display:flex;gap:8px;">
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#1877F2;border-radius:10px;cursor:pointer;font-size:13px;font-weight:800;color:white;">
+            🖼️ صورة
+            <input type="file" accept="image/*" style="display:none;" onchange="handleStoryMedia(event,'image')">
+          </label>
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#00c853;border-radius:10px;cursor:pointer;font-size:13px;font-weight:800;color:white;">
+            🎬 فيديو (30ث)
+            <input type="file" accept="video/*" capture="environment" style="display:none;" onchange="handleStoryMedia(event,'video')">
+          </label>
+        </div>
+        <!-- Text overlay input -->
+        <input id="storyTextInput" type="text" placeholder="✏️ أضف نصاً على القصة (اختياري)…" oninput="updateStoryTextPreview(this.value)" style="width:100%;padding:10px 14px;background:#3A3B3C;border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;outline:none;text-align:right;box-sizing:border-box;">
+        <!-- Music button -->
+        <div onclick="pickStoryMusic()" id="storyMusicBtn" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#3A3B3C;border-radius:10px;cursor:pointer;transition:.2s;" onmouseover="this.style.background='#4A4B4C'" onmouseout="this.style.background='#3A3B3C'">
+          <span style="font-size:18px;">🎵</span>
+          <span id="storyMusicLabel" style="font-size:13px;color:#B0B3B8;font-family:'Tajawal',sans-serif;">أضف موسيقى من هاتفك (اختياري)</span>
+        </div>
+        <!-- Publish button -->
+        <button onclick="publishStory()" style="width:100%;padding:12px;background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:12px;color:white;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 6px 18px rgba(24,119,242,0.4);">نشر القصة ✅</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(storyCreator);
+
+  // Variables for story creation
+  window._storyCreatorData = { type:null, data:null, text:'', music:null, musicName:null };
+
+  window.handleStoryMedia = (e, type)=>{
     const file = e.target.files[0]; if(!file) return;
-    const isVideo = file.type.startsWith('video');
-    const reader = new FileReader();
-    reader.onload = ev=>{
-      const stories = getMyStories(name);
-      const story = {
-        id: 's'+Date.now(),
-        type: isVideo ? 'video' : 'image',
-        data: ev.target.result,
-        ts: Date.now(),
-        expires: Date.now() + 24*60*60*1000 // 24 ساعة
+    // video size check: 30 seconds limit
+    if(type==='video'){
+      const url = URL.createObjectURL(file);
+      const vid = document.createElement('video');
+      vid.src = url;
+      vid.onloadedmetadata = ()=>{
+        if(vid.duration > 32){
+          showToast('⚠️ الفيديو يجب أن يكون 30 ثانية أو أقل');
+          URL.revokeObjectURL(url);
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = ev=>{
+          window._storyCreatorData.type='video';
+          window._storyCreatorData.data=ev.target.result;
+          window._storyCreatorData.duration=Math.round(vid.duration);
+          document.getElementById('storyPreviewArea').innerHTML=`<video src="${ev.target.result}" style="width:100%;height:200px;object-fit:cover;" controls muted playsinline></video><div id="storyPreviewText" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);max-width:90%;background:rgba(0,0,0,0.6);border-radius:10px;padding:7px 14px;font-size:15px;font-weight:700;color:white;display:none;text-align:center;"></div>`;
+          updateStoryTextPreview(document.getElementById('storyTextInput')?.value||'');
+        };
+        reader.readAsDataURL(file);
+        URL.revokeObjectURL(url);
       };
-      stories.push(story);
-      // احتفظ بآخر 10 قصص فقط
-      if(stories.length>10) stories.splice(0, stories.length-10);
-      saveMyStories(name, stories);
-      _refreshMyStoryAvatar(name);
-      if(typeof showToast==='function') showToast('✅ تمت إضافة قصتك!');
-    };
-    reader.readAsDataURL(file);
-    inp.remove();
+      vid.load();
+    } else {
+      const reader = new FileReader();
+      reader.onload = ev=>{
+        window._storyCreatorData.type='image';
+        window._storyCreatorData.data=ev.target.result;
+        document.getElementById('storyPreviewArea').innerHTML=`<img src="${ev.target.result}" style="width:100%;height:200px;object-fit:cover;"><div id="storyPreviewText" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);max-width:90%;background:rgba(0,0,0,0.6);border-radius:10px;padding:7px 14px;font-size:15px;font-weight:700;color:white;display:none;text-align:center;"></div>`;
+        updateStoryTextPreview(document.getElementById('storyTextInput')?.value||'');
+      };
+      reader.readAsDataURL(file);
+    }
   };
-  document.body.appendChild(inp);
-  inp.click();
+
+  window.updateStoryTextPreview = (val)=>{
+    window._storyCreatorData.text = val;
+    const el = document.getElementById('storyPreviewText');
+    if(el){ el.style.display = val ? 'block' : 'none'; el.innerText = val; }
+  };
+
+  window.pickStoryMusic = ()=>{
+    // رفع ملف موسيقى من الهاتف
+    const inp = document.createElement('input');
+    inp.type='file'; inp.accept='audio/*'; inp.style.display='none';
+    inp.onchange = e=>{
+      const file = e.target.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ev=>{
+        window._storyCreatorData.music = ev.target.result;
+        window._storyCreatorData.musicName = file.name.replace(/\.[^/.]+$/,'');
+        const lbl = document.getElementById('storyMusicLabel');
+        if(lbl){ lbl.style.color='#00c853'; lbl.innerText='🎵 '+window._storyCreatorData.musicName; }
+        showToast('✅ تم إضافة الموسيقى');
+      };
+      reader.readAsDataURL(file);
+      inp.remove();
+    };
+    document.body.appendChild(inp);
+    inp.click();
+  };
+
+  window.publishStory = ()=>{
+    const d = window._storyCreatorData;
+    if(!d.data){ showToast('⚠️ اختر صورة أو فيديو أولاً'); return; }
+    const stories = getMyStories(name);
+    const story = {
+      id: 's'+Date.now(),
+      type: d.type,
+      data: d.data,
+      ts: Date.now(),
+      expires: Date.now() + 24*60*60*1000,
+      text: d.text || null,
+      music: d.musicName || null,
+      musicData: d.music || null,
+      duration: d.duration || (d.type==='video'?30:5),
+      reactions: {}
+    };
+    stories.push(story);
+    if(stories.length>10) stories.splice(0,stories.length-10);
+    saveMyStories(name, stories);
+    _refreshMyStoryAvatar(name);
+    document.getElementById('storyCreatorOverlay').remove();
+    delete window._storyCreatorData;
+    if(typeof showToast==='function') showToast('✅ تمت إضافة قصتك!');
+  };
 }
 
 function openMyStory(){
@@ -7981,6 +8258,7 @@ function openMyStory(){
 function _showStoryViewer(authorName, stories, startIdx){
   let currentIdx = startIdx;
   let _storyTimer = null;
+  let _storyDuration = 5000; // default 5s for images
 
   const ov = document.createElement('div');
   ov.className = 'story-viewer';
@@ -7988,9 +8266,11 @@ function _showStoryViewer(authorName, stories, startIdx){
 
   function buildViewer(idx){
     const s = stories[idx];
+    const duration = s.type==='video' ? (s.duration||30)*1000 : 5000;
+    _storyDuration = duration;
     const progress = stories.map((_,i)=>`
       <div class="story-progress-seg">
-        <div class="story-progress-fill" id="sProg_${i}" style="${i<idx?'width:100%;animation:none;':i===idx?'':'width:0%;animation:none;'}"></div>
+        <div class="story-progress-fill" id="sProg_${i}" style="${i<idx?'width:100%;animation:none;':i===idx?`animation:storyFill ${duration/1000}s linear forwards;`:' width:0%;animation:none;'}"></div>
       </div>`).join('');
     const authorPhoto = typeof getProfilePhoto==='function' ? getProfilePhoto(authorName) : null;
     const authorAvatar = authorPhoto
@@ -7998,7 +8278,21 @@ function _showStoryViewer(authorName, stories, startIdx){
       : `<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;">${typeof getLeaderIcon==='function'?getLeaderIcon(authorName):'👑'}</div>`;
     const ts = new Date(s.ts).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
 
+    // Reactions summary
+    const reactEmojis = ['❤️','😮','😂','😢','👏','🔥'];
+    const myReact = (s.reactions && s.reactions[getCurrentUser()]) ? s.reactions[getCurrentUser()] : '';
+    const reactCounts = {};
+    if(s.reactions){ Object.values(s.reactions).forEach(e=>{ reactCounts[e]=(reactCounts[e]||0)+1; }); }
+    const topReacts = Object.entries(reactCounts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e,c])=>`<span style="font-size:14px;">${e}</span><span style="font-size:11px;color:rgba(255,255,255,0.8);margin-left:2px;">${c}</span>`).join(' ');
+
+    // Text overlay on story
+    const textOverlay = s.text ? `<div style="position:absolute;bottom:130px;left:50%;transform:translateX(-50%);max-width:85%;text-align:center;padding:10px 16px;background:rgba(0,0,0,0.6);border-radius:12px;font-size:17px;font-weight:700;color:white;text-shadow:0 1px 4px rgba(0,0,0,0.5);z-index:8;line-height:1.4;">${s.text}</div>` : '';
+
+    // Music indicator
+    const musicBar = s.music ? `<div style="position:absolute;top:70px;right:12px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.55);border-radius:20px;padding:5px 10px;z-index:9;"><span style="font-size:14px;animation:spin 2s linear infinite;display:inline-block;">🎵</span><span style="font-size:11px;color:white;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.music}</span></div>` : '';
+
     ov.innerHTML=`
+      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
       <div class="story-progress-bar">${progress}</div>
       <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:94%;max-width:460px;z-index:10;display:flex;align-items:center;gap:10px;padding:0 4px;">
         ${authorAvatar}
@@ -8006,23 +8300,82 @@ function _showStoryViewer(authorName, stories, startIdx){
           <div style="font-size:14px;font-weight:900;color:white;text-shadow:0 1px 6px rgba(0,0,0,0.6);">${authorName}</div>
           <div style="font-size:11px;color:rgba(255,255,255,0.8);">${ts}</div>
         </div>
+        <div onclick="toggleStoryPause()" id="storyPauseBtn" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;margin-left:4px;">⏸</div>
         <div onclick="closeStoryViewer()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:900;color:white;">✕</div>
       </div>
+      ${musicBar}
       <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;">
         ${s.type==='video'
-          ? `<video src="${s.data}" autoplay muted playsinline style="max-width:100%;max-height:100vh;object-fit:contain;" onended="nextStory()"></video>`
+          ? `<video id="storyVideo" src="${s.data}" autoplay ${s.muted!==false?'muted':''} playsinline style="max-width:100%;max-height:100vh;object-fit:contain;" onended="nextStory()"></video>`
           : `<img src="${s.data}" style="max-width:100%;max-height:100vh;object-fit:contain;" onclick="nextStory()">`
         }
+        ${textOverlay}
       </div>
-      <!-- Navigation -->
-      <div onclick="prevStory()" style="position:absolute;top:0;right:0;width:40%;height:100%;cursor:pointer;z-index:5;"></div>
-      <div onclick="nextStory()" style="position:absolute;top:0;left:0;width:60%;height:100%;cursor:pointer;z-index:5;"></div>
+
+      <!-- Bottom reactions bar -->
+      <div style="position:absolute;bottom:0;left:0;right:0;z-index:10;padding:14px 16px;background:linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%);">
+        <!-- Reaction picker -->
+        <div id="storyReactPicker" style="display:none;flex;gap:8px;justify-content:center;margin-bottom:10px;">
+          ${reactEmojis.map(e=>`<div onclick="reactToStory('${e}')" style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:.2s;border:2px solid ${myReact===e?'white':'transparent'};" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'">${e}</div>`).join('')}
+        </div>
+        <!-- Bottom action bar -->
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div onclick="toggleStoryReactPicker()" style="flex:1;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.35);border-radius:24px;padding:9px 16px;font-size:13px;color:rgba(255,255,255,0.7);cursor:pointer;text-align:right;font-family:'Tajawal',sans-serif;">أرسل تفاعلاً…</div>
+          ${topReacts ? `<div style="background:rgba(0,0,0,0.4);border-radius:20px;padding:5px 10px;display:flex;align-items:center;gap:4px;">${topReacts}</div>` : ''}
+          <div onclick="shareStory()" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;">↗️</div>
+        </div>
+      </div>
+
+      <!-- Navigation zones -->
+      <div onclick="prevStory()" style="position:absolute;top:70px;right:0;width:35%;height:60%;cursor:pointer;z-index:5;"></div>
+      <div onclick="nextStory()" style="position:absolute;top:70px;left:0;width:65%;height:60%;cursor:pointer;z-index:5;"></div>
     `;
-    // مؤقت 5 ثواني للصور
+
+    // مؤقت للصور
     if(s.type==='image'){
       _storyTimer = setTimeout(()=>nextStory(), 5000);
     }
   }
+
+  let _paused = false;
+  window.toggleStoryPause = ()=>{
+    _paused = !_paused;
+    const btn = document.getElementById('storyPauseBtn');
+    if(btn) btn.innerText = _paused ? '▶' : '⏸';
+    const vid = document.getElementById('storyVideo');
+    if(vid){ _paused ? vid.pause() : vid.play(); }
+    if(_storyTimer){ clearTimeout(_storyTimer); _storyTimer=null; }
+    if(!_paused && stories[currentIdx].type==='image'){
+      _storyTimer = setTimeout(()=>nextStory(), 3000);
+    }
+    // pause/resume progress bar
+    const fill = document.getElementById('sProg_'+currentIdx)?.querySelector('.story-progress-fill');
+    if(fill){ fill.style.animationPlayState = _paused ? 'paused' : 'running'; }
+  };
+
+  window.toggleStoryReactPicker = ()=>{
+    const picker = document.getElementById('storyReactPicker');
+    if(picker) picker.style.display = picker.style.display==='flex' ? 'none' : 'flex';
+  };
+
+  window.reactToStory = (emoji)=>{
+    const s = stories[currentIdx];
+    if(!s.reactions) s.reactions={};
+    const name = getCurrentUser();
+    s.reactions[name] = emoji;
+    // save
+    const key = _storiesKey(authorName);
+    const allStories = getMyStories(authorName);
+    const target = allStories.find(st=>st.id===s.id);
+    if(target){ target.reactions = s.reactions; saveMyStories(authorName, allStories); }
+    if(typeof showToast==='function') showToast('تفاعلت بـ '+emoji);
+    buildViewer(currentIdx);
+  };
+
+  window.shareStory = ()=>{
+    if(navigator.share){ navigator.share({ title:'قصة من '+authorName, url:window.location.href }).catch(()=>{}); }
+    else { navigator.clipboard?.writeText(window.location.href).then(()=>showToast('تم نسخ الرابط 📋')).catch(()=>{}); }
+  };
 
   window.nextStory = ()=>{
     if(_storyTimer) clearTimeout(_storyTimer);
@@ -8038,9 +8391,7 @@ function _showStoryViewer(authorName, stories, startIdx){
   window.closeStoryViewer = ()=>{
     if(_storyTimer) clearTimeout(_storyTimer);
     ov.remove();
-    delete window.nextStory;
-    delete window.prevStory;
-    delete window.closeStoryViewer;
+    ['nextStory','prevStory','closeStoryViewer','toggleStoryPause','toggleStoryReactPicker','reactToStory','shareStory'].forEach(f=>{ try{delete window[f];}catch(e){} });
   };
 
   document.body.appendChild(ov);
