@@ -1812,6 +1812,7 @@ body.member-mode #onlineBar{
   transform:translateY(-50%);color:var(--muted);
   pointer-events:none;font-size:14px;
 }
+@keyframes fbDot{0%,80%,100%{transform:scale(0.6);opacity:.4}40%{transform:scale(1);opacity:1}}
 </style>
 </head>
 <body>
@@ -7016,11 +7017,124 @@ function renderSocialFeed(){
   const posts = myName
     ? allPosts.filter(p => p.author === myName || myFriends.includes(p.author))
     : allPosts;
+
+  // ── بطاقة فيسبوك في أعلى الفيد دائماً ──
+  const fbCard = `
+  <div id="fbFeedCard" style="background:white;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+    <!-- Header صفحة فيسبوك -->
+    <div style="padding:12px 14px 0;display:flex;align-items:center;gap:10px;">
+      <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#0d5bda);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 3px 10px rgba(24,119,242,0.3);">🏆</div>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:900;color:#050505;">Next Leaders DZ</div>
+        <div style="font-size:11px;color:#65676B;display:flex;align-items:center;gap:4px;">
+          <svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='#1877F2'><path d='M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z'/></svg>
+          <span>صفحة رسمية</span>
+        </div>
+      </div>
+      <div onclick="_fbFeedLoaded=false;loadFbFeed()" style="background:#F0F2F5;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:800;color:#1877F2;cursor:pointer;">🔄 تحديث</div>
+    </div>
+    <!-- المنشورات -->
+    <div id="fbFeedPosts" style="padding:0 14px 12px;margin-top:10px;">
+      <div id="fbFeedLoading" style="text-align:center;padding:20px;">
+        <div style="display:flex;justify-content:center;gap:5px;margin-bottom:8px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#1877F2;animation:fbDot 1.2s ease-in-out infinite;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#1877F2;animation:fbDot 1.2s ease-in-out .2s infinite;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#1877F2;animation:fbDot 1.2s ease-in-out .4s infinite;"></div>
+        </div>
+        <div style="font-size:12px;color:#65676B;">جارٍ تحميل منشورات فيسبوك…</div>
+      </div>
+      <div id="fbFeedError" style="display:none;text-align:center;padding:14px;">
+        <div style="font-size:12px;color:#e53935;font-weight:700;" id="fbFeedErrorMsg"></div>
+        <div onclick="_fbFeedLoaded=false;loadFbFeed()" style="margin-top:8px;display:inline-block;background:#1877F2;color:white;border-radius:16px;padding:6px 16px;font-size:11px;font-weight:800;cursor:pointer;">إعادة المحاولة</div>
+      </div>
+      <div id="fbFeedList" style="display:none;"></div>
+    </div>
+    <!-- فاصل وزر عرض المزيد -->
+    <div style="padding:0 14px 12px;border-top:1px solid #F0F2F5;display:flex;justify-content:center;">
+      <a href="https://www.facebook.com/profile.php?id=100063909619487" target="_blank" style="display:flex;align-items:center;gap:6px;color:#1877F2;font-size:13px;font-weight:800;text-decoration:none;padding:8px 20px;background:#F0F7FF;border-radius:20px;">
+        <svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='#1877F2'><path d='M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z'/></svg>
+        عرض المزيد على فيسبوك
+      </a>
+    </div>
+  </div>`;
+
   if(posts.length===0){
-    container.innerHTML=`<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. أضف أصدقاء لترى منشوراتهم!</div></div>`;
-    return;
+    container.innerHTML = fbCard + `<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. أضف أصدقاء لترى منشوراتهم!</div></div>`;
+  } else {
+    container.innerHTML = fbCard + posts.slice().reverse().map(p => renderSocialPostCard(p)).join('');
   }
-  container.innerHTML = posts.slice().reverse().map(p => renderSocialPostCard(p)).join('');
+
+  // جلب منشورات فيسبوك
+  loadFbFeed();
+}
+
+/* ═══════════════════════════════════════════════════════
+   📘 جلب منشورات فيسبوك وعرضها في الفيد الرئيسي
+   ═══════════════════════════════════════════════════════ */
+const _FB_PAGE_ID = '100063909619487';
+const _FB_TOKEN   = '977955201612020|2FYnAKMj5IhItBVrvWYL9yqQn1I';
+let _fbFeedLoaded = false;
+
+async function loadFbFeed(){
+  if(_fbFeedLoaded) return;
+  const loading = document.getElementById('fbFeedLoading');
+  const list    = document.getElementById('fbFeedList');
+  const errBox  = document.getElementById('fbFeedError');
+  const errMsg  = document.getElementById('fbFeedErrorMsg');
+  if(!loading) return;
+
+  loading.style.display = 'block';
+  if(list)   list.style.display   = 'none';
+  if(errBox) errBox.style.display = 'none';
+
+  try{
+    const url = `https://graph.facebook.com/v19.0/${_FB_PAGE_ID}/posts?fields=message,full_picture,created_time,permalink_url,attachments&limit=5&access_token=${_FB_TOKEN}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if(data.error) throw new Error(data.error.message);
+
+    const fbPosts = data.data || [];
+    if(fbPosts.length === 0) throw new Error('لا توجد منشورات عامة حالياً');
+
+    if(list){
+      list.innerHTML = fbPosts.map(p => buildFbFeedItem(p)).join('');
+      list.style.display = 'block';
+    }
+    loading.style.display = 'none';
+    _fbFeedLoaded = true;
+
+  }catch(e){
+    loading.style.display = 'none';
+    if(errBox) errBox.style.display = 'block';
+    if(errMsg) errMsg.innerText = e.message || 'تعذر الاتصال بفيسبوك';
+  }
+}
+
+function buildFbFeedItem(post){
+  const date = post.created_time
+    ? new Date(post.created_time).toLocaleDateString('ar-DZ',{month:'long',day:'numeric'})
+    : '';
+  const msg  = (post.message||'').trim();
+  const link = post.permalink_url || `https://www.facebook.com/profile.php?id=${_FB_PAGE_ID}`;
+  let img    = post.full_picture || '';
+  if(!img && post.attachments?.data?.[0]?.media?.image?.src)
+    img = post.attachments.data[0].media.image.src;
+
+  return `
+  <div style="background:#F7F9FF;border:1px solid #E0EAFF;border-radius:14px;padding:12px;margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div style="font-size:10px;color:#65676B;display:flex;align-items:center;gap:4px;">
+        🕐 <span>${date}</span>
+      </div>
+      <a href="${link}" target="_blank" style="font-size:10px;font-weight:800;color:#1877F2;text-decoration:none;background:#E8F0FE;border-radius:12px;padding:3px 10px;display:flex;align-items:center;gap:4px;">
+        <svg xmlns='http://www.w3.org/2000/svg' width='9' height='9' viewBox='0 0 24 24' fill='#1877F2'><path d='M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z'/></svg>
+        فتح
+      </a>
+    </div>
+    ${img ? `<img src="${img}" style="width:100%;border-radius:10px;max-height:220px;object-fit:cover;margin-bottom:8px;cursor:pointer;" onclick="window.open('${link}','_blank')" onerror="this.style.display='none'">` : ''}
+    ${msg ? `<div style="font-size:13px;color:#050505;line-height:1.7;white-space:pre-wrap;">${msg.length>200 ? msg.substring(0,200)+'…' : msg}</div>` : ''}
+  </div>`;
 }
 
 function renderSocialPostCard(p){
