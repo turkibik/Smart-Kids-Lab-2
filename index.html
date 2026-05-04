@@ -625,7 +625,172 @@ button.auth-btn.loading{
 .bg-4{background:linear-gradient(135deg,#0099ff,#a855f7);}
 .bg-5{background:linear-gradient(135deg,#667eea,#764ba2);}
 .bg-6{background:linear-gradient(135deg,#f093fb,#f5576c);}
-.bg-7{background:linear-gradient(135deg,#f97316,#ef4444);}
+.bg-7{
+  background:
+    radial-gradient(ellipse 80% 70% at 30% 20%, rgba(255,200,0,0.6) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 75% 80%, rgba(200,100,0,0.5) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 90% at 50% 50%, rgba(255,255,255,0.12) 0%, transparent 65%),
+    linear-gradient(135deg,#5a2000 0%,#8a4500 30%,#c07800 55%,#e8a800 75%,#a06000 100%);
+  position:relative;overflow:hidden;
+  box-shadow:0 6px 22px rgba(150,80,0,0.6),inset 0 1px 0 rgba(255,230,100,0.4),0 0 0 1px rgba(200,140,0,0.5);
+  border:1px solid rgba(200,140,0,0.6) !important;
+  animation:quizIconGlow 3s ease-in-out infinite;
+}
+.bg-7::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:conic-gradient(from 220deg at 40% 40%, rgba(255,220,100,0.3) 0deg, transparent 60deg, rgba(200,120,0,0.2) 120deg, transparent 200deg, rgba(255,200,80,0.15) 300deg, transparent 360deg);
+  animation:quizSpin 7s linear infinite;pointer-events:none;
+}
+.bg-7::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(160deg,rgba(255,200,80,0.3) 0%,rgba(255,255,255,0.06) 45%,transparent 75%,rgba(100,40,0,0.15) 100%);
+  pointer-events:none;
+}
+@keyframes quizIconGlow{
+  0%,100%{box-shadow:0 6px 22px rgba(200,120,0,0.5),inset 0 1px 0 rgba(255,250,180,0.6),0 0 0 0 rgba(245,197,24,0);}
+  45%{box-shadow:0 8px 28px rgba(245,180,0,0.7),0 0 24px 6px rgba(245,197,24,0.35),inset 0 1px 0 rgba(255,255,200,0.8);}
+  75%{box-shadow:0 6px 22px rgba(230,100,0,0.45),0 0 18px 3px rgba(230,100,0,0.22),inset 0 1px 0 rgba(255,220,100,0.6);}
+}
+@keyframes quizSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+
+/* ═══════════════ كويز من سيربح النقاط ═══════════════ */
+/* تأثير hover على أيقونة الكويز */
+.glass-item:has(.bg-7):hover{
+  box-shadow:0 16px 36px rgba(0,0,0,0.4),0 0 28px rgba(245,197,24,0.35),0 0 14px rgba(245,120,0,0.2);
+  border-color:rgba(245,197,24,0.45) !important;
+}
+.glass-item:has(.bg-7) .item-label{
+  background:linear-gradient(90deg,#ffe08a,#ffd700,#fffbe0,#ffc040);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  font-weight:900;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+}
+
+/* نافذة كويز - خلفية داكنة رسمية */
+#quizCard .modal-content{
+  background:
+    radial-gradient(ellipse 120% 60% at 10% 0%, rgba(245,197,24,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 100% 70% at 90% 100%, rgba(245,120,20,0.15) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 80% at 50% 50%, rgba(255,255,255,0.04) 0%, transparent 70%),
+    linear-gradient(160deg, #060a00 0%, #0d1100 40%, #0e0800 100%) !important;
+  border: 1.5px solid rgba(245,197,24,0.3) !important;
+  position: relative;
+  overflow: hidden;
+}
+#quizCard .modal-content::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='rgba(245,197,24,0.15)'/%3E%3Ccircle cx='10' cy='10' r='0.7' fill='rgba(255,160,0,0.12)'/%3E%3Ccircle cx='50' cy='50' r='0.7' fill='rgba(245,197,24,0.1)'/%3E%3C/svg%3E") repeat,
+  linear-gradient(135deg,rgba(255,255,255,0.02) 0%,transparent 50%);
+  pointer-events:none;z-index:0;
+}
+#quizCard .modal-content::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent 0%,rgba(245,197,24,0.9) 20%,rgba(255,255,255,0.95) 50%,rgba(245,197,24,0.9) 80%,transparent 100%);
+  z-index:1;
+}
+#quizCard .modal-title{
+  font-size:20px !important;font-weight:900 !important;
+  background:linear-gradient(135deg,#f5c518,#ffffff,#f5c518) !important;
+  -webkit-background-clip:text !important;-webkit-text-fill-color:transparent !important;
+  background-clip:text !important;text-shadow:none !important;
+  letter-spacing:1px;position:relative;z-index:2;
+}
+#quizCard .modal-handle{background:rgba(245,197,24,0.3) !important;}
+#quizCard .modal-close{
+  background:rgba(245,197,24,0.1);border-color:rgba(245,197,24,0.25);
+  color:rgba(245,197,24,0.8);position:relative;z-index:2;
+}
+#quizContent{position:relative;z-index:2;}
+
+/* أزرار الإجابة - ميليونير */
+.quiz-opt{
+  padding:14px 18px;border-radius:14px;cursor:pointer;
+  background:rgba(245,197,24,0.06);
+  border:1.5px solid rgba(245,197,24,0.22);
+  font-size:14px;font-weight:700;color:var(--text);
+  transition:all .2s;margin-bottom:9px;position:relative;overflow:hidden;
+  display:flex;align-items:center;gap:8px;
+}
+.quiz-opt::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,0.04) 0%,transparent 100%);
+  pointer-events:none;
+}
+.quiz-opt:hover{
+  background:rgba(245,197,24,0.16);border-color:rgba(245,197,24,0.5);
+  transform:translateX(-4px);
+  box-shadow:0 4px 20px rgba(245,197,24,0.25),-4px 0 0 rgba(245,197,24,0.4);
+}
+.quiz-opt:active{transform:translateX(-2px);}
+.quiz-opt.correct{
+  background:linear-gradient(135deg,rgba(0,200,80,0.22),rgba(0,180,60,0.14)) !important;
+  border-color:rgba(0,220,80,0.7) !important;
+  color:#4ade80 !important;
+  box-shadow:0 0 24px rgba(0,200,80,0.4),0 0 0 2px rgba(0,220,80,0.3) !important;
+  animation:correctPulse .6s ease;
+}
+.quiz-opt.wrong{
+  background:linear-gradient(135deg,rgba(229,45,39,0.22),rgba(180,0,0,0.14)) !important;
+  border-color:rgba(229,45,39,0.7) !important;
+  color:#f87171 !important;
+  box-shadow:0 0 24px rgba(229,45,39,0.4),0 0 0 2px rgba(229,45,39,0.3) !important;
+  animation:wrongShake .5s ease;
+}
+@keyframes correctPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+@keyframes wrongShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* نص السؤال */
+.quiz-q{
+  font-size:16px;font-weight:800;color:var(--text);
+  text-align:center;padding:18px 16px;
+  background:rgba(245,197,24,0.05);
+  border:1px solid rgba(245,197,24,0.15);
+  border-radius:16px;margin-bottom:14px;
+  line-height:1.6;position:relative;
+  box-shadow:0 2px 12px rgba(0,0,0,0.2),inset 0 1px 0 rgba(245,197,24,0.08);
+}
+.quiz-q::before{
+  content:'"';position:absolute;top:8px;right:12px;
+  font-size:28px;color:rgba(245,197,24,0.25);font-family:Georgia,serif;line-height:1;
+}
+
+/* شريط التقدم */
+.quiz-progress{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.quiz-bar-wrap{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:10px;overflow:hidden;}
+.quiz-bar{height:100%;background:linear-gradient(90deg,#f5c518,#f97316);border-radius:10px;transition:width .5s;box-shadow:0 0 10px rgba(245,197,24,0.4);}
+
+/* نتيجة نهاية المستوى */
+.quiz-result{text-align:center;padding:20px 10px;}
+.quiz-result-icon{font-size:52px;margin-bottom:10px;animation:iconBounce .6s ease;}
+@keyframes iconBounce{0%{transform:scale(0.5) rotateY(180deg)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+/* بطاقة نقاط الكويز الخاصة */
+.quiz-personal-pts-card{
+  background:linear-gradient(135deg,rgba(245,197,24,0.12),rgba(245,120,0,0.08));
+  border:1.5px solid rgba(245,197,24,0.35);
+  border-radius:16px;padding:14px 16px;margin-top:12px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.2),inset 0 1px 0 rgba(245,197,24,0.15);
+  position:relative;overflow:hidden;
+}
+.quiz-personal-pts-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:50%;
+  background:linear-gradient(180deg,rgba(245,197,24,0.08) 0%,transparent 100%);
+  pointer-events:none;
+}
+/* كارت منفصل لنقاط الكويز */
+#memberQuizPtsSection{
+  background:linear-gradient(135deg,rgba(245,197,24,0.1),rgba(180,100,0,0.07));
+  border:1.5px solid rgba(245,197,24,0.3);
+  border-radius:20px;padding:16px 18px;margin:12px 0;
+  box-shadow:0 6px 24px rgba(0,0,0,0.2),inset 0 1px 0 rgba(245,197,24,0.12);
+  animation:fadeUp .4s .1s ease both;position:relative;overflow:hidden;
+}
+#memberQuizPtsSection::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,rgba(245,197,24,0.8),transparent);
+}
 .bg-8{background:linear-gradient(135deg,#059669,#34d399);}
 .bg-9{background:linear-gradient(135deg,#1877F2,#0d5bda);}
 
@@ -3757,7 +3922,7 @@ function buildGrid(isReg){
     ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="white"><path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z"/></svg>', labels[3], 'bg-4',"openMessages()", true],
     ['🌟', labels[4], 'bg-5',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform')", true],
     ['🖼️',labels[5], 'bg-6',"window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3')", false],
-    ['🎯', labels[6], 'bg-7',"showModal('quizCard')",    false],
+    [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 10px rgba(245,197,24,0.7)) drop-shadow(0 0 6px rgba(255,140,0,0.5));"><defs><radialGradient id="qg1" cx="50%" cy="30%" r="60%"><stop offset="0%" stop-color="#fff7aa"/><stop offset="60%" stop-color="#f5c518"/><stop offset="100%" stop-color="#f97316"/></radialGradient><radialGradient id="qg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(255,255,255,0.9)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient><filter id="qglow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><circle cx="26" cy="26" r="24" fill="url(#qg1)" filter="url(#qglow)"/><circle cx="26" cy="26" r="24" fill="url(#qg2)" opacity="0.5"/><polygon points="26,7 29,17 39.5,17 31,23.5 34,34 26,27.5 18,34 21,23.5 12.5,17 23,17" fill="white" opacity="0.95" filter="url(#qglow)"/><text x="26" y="45" text-anchor="middle" font-size="8" font-weight="900" fill="rgba(120,50,0,0.85)" font-family="Arial,sans-serif" letter-spacing="0.5">نقاط</text></svg>`, labels[6], 'bg-7',"showModal('quizCard')",    false],
     ['🏅', labels[7], 'bg-8',"showModal('activitiesCard')", false],
     ['📱', labels[8], 'bg-9',"window.location.href='https://www.facebook.com/share/19UtXj8kRV/'", true],
   ];
@@ -3914,11 +4079,12 @@ function syncProfilePageAvatar(name){
 
 function updateProfilePageData(name){
   const pts = _basePoints || 0;
+  const quizPts = parseInt(localStorage.getItem(_earnedKey ? _earnedKey(name) : 'nld_earned_'+name)||'0');
+  const sheetPts = pts - quizPts; // نقاط الجدول فقط (بدون الكويز) للرصيد
   const LEVEL_PTS = 3000;
   const lv = Math.floor(pts/LEVEL_PTS)+1;
   const ptsInLv = pts % LEVEL_PTS;
-  const bal = ((pts/50)*30).toFixed(2);
-  const quizPts = parseInt(localStorage.getItem(_earnedKey ? _earnedKey(name) : 'nld_earned_'+name)||'0');
+  const bal = ((Math.max(0,sheetPts)/50)*30).toFixed(2); // الرصيد من نقاط الجدول فقط
 
   const setTxt = (id,v) => { const e=document.getElementById(id); if(e) e.innerText=v; };
   setTxt('profilePageName', name);
@@ -4565,6 +4731,7 @@ function renderApp(name,pts,isReg, externalEarned){
     : localEarned;
   const totalPts=pts+earned; // الإجمالي الدائم للمستوى
   _basePoints=totalPts;
+  window._sheetPtsCache=pts; // نقاط الجدول الصافية (بدون الكويز) — للحساب الصحيح عند تحديث نقاط الكويز
 
   // ─── انتقال سلس: إخفاء الدخول → إظهار التطبيق ───
   const loginEl=document.getElementById("login");
@@ -4616,12 +4783,12 @@ function renderApp(name,pts,isReg, externalEarned){
   // لوحة التحكم الرئيسية: تُظهر الإجمالي الدائم (لا يتأثر بالحذف)
   document.getElementById("mainPoints").innerHTML=`${totalPts.toLocaleString()} <span>نقطة</span>`;
 
-  // بطاقة رصيدك: تُظهر الإجمالي الكامل (نقاط الجدول + نقاط الكويز)
+  // بطاقة رصيدك: تُظهر الإجمالي الكامل للمستوى لكن الرصيد يُحسب من نقاط الجدول فقط (لا يتأثر بنقاط الكويز)
   const code=getMemberCode(name);
   document.getElementById("cardName").innerText=name;
   document.getElementById("cardCode").innerText="NLD-"+code;
   document.getElementById("cardPoints").innerText=totalPts.toLocaleString()+" نقطة";
-  document.getElementById("cardBalance").innerText=((totalPts/50)*30).toFixed(2)+" دج";
+  document.getElementById("cardBalance").innerText=((pts/50)*30).toFixed(2)+" دج";
 
   // المستوى يُحسب من الإجمالي الدائم
   const LEVEL_PTS=3000;
@@ -4632,9 +4799,9 @@ function renderApp(name,pts,isReg, externalEarned){
   document.getElementById("progressEnd").innerText=currentLevel*LEVEL_PTS;
   // تحديث إحصائيات بطاقة الملف الشخصي
   const mgPts=document.getElementById("mgStatPoints");
-  if(mgPts) mgPts.innerText=totalPts.toLocaleString();
+  if(mgPts) mgPts.innerText=pts.toLocaleString(); // نقاط الجدول فقط (بدون كويز)
   const mgBalance=document.getElementById("mgStatBalance");
-  if(mgBalance) mgBalance.innerText=((totalPts/50)*30).toFixed(2)+" دج";
+  if(mgBalance) mgBalance.innerText=((pts/50)*30).toFixed(2)+" دج";
   const mgLevel=document.getElementById("mgStatLevel");
   if(mgLevel) mgLevel.innerText=`${currentLevel}`;
   buildGrid(isReg);
@@ -4835,11 +5002,11 @@ async function loadRanking(){
       return {n,p};
     }).filter(Boolean);
 
-    // دمج وترتيب مع إضافة نقاط الكويز لجميع المستخدمين (مشتركة ومرئية للجميع)
+    // دمج وترتيب - نقاط الكويز تُضاف لجدول الترتيب (الإجمالي = جدول + كويز)
     const list=[...fromData,...fromSmart].map(x=>{
-      const quizExtra = getSharedQuizPts(x.n);
-      return {n:x.n, p:x.p+quizExtra};
-    }).sort((a,b)=>b.p-a.p);
+      const qPts=getSharedQuizPts(x.n);
+      return {n:x.n, p:x.p, sheetP:x.p, quizP:qPts, total:x.p+qPts};
+    }).sort((a,b)=>b.total-a.total);
 
     const m=['gold','silver','bronze'];
     const currentUserNorm=norm(currentUser);
@@ -4849,7 +5016,7 @@ async function loadRanking(){
     if(mgRank && myRankIdx>=0) mgRank.innerText='#'+(myRankIdx+1);
     div.innerHTML=list.map((x,i)=>{
       const isMe=norm(x.n)===currentUserNorm;
-      const quizPts=getSharedQuizPts(x.n);
+      const quizPts=x.quizP||0;
       const quizBadge=quizPts>0?`<span style="font-size:10px;color:#a78bfa;background:rgba(168,85,247,0.15);border-radius:5px;padding:1px 5px;margin-right:4px;" title="نقاط الكويز">🎯+${quizPts}</span>`:'';
       const delay = Math.min(i * 0.05, 0.6);
       const isMeStyle = isMe
@@ -4860,7 +5027,7 @@ async function loadRanking(){
         <div class="member-num ${m[i]||''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
         ${getMemberAvatarHtml(x.n, 32, 9)}
         <div class="member-name">${x.n}${isMe?' <span style="font-size:10px;color:var(--accent);background:rgba(0,229,160,0.15);border-radius:6px;padding:1px 7px;font-weight:900;">✦ أنت</span>':''}</div>
-        <div class="member-pts">${quizBadge}${x.p>0?x.p.toLocaleString():'—'}</div>
+        <div class="member-pts">${quizBadge}${x.total>0?x.total.toLocaleString():'—'}</div>
       </div>`;
     }).join('');
   }catch(e){div.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">تعذر التحميل</p>';}
@@ -4871,6 +5038,9 @@ let quizData=[], quizIdx=0, quizScore=0, quizLevelData=[], currentQuizLevel=1, a
 
 /* مجموعة لتتبع الأسئلة التي أُخطئ فيها في الجلسة الحالية (مقيّد بنص السؤال) */
 let _wrongAnsweredQs = new Set();
+
+/* عداد المحاولات لكل سؤال في الجلسة الحالية */
+let _attemptCount = {};
 
 /* جلب الأسئلة من جدول Google Sheets عبر CSV مباشرة */
 const quizCsvUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vQi_JTvEBgrlT-nba8SzIEiuTvPS6sz-eIRLM-cESaztFr35bl6mGq7rzwNc-tiP1BY-44d7x6rcvEf/pub?output=csv';
@@ -4890,38 +5060,102 @@ let _basePoints=0;
 /* مفتاح حفظ النقاط المكسوبة */
 function _earnedKey(name){return 'nld_earned_'+name.replace(/\s+/g,'_');}
 
-/* إضافة نقاط للمستخدم فوراً مع حفظ دائم - تُحدّث لوحة التحكم والبطاقة */
+/* إضافة نقاط للمستخدم فوراً مع حفظ دائم - نقاط الكويز تُضاف للإجمالي لتحديد المستوى */
 function addPointsInstant(pts){
-  _basePoints+=pts;
   const name=document.getElementById("userNameTop").innerText||'';
-  if(name){
-    const prev=parseInt(localStorage.getItem(_earnedKey(name))||'0');
-    // حفظ محلي + مشترك (syncQuizPts يحدّث كليهما)
-    syncQuizPts(name, prev+pts);
+  if(!name) return;
+  // حفظ نقاط الكويز الجديدة
+  const prev=parseInt(localStorage.getItem(_earnedKey(name))||'0');
+  const newQuizPts = prev + pts;
+  syncQuizPts(name, newQuizPts);
+  // تحديث عداد نقاط الكويز الشخصي
+  _updateQuizPtsDisplay(name, newQuizPts);
+  // ✅ تحديث مجموع النقاط الإجمالي في البطاقة الرئيسية تلقائياً
+  _updateMainPointsDisplay(name, newQuizPts);
+  // تأثير إضافة نقاط
+  playGoldSound && playGoldSound();
+}
+
+/* تحديث عرض مجموع النقاط الإجمالي (نقاط الجدول + نقاط الكويز) في البطاقة الرئيسية */
+function _updateMainPointsDisplay(name, newQuizPts){
+  // _basePoints = نقاط الجدول + نقاط الكويز القديمة
+  // نستخرج نقاط الجدول الصافية ثم نضيف نقاط الكويز الجديدة
+  const oldQuizPts = _basePoints - Math.max(0, _basePoints - newQuizPts);
+  // طريقة أبسط: نحتفظ بنقاط الجدول الصافية في متغير خاص
+  if(typeof _sheetPtsCache === 'undefined'){
+    // أول مرة: استنتج نقاط الجدول من _basePoints وآخر قيمة كويز مسجّلة قبل هذا التحديث
+    window._sheetPtsCache = _basePoints - newQuizPts;
   }
-  const newPts=_basePoints;
-  // لوحة التحكم الرئيسية
-  document.getElementById("mainPoints").innerHTML=`${newPts.toLocaleString()} <span>نقطة</span>`;
-  const LEVEL_PTS=3000;
-  const lvl=Math.floor(newPts/LEVEL_PTS)+1;
-  const inLvl=newPts%LEVEL_PTS;
-  document.getElementById("levelBadge").innerText=`⭐ المستوى ${lvl}`;
-  document.getElementById("progressStart").innerText=(lvl-1)*LEVEL_PTS;
-  document.getElementById("progressEnd").innerText=lvl*LEVEL_PTS;
-  document.getElementById("mainBar").style.width=Math.min((inLvl/LEVEL_PTS)*100,100)+"%";
-  // بطاقة رصيدك: تتحدث بالتزامن مع لوحة التحكم
-  document.getElementById("cardPoints").innerText=newPts.toLocaleString()+" نقطة";
-  document.getElementById("cardBalance").innerText=((newPts/50)*30).toFixed(2)+" دج";
-  // تحديث بطاقة الملف الشخصي للعضو
-  const mgPts2=document.getElementById("mgStatPoints");
-  if(mgPts2) mgPts2.innerText=newPts.toLocaleString();
-  const mgBal2=document.getElementById("mgStatBalance");
-  if(mgBal2) mgBal2.innerText=((newPts/50)*30).toFixed(2)+" دج";
+  const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : (_basePoints - newQuizPts);
+  const newTotal = sheetPts + newQuizPts;
+  _basePoints = newTotal;
+
+  // تحديث العرض الرئيسي
+  const mainPtsEl = document.getElementById("mainPoints");
+  if(mainPtsEl) mainPtsEl.innerHTML=`${newTotal.toLocaleString()} <span>نقطة</span>`;
+
+  // تحديث شارة المستوى وشريط التقدم
+  const LEVEL_PTS = 3000;
+  const currentLevel = Math.floor(newTotal/LEVEL_PTS)+1;
+  const ptsInLevel = newTotal % LEVEL_PTS;
+  const lb = document.getElementById("levelBadge");
+  if(lb) lb.innerText=`⭐ المستوى ${currentLevel}`;
+  const ps = document.getElementById("progressStart");
+  if(ps) ps.innerText=(currentLevel-1)*LEVEL_PTS;
+  const pe = document.getElementById("progressEnd");
+  if(pe) pe.innerText=currentLevel*LEVEL_PTS;
+  const bar = document.getElementById("mainBar");
+  if(bar) bar.style.width=Math.min((ptsInLevel/LEVEL_PTS)*100,100)+"%";
+
+  // تحديث بطاقة الملف الشخصي أيضاً
+  const mgPts=document.getElementById("mgStatPoints");
+  if(mgPts) mgPts.innerText=sheetPts.toLocaleString(); // نقاط الجدول فقط (بدون كويز)
+  const mgLevel=document.getElementById("mgStatLevel");
+  if(mgLevel) mgLevel.innerText=`${currentLevel}`;
+
+  // تحديث cardPoints
+  const cardPts=document.getElementById("cardPoints");
+  if(cardPts) cardPts.innerText=newTotal.toLocaleString()+" نقطة";
+}
+
+/* تحديث عرض نقاط الكويز الخاصة بالمشترك */
+function _updateQuizPtsDisplay(name, pts){
+  // تحديث عداد في قسم الكويز الشخصي (إن وُجد)
+  const el = document.getElementById('quizPersonalPts');
+  if(el) el.innerText = pts.toLocaleString();
+  const el2 = document.getElementById('quizPersonalPts2');
+  if(el2) el2.innerText = pts.toLocaleString();
+  // تحديث في الملف الشخصي أيضاً
+  const el3 = document.getElementById('ppInfoQuiz');
+  if(el3) el3.innerText = pts.toLocaleString();
 }
 
 async function loadQuiz(){
   const div=document.getElementById("quizContent");
-  div.innerHTML='<div class="spinner"></div>';
+  const name=getCurrentUser();
+  const myQuizPts=parseInt(localStorage.getItem(_earnedKey(name))||'0');
+
+  div.innerHTML=`
+    <!-- بطاقة نقاط الكويز الشخصية - منفصلة تماماً -->
+    <div id="memberQuizPtsSection" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <div style="width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 14px rgba(245,197,24,0.4);flex-shrink:0;">⭐</div>
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:700;color:rgba(245,197,24,0.7);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">نقاطك الخاصة من الكويز</div>
+          <div style="font-size:26px;font-weight:900;color:#f5c518;line-height:1;text-shadow:0 0 20px rgba(245,197,24,0.5);" id="quizPersonalPts">${myQuizPts.toLocaleString()}</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:9px;color:rgba(245,197,24,0.5);font-weight:700;margin-bottom:3px;">منفصلة عن</div>
+          <div style="font-size:9px;color:rgba(245,197,24,0.5);font-weight:700;">الجدول والبطاقة</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:rgba(245,197,24,0.55);background:rgba(245,197,24,0.06);border:1px solid rgba(245,197,24,0.15);border-radius:8px;padding:6px 10px;text-align:center;line-height:1.5;">
+        🔒 تُضاف تلقائياً للإجمالي · لا تُحسب في الرصيد ولا جدول الترتيب · ترسل للمدير عند إكمال المستوى
+      </div>
+    </div>
+    <div style="text-align:center;padding:20px;"><div style="font-size:28px;animation:spinLoad 1s linear infinite;display:inline-block;">⚙️</div></div>
+    <style>@keyframes spinLoad{to{transform:rotate(360deg)}}</style>`;
+
   try{
     const res=await fetch(quizCsvUrl);
     const text=await res.text();
@@ -4972,10 +5206,29 @@ function showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div){
     {from:'#1877F2',to:'#0d5bda',text:'#e8f0ff'},  // 9
   ];
   const prizeLabels=['🥉 مبتدئ','🥈 متوسط','🥇 متقدم','💎 خبير','🏆 بطل','🌟 أسطورة','👑 نخبة','🚀 خبير مطلق','🌌 الأعلى'];
+  const name=getCurrentUser();
+  const myQuizPts=parseInt(localStorage.getItem(_earnedKey(name))||'0');
 
   let html=`
-    <div style="text-align:center;margin-bottom:16px;">
-      <div style="font-size:18px;font-weight:900;color:var(--gold);letter-spacing:1px;text-shadow:0 0 18px rgba(245,197,24,0.5);">🎯 من سيربح النقاط؟</div>
+    <!-- بطاقة نقاط الكويز الشخصية -->
+    <div id="memberQuizPtsSection" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <div style="width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 14px rgba(245,197,24,0.4);flex-shrink:0;">⭐</div>
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:700;color:rgba(245,197,24,0.7);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">نقاطك الخاصة من الكويز</div>
+          <div style="font-size:26px;font-weight:900;color:#f5c518;line-height:1;text-shadow:0 0 20px rgba(245,197,24,0.5);" id="quizPersonalPts">${myQuizPts.toLocaleString()}</div>
+        </div>
+        <div style="text-align:center;padding:6px 10px;background:rgba(245,197,24,0.08);border:1px solid rgba(245,197,24,0.2);border-radius:10px;">
+          <div style="font-size:9px;color:rgba(245,197,24,0.6);font-weight:700;margin-bottom:2px;">🔒 خاصة بك</div>
+          <div style="font-size:9px;color:rgba(245,197,24,0.5);font-weight:600;">منفصلة عن الجدول</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:rgba(245,197,24,0.55);background:rgba(245,197,24,0.06);border:1px solid rgba(245,197,24,0.15);border-radius:8px;padding:6px 10px;text-align:center;line-height:1.5;">
+        ✅ نقاطك تُضاف تلقائياً لمجموع نقاطك الإجمالي · عند إكمال مستوى تُرسل للمدير لإضافتها للرصيد
+      </div>
+    </div>
+    <div style="text-align:center;margin-bottom:14px;">
+      <div style="font-size:17px;font-weight:900;color:var(--gold);letter-spacing:1px;text-shadow:0 0 18px rgba(245,197,24,0.5);">🎯 من سيربح النقاط؟</div>
       <div style="font-size:11px;color:var(--muted);margin-top:4px;">أكمل كل مستوى (${QUESTIONS_PER_LEVEL} سؤال) لفتح التالي</div>
     </div>`;
 
@@ -4997,7 +5250,6 @@ function showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div){
     const prize=prizeLabels[(lvl-1)%prizeLabels.length];
 
     if(locked){
-      // مستوى مقفل - يظهر ضامراً مع قفل واضح
       html+=`
         <div style="background:rgba(13,17,23,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:14px 16px;margin-bottom:8px;opacity:0.55;cursor:not-allowed;position:relative;overflow:hidden;">
           <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.01) 0px,rgba(255,255,255,0.01) 2px,transparent 2px,transparent 10px);pointer-events:none;"></div>
@@ -5011,7 +5263,6 @@ function showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div){
           </div>
         </div>`;
     } else if(completed){
-      // مستوى مكتمل
       html+=`
         <div style="background:linear-gradient(135deg,rgba(0,229,160,0.12),rgba(15,155,15,0.08));border:1px solid rgba(0,229,160,0.35);border-radius:16px;padding:14px 16px;margin-bottom:8px;cursor:default;position:relative;overflow:hidden;">
           <div style="display:flex;align-items:center;gap:12px;">
@@ -5027,7 +5278,6 @@ function showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div){
           </div>
         </div>`;
     } else {
-      // مستوى متاح للعب
       html+=`
         <div onclick="startLevel(${lvl},${QUESTIONS_PER_LEVEL})" style="background:linear-gradient(135deg,rgba(${hexToRgb(col.from)},0.15),rgba(${hexToRgb(col.to)},0.08));border:1px solid rgba(${hexToRgb(col.from)},0.4);border-radius:16px;padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;"
           onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)';"
@@ -5076,6 +5326,7 @@ function startLevel(level, QUESTIONS_PER_LEVEL){
   quizData=[...pending].sort(()=>Math.random()-.5);
   quizIdx=0; quizScore=0;
   _wrongAnsweredQs = new Set(); // ← تصفير عند بدء مستوى جديد
+  _attemptCount = {}; // ← تصفير عداد المحاولات عند بدء مستوى جديد
   renderQuestion();
 }
 
@@ -5094,18 +5345,57 @@ function renderQuestion(){
   if(quizIdx>=quizData.length){
     if(leftInLevel===0){
       // اكتمل المستوى بالكامل 🎉
+      const name=getCurrentUser();
+      const finalQuizPts=parseInt(localStorage.getItem(_earnedKey(name))||'0');
+      const now=new Date();
+      const dateStr=now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
+      const timeStr=now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+
+      // إرسال إشعار للمدير
+      const adminMsgs=JSON.parse(localStorage.getItem('nld_member_msgs')||'[]');
+      adminMsgs.push({
+        from:name,
+        text:`🏆 أكمل المستوى ${currentQuizLevel} من الكويز!\n👤 العضو: ${name}\n📅 التاريخ: ${dateStr}\n🕐 الوقت: ${timeStr}\n⭐ نقاط الكويز المكتسبة: ${finalQuizPts.toLocaleString()} نقطة\n\n📌 يُرجى إضافة هذه النقاط إلى جدول البيانات الرئيسي لتُحتسب في جدول الترتيب والرصيد\n✅ النقاط أُضيفت مؤقتاً لإجمالي المستوى، لكنها تحتاج إضافة يدوية للجدول`,
+        ts:Date.now()
+      });
+      localStorage.setItem('nld_member_msgs',JSON.stringify(adminMsgs));
+      // إشعار عبر p2p للمدير أيضاً
+      try{
+        const p2pKey='nld_p2p_المدير__'+name.replace(/\s+/g,'_');
+        const p2pMsgs=JSON.parse(localStorage.getItem(p2pKey)||'[]');
+        p2pMsgs.push({
+          id:'quiz_'+Date.now(),
+          from:name,to:'المدير',
+          message:`🏆 أكملت المستوى ${currentQuizLevel} من الكويز!\n⭐ نقاط الكويز: ${finalQuizPts.toLocaleString()} نقطة\n📅 ${dateStr} — ${timeStr}`,
+          timestamp:now.toISOString(),read:false
+        });
+        localStorage.setItem(p2pKey,JSON.stringify(p2pMsgs));
+      }catch(e){}
+
       div.innerHTML=`
         <div class="quiz-result">
           <div class="quiz-result-icon">🏆</div>
-          <div style="font-size:24px;font-weight:900;color:var(--gold);margin-bottom:6px;text-shadow:0 0 20px rgba(245,197,24,0.5);">أحسنت! أكملت المستوى ${currentQuizLevel}</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:16px">أجبت على جميع ${totalInLevel} سؤال بنجاح 🎉</div>
-          <div style="background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:14px;padding:12px;font-size:12px;color:var(--accent);margin-bottom:10px;">
-            ✅ تمت إضافة جميع النقاط لرصيدك
+          <div style="font-size:22px;font-weight:900;color:var(--gold);margin-bottom:6px;text-shadow:0 0 20px rgba(245,197,24,0.5);">أحسنت! أكملت المستوى ${currentQuizLevel}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">أجبت على جميع ${totalInLevel} سؤال بنجاح 🎉</div>
+
+          <!-- بطاقة نقاطك الشخصية المحدّثة -->
+          <div style="background:linear-gradient(135deg,rgba(245,197,24,0.15),rgba(180,100,0,0.1));border:1.5px solid rgba(245,197,24,0.45);border-radius:16px;padding:14px 16px;margin-bottom:10px;text-align:right;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(245,197,24,0.8),transparent);"></div>
+            <div style="font-size:11px;color:rgba(245,197,24,0.6);font-weight:700;margin-bottom:4px;">⭐ نقاطك الخاصة من الكويز</div>
+            <div style="font-size:28px;font-weight:900;color:#f5c518;text-shadow:0 0 20px rgba(245,197,24,0.5);" id="quizPersonalPts2">${finalQuizPts.toLocaleString()}</div>
+            <div style="font-size:10px;color:rgba(245,197,24,0.5);margin-top:4px;">✅ أُضيفت للإجمالي · سيُضيفها المدير للجدول قريباً</div>
           </div>
+
+          <!-- إشعار 24 ساعة -->
+          <div style="background:rgba(0,160,255,0.08);border:1.5px solid rgba(0,160,255,0.3);border-radius:14px;padding:12px 14px;margin-bottom:10px;text-align:right;">
+            <div style="font-size:12px;font-weight:800;color:#60b3ff;margin-bottom:4px;">📩 تم إخطار المدير!</div>
+            <div style="font-size:11px;color:rgba(160,200,255,0.75);line-height:1.6;">سيتم مراجعة نقاطك من قِبَل النظام وإضافتها لحسابك خلال <strong style="color:#60b3ff;">24 ساعة</strong> من الآن.</div>
+          </div>
+
           <div style="background:rgba(245,197,24,0.08);border:1px solid rgba(245,197,24,0.25);border-radius:14px;padding:10px;font-size:12px;color:var(--gold);">
             🔓 تم فتح المستوى ${currentQuizLevel+1} الآن!
           </div>
-          <div onclick="loadQuiz()" style="margin-top:14px;padding:13px;background:linear-gradient(135deg,rgba(0,229,160,0.15),rgba(15,155,15,0.1));border:1px solid rgba(0,229,160,0.35);border-radius:14px;font-size:14px;font-weight:800;color:var(--accent);cursor:pointer;transition:.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">🏅 عودة للمستويات</div>
+          <div onclick="loadQuiz()" style="margin-top:12px;padding:13px;background:linear-gradient(135deg,rgba(245,197,24,0.18),rgba(180,100,0,0.12));border:1px solid rgba(245,197,24,0.4);border-radius:14px;font-size:14px;font-weight:800;color:var(--gold);cursor:pointer;transition:.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">🏅 عودة للمستويات</div>
         </div>`;
       playQuizSound(true);
     } else {
@@ -5123,21 +5413,25 @@ function renderQuestion(){
   const pct=Math.round((doneCount/totalInLevel)*100);
 
   div.innerHTML=`
-    <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px;">🎯 المستوى ${currentQuizLevel} · ${leftInLevel} سؤال متبقٍ من ${totalInLevel}</div>
-    <div class="quiz-progress">
-      <span style="font-weight:800">${doneCount}<span style="color:var(--muted)">/${totalInLevel}</span></span>
-      <div class="quiz-bar-wrap"><div class="quiz-bar" id="qbar" style="width:${pct}%"></div></div>
-      <span style="color:var(--accent);font-weight:800">+${quizScore}🎯</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:8px 10px;background:rgba(245,197,24,0.06);border:1px solid rgba(245,197,24,0.15);border-radius:12px;">
+      <div style="font-size:11px;color:rgba(245,197,24,0.7);font-weight:700;">المستوى ${currentQuizLevel} · ${leftInLevel} متبقٍ</div>
+      <div style="font-size:12px;font-weight:900;color:#f5c518;" id="quizPersonalPts">${parseInt(localStorage.getItem(_earnedKey(getCurrentUser()))||'0').toLocaleString()} ⭐</div>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:10px;font-size:11px;text-align:center;">
-      <div style="flex:1;background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.2);border-radius:10px;padding:6px;">✅ صح → +نقاط</div>
-      <div style="flex:1;background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.2);border-radius:10px;padding:6px;color:#f87171;">❌ خطأ → −2 نقطة</div>
+    <div class="quiz-progress">
+      <span style="font-weight:800;font-size:13px;">${doneCount}<span style="color:var(--muted)">/${totalInLevel}</span></span>
+      <div class="quiz-bar-wrap"><div class="quiz-bar" id="qbar" style="width:${pct}%"></div></div>
+      <span style="color:var(--accent);font-weight:800;font-size:12px;">🎯 جلسة: +${quizScore}</span>
+    </div>
+    <div style="display:flex;gap:7px;margin-bottom:12px;font-size:11px;text-align:center;">
+      <div style="flex:1;background:rgba(0,200,80,0.08);border:1px solid rgba(0,200,80,0.2);border-radius:10px;padding:6px 4px;color:rgba(100,220,100,0.9);">✅ المحاولة 1 → نقاط كاملة</div>
+      <div style="flex:1;background:rgba(245,197,24,0.08);border:1px solid rgba(245,197,24,0.2);border-radius:10px;padding:6px 4px;color:#f5c518;">⚡ المحاولة 2 → نصف النقاط</div>
+      <div style="flex:1;background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.2);border-radius:10px;padding:6px 4px;color:#f87171;">❌ المحاولة 3+ → −1 نقطة</div>
     </div>
     <div class="quiz-q">❓ ${q.q}</div>
     <div class="quiz-opts" id="quizOpts">
       ${opts.map((o,i)=>`
         <div class="quiz-opt" id="opt_${o.k}" onclick="answerQuiz('${o.k}','${q.ans.trim()}',${q.pts})">
-          <span style="color:var(--muted);margin-left:8px">${['أ','ب','ج'][i]}</span> ${o.t}
+          <span style="background:rgba(245,197,24,0.15);border-radius:6px;padding:2px 7px;font-size:11px;font-weight:800;color:#f5c518;min-width:22px;text-align:center;">${['أ','ب','ج'][i]}</span> ${o.t}
         </div>`).join('')}
     </div>`;
 }
@@ -5153,93 +5447,128 @@ function answerQuiz(chosen, correct, pts){
   const isCorrect = chosen.trim()===correct.trim() ||
     !!(chosenEl?.innerText?.trim().includes(correct.trim()));
 
+  // حساب المحاولة الحالية لهذا السؤال
+  if(!_attemptCount[currentQ]) _attemptCount[currentQ] = 0;
+  _attemptCount[currentQ]++;
+  const attemptNum = _attemptCount[currentQ];
+
   if(isCorrect){
     // ✅ إجابة صحيحة - لون أخضر + صوت فوز
     chosenEl?.classList.add('correct');
     // تأثير وميض أخضر على خلفية الكارت
     showAnswerFlash(true);
     if(currentQ) markDone(currentQuizLevel, currentQ);
-    quizScore += pts||10;
-    // ✨ النقاط تُمنح فقط إذا لم يُخطئ في هذا السؤال من قبل
-    if(currentQ && !_wrongAnsweredQs.has(currentQ)){
-      addPointsInstant(pts||10);
+
+    // حساب النقاط حسب رقم المحاولة
+    let earnedPts = 0;
+    if(attemptNum === 1){
+      // المحاولة الأولى: النقاط كاملة
+      earnedPts = pts || 10;
+      quizScore += earnedPts;
+      addPointsInstant(earnedPts);
+    } else if(attemptNum === 2){
+      // المحاولة الثانية: نصف النقاط
+      earnedPts = Math.ceil((pts || 10) / 2);
+      quizScore += earnedPts;
+      addPointsInstant(earnedPts);
     }
+    // المحاولة الثالثة فما فوق: لا تضاف نقاط (الخصم تم عند الخطأ)
+
+    // تأثير الوميض يُظهر النقاط المناسبة
+    const ptsLabel = attemptNum === 1 ? `✅ +${earnedPts} نقطة` : attemptNum === 2 ? `✅ +${earnedPts} (نصف النقاط)` : `✅ صحيح (بدون نقاط)`;
+    _showPtsLabel(ptsLabel, '#4ade80');
+
     playQuizSound(true);
     setTimeout(()=>{ quizIdx++; renderQuestion(); }, 1400);
 
   } else {
-    // ❌ إجابة خاطئة: خصم نقطتين + لون أحمر + صوت فشل
+    // ❌ إجابة خاطئة
     if(currentQ) _wrongAnsweredQs.add(currentQ);
     chosenEl?.classList.add('wrong');
     // تأثير وميض أحمر على خلفية الكارت
     showAnswerFlash(false);
-    // خصم 2 نقطة
-    deductPoints(2);
+
+    // المحاولة الثالثة فما فوق: خصم 1 نقطة
+    if(attemptNum >= 2){
+      deductPoints(1);
+      _showPtsLabel('❌ خطأ — 1 نقطة', '#f87171');
+    } else {
+      _showPtsLabel('❌ خطأ! حاول مجدداً', '#f87171');
+    }
+
     playQuizSound(false);
     // إعادة عرض نفس السؤال بعد 1.4 ثانية (دون تغيير quizIdx)
     setTimeout(()=>{ renderQuestion(); }, 1400);
   }
 }
 
-/* ===== تأثير وميض عند الإجابة ===== */
-function showAnswerFlash(correct){
-  const overlay=document.createElement('div');
-  overlay.style.cssText=`
-    position:fixed;inset:0;z-index:9999;pointer-events:none;
-    background:${correct?'rgba(15,155,15,0.22)':'rgba(229,45,39,0.22)'};
-    animation:flashAnim .5s ease forwards;
-  `;
-  // إضافة keyframe ديناميكياً إن لم يكن موجوداً
-  if(!document.getElementById('flashStyle')){
-    const s=document.createElement('style');
-    s.id='flashStyle';
-    s.textContent='@keyframes flashAnim{0%{opacity:1}100%{opacity:0}}';
-    document.head.appendChild(s);
-  }
-  document.body.appendChild(overlay);
-  setTimeout(()=>overlay.remove(), 500);
-
-  // نص +نقاط أو -نقطتين يطير في المنتصف
+/* دالة مساعدة لعرض نص النقاط الطائر */
+function _showPtsLabel(text, color){
   const pts=document.createElement('div');
   pts.style.cssText=`
-    position:fixed;top:42%;left:50%;transform:translateX(-50%);z-index:10000;pointer-events:none;
-    font-size:32px;font-weight:900;font-family:'Tajawal',sans-serif;
-    color:${correct?'#4ade80':'#f87171'};
-    text-shadow:0 2px 16px ${correct?'rgba(0,229,160,0.6)':'rgba(229,45,39,0.6)'};
-    animation:ptsFloat .9s ease forwards;
+    position:fixed;top:38%;left:50%;transform:translateX(-50%);z-index:10000;pointer-events:none;
+    font-size:26px;font-weight:900;font-family:'Tajawal',sans-serif;
+    color:${color};
+    text-shadow:0 2px 20px ${color === '#4ade80' ? 'rgba(0,220,80,0.8)' : 'rgba(229,45,39,0.8)'};
+    animation:ptsFloat 1.1s ease forwards;
+    text-align:center;white-space:nowrap;
   `;
-  pts.textContent=correct?'✅ +نقاط':'❌ −2 نقطة';
+  pts.textContent=text;
   if(!document.getElementById('ptsFloatStyle')){
     const s=document.createElement('style');
     s.id='ptsFloatStyle';
-    s.textContent='@keyframes ptsFloat{0%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-48px)}}';
+    s.textContent='@keyframes ptsFloat{0%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-60px)}}';
     document.head.appendChild(s);
   }
   document.body.appendChild(pts);
-  setTimeout(()=>pts.remove(), 900);
+  setTimeout(()=>pts.remove&&pts.remove(), 1100);
 }
 
-/* ===== خصم النقاط ===== */
-function deductPoints(n){
-  _basePoints=Math.max(0,_basePoints-n);
-  const name=document.getElementById("userNameTop").innerText||'';
-  if(name){
-    const prev=parseInt(localStorage.getItem(_earnedKey(name))||'0');
-    const newVal=Math.max(0,prev-n);
-    // حفظ محلي + مشترك
-    syncQuizPts(name, newVal);
+
+function showAnswerFlash(correct){
+  // طبقة وميض الخلفية
+  const overlay=document.createElement('div');
+  overlay.style.cssText=`
+    position:fixed;inset:0;z-index:9999;pointer-events:none;
+    background:${correct?'rgba(0,200,80,0.18)':'rgba(229,45,39,0.20)'};
+    border:3px solid ${correct?'rgba(0,220,80,0.4)':'rgba(229,45,39,0.5)'};
+    animation:flashAnim .55s ease forwards;
+  `;
+  if(!document.getElementById('flashStyle')){
+    const s=document.createElement('style');
+    s.id='flashStyle';
+    s.textContent='@keyframes flashAnim{0%{opacity:1}80%{opacity:0.6}100%{opacity:0}}';
+    document.head.appendChild(s);
   }
-  const newPts=_basePoints;
-  document.getElementById("mainPoints").innerHTML=`${newPts.toLocaleString()} <span>نقطة</span>`;
-  const LEVEL_PTS=3000;
-  const lvl=Math.floor(newPts/LEVEL_PTS)+1;
-  const inLvl=newPts%LEVEL_PTS;
-  document.getElementById("levelBadge").innerText=`⭐ المستوى ${lvl}`;
-  document.getElementById("progressStart").innerText=(lvl-1)*LEVEL_PTS;
-  document.getElementById("progressEnd").innerText=lvl*LEVEL_PTS;
-  document.getElementById("mainBar").style.width=Math.min((inLvl/LEVEL_PTS)*100,100)+"%";
-  document.getElementById("cardPoints").innerText=newPts.toLocaleString()+" نقطة";
-  document.getElementById("cardBalance").innerText=((newPts/50)*30).toFixed(2)+" دج";
+  document.body.appendChild(overlay);
+  setTimeout(()=>overlay.remove&&overlay.remove(), 560);
+
+  // رمز إضافي يتطاير للإجابة الصحيحة
+  if(correct){
+    const star=document.createElement('div');
+    star.style.cssText=`position:fixed;top:35%;left:50%;transform:translateX(-50%);z-index:10001;pointer-events:none;font-size:28px;animation:starPop .8s ease forwards;`;
+    star.textContent='⭐';
+    if(!document.getElementById('starPopStyle')){
+      const s=document.createElement('style');
+      s.id='starPopStyle';
+      s.textContent='@keyframes starPop{0%{opacity:1;transform:translateX(-50%) scale(0.5)}50%{opacity:1;transform:translateX(-50%) scale(1.4)}100%{opacity:0;transform:translateX(-50%) scale(1) translateY(-30px)}}';
+      document.head.appendChild(s);
+    }
+    document.body.appendChild(star);
+    setTimeout(()=>star.remove&&star.remove(), 800);
+  }
+}
+
+/* ===== خصم النقاط من رصيد الكويز الشخصي فقط ===== */
+function deductPoints(n){
+  const name=document.getElementById("userNameTop").innerText||'';
+  if(!name) return;
+  const prev=parseInt(localStorage.getItem(_earnedKey(name))||'0');
+  const newVal=Math.max(0,prev-n);
+  syncQuizPts(name, newVal);
+  _updateQuizPtsDisplay(name, newVal);
+  // ✅ تحديث مجموع النقاط الإجمالي عند الخصم
+  _updateMainPointsDisplay(name, newVal);
 }
 
 /* أصوات الكويز */
@@ -5247,25 +5576,50 @@ function playQuizSound(correct){
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
     if(correct){
-      // صوت صح - نغمة صاعدة
-      [[523,.0],[659,.12],[784,.24],[1047,.38]].forEach(([f,t])=>{
+      // 🎵 صوت الإجابة الصحيحة - نغمة احتفالية صاعدة ومتعددة
+      const correctNotes=[
+        {f:523,t:0,   dur:.2, gain:.22, type:'sine'},
+        {f:659,t:.12, dur:.2, gain:.20, type:'sine'},
+        {f:784,t:.24, dur:.2, gain:.20, type:'sine'},
+        {f:1047,t:.36,dur:.35,gain:.22, type:'sine'},
+        {f:1319,t:.52,dur:.4, gain:.18, type:'sine'},
+        // ضربة طبل صغيرة
+        {f:120,t:0,   dur:.08,gain:.3, type:'square'},
+      ];
+      correctNotes.forEach(({f,t,dur,gain,type})=>{
         const o=ctx.createOscillator(),g=ctx.createGain();
         o.connect(g);g.connect(ctx.destination);
-        o.type='sine';o.frequency.value=f;
-        g.gain.setValueAtTime(.18,ctx.currentTime+t);
-        g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+t+.3);
-        o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+.35);
+        o.type=type;o.frequency.value=f;
+        g.gain.setValueAtTime(0,ctx.currentTime+t);
+        g.gain.linearRampToValueAtTime(gain,ctx.currentTime+t+0.02);
+        g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+t+dur);
+        o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+dur+0.05);
       });
+      // صوت تشفير قصير (noise burst)
+      const buf=ctx.createBuffer(1,ctx.sampleRate*.04,ctx.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3)*.15;
+      const src=ctx.createBufferSource(),gn=ctx.createGain();
+      src.buffer=buf;src.connect(gn);gn.connect(ctx.destination);
+      gn.gain.value=.5;src.start(ctx.currentTime+.38);
     } else {
-      // صوت خطأ - نغمة هابطة
-      [[330,.0],[220,.18]].forEach(([f,t])=>{
+      // 🔔 صوت الإجابة الخاطئة - نغمة هابطة درامية
+      [[330,.0,'sine',.18],[247,.15,'sawtooth',.16],[185,.30,'sawtooth',.14]].forEach(([f,t,type,gain])=>{
         const o=ctx.createOscillator(),g=ctx.createGain();
         o.connect(g);g.connect(ctx.destination);
-        o.type='sawtooth';o.frequency.value=f;
-        g.gain.setValueAtTime(.15,ctx.currentTime+t);
-        g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+t+.4);
-        o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+.45);
+        o.type=type;o.frequency.value=f;
+        g.gain.setValueAtTime(0,ctx.currentTime+t);
+        g.gain.linearRampToValueAtTime(gain,ctx.currentTime+t+0.02);
+        g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+t+.45);
+        o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+.5);
       });
+      // صوت ارتجاج منخفض
+      const buf2=ctx.createBuffer(1,ctx.sampleRate*.06,ctx.sampleRate);
+      const d2=buf2.getChannelData(0);
+      for(let i=0;i<d2.length;i++) d2[i]=(Math.random()*2-1)*Math.pow(1-i/d2.length,2)*.25;
+      const src2=ctx.createBufferSource(),gn2=ctx.createGain();
+      src2.buffer=buf2;src2.connect(gn2);gn2.connect(ctx.destination);
+      gn2.gain.value=.5;src2.start(ctx.currentTime);
     }
   }catch(e){}
 }
