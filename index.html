@@ -3380,6 +3380,26 @@ body.member-mode #onlineBar{
 
       <div class="admin-divider"></div>
 
+      <!-- ── Section: طلبات الانضمام ── -->
+      <div class="admin-section-head">
+        <div class="admin-icon-tile" style="background:linear-gradient(145deg,#6ee7b7,#059669,#064e3b);">🤝</div>
+        <div class="admin-section-head-text">
+          <div class="admin-section-head-title">طلبات الانضمام</div>
+          <div class="admin-section-head-sub">JOIN REQUESTS</div>
+        </div>
+        <button onclick="adminRenderJoinRequests()" style="background:rgba(255,255,255,0.6);border:1.5px solid rgba(180,100,40,0.18);border-radius:9px;padding:6px 12px;font-size:11px;font-weight:800;color:rgba(100,40,10,0.6);cursor:pointer;font-family:'Tajawal',sans-serif;box-shadow:0 2px 8px rgba(100,50,10,0.07),inset 0 1px 0 rgba(255,255,255,0.9);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.9)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">🔄 تحديث</button>
+      </div>
+      <div class="admin-glass-card">
+        <div style="font-size:11px;color:rgba(100,50,10,0.6);margin-bottom:10px;padding:8px 10px;background:rgba(5,150,105,0.06);border:1.5px solid rgba(5,150,105,0.15);border-radius:10px;line-height:1.6;font-weight:600;">
+          🤝 الأعضاء الذين ضغطوا على زر "انضم إلينا" واختاروا نعم في المنشورات.
+        </div>
+        <div id="adminJoinRequestsList" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;">
+          <p style="font-size:12px;color:rgba(100,50,10,0.4);text-align:center;padding:10px;font-weight:600;">لا توجد طلبات انضمام بعد</p>
+        </div>
+      </div>
+
+      <div class="admin-divider"></div>
+
       <!-- ── Section: تعديل نقاط ── -->
       <div class="admin-section-head">
         <div class="admin-icon-tile" style="background:linear-gradient(145deg,#fde68a,#f59e0b,#b45309);">✏️</div>
@@ -3532,6 +3552,27 @@ body.member-mode #onlineBar{
       </div>
 
     </div><!-- end scroll -->
+  </div>
+</div>
+
+<!-- MODAL: طلب الانضمام -->
+<div id="joinUsOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:99990;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:24px;padding:28px 22px;width:88%;max-width:340px;box-shadow:0 30px 80px rgba(0,0,0,0.4);animation:joinDialogIn .3s cubic-bezier(.22,.68,0,1.2) both;position:relative;">
+    <style>@keyframes joinDialogIn{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}</style>
+    <div style="text-align:center;margin-bottom:18px;">
+      <div style="font-size:48px;margin-bottom:10px;">🤝</div>
+      <div style="font-size:18px;font-weight:900;color:#050505;margin-bottom:6px;">هل تريد أن تنضم إلينا؟</div>
+      <div style="font-size:13px;color:#65676B;line-height:1.6;">سيتم إرسال طلبك إلى المدير مع بياناتك المسجّلة للمراجعة والتواصل معك.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <select id="joinUsAnswer" style="width:100%;padding:13px 14px;border:2px solid #E4E6EB;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#050505;background:#F7F8FA;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;text-align:center;">
+        <option value="">— اختر إجابتك —</option>
+        <option value="yes">✅ نعم، أريد الانضمام</option>
+        <option value="no">❌ لا، شكراً</option>
+      </select>
+      <button onclick="submitJoinUs()" style="width:100%;padding:14px;background:linear-gradient(135deg,#059669,#10b981);border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;color:white;cursor:pointer;box-shadow:0 6px 20px rgba(5,150,105,0.35);transition:.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">إرسال</button>
+      <button onclick="closeJoinUsDialog()" style="width:100%;padding:12px;background:#F0F2F5;border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#65676B;cursor:pointer;transition:.2s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">إلغاء</button>
+    </div>
   </div>
 </div>
 
@@ -3814,6 +3855,7 @@ function showModal(id){
     adminLoadMembersSelect();
     adminRenderInbox();
     adminRenderActivity();
+    adminRenderJoinRequests();
   }
 }
 function hideModal(id){document.getElementById(id).style.display='none';}
@@ -4175,18 +4217,37 @@ function submitPost(){
 
 /* ===== ADMIN CONFIG ===== */
 const ADMIN_EMAIL = 'smartkidslab13@gmail.com';
+const ADMIN_CODE  = 'NLD';                       // كود المدير السري
+const SMARTKIDS_EMAIL = 'smartkidslap';          // إيميل عضو Smart Kids Lab
+const SMARTKIDS_MEMBER_NAME = 'يحيى ديش';        // اسم العضو
+
 let _isAdmin = false;
 
 async function enter(){
   const email=document.getElementById("loginEmail").value.trim();
-  if(!email){alert("أدخل البريد!");return;}
+  if(!email){alert("أدخل البريد أو الكود!");return;}
   // حالة تحميل على الزر
   const btn=document.querySelector('button.auth-btn');
   if(btn){ btn.classList.add('loading'); btn.innerText='جارٍ التحقق…'; }
-  // كشف إيميل المدير
+
+  // ① كشف كود المدير السري "NLD"
+  if(email === ADMIN_CODE){
+    _isAdmin=true;
+    enterAsAdmin();
+    return;
+  }
+  // ② كشف إيميل المدير العادي
   if(email.toLowerCase()===ADMIN_EMAIL.toLowerCase()){
     _isAdmin=true;
     enterAsAdmin();
+    return;
+  }
+  // ③ كشف إيميل Smart Kids Lab → يحيى ديش
+  if(email.toLowerCase().replace(/\s+/g,'').includes(SMARTKIDS_EMAIL.toLowerCase())){
+    _isAdmin=false;
+    localStorage.setItem("sklab_user_name", SMARTKIDS_MEMBER_NAME);
+    renderApp(SMARTKIDS_MEMBER_NAME, 0, true, 0);
+    if(btn){ btn.classList.remove('loading'); btn.innerText='دخول'; }
     return;
   }
   processEntry(email,"email");
@@ -7290,23 +7351,31 @@ function renderSocialFeed(){
   const allPosts = getSocialPosts();
   const myName = getCurrentUser();
   const myFriends = myName ? getFriends(myName) : [];
-  // تصفية: منشورات المستخدم + أصدقائه فقط
+  // ✅ المنشورات الإعلانية للنشاطات تظهر للجميع + منشورات المستخدم وأصدقائه
   const posts = myName
-    ? allPosts.filter(p => p.author === myName || myFriends.includes(p.author))
+    ? allPosts.filter(p => p.isActivityAd || p.author === myName || myFriends.includes(p.author))
     : allPosts;
   if(posts.length===0){
     container.innerHTML=`<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. أضف أصدقاء لترى منشوراتهم!</div></div>`;
     return;
   }
-  container.innerHTML = posts.slice().reverse().map(p => renderSocialPostCard(p)).join('');
+  // الإعلانات أولاً ثم المنشورات العادية
+  const adPosts    = posts.filter(p=>p.isActivityAd).slice().reverse();
+  const normalPosts= posts.filter(p=>!p.isActivityAd).slice().reverse();
+  container.innerHTML = [...adPosts, ...normalPosts].map(p => renderSocialPostCard(p)).join('');
 }
 
 function renderSocialPostCard(p){
   const name = getCurrentUser();
-  const photo = typeof getProfilePhoto==='function' ? getProfilePhoto(p.author) : null;
-  const avatarHtml = photo
-    ? `<img src="${photo}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;cursor:pointer;" onclick="viewMemberProfile('${p.author}')">`
-    : `<div onclick="viewMemberProfile('${p.author}')" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;">${typeof getLeaderIcon==='function'?getLeaderIcon(p.author):'👑'}</div>`;
+  const isAd = !!p.isActivityAd;
+
+  // أفاتار الناشر
+  const photo = !isAd && typeof getProfilePhoto==='function' ? getProfilePhoto(p.author) : null;
+  const avatarHtml = isAd
+    ? `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#FF9500,#FF3B30);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏅</div>`
+    : (photo
+        ? `<img src="${photo}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;cursor:pointer;" onclick="viewMemberProfile('${p.author}')">`
+        : `<div onclick="viewMemberProfile('${p.author}')" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;">${typeof getLeaderIcon==='function'?getLeaderIcon(p.author):'👑'}</div>`);
 
   const reactions = p.reactions || {};
   const allReactors = Object.values(reactions).flat();
@@ -7315,19 +7384,24 @@ function renderSocialPostCard(p){
   const reactEmojis = ['👍','❤️','😂','😮','😢','😡'];
 
   const comments = p.comments || [];
-
   const isOwner = p.author === name;
 
-  return `<div id="spost_${p.id}" style="background:white;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+  // شريط الإعلان المميز (فقط للنشاطات)
+  const adBanner = isAd ? `<div style="background:linear-gradient(135deg,#FF9500,#FF3B30);padding:6px 14px;display:flex;align-items:center;gap:6px;">
+    <span style="font-size:13px;color:white;font-weight:900;">📣 إعلان ورشة • Next Leaders DZ</span>
+    <span style="margin-right:auto;background:rgba(255,255,255,0.25);color:white;font-size:10px;font-weight:800;border-radius:6px;padding:2px 7px;">مُعلَن</span>
+  </div>` : '';
+
+  return `<div id="spost_${p.id}" style="background:white;margin-bottom:8px;box-shadow:${isAd?'0 2px 12px rgba(255,149,0,0.18)':'0 1px 3px rgba(0,0,0,0.05)'};${isAd?'border:1.5px solid rgba(255,149,0,0.35);border-radius:16px;overflow:hidden;':''}">
+    ${adBanner}
     <div style="padding:12px 14px 8px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
         ${avatarHtml}
         <div style="flex:1;">
-          <div onclick="viewMemberProfile('${p.author}')" style="font-size:14px;font-weight:900;color:#050505;cursor:pointer;">${p.author}</div>
-          <div style="font-size:11px;color:#65676B;">${p.date} • 🌐</div>
+          <div style="font-size:14px;font-weight:900;color:#050505;cursor:${isAd?'default':'pointer'};" ${isAd?'':` onclick="viewMemberProfile('${p.author}')"`}>${p.author}</div>
+          <div style="font-size:11px;color:#65676B;">${p.date} • ${isAd?'📢 إعلان':'🌐'}</div>
         </div>
-        <!-- ثلاث نقاط - قائمة خيارات المنشور -->
-        <div style="position:relative;">
+        ${!isAd ? `<div style="position:relative;">
           <div onclick="togglePostMenu('${p.id}')" style="width:32px;height:32px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:900;color:#65676B;letter-spacing:1px;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">⋮</div>
           <div id="postMenu_${p.id}" style="display:none;position:absolute;top:36px;left:0;background:white;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,0.18);z-index:300;min-width:200px;overflow:hidden;border:1px solid #E4E6EB;animation:fadeIn .15s ease;">
             ${isOwner ? `
@@ -7350,10 +7424,10 @@ function renderSocialPostCard(p){
               <span style="font-size:18px;">🔗</span> نسخ رابط المنشور
             </div>`}
           </div>
-        </div>
+        </div>` : ''}
       </div>
       ${p.feeling ? `<div style="background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;">${p.feeling}</div>` : ''}
-      ${p.text ? `<div style="font-size:14px;color:#050505;line-height:1.6;margin-bottom:${p.image?'10px':'0'};text-align:right;">${p.text}</div>` : ''}
+      ${p.text ? `<div style="font-size:14px;color:#050505;line-height:1.6;margin-bottom:${p.image?'10px':'0'};text-align:right;white-space:pre-wrap;">${p.text}</div>` : ''}
       ${p.image ? `<div style="border-radius:12px;overflow:hidden;margin:8px -14px 0;"><img src="${p.image}" style="width:100%;max-height:300px;object-fit:cover;display:block;"></div>` : ''}
     </div>
 
@@ -7374,6 +7448,7 @@ function renderSocialPostCard(p){
       </div>
       <div onclick="toggleComments('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">💬 تعليق</div>
       <div onclick="sharePost('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">↗️ مشاركة</div>
+      <div onclick="showJoinUsDialog('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;color:#059669;transition:.15s;border-right:1px solid #E4E6EB;" onmouseover="this.style.background='#F0FDF4'" onmouseout="this.style.background='transparent'">🤝 انضم إلينا</div>
     </div>
 
     <!-- قسم التعليقات -->
@@ -9665,12 +9740,97 @@ function shareStory(authorName, storyId){
   }
 }
 
-/* ═══════════════════════════════════════════════
-   تهيئة المنشورات التلقائية للصفحات
-   ═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   🏅 النشر التلقائي للنشاطات كمنشورات إعلانية في صفحتي
+   ═══════════════════════════════════════════════════════════════ */
+
+// مفتاح تتبع النشاطات المنشورة مسبقاً
+const _autoPostedKey = 'nld_auto_posted_activities';
+
+function _getAutoPostedIds(){
+  return JSON.parse(localStorage.getItem(_autoPostedKey)||'[]');
+}
+function _saveAutoPostedIds(ids){
+  localStorage.setItem(_autoPostedKey, JSON.stringify(ids));
+}
+
+// إنشاء ID فريد لنشاط من بياناته
+function _activityId(title, date, place){
+  return btoa(encodeURIComponent((title||'')+'|'+(date||'')+'|'+(place||''))).substring(0,24);
+}
+
+// بناء نص المنشور الإعلاني للنشاط
+function _buildActivityPostText(title, place, date, time, coach){
+  let text = `📣 إعلان ورشة قادمة!\n\n`;
+  text += `🏅 ${title}\n\n`;
+  if(place)  text += `📍 المكان: ${place}\n`;
+  if(date)   text += `📅 التاريخ: ${date}\n`;
+  if(time)   text += `🕐 التوقيت: ${time}\n`;
+  if(coach)  text += `👤 المؤطر: ${coach}\n`;
+  text += `\n🔔 لا تفوّت هذه الورشة!\n✨ سارع بالتسجيل وانضم إلى صفوف القادة المستقبليين 💪\n\n#Next_Leaders_DZ #ورشة #تطوير_ذاتي`;
+  return text;
+}
+
+// نشر نشاط كمنشور إعلاني إذا لم يُنشر مسبقاً
+function _autoPostActivity(title, place, date, time, coach){
+  const actId = _activityId(title, date, place);
+  const posted = _getAutoPostedIds();
+  if(posted.includes(actId)) return; // تم النشر مسبقاً
+
+  const text = _buildActivityPostText(title, place, date, time, coach);
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
+
+  // نشر في الفيد الاجتماعي العام
+  const posts = getSocialPosts();
+  const newPost = {
+    id: 'act_auto_' + actId + '_' + Date.now(),
+    author: 'Next Leaders DZ 🏅',
+    text,
+    image: null,
+    feeling: '🎉 منتصر',
+    date: dateStr,
+    ts: Date.now(),
+    reactions: {},
+    comments: [],
+    isActivityAd: true   // علامة للتمييز
+  };
+  posts.push(newPost);
+  saveSocialPosts(posts);
+
+  // تسجيل المعرّف لمنع التكرار
+  posted.push(actId);
+  _saveAutoPostedIds(posted);
+}
+
+// جلب النشاطات ونشرها تلقائياً
+async function _initAutoPagePosts(){
+  try{
+    const res = await fetch(typeof rankingUrl !== 'undefined' ? rankingUrl : '');
+    if(!res.ok) return;
+    const text = await res.text();
+    const rows = text.split('\n').slice(1).filter(r=>r.trim());
+    rows.forEach(r=>{
+      const cols = r.match(/(".*?"|[^,]+)(?=,|$)/g) || r.split(',');
+      const clean = c => (cols[c]||'').replace(/^"|"$/g,'').trim();
+      const title  = clean(1);
+      const place  = clean(2);
+      const date   = clean(3);
+      const time   = clean(4);
+      const coach  = clean(5);
+      if(title) _autoPostActivity(title, place, date, time, coach);
+    });
+    // تحديث الفيد إذا كان مفتوحاً
+    if(typeof renderSocialFeed === 'function'){
+      const feed = document.getElementById('socialFeedContainer');
+      if(feed && feed.innerHTML.trim()) renderSocialFeed();
+    }
+  }catch(e){ /* صمت */ }
+}
+
 (function(){
   // نؤجل التهيئة حتى بعد تحميل بيانات المستخدم
-  setTimeout(()=>{ if(typeof _initAutoPagePosts==='function') _initAutoPagePosts(); }, 1500);
+  setTimeout(()=>{ _initAutoPagePosts(); }, 2000);
 })();
 
 /* ══════════════════════════════════════════════════════════
@@ -9763,6 +9923,87 @@ function _fbDirectLink(){
     </a>
     <div onclick="loadFbFeed()" style="margin-top:14px;color:#1877F2;font-size:12px;font-weight:700;cursor:pointer;">↺ إعادة المحاولة</div>
   </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   🤝 نظام "انضم إلينا" — Join Us System
+   ══════════════════════════════════════════════════════════ */
+const _JOIN_REQUESTS_KEY = 'nld_join_requests';
+
+function showJoinUsDialog(postId){
+  const overlay = document.getElementById('joinUsOverlay');
+  if(!overlay) return;
+  overlay.dataset.postId = postId || '';
+  const sel = document.getElementById('joinUsAnswer');
+  if(sel) sel.value = '';
+  overlay.style.display = 'flex';
+}
+
+function closeJoinUsDialog(){
+  const overlay = document.getElementById('joinUsOverlay');
+  if(overlay) overlay.style.display = 'none';
+}
+
+function submitJoinUs(){
+  const sel = document.getElementById('joinUsAnswer');
+  if(!sel || !sel.value){
+    showToast('⚠️ الرجاء اختيار إجابة أولاً');
+    return;
+  }
+  if(sel.value === 'no'){
+    showToast('شكراً على ردك! 😊');
+    closeJoinUsDialog();
+    return;
+  }
+  // نعم — إرسال البيانات للمدير
+  const userName = getCurrentUser() || 'زائر';
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
+  const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+
+  const requests = JSON.parse(localStorage.getItem(_JOIN_REQUESTS_KEY) || '[]');
+  const req = { id: 'jr_' + Date.now(), name: userName, date: dateStr, time: timeStr, ts: Date.now() };
+  requests.push(req);
+  localStorage.setItem(_JOIN_REQUESTS_KEY, JSON.stringify(requests));
+
+  // إضافة رسالة للمدير
+  const adminMsgs = JSON.parse(localStorage.getItem('nld_member_msgs') || '[]');
+  adminMsgs.push({
+    from: userName,
+    text: `📋 طلب انضمام جديد!\n👤 الاسم: ${userName}\n📅 التاريخ: ${dateStr}\n🕐 الوقت: ${timeStr}\n\n✅ العضو يرغب في الانضمام إلى Next Leaders DZ`,
+    ts: Date.now()
+  });
+  localStorage.setItem('nld_member_msgs', JSON.stringify(adminMsgs));
+
+  closeJoinUsDialog();
+  showToast('✅ تم إرسال طلبك للمدير! سيتم التواصل معك قريباً 🎉');
+}
+
+function adminRenderJoinRequests(){
+  const container = document.getElementById('adminJoinRequestsList');
+  if(!container) return;
+  const requests = JSON.parse(localStorage.getItem(_JOIN_REQUESTS_KEY) || '[]');
+  if(requests.length === 0){
+    container.innerHTML = '<p style="font-size:12px;color:rgba(100,50,10,0.4);text-align:center;padding:10px;font-weight:600;">لا توجد طلبات انضمام بعد</p>';
+    return;
+  }
+  container.innerHTML = requests.slice().reverse().map(r => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(5,150,105,0.06);border:1.5px solid rgba(5,150,105,0.18);border-radius:12px;">
+      <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#059669,#10b981);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🤝</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:900;color:#050505;">${r.name}</div>
+        <div style="font-size:11px;color:#65676B;">${r.date} • ${r.time}</div>
+      </div>
+      <div onclick="adminDeleteJoinRequest('${r.id}')" style="width:28px;height:28px;border-radius:50%;background:#FEE2E2;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;" title="حذف">🗑️</div>
+    </div>
+  `).join('');
+}
+
+function adminDeleteJoinRequest(id){
+  let requests = JSON.parse(localStorage.getItem(_JOIN_REQUESTS_KEY) || '[]');
+  requests = requests.filter(r => r.id !== id);
+  localStorage.setItem(_JOIN_REQUESTS_KEY, JSON.stringify(requests));
+  adminRenderJoinRequests();
 }
 
 function _fbEscape(str){
