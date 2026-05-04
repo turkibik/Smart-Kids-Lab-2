@@ -7326,7 +7326,31 @@ function renderSocialPostCard(p){
           <div onclick="viewMemberProfile('${p.author}')" style="font-size:14px;font-weight:900;color:#050505;cursor:pointer;">${p.author}</div>
           <div style="font-size:11px;color:#65676B;">${p.date} • 🌐</div>
         </div>
-        ${isOwner ? `<div onclick="deleteSocialPost('${p.id}')" style="width:30px;height:30px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;" title="حذف">🗑️</div>` : ''}
+        <!-- ثلاث نقاط - قائمة خيارات المنشور -->
+        <div style="position:relative;">
+          <div onclick="togglePostMenu('${p.id}')" style="width:32px;height:32px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:900;color:#65676B;letter-spacing:1px;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">⋮</div>
+          <div id="postMenu_${p.id}" style="display:none;position:absolute;top:36px;left:0;background:white;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,0.18);z-index:300;min-width:200px;overflow:hidden;border:1px solid #E4E6EB;animation:fadeIn .15s ease;">
+            ${isOwner ? `
+            <div onclick="editSocialPost('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+              <span style="font-size:18px;">✏️</span> تعديل المنشور
+            </div>
+            <div style="height:1px;background:#F0F2F5;margin:0 12px;"></div>
+            <div onclick="changePostPrivacy('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+              <span style="font-size:18px;">🔒</span> تعديل خصوصية المنشور
+            </div>
+            <div style="height:1px;background:#F0F2F5;margin:0 12px;"></div>
+            <div onclick="copyPostLink('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+              <span style="font-size:18px;">🔗</span> نسخ رابط المنشور
+            </div>
+            <div style="height:1px;background:#F0F2F5;margin:0 12px;"></div>
+            <div onclick="deleteSocialPost('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#e53935;transition:.15s;" onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background='transparent'">
+              <span style="font-size:18px;">🗑️</span> حذف المنشور
+            </div>` : `
+            <div onclick="copyPostLink('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+              <span style="font-size:18px;">🔗</span> نسخ رابط المنشور
+            </div>`}
+          </div>
+        </div>
       </div>
       ${p.feeling ? `<div style="background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;">${p.feeling}</div>` : ''}
       ${p.text ? `<div style="font-size:14px;color:#050505;line-height:1.6;margin-bottom:${p.image?'10px':'0'};text-align:right;">${p.text}</div>` : ''}
@@ -7882,46 +7906,130 @@ function createGroup(){
 }
 
 /* ══════════════════════════════════════════
-   📄 الصفحات
+   📄 الصفحات — الصفحة الرسمية فقط
    ══════════════════════════════════════════ */
-const _defaultPages = [
-  { id:'p1', name:'Next Leaders DZ الرسمية', desc:'الصفحة الرسمية للتطبيق', followers:0, icon:'🏢', cover:'linear-gradient(135deg,#0f9b0f,#00c853)' },
-  { id:'p2', name:'أخبار وإعلانات 📢', desc:'آخر الأخبار والتحديثات', followers:0, icon:'📢', cover:'linear-gradient(135deg,#e52d27,#b31217)' },
-  { id:'p3', name:'مسابقات وجوائز 🏆', desc:'المسابقات والجوائز الحصرية', followers:0, icon:'🏆', cover:'linear-gradient(135deg,#f5c518,#f97316)' },
+
+/* ─── منشورات تلقائية لـ Next Leaders DZ و Smart Kids Lab ─── */
+const _AUTO_PAGE_POSTS_KEY = 'nld_auto_page_posts_init';
+
+const _autoNextLeadersPosts = [
+  { icon:'🏆', color:'linear-gradient(135deg,#0f9b0f,#00c853)', title:'إطلاق موسم جديد!', text:'🎉 يسعدنا الإعلان عن انطلاق موسم 2025–2026 لـ Next Leaders DZ! فرص تعليمية، نشاطات ثقافية، ومسابقات حصرية تنتظركم. انضموا إلينا وكونوا القادة المستقبليين! 🇩🇿🌟', date:'1 يناير 2026' },
+  { icon:'📚', color:'linear-gradient(135deg,#1877F2,#0d5bda)', title:'ورشة القيادة والتفكير النقدي', text:'🧠 ورشة عمل متميزة في مجال القيادة والتفكير النقدي لأعضاء Next Leaders DZ. التسجيل مفتوح للجميع! تطوير مهاراتك يبدأ هنا. 💪', date:'15 يناير 2026' },
+  { icon:'🎯', color:'linear-gradient(135deg,#f5c518,#f97316)', title:'مسابقة المعرفة الكبرى', text:'🏅 انطلاق مسابقة المعرفة الكبرى لشهر فبراير! الفائزون ينالون نقاطاً مضاعفة وجوائز قيمة. ابدأ التحضير الآن مع كويزات التطبيق! ⚡', date:'1 فبراير 2026' },
+  { icon:'🌟', color:'linear-gradient(135deg,#a855f7,#7c3aed)', title:'تكريم الأعضاء المتميزين', text:'🌟 تهنئة لأعضائنا المتميزين الذين تصدروا لوحة الشرف لهذا الشهر! استمروا في العطاء والإبداع. Next Leaders DZ فخور بكم! 🏆🇩🇿', date:'15 فبراير 2026' },
+  { icon:'💻', color:'linear-gradient(135deg,#11998e,#38ef7d)', title:'دورة البرمجة للمبتدئين', text:'💻 نطلق اليوم دورة البرمجة للمبتدئين ضمن برامج Next Leaders DZ! تعلم أساسيات البرمجة بطريقة ممتعة وتفاعلية. 🚀 سجل الآن!', date:'1 مارس 2026' },
 ];
-function getPages(){
-  const stored = localStorage.getItem(_pagesKey);
-  if(!stored) return _defaultPages;
-  return JSON.parse(stored);
+
+const _autoSmartKidsPosts = [
+  { icon:'🧠', color:'linear-gradient(135deg,#00c6ff,#0072ff)', title:'Smart Kids Lab - الانطلاقة!', text:'🧠 يسعدنا إطلاق مختبر Smart Kids Lab! فضاء إبداعي مخصص للأطفال لتعلم البرمجة، الذكاء الاصطناعي، والعلوم التفاعلية بطريقة ممتعة ومبتكرة! 🎨🔬', date:'5 يناير 2026' },
+  { icon:'🤖', color:'linear-gradient(135deg,#f093fb,#f5576c)', title:'حصة الذكاء الاصطناعي للناشئين', text:'🤖 هل تعرف كيف يفكر الكمبيوتر؟ في Smart Kids Lab نعلم أطفالنا أساسيات الذكاء الاصطناعي بأسلوب بسيط وشيق! التسجيل مفتوح. 🌈', date:'20 يناير 2026' },
+  { icon:'🎨', color:'linear-gradient(135deg,#f5c518,#f97316)', title:'ورشة التصميم الرقمي', text:'🎨 ورشة التصميم الرقمي الإبداعي لأطفال Smart Kids Lab! يتعلم الأطفال إنشاء رسومات، شعارات، وقصص مصورة رقمية. انضم إلينا! ✨', date:'10 فبراير 2026' },
+  { icon:'🔬', color:'linear-gradient(135deg,#11998e,#38ef7d)', title:'يوم العلوم التفاعلي', text:'🔬 يوم العلوم التفاعلي في Smart Kids Lab! تجارب علمية مثيرة، اكتشافات رائعة، وأنشطة ممتعة للأطفال. العلم حول حياتنا! 🌍', date:'5 مارس 2026' },
+];
+
+function _initAutoPagePosts(){
+  if(localStorage.getItem(_AUTO_PAGE_POSTS_KEY)) return;
+  const posts = getSocialPosts();
+  const now = Date.now();
+  _autoNextLeadersPosts.forEach((p,i)=>{
+    const ts = now - ((_autoNextLeadersPosts.length - i) * 86400000 * 3);
+    posts.unshift({
+      id: 'ap_nld_'+i+'_'+ts,
+      author: 'Next Leaders DZ الرسمية',
+      text: p.title + '\n' + p.text,
+      image: null, feeling: null,
+      date: p.date, ts,
+      reactions: {}, comments: [],
+      isPage: true, pageIcon: p.icon, pageCover: p.color
+    });
+  });
+  _autoSmartKidsPosts.forEach((p,i)=>{
+    const ts = now - ((_autoSmartKidsPosts.length - i) * 86400000 * 4 + 86400000);
+    posts.unshift({
+      id: 'ap_skl_'+i+'_'+ts,
+      author: 'Smart Kids Lab الرسمية',
+      text: p.title + '\n' + p.text,
+      image: null, feeling: null,
+      date: p.date, ts,
+      reactions: {}, comments: [],
+      isPage: true, pageIcon: p.icon, pageCover: p.color
+    });
+  });
+  saveSocialPosts(posts);
+  localStorage.setItem(_AUTO_PAGE_POSTS_KEY, '1');
 }
+
 function renderPagesPanel(){
-  const pages = getPages();
   const el = document.getElementById('pagesList');
   if(!el) return;
-  el.innerHTML = pages.map(p=>`
-    <div style="background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-      <div style="height:60px;background:${p.cover||'#1877F2'};display:flex;align-items:center;justify-content:center;font-size:28px;">${p.icon||'📄'}</div>
-      <div style="padding:10px 12px;display:flex;align-items:center;gap:10px;">
-        <div style="flex:1;">
-          <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:2px;">${p.name}</div>
-          <div style="font-size:11px;color:#65676B;">${p.desc}</div>
-        </div>
-        <button onclick="followPage('${p.id}')" style="padding:7px 14px;background:#1877F2;border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">متابعة</button>
+  // فقط الصفحة الرسمية
+  el.innerHTML = `
+    <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(15,155,15,0.12);border:1.5px solid rgba(15,155,15,0.2);">
+      <div style="height:80px;background:linear-gradient(135deg,#0f9b0f,#00c853,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:40px;position:relative;">
+        🏆
+        <div style="position:absolute;top:8px;left:10px;background:rgba(255,255,255,0.9);border-radius:8px;padding:2px 8px;font-size:9px;font-weight:800;color:#0f9b0f;">✅ الصفحة الرسمية</div>
       </div>
-    </div>`).join('');
+      <div style="padding:14px;">
+        <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:4px;">Next Leaders DZ 🇩🇿</div>
+        <div style="font-size:12px;color:#65676B;margin-bottom:10px;line-height:1.6;">الصفحة الرسمية لمختبر الشباب للذكاء والتعلم والإبداع</div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="openFbFeedPanel()" style="flex:1;padding:9px;background:#1877F2;border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 10px rgba(24,119,242,0.35);">📘 فيسبوك</button>
+          <button onclick="showNextLeadersFeed()" style="flex:1;padding:9px;background:linear-gradient(135deg,#0f9b0f,#00c853);border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 10px rgba(15,155,15,0.3);">🏆 منشوراتنا</button>
+        </div>
+      </div>
+    </div>
+    `;
 }
-function followPage(pageId){
-  showToast('تمت المتابعة ✅');
+
+function showNextLeadersFeed(){
+  const posts = getSocialPosts().filter(p=>p.isPage && p.author==='Next Leaders DZ الرسمية');
+  _showPageFeedOverlay('Next Leaders DZ 🇩🇿', 'linear-gradient(135deg,#0f9b0f,#00c853)', '🏆', posts);
 }
-function createPage(){
-  const name = prompt('اسم الصفحة الجديدة:');
-  if(!name) return;
-  const pages = getPages();
-  pages.push({ id:'p'+Date.now(), name, desc:'صفحة جديدة', followers:0, icon:'📄', cover:'linear-gradient(135deg,#667eea,#764ba2)' });
-  localStorage.setItem(_pagesKey, JSON.stringify(pages));
-  renderPagesPanel();
-  showToast('تم إنشاء الصفحة ✅');
+
+function showSmartKidsFeed(){
+  const posts = getSocialPosts().filter(p=>p.isPage && p.author==='Smart Kids Lab الرسمية');
+  _showPageFeedOverlay('Smart Kids Lab 🧠', 'linear-gradient(135deg,#00c6ff,#0072ff)', '🧠', posts);
 }
+
+function _showPageFeedOverlay(pageName, color, icon, posts){
+  const old = document.getElementById('pageFeedOverlay');
+  if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = 'pageFeedOverlay';
+  ov.style.cssText = 'position:absolute;inset:0;background:#F0F2F5;z-index:70;flex-direction:column;animation:slideInLeft .25s ease;display:flex;';
+  ov.innerHTML = `
+    <div style="background:white;border-bottom:1px solid #E4E6EB;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;">
+      <div onclick="document.getElementById('pageFeedOverlay').remove()" style="width:34px;height:34px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:#1877F2;font-weight:700;">‹</div>
+      <div style="width:36px;height:36px;border-radius:10px;background:${color};display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${icon}</div>
+      <div style="flex:1;"><div style="font-size:15px;font-weight:900;color:#050505;">${pageName}</div><div style="font-size:11px;color:#65676B;">المنشورات الرسمية</div></div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:10px 12px;">
+      ${posts.length===0 ? `<div style="text-align:center;padding:50px 20px;"><div style="font-size:48px;margin-bottom:12px;">${icon}</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد</div></div>` :
+        posts.slice().reverse().map(p=>`
+          <div style="background:white;border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="height:6px;background:${p.pageCover||color};"></div>
+            <div style="padding:12px 14px;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <div style="width:40px;height:40px;border-radius:50%;background:${p.pageCover||color};display:flex;align-items:center;justify-content:center;font-size:20px;">${p.pageIcon||icon}</div>
+                <div><div style="font-size:13px;font-weight:900;color:#050505;">${p.author}</div><div style="font-size:11px;color:#65676B;">${p.date}</div></div>
+              </div>
+              <div style="font-size:14px;color:#050505;line-height:1.7;white-space:pre-wrap;">${p.text||''}</div>
+            </div>
+            <div style="padding:8px 14px;border-top:1px solid #F0F2F5;display:flex;gap:16px;">
+              <span style="font-size:12px;font-weight:700;color:#1877F2;cursor:pointer;" onclick="addReaction('${p.id}','👍');this.innerText='👍 ممتاز!'">👍 إعجاب</span>
+              <span style="font-size:12px;font-weight:700;color:#65676B;">💬 تعليق</span>
+              <span style="font-size:12px;font-weight:700;color:#65676B;cursor:pointer;" onclick="sharePost('${p.id}')">↗️ مشاركة</span>
+            </div>
+          </div>`).join('')
+      }
+    </div>`;
+  const socialCard = document.getElementById('socialHomeCard');
+  if(socialCard) socialCard.appendChild(ov);
+  else document.body.appendChild(ov);
+}
+
+function followPage(pageId){ showToast('تمت المتابعة ✅'); }
+function createPage(){ showToast('الصفحات الرسمية فقط متاحة 🔒'); }
 
 /* ══════════════════════════════════════════
    🎮 الألعاب
@@ -9153,7 +9261,7 @@ function _openStoryEditorWithImage(name, imageData){
       type: 'image',
       data: d.imageData,
       ts: Date.now(),
-      expires: Date.now() + 24*60*60*1000,
+      expires: Date.now() + 30*24*60*60*1000, // 30 يوم
       text: d.text || null,
       textColor: d.textColor || '#ffffff',
       textSize: d.textSize || 'medium',
@@ -9305,8 +9413,20 @@ function _showStoryViewer(authorName, stories, startIdx){
   };
 
   window.shareStory = ()=>{
-    if(navigator.share){ navigator.share({ title:'قصة من '+authorName, url:window.location.href }).catch(()=>{}); }
-    else { navigator.clipboard?.writeText(window.location.href).then(()=>showToast('تم نسخ الرابط 📋')).catch(()=>{}); }
+    const s = stories[currentIdx];
+    const shareText = `📸 قصة ${authorName} على Next Leaders DZ!\nشاهد القصة: ${window.location.href}`;
+    if(navigator.share){
+      navigator.share({ title:'قصة من '+authorName+' على Next Leaders DZ', text:shareText, url:window.location.href }).catch(()=>{
+        // fallback to clipboard
+        navigator.clipboard?.writeText(shareText).then(()=>showToast('🔗 تم نسخ رابط القصة — يمكنك مشاركتها أينما تريد!'));
+      });
+    } else if(navigator.clipboard){
+      navigator.clipboard.writeText(shareText).then(()=>showToast('🔗 تم نسخ رابط القصة — شاركها بلا حدود! ↗️'));
+    } else {
+      showToast('↗️ شارك القصة مع الجميع!');
+    }
+    // تسجيل المشاركة
+    if(s){ if(!s.shares) s.shares=0; s.shares++; }
   };
 
   window.nextStory = ()=>{
@@ -9467,6 +9587,91 @@ function doLogout(){
   const currentLang = getCurrentLang() || 'ar';
   updateLoginLangButtons(currentLang);
 }
+
+/* ═══════════════════════════════════════════════
+   ⋮ قائمة خيارات المنشور (ثلاث نقاط)
+   ═══════════════════════════════════════════════ */
+function togglePostMenu(postId){
+  closeAllPostMenus();
+  const menu = document.getElementById('postMenu_'+postId);
+  if(menu) menu.style.display = 'block';
+  // إغلاق عند النقر خارجه
+  setTimeout(()=>{
+    document.addEventListener('click', function _close(e){
+      if(!e.target.closest('#postMenu_'+postId) && !e.target.closest('[onclick*="togglePostMenu"]')){
+        closeAllPostMenus();
+        document.removeEventListener('click', _close);
+      }
+    });
+  }, 50);
+}
+
+function closeAllPostMenus(){
+  document.querySelectorAll('[id^="postMenu_"]').forEach(m=>{ m.style.display='none'; });
+}
+
+function editSocialPost(postId){
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  const newText = prompt('تعديل المنشور:', post.text || '');
+  if(newText === null) return;
+  post.text = newText.trim();
+  saveSocialPosts(posts);
+  refreshPostCard(postId);
+  // تحديث في الملف الشخصي أيضاً
+  renderProfilePostsFeed && renderProfilePostsFeed();
+  showToast('✅ تم تعديل المنشور');
+}
+
+function changePostPrivacy(postId){
+  const privacyOptions = ['🌐 عام', '👥 الأصدقاء فقط', '🔒 أنت فقط'];
+  const choice = prompt('اختر خصوصية المنشور:\n1. 🌐 عام\n2. 👥 الأصدقاء فقط\n3. 🔒 أنت فقط\n\nاكتب رقم الخيار:', '1');
+  if(!choice) return;
+  const labels = {1:'🌐 عام',2:'👥 الأصدقاء',3:'🔒 خاص'};
+  const label = labels[parseInt(choice)] || '🌐 عام';
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  post.privacy = label;
+  saveSocialPosts(posts);
+  showToast('✅ تم تغيير الخصوصية إلى ' + label);
+}
+
+function copyPostLink(postId){
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  const linkText = post ? `${window.location.href}#post_${postId}\n${post.author}: ${(post.text||'').substring(0,60)}` : window.location.href+'#post_'+postId;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(linkText).then(()=>showToast('🔗 تم نسخ رابط المنشور')).catch(()=>showToast('🔗 تم نسخ الرابط'));
+  } else {
+    showToast('🔗 تم نسخ رابط المنشور');
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   📖 مشاركة القصة (لامحدودة)
+   ═══════════════════════════════════════════════ */
+function shareStory(authorName, storyId){
+  const stories = getMyStories(authorName);
+  const story = stories.find(s=>s.id===storyId);
+  const shareText = `📸 قصة ${authorName} على Next Leaders DZ\n${window.location.href}`;
+  if(navigator.share){
+    navigator.share({ title:'قصة على Next Leaders DZ', text:shareText, url:window.location.href }).catch(()=>{});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(shareText).then(()=>showToast('🔗 تم نسخ رابط القصة'));
+  } else {
+    showToast('↗️ تمت المشاركة!');
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   تهيئة المنشورات التلقائية للصفحات
+   ═══════════════════════════════════════════════ */
+(function(){
+  // نؤجل التهيئة حتى بعد تحميل بيانات المستخدم
+  setTimeout(()=>{ if(typeof _initAutoPagePosts==='function') _initAutoPagePosts(); }, 1500);
+})();
 
 /* ══════════════════════════════════════════════════════════
    📘 Facebook Feed — Next Leaders DZ
