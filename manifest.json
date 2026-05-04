@@ -1,0 +1,21 @@
+{
+  "name": "Smart Kids Lab",
+  "short_name": "SmartKids",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#00d4ff",
+  "icons": [
+    {
+      "src": "icon-192.png.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "icon-512.png.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
+
