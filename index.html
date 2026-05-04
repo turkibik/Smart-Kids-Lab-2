@@ -2216,8 +2216,8 @@ body.member-mode #onlineBar{
   <div class="lang-box">
     <div class="lang-logo">🌐</div>
     <div class="lang-title">Next Leaders DZ</div>
-    <div class="lang-sub">Choose your language · اختر لغتك · Choisissez votre langue · 选择语言</div>
-    <div class="lang-grid" style="grid-template-columns:1fr 1fr 1fr;">
+    <div class="lang-sub">Choose your language · اختر لغتك · Elige tu idioma · 选择语言</div>
+    <div class="lang-grid">
       <div class="lang-btn" onclick="setAppLang('ar')">
         <div class="lang-flag">🇩🇿</div>
         <div class="lang-name">العربية</div>
@@ -2227,11 +2227,6 @@ body.member-mode #onlineBar{
         <div class="lang-flag">🇬🇧</div>
         <div class="lang-name">English</div>
         <div class="lang-native">الإنجليزية</div>
-      </div>
-      <div class="lang-btn" onclick="setAppLang('fr')">
-        <div class="lang-flag">🇫🇷</div>
-        <div class="lang-name">Français</div>
-        <div class="lang-native">الفرنسية</div>
       </div>
       <div class="lang-btn" onclick="setAppLang('es')">
         <div class="lang-flag">🇪🇸</div>
@@ -2258,11 +2253,6 @@ body.member-mode #onlineBar{
   <div class="lang-quick-item" id="li-en" onclick="setAppLang('en',true)">
     <span class="q-flag">🇬🇧</span>
     <div class="q-info"><div class="q-name">English</div><div class="q-native">الإنجليزية</div></div>
-    <span class="q-check" style="display:none;">✓</span>
-  </div>
-  <div class="lang-quick-item" id="li-fr" onclick="setAppLang('fr',true)">
-    <span class="q-flag">🇫🇷</span>
-    <div class="q-info"><div class="q-name">Français</div><div class="q-native">الفرنسية</div></div>
     <span class="q-check" style="display:none;">✓</span>
   </div>
   <div class="lang-quick-item" id="li-es" onclick="setAppLang('es',true)">
@@ -2321,7 +2311,7 @@ body.member-mode #onlineBar{
     <!-- منتقي اللغة داخل صفحة الدخول -->
     <div id="loginLangSelector" style="margin-bottom:16px;position:relative;z-index:1;">
       <div style="font-size:10px;font-weight:700;color:rgba(139,148,158,0.55);text-align:center;margin-bottom:8px;letter-spacing:1.5px;text-transform:uppercase;" id="loginLangLabel">اللغة · Language</div>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;">
         <div class="login-lang-btn" id="llb-ar" onclick="setLoginLang('ar')" title="العربية">
           <span style="font-size:20px;">🇩🇿</span>
           <span style="font-size:10px;font-weight:800;color:var(--text);">AR</span>
@@ -2329,10 +2319,6 @@ body.member-mode #onlineBar{
         <div class="login-lang-btn" id="llb-en" onclick="setLoginLang('en')" title="English">
           <span style="font-size:20px;">🇬🇧</span>
           <span style="font-size:10px;font-weight:800;color:var(--text);">EN</span>
-        </div>
-        <div class="login-lang-btn" id="llb-fr" onclick="setLoginLang('fr')" title="Français">
-          <span style="font-size:20px;">🇫🇷</span>
-          <span style="font-size:10px;font-weight:800;color:var(--text);">FR</span>
         </div>
         <div class="login-lang-btn" id="llb-es" onclick="setLoginLang('es')" title="Español">
           <span style="font-size:20px;">🇪🇸</span>
@@ -7319,28 +7305,6 @@ const langData = {
     gridItems: ['余额','排行榜','成员','消息','加入我们','相册','获取积分','活动','脸书'],
     chatPlaceholder: '写消息…',
     attachImage: '图片', attachVideo: '视频', attachAudio: '音频', attachVoice: '语音',
-  },
-  fr: {
-    dir: 'ltr', lang: 'fr', font: 'Tajawal',
-    loginTitle: 'Leaders<br>du Futur',
-    loginSubtitle: 'Laboratoire Jeunesse pour l\'Intelligence, l\'Apprentissage et la Créativité',
-    loginEmail: 'Adresse e-mail',
-    loginBtn: 'Connexion Sécurisée →',
-    switchAcc: 'Changer de compte',
-    userRole: 'Membre de Next Leaders DZ',
-    logout: 'Déconnexion',
-    pointsTitle: 'Points Totaux',
-    levelActive: '🚀 Actif',
-    pointsSub: 'Travaille davantage pour accumuler suffisamment de points et débloquer le niveau suivant',
-    progressEnd: '3000',
-    onlineNow: '🟢 En ligne maintenant',
-    dashTitle: 'Tableau de bord',
-    dashYear: '2026 – 2027',
-    langPanelTitle: 'Langue',
-    flagLabel: '🇫🇷',
-    gridItems: ['Mon Profil','Classement','Membres','Messages','Rejoindre','Galerie','Gagner des Points','Activités','Facebook'],
-    chatPlaceholder: 'Écrire un message…',
-    attachImage: 'Image', attachVideo: 'Vidéo', attachAudio: 'Audio', attachVoice: 'Note vocale',
   }
 };
 
@@ -7375,7 +7339,7 @@ function applyLang(code, skipOverlay){
   const pt = document.querySelector('.points-title');
   if(pt) pt.innerText = d.pointsTitle;
   const lb2 = document.getElementById('levelBadge');
-  if(lb2 && lb2.innerText.includes('نشط')||lb2&&lb2.innerText.includes('Active')||lb2&&lb2.innerText.includes('Actif')||lb2&&lb2.innerText.includes('Activo')||lb2&&lb2.innerText.includes('活跃')) lb2.innerText = d.levelActive;
+  if(lb2 && lb2.innerText.includes('نشط')||lb2&&lb2.innerText.includes('Active')||lb2&&lb2.innerText.includes('Activo')||lb2&&lb2.innerText.includes('活跃')) lb2.innerText = d.levelActive;
   const ps = document.getElementById('pointsSub');
   if(ps) ps.innerText = d.pointsSub;
   const pe = document.getElementById('progressEnd');
@@ -7394,7 +7358,7 @@ function applyLang(code, skipOverlay){
   if(lpt) lpt.innerText = d.langPanelTitle;
 
   // علامة الاختيار في النافذة السريعة
-  ['ar','en','fr','es','zh'].forEach(c=>{
+  ['ar','en','es','zh'].forEach(c=>{
     const el = document.getElementById('li-'+c);
     if(el){
       const chk = el.querySelector('.q-check');
@@ -7440,7 +7404,6 @@ function applyLang(code, skipOverlay){
     const tabLabels = {
       ar:{ home:'الرئيسية', friends:'الأصدقاء', notifs:'الإشعارات', pages:'مسنجر', myprofile:'ريلز' },
       en:{ home:'Home', friends:'Friends', notifs:'Notifications', pages:'Messenger', myprofile:'Reels' },
-      fr:{ home:'Accueil', friends:'Amis', notifs:'Notifications', pages:'Messagerie', myprofile:'Reels' },
       es:{ home:'Inicio', friends:'Amigos', notifs:'Notificaciones', pages:'Mensajes', myprofile:'Reels' },
       zh:{ home:'主页', friends:'朋友', notifs:'通知', pages:'消息', myprofile:'视频' }
     };
@@ -7455,13 +7418,13 @@ function applyLang(code, skipOverlay){
     // مربع كتابة المنشور
     const postBox = document.querySelector('#socialPanel_home [onclick="openSocialCreatePost()"]');
     if(postBox){
-      const placeholders = { ar:'بماذا تفكر؟', en:"What's on your mind?", fr:"À quoi pensez-vous ?", es:'¿Qué estás pensando?', zh:'你在想什么？' };
+      const placeholders = { ar:'بماذا تفكر؟', en:"What's on your mind?", es:'¿Qué estás pensando?', zh:'你在想什么？' };
       postBox.innerText = placeholders[code] || placeholders['ar'];
     }
     // زر الإغلاق
     const sideClose = document.querySelector('#socialSideMenu [onclick="hideSocialHome()"] div:last-child');
     if(sideClose){
-      const closeLabels = { ar:'إغلاق الصفحة', en:'Close Page', fr:'Fermer la page', es:'Cerrar página', zh:'关闭页面' };
+      const closeLabels = { ar:'إغلاق الصفحة', en:'Close Page', es:'Cerrar página', zh:'关闭页面' };
       sideClose.innerText = closeLabels[code] || closeLabels['ar'];
     }
     // تحديث اتجاه socialHomeCard
@@ -7477,7 +7440,7 @@ function setLoginLang(code){
 }
 
 function updateLoginLangButtons(code){
-  ['ar','en','fr','es','zh'].forEach(c=>{
+  ['ar','en','es','zh'].forEach(c=>{
     const btn = document.getElementById('llb-'+c);
     if(btn) btn.classList.toggle('active-lang', c===code);
   });
