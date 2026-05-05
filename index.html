@@ -480,6 +480,107 @@ button.auth-btn.loading{
   box-shadow:0 0 14px rgba(0,229,160,0.18),0 0 0 1px rgba(0,229,160,0.12) inset;
 }
 
+/* ===== بطاقات الحسابات المحفوظة ===== */
+#savedAccountsSection{margin-bottom:14px;position:relative;z-index:1;}
+.saved-acc-label{font-size:10px;font-weight:700;color:rgba(139,148,158,0.55);text-align:center;margin-bottom:8px;letter-spacing:1.5px;text-transform:uppercase;}
+.saved-acc-list{display:flex;flex-direction:column;gap:8px;}
+.saved-acc-card{
+  display:flex;align-items:center;gap:12px;
+  background:linear-gradient(135deg,rgba(30,60,120,0.55),rgba(80,130,200,0.45));
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1.5px solid rgba(180,210,255,0.35);
+  border-radius:16px;padding:11px 14px;
+  cursor:pointer;transition:all .22s;
+  box-shadow:0 4px 20px rgba(0,80,200,0.18),inset 0 1px 0 rgba(255,255,255,0.25);
+  position:relative;overflow:hidden;
+}
+.saved-acc-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,0.12) 0%,transparent 100%);
+  pointer-events:none;border-radius:16px 16px 0 0;
+}
+.saved-acc-card:hover{
+  background:linear-gradient(135deg,rgba(40,80,180,0.7),rgba(100,160,255,0.55));
+  border-color:rgba(180,220,255,0.55);
+  transform:translateY(-2px);
+  box-shadow:0 8px 28px rgba(0,80,200,0.28),inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.saved-acc-card:active{transform:translateY(0);}
+.saved-acc-avatar{
+  width:40px;height:40px;border-radius:13px;
+  background:linear-gradient(135deg,rgba(255,255,255,0.25),rgba(200,230,255,0.2));
+  border:1.5px solid rgba(255,255,255,0.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+}
+.saved-acc-name{
+  flex:1;
+  font-size:14px;font-weight:900;
+  color:#fff;
+  text-shadow:0 1px 4px rgba(0,0,0,0.3);
+  letter-spacing:.3px;
+}
+.saved-acc-arrow{font-size:16px;color:rgba(200,230,255,0.8);}
+
+/* ===== زر الزائر ===== */
+.guest-entry-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03));
+  border:1.5px dashed rgba(139,148,158,0.4);
+  border-radius:16px;cursor:pointer;
+  font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;
+  color:var(--muted);transition:all .2s;margin-bottom:8px;
+}
+.guest-entry-btn:hover{
+  background:rgba(255,255,255,0.07);
+  border-color:rgba(139,148,158,0.6);
+  color:var(--text);
+  transform:translateY(-1px);
+}
+.login-divider{
+  display:flex;align-items:center;gap:10px;margin:14px 0;position:relative;z-index:1;
+}
+.login-divider-line{flex:1;height:1px;background:rgba(255,255,255,0.07);}
+.login-divider-text{font-size:11px;color:rgba(139,148,158,0.5);font-weight:700;letter-spacing:1px;}
+
+/* ===== زر اللغة بكرة أرضية ===== */
+.globe-lang-wrap{
+  position:relative;z-index:1;margin-bottom:14px;display:flex;justify-content:center;
+}
+.globe-lang-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.06);
+  border:1.5px solid rgba(255,255,255,0.1);
+  border-radius:20px;padding:7px 14px;
+  cursor:pointer;transition:all .2s;
+  font-size:12px;font-weight:700;color:var(--text);
+}
+.globe-lang-btn:hover{
+  background:rgba(0,229,160,0.08);
+  border-color:rgba(0,229,160,0.3);
+}
+.globe-lang-btn .globe-icon{font-size:16px;}
+.globe-lang-dropdown{
+  display:none;position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:10px;
+  box-shadow:0 16px 40px rgba(0,0,0,0.55);
+  z-index:9999;min-width:200px;
+  animation:fadeUp .18s ease;
+}
+.globe-lang-dropdown.open{display:block;}
+.globe-lang-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 11px;border-radius:11px;cursor:pointer;transition:.15s;
+}
+.globe-lang-item:hover{background:rgba(255,255,255,0.05);}
+.globe-lang-item.active{background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.25);}
+.globe-lang-item .gli-flag{font-size:20px;}
+.globe-lang-item .gli-name{font-size:12px;font-weight:800;color:var(--text);}
+.globe-lang-item .gli-check{color:var(--accent);font-size:13px;margin-right:auto;}
+
 /* ===== APP ===== */
 .app{width:100%;height:100vh;position:fixed;top:0;left:0;overflow-y:auto;display:none;z-index:5;}
 .app-inner{max-width:480px;margin:0 auto;padding:20px 16px 40px;}
@@ -2447,29 +2548,41 @@ body.member-mode #onlineBar{
 
     <p class="login-subtitle" id="loginSubtitle" style="position:relative;z-index:1;">مختبر الشباب للذكاء والتعلم والإبداع</p>
 
-    <!-- منتقي اللغة داخل صفحة الدخول -->
-    <div id="loginLangSelector" style="margin-bottom:16px;position:relative;z-index:1;">
-      <div style="font-size:10px;font-weight:700;color:rgba(139,148,158,0.55);text-align:center;margin-bottom:8px;letter-spacing:1.5px;text-transform:uppercase;" id="loginLangLabel">اللغة · Language</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;">
-        <div class="login-lang-btn" id="llb-ar" onclick="setLoginLang('ar')" title="العربية">
-          <span style="font-size:20px;">🇩🇿</span>
-          <span style="font-size:10px;font-weight:800;color:var(--text);">AR</span>
+    <!-- منتقي اللغة بالكرة الأرضية — يظهر فقط هنا -->
+    <div class="globe-lang-wrap" id="globeLangWrap">
+      <div class="globe-lang-btn" onclick="toggleGlobeLang()" id="globeLangToggle">
+        <span class="globe-icon">🌐</span>
+        <span id="globeLangName">العربية</span>
+        <span style="font-size:10px;opacity:0.6;">▾</span>
+      </div>
+      <div class="globe-lang-dropdown" id="globeLangDropdown">
+        <div class="globe-lang-item active" id="gli-ar" onclick="setGlobeLang('ar')">
+          <span class="gli-flag">🇩🇿</span><span class="gli-name">العربية</span><span class="gli-check" id="glc-ar">✓</span>
         </div>
-        <div class="login-lang-btn" id="llb-en" onclick="setLoginLang('en')" title="English">
-          <span style="font-size:20px;">🇬🇧</span>
-          <span style="font-size:10px;font-weight:800;color:var(--text);">EN</span>
+        <div class="globe-lang-item" id="gli-en" onclick="setGlobeLang('en')">
+          <span class="gli-flag">🇬🇧</span><span class="gli-name">English</span><span class="gli-check" id="glc-en" style="display:none;">✓</span>
         </div>
-        <div class="login-lang-btn" id="llb-es" onclick="setLoginLang('es')" title="Español">
-          <span style="font-size:20px;">🇪🇸</span>
-          <span style="font-size:10px;font-weight:800;color:var(--text);">ES</span>
+        <div class="globe-lang-item" id="gli-es" onclick="setGlobeLang('es')">
+          <span class="gli-flag">🇪🇸</span><span class="gli-name">Español</span><span class="gli-check" id="glc-es" style="display:none;">✓</span>
         </div>
-        <div class="login-lang-btn" id="llb-zh" onclick="setLoginLang('zh')" title="中文">
-          <span style="font-size:20px;">🇨🇳</span>
-          <span style="font-size:10px;font-weight:800;color:var(--text);">ZH</span>
+        <div class="globe-lang-item" id="gli-zh" onclick="setGlobeLang('zh')">
+          <span class="gli-flag">🇨🇳</span><span class="gli-name">中文</span><span class="gli-check" id="glc-zh" style="display:none;">✓</span>
         </div>
       </div>
     </div>
 
+    <!-- بطاقات الحسابات المحفوظة -->
+    <div id="savedAccountsSection" style="display:none;">
+      <div class="saved-acc-label" id="savedAccLabel">الدخول بحساب محفوظ</div>
+      <div class="saved-acc-list" id="savedAccList"></div>
+      <div class="login-divider">
+        <div class="login-divider-line"></div>
+        <div class="login-divider-text">أو</div>
+        <div class="login-divider-line"></div>
+      </div>
+    </div>
+
+    <!-- حقل الإيميل -->
     <div id="authFields" style="position:relative;z-index:1;">
       <div class="input-wrap">
         <span class="input-icon">📧</span>
@@ -2479,6 +2592,22 @@ body.member-mode #onlineBar{
     <div style="position:relative;z-index:1;">
       <button onclick="handleAuthAction()" class="auth-btn">دخول آمن →</button>
       <div id="switchAcc" onclick="clearSavedData()">تغيير الحساب</div>
+    </div>
+
+    <!-- زر الزائر -->
+    <div class="login-divider" style="position:relative;z-index:1;">
+      <div class="login-divider-line"></div>
+      <div class="login-divider-text">أو</div>
+      <div class="login-divider-line"></div>
+    </div>
+    <div style="position:relative;z-index:1;">
+      <button class="guest-entry-btn" onclick="enterAsGuest()">
+        <span style="font-size:20px;">👤</span>
+        <span>دخول كزائر</span>
+      </button>
+      <div style="font-size:10px;color:rgba(139,148,158,0.4);text-align:center;margin-top:5px;font-weight:600;">
+        سجّل دخولك للوصول إلى جميع الميزات
+      </div>
     </div>
   </div>
 </div>
@@ -4065,8 +4194,11 @@ function buildGrid(isReg){
     ['🏅', labels[7], 'bg-8',"showModal('activitiesCard')", false],
     ['📱', labels[8], 'bg-9',"window.location.href='https://www.facebook.com/share/19UtXj8kRV/'", true],
   ];
-  grid.innerHTML=items.map(([icon,label,bg,action,open])=>{
-    const can=open||isReg;
+  grid.innerHTML=items.map(([icon,label,bg,action,open],idx)=>{
+    // isReg=false و name=زائر: فتح صفحتي(0)، انظم إلينا(4)، فيسبوك(8) فقط
+    const isGuest = !isReg && getCurrentUser() === 'زائر';
+    const guestAllowed = isGuest && (idx===0 || idx===4 || idx===8);
+    const can = guestAllowed || (open || isReg);
     const lock=!can?`<div class="lock-overlay">🔒</div>`:'';
     const cls=!can?' locked':'';
     const oc=can&&action?`onclick="${action}"`:'';
@@ -4131,8 +4263,8 @@ window.onload=()=>{
     document.getElementById("loginSubtitle").innerText="سعداء بعودتك! 👋";
     document.getElementById("authFields").innerHTML=`<div class="input-wrap"><span class="input-icon">👤</span><input type="text" id="loginNameOnly" value="${saved}" onkeydown="if(event.key==='Enter')handleAuthAction()"></div>`;
     document.getElementById("switchAcc").style.display="block";
-    // دخول تلقائي فوري للمستخدمين المحفوظين
-    setTimeout(()=>handleAuthAction(), 80);
+    // دخول تلقائي فوري بشريط تحميل — بدون تحقق شبكي
+    setTimeout(()=>loginWithSavedAccount(saved), 80);
   } else {
     // إضافة Enter للحقول العادية
     setTimeout(()=>{
@@ -4521,12 +4653,156 @@ function submitPost(){
 }
 
 /* ===== ADMIN CONFIG ===== */
-const ADMIN_EMAIL = 'smartkidslab13@gmail.com';
+const ADMIN_EMAIL = 'turkibik27@gmail.com';
 const ADMIN_CODE  = 'NLD';                       // كود المدير السري
 const SMARTKIDS_EMAIL = 'smartkidslap';          // إيميل عضو Smart Kids Lab
 const SMARTKIDS_MEMBER_NAME = 'يحيى ديش';        // اسم العضو
 
 let _isAdmin = false;
+
+/* ===== نظام الكرة الأرضية للغة (في واجهة التسجيل فقط) ===== */
+const _globeLangNames = {ar:'العربية',en:'English',es:'Español',zh:'中文'};
+
+function toggleGlobeLang(){
+  const d = document.getElementById('globeLangDropdown');
+  if(!d) return;
+  d.classList.toggle('open');
+}
+
+function setGlobeLang(code){
+  const nameEl = document.getElementById('globeLangName');
+  if(nameEl) nameEl.innerText = _globeLangNames[code] || code;
+  ['ar','en','es','zh'].forEach(c=>{
+    const item = document.getElementById('gli-'+c);
+    const check = document.getElementById('glc-'+c);
+    if(item) item.classList.toggle('active', c===code);
+    if(check) check.style.display = c===code ? 'inline' : 'none';
+  });
+  const d = document.getElementById('globeLangDropdown');
+  if(d) d.classList.remove('open');
+  setAppLang(code);
+}
+
+document.addEventListener('click', function(e){
+  const btn2 = document.getElementById('globeLangToggle');
+  const dd = document.getElementById('globeLangDropdown');
+  if(btn2 && dd && !btn2.contains(e.target) && !dd.contains(e.target)){
+    dd.classList.remove('open');
+  }
+});
+
+/* ===== نظام الحسابات المحفوظة ===== */
+const _SAVED_ACCS_KEY = 'nld_saved_accounts';
+
+function getSavedAccounts(){
+  try{ return JSON.parse(localStorage.getItem(_SAVED_ACCS_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+
+function saveAccount(name){
+  if(!name || name === 'زائر') return;
+  const accs = getSavedAccounts();
+  const filtered = accs.filter(a => a.name !== name);
+  filtered.unshift({ name, ts: Date.now() });
+  localStorage.setItem(_SAVED_ACCS_KEY, JSON.stringify(filtered.slice(0, 5)));
+}
+
+function renderSavedAccounts(){
+  const accs = getSavedAccounts();
+  const section = document.getElementById('savedAccountsSection');
+  const list = document.getElementById('savedAccList');
+  if(!section || !list) return;
+  if(accs.length === 0){ section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = accs.map(acc => {
+    const icon = typeof getLeaderIcon === 'function' ? getLeaderIcon(acc.name) : '👤';
+    const photo = localStorage.getItem('nld_photo_' + acc.name.replace(/\s+/g,'_'));
+    const avatarInner = photo
+      ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`
+      : icon;
+    return `<div class="saved-acc-card" onclick="loginWithSavedAccount('${acc.name.replace(/'/g,"\\'")}')">
+      <div class="saved-acc-avatar">${avatarInner}</div>
+      <div class="saved-acc-name">${acc.name}</div>
+      <div class="saved-acc-arrow">›</div>
+    </div>`;
+  }).join('');
+}
+
+function loginWithSavedAccount(name){
+  const barCont = document.getElementById('loadingBarContainer');
+  const bar = document.getElementById('loadingBar');
+  if(barCont && bar){
+    barCont.style.display = 'block';
+    bar.style.transition = 'width .35s ease';
+    bar.style.width = '100%';
+    setTimeout(()=>{ barCont.style.display='none'; bar.style.width='0%'; }, 500);
+  }
+  if(name === 'المدير'){
+    _isAdmin = true;
+    enterAsAdmin();
+    return;
+  }
+  _isAdmin = false;
+  localStorage.setItem('sklab_user_name', name);
+  const localEarned = parseInt(localStorage.getItem('nld_earned_'+name.replace(/\s+/g,'_'))||'0');
+  renderApp(name, 0, true, localEarned);
+  _refreshPointsInBackground(name);
+}
+
+function _refreshPointsInBackground(name){
+  if(typeof dataUrl === 'undefined') return;
+  const norm = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+  function csvParse2(line){
+    const res=[]; let cur=''; let q=false;
+    for(let i=0;i<=line.length;i++){
+      const ch=line[i];
+      if(ch==='"'){q=!q;}
+      else if((ch===','||ch===undefined)&&!q){res.push(cur.replace(/^"|"$/g,'').trim());cur='';}
+      else{cur+=ch||'';}
+    }
+    return res;
+  }
+  Promise.all([
+    fetch(dataUrl).then(r=>r.text()).catch(()=>''),
+    typeof fetchAllQuizPts==='function' ? fetchAllQuizPts() : Promise.resolve({})
+  ]).then(([t1, allQuizPts])=>{
+    const rows1 = t1.split('\n');
+    for(let i=1;i<rows1.length;i++){
+      if(!rows1[i].trim()) continue;
+      const c = csvParse2(rows1[i]);
+      if(norm(c[2]||'') === norm(name)){
+        const pts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+        const normKey = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+        let apiPts = 0;
+        for(const [k,v] of Object.entries(allQuizPts||{})){
+          if(normKey(k)===normKey(name)){ apiPts=parseInt(v)||0; break; }
+        }
+        const localEarned = parseInt(localStorage.getItem('nld_earned_'+name.replace(/\s+/g,'_'))||'0');
+        const earned = Math.max(apiPts, localEarned);
+        const total = pts + earned;
+        const mainPtsEl = document.getElementById('mainPoints');
+        if(mainPtsEl) mainPtsEl.innerHTML = `${total.toLocaleString()} <span>نقطة</span>`;
+        const cardPts = document.getElementById('cardPoints');
+        if(cardPts) cardPts.innerText = total.toLocaleString() + ' نقطة';
+        break;
+      }
+    }
+  }).catch(()=>{});
+}
+
+/* ===== دخول الزائر ===== */
+function enterAsGuest(){
+  const barCont = document.getElementById('loadingBarContainer');
+  const bar = document.getElementById('loadingBar');
+  if(barCont && bar){
+    barCont.style.display = 'block';
+    bar.style.transition = 'width .3s ease';
+    bar.style.width = '100%';
+    setTimeout(()=>{ barCont.style.display='none'; bar.style.width='0%'; }, 400);
+  }
+  _isAdmin = false;
+  renderApp('زائر', 0, false, 0);
+}
 
 async function enter(){
   const email=document.getElementById("loginEmail").value.trim();
@@ -4859,6 +5135,8 @@ function processEntry(val,type){
 }
 
 function renderApp(name,pts,isReg, externalEarned){
+  // حفظ الحساب في القائمة المحفوظة
+  if(name && name !== 'زائر') saveAccount(name);
   // إزالة لوحة المدير السريعة إن بقيت من جلسة سابقة
   const oldCard=document.getElementById('adminQuickCard');
   if(oldCard) oldCard.remove();
@@ -10053,10 +10331,22 @@ setInterval(()=>{ if(document.getElementById('socialHomeCard')?.style.display===
     if(overlay) overlay.style.display='none';
     applyLang(saved);
     updateLoginLangButtons(saved);
+    // تحديث الكرة الأرضية
+    const globeNameEl2 = document.getElementById('globeLangName');
+    const _gn2 = {ar:'العربية',en:'English',es:'Español',zh:'中文'};
+    if(globeNameEl2) globeNameEl2.innerText = _gn2[saved] || 'العربية';
+    ['ar','en','es','zh'].forEach(c=>{
+      const item = document.getElementById('gli-'+c);
+      const check = document.getElementById('glc-'+c);
+      if(item) item.classList.toggle('active', c===saved);
+      if(check) check.style.display = c===saved ? 'inline' : 'none';
+    });
   } else {
     // لا توجد لغة محفوظة → تعيين العربية كافتراضية في أزرار الدخول
     updateLoginLangButtons('ar');
   }
+  // تحميل بطاقات الحسابات المحفوظة
+  setTimeout(()=>renderSavedAccounts(), 100);
   // إذا لم تُختر لغة → تبقى الشاشة الأولى ظاهرة
 })();
 
@@ -10154,6 +10444,12 @@ function doLogout(){
   // تحديث أزرار اللغة في صفحة الدخول
   const currentLang = getCurrentLang() || 'ar';
   updateLoginLangButtons(currentLang);
+  // تحديث الكرة الأرضية
+  const currentLangName = {ar:'العربية',en:'English',es:'Español',zh:'中文'}[currentLang] || 'العربية';
+  const globeNameEl = document.getElementById('globeLangName');
+  if(globeNameEl) globeNameEl.innerText = currentLangName;
+  // إعادة عرض بطاقات الحسابات المحفوظة
+  setTimeout(()=>renderSavedAccounts(), 50);
 }
 
 /* ═══════════════════════════════════════════════
