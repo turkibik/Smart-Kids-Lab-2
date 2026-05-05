@@ -2182,6 +2182,7 @@ body.member-mode #onlineBar{
   animation: fadeUp .2s ease;
 }
 
+.admin-msg-textarea{
   width:100%;padding:11px 13px;
   background:rgba(22,27,34,0.9);
   border:1px solid rgba(0,229,160,0.25);
@@ -2212,36 +2213,7 @@ body.member-mode #onlineBar{
 </head>
 <body>
 
-<!-- ===== منتقي اللغة الأولي ===== -->
-<div id="langSelectorOverlay">
-  <div class="lang-box">
-    <div class="lang-logo">🌐</div>
-    <div class="lang-title">Next Leaders DZ</div>
-    <div class="lang-sub">Choose your language · اختر لغتك · Elige tu idioma · 选择语言</div>
-    <div class="lang-grid">
-      <div class="lang-btn" onclick="setAppLang('ar')">
-        <div class="lang-flag">🇩🇿</div>
-        <div class="lang-name">العربية</div>
-        <div class="lang-native">Arabic</div>
-      </div>
-      <div class="lang-btn" onclick="setAppLang('en')">
-        <div class="lang-flag">🇬🇧</div>
-        <div class="lang-name">English</div>
-        <div class="lang-native">الإنجليزية</div>
-      </div>
-      <div class="lang-btn" onclick="setAppLang('es')">
-        <div class="lang-flag">🇪🇸</div>
-        <div class="lang-name">Español</div>
-        <div class="lang-native">الإسبانية</div>
-      </div>
-      <div class="lang-btn" onclick="setAppLang('zh')">
-        <div class="lang-flag">🇨🇳</div>
-        <div class="lang-name">中文</div>
-        <div class="lang-native">الصينية</div>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- ===== منتقي اللغة الأولي - تمت إزالته بطلب المستخدم ===== -->
 
 <!-- ===== نافذة تغيير اللغة السريعة ===== -->
 <div class="lang-quick-panel" id="langQuickPanel">
@@ -2309,26 +2281,17 @@ body.member-mode #onlineBar{
 
     <p class="login-subtitle" id="loginSubtitle" style="position:relative;z-index:1;">مختبر الشباب للذكاء والتعلم والإبداع</p>
 
-    <!-- منتقي اللغة داخل صفحة الدخول -->
+    <!-- منتقي اللغة داخل صفحة الدخول - قائمة منسدلة -->
     <div id="loginLangSelector" style="margin-bottom:16px;position:relative;z-index:1;">
       <div style="font-size:10px;font-weight:700;color:rgba(139,148,158,0.55);text-align:center;margin-bottom:8px;letter-spacing:1.5px;text-transform:uppercase;" id="loginLangLabel">اللغة · Language</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;">
-        <div class="login-lang-btn" id="llb-ar" onclick="setLoginLang('ar')" title="العربية">
-          <span style="font-size:20px;">🇩🇿</span>
-          <span style="font-size:10px;font-weight:800;color:var(--text);">AR</span>
-        </div>
-        <div class="login-lang-btn" id="llb-en" onclick="setLoginLang('en')" title="English">
-          <span style="font-size:20px;">🇬🇧</span>
-          <span style="font-size:10px;font-weight:800;color:var(--text);">EN</span>
-        </div>
-        <div class="login-lang-btn" id="llb-es" onclick="setLoginLang('es')" title="Español">
-          <span style="font-size:20px;">🇪🇸</span>
-          <span style="font-size:10px;font-weight:800;color:var(--text);">ES</span>
-        </div>
-        <div class="login-lang-btn" id="llb-zh" onclick="setLoginLang('zh')" title="中文">
-          <span style="font-size:20px;">🇨🇳</span>
-          <span style="font-size:10px;font-weight:800;color:var(--text);">ZH</span>
-        </div>
+      <div style="position:relative;">
+        <select id="loginLangSelect" onchange="setLoginLang(this.value)" style="width:100%;padding:10px 14px;background:rgba(22,27,34,0.9);border:1.5px solid var(--border);border-radius:14px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;text-align:center;">
+          <option value="ar">🇩🇿 العربية</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="zh">🇨🇳 中文</option>
+        </select>
+        <div style="position:absolute;left:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);font-size:12px;">▾</div>
       </div>
     </div>
 
@@ -2339,7 +2302,7 @@ body.member-mode #onlineBar{
       </div>
     </div>
     <div style="position:relative;z-index:1;">
-      <button onclick="handleAuthAction()" class="auth-btn">دخول آمن →</button>
+      <button onclick="handleAuthAction()" class="auth-btn">بسم الله →</button>
       <div id="switchAcc" onclick="clearSavedData()">تغيير الحساب</div>
     </div>
   </div>
@@ -3508,7 +3471,7 @@ body.member-mode #onlineBar{
         <div style="font-size:12px;color:rgba(100,40,10,0.7);line-height:1.7;flex:1;">
           👁️ يمكنك مشاهدة جميع المحادثات الخاصة بين الأعضاء من خلال نافذة المحادثات.
         </div>
-        <button onclick="openMessages()" style="background:linear-gradient(145deg,#fca5a5,#ef4444,#b91c1c);border:none;border-radius:12px;padding:10px 16px;font-size:13px;font-weight:800;color:white;cursor:pointer;font-family:'Tajawal',sans-serif;white-space:nowrap;box-shadow:0 6px 18px rgba(220,38,38,0.35),inset 0 1px 0 rgba(255,180,180,0.3);transition:.2s;flex-shrink:0;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">فتح ›</button>
+        <button onclick="openMessages('messages')" style="background:linear-gradient(145deg,#fca5a5,#ef4444,#b91c1c);border:none;border-radius:12px;padding:10px 16px;font-size:13px;font-weight:800;color:white;cursor:pointer;font-family:'Tajawal',sans-serif;white-space:nowrap;box-shadow:0 6px 18px rgba(220,38,38,0.35),inset 0 1px 0 rgba(255,180,180,0.3);transition:.2s;flex-shrink:0;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">فتح ›</button>
       </div>
 
       <div class="admin-divider"></div>
@@ -3920,7 +3883,7 @@ function buildGrid(isReg){
     ['👤', labels[0], 'bg-1',"showMyProfile()", true ],
     [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30" style="filter:drop-shadow(0 0 6px rgba(255,255,255,0.6)) drop-shadow(0 2px 8px rgba(0,0,0,0.4));"><defs><linearGradient id="barG1" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#e52d27"/><stop offset="100%" stop-color="#ff6b6b"/></linearGradient><linearGradient id="barG2" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e0ffe8"/></linearGradient><linearGradient id="barG3" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#0f9b0f"/><stop offset="100%" stop-color="#00e564"/></linearGradient><linearGradient id="starG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fff7aa"/><stop offset="100%" stop-color="#ffd700"/></linearGradient></defs><rect x="4" y="24" width="11" height="16" rx="3" fill="url(#barG1)" opacity="0.95"/><text x="9.5" y="21" text-anchor="middle" font-size="7" font-weight="900" fill="rgba(255,255,255,0.9)" font-family="Arial">2</text><rect x="18.5" y="14" width="11" height="26" rx="3" fill="url(#barG2)" opacity="0.95"/><text x="24" y="11" text-anchor="middle" font-size="7" font-weight="900" fill="rgba(0,0,0,0.7)" font-family="Arial">1</text><rect x="33" y="29" width="11" height="11" rx="3" fill="url(#barG3)" opacity="0.95"/><text x="38.5" y="26" text-anchor="middle" font-size="7" font-weight="900" fill="rgba(255,255,255,0.9)" font-family="Arial">3</text><polygon points="24,5 25.5,9.5 30,9.5 26.5,12.2 27.8,17 24,14 20.2,17 21.5,12.2 18,9.5 22.5,9.5" fill="url(#starG)" opacity="0.98"/><rect x="2" y="40" width="44" height="3" rx="1.5" fill="rgba(255,255,255,0.3)"/></svg>`, labels[1], 'bg-2',"showModal('rankingCard')",  true ],
     [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,0.35)) drop-shadow(0 0 10px rgba(255,215,0,0.5));"><defs><linearGradient id="mg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f9b0f"/><stop offset="50%" stop-color="#f8fff8"/><stop offset="100%" stop-color="#e52d27"/></linearGradient><linearGradient id="mg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#16a34a"/></linearGradient><linearGradient id="mg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#b91c1c"/></linearGradient><radialGradient id="glow1" cx="50%" cy="30%" r="50%"><stop offset="0%" stop-color="rgba(255,255,255,0.9)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="26" cy="17" r="8.5" fill="url(#mg1)" opacity="0.97"/><circle cx="26" cy="17" r="8.5" fill="url(#glow1)" opacity="0.4"/><path d="M10 42 C10 31 42 31 42 42" fill="url(#mg1)" opacity="0.95"/><circle cx="13" cy="22" r="6" fill="url(#mg2)" opacity="0.88"/><path d="M2 38 C2 29.5 24 29.5 24 38" fill="url(#mg2)" opacity="0.75"/><circle cx="39" cy="22" r="6" fill="url(#mg3)" opacity="0.88"/><path d="M28 38 C28 29.5 50 29.5 50 38" fill="url(#mg3)" opacity="0.75"/><circle cx="26" cy="17" r="4" fill="rgba(255,255,255,0.3)"/></svg>`, labels[2], 'bg-3',"showModal('membersCard')",  true],
-    ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="white"><path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z"/></svg>', labels[3], 'bg-4',"openMessages()", true],
+    ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="white"><path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z"/></svg>', labels[3], 'bg-4',"openMessages('messages')", true],
     ['🌟', labels[4], 'bg-5',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform')", true],
     ['🖼️',labels[5], 'bg-6',"window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3')", false],
     [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 10px rgba(245,197,24,0.7)) drop-shadow(0 0 6px rgba(255,140,0,0.5));"><defs><radialGradient id="qg1" cx="50%" cy="30%" r="60%"><stop offset="0%" stop-color="#fff7aa"/><stop offset="60%" stop-color="#f5c518"/><stop offset="100%" stop-color="#f97316"/></radialGradient><radialGradient id="qg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(255,255,255,0.9)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient><filter id="qglow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><circle cx="26" cy="26" r="24" fill="url(#qg1)" filter="url(#qglow)"/><circle cx="26" cy="26" r="24" fill="url(#qg2)" opacity="0.5"/><polygon points="26,7 29,17 39.5,17 31,23.5 34,34 26,27.5 18,34 21,23.5 12.5,17 23,17" fill="white" opacity="0.95" filter="url(#qglow)"/><text x="26" y="45" text-anchor="middle" font-size="8" font-weight="900" fill="rgba(120,50,0,0.85)" font-family="Arial,sans-serif" letter-spacing="0.5">نقاط</text></svg>`, labels[6], 'bg-7',"showModal('quizCard')",    false],
@@ -3988,6 +3951,11 @@ function playGoldSound(){
 
 /* ===== INIT ===== */
 window.onload=()=>{
+  // تطبيق اللغة المحفوظة
+  const savedLang = localStorage.getItem(LANG_KEY) || 'ar';
+  applyLang(savedLang);
+  updateLoginLangButtons(savedLang);
+
   const saved=localStorage.getItem("sklab_user_name");
   if(saved){
     document.getElementById("loginSubtitle").innerText="سعداء بعودتك! 👋";
@@ -5360,9 +5328,9 @@ function renderQuestion(){
         ts:Date.now()
       });
       localStorage.setItem('nld_member_msgs',JSON.stringify(adminMsgs));
-      // إشعار عبر p2p للمدير أيضاً
+      // إشعار عبر p2p للمدير أيضاً (مع استخدام الدالة الصحيحة للمفتاح)
       try{
-        const p2pKey='nld_p2p_المدير__'+name.replace(/\s+/g,'_');
+        const p2pKey=_p2pKey('المدير', name);
         const p2pMsgs=JSON.parse(localStorage.getItem(p2pKey)||'[]');
         p2pMsgs.push({
           id:'quiz_'+Date.now(),
@@ -5866,7 +5834,8 @@ async function _fetchAllMembers(){
 /* ---------------------------------------------------------------
    فتح/إغلاق نافذة المحادثات الرئيسية
 --------------------------------------------------------------- */
-function openMessages(){
+function openMessages(source){
+  _chatOpenSource = source || 'messages';
   document.getElementById('messagesModal').style.display='flex';
   // المدير: إخفاء زر محادثة جديدة (يستخدم لوحة المراقبة)
   const nb = document.getElementById('newChatBtn');
@@ -5877,16 +5846,18 @@ function openMessages(){
 
 function closeMessagesModal(){
   document.getElementById('messagesModal').style.display='none';
-  // العودة لصفحتي الاجتماعية دائماً (الصفحة الرئيسية لأيقونة صفحتي)
-  const socialHome = document.getElementById('socialHomeCard');
-  if(socialHome){
-    if(socialHome.style.display !== 'flex'){
+  if(_chatOpenSource === 'myprofile'){
+    // فُتحت من صفحتي → ارجع لصفحتي الاجتماعية
+    const socialHome = document.getElementById('socialHomeCard');
+    if(socialHome){
       socialHome.style.display = 'flex';
       socialHome.style.flexDirection = 'column';
+      switchSocialTab && switchSocialTab('pages'); // تبويب المسنجر في صفحتي
     }
-    switchSocialTab && switchSocialTab('home');
     refreshSocialMsgBadge && refreshSocialMsgBadge();
   }
+  // إذا فُتحت من المحادثات → ابقَ في لوحة التحكم (لا شيء يُفتح)
+  _chatOpenSource = 'messages'; // إعادة تعيين المصدر
 }
 
 /* ---------------------------------------------------------------
@@ -6160,7 +6131,8 @@ function openAdminChat(targetName, readOnly){
 /* ---------------------------------------------------------------
    فتح محادثة P2P بين العضو وعضو آخر
 --------------------------------------------------------------- */
-function openP2PChat(targetName, readOnly){
+function openP2PChat(targetName, readOnly, source){
+  if(source) _chatOpenSource = source;
   _currentChatTarget = targetName;
   const myName = getCurrentUser();
   const cs = document.getElementById('chatScreen');
@@ -6260,6 +6232,9 @@ function adminSpyChat(memberA, memberB, convKey){
 /* ---------------------------------------------------------------
    إغلاق نافذة المحادثة
 --------------------------------------------------------------- */
+// متغير لتتبع مصدر فتح المحادثة
+let _chatOpenSource = 'messages'; // 'messages' أو 'myprofile'
+
 function closeChatScreen(){
   const cs = document.getElementById('chatScreen');
   cs.style.display='none';
@@ -6269,12 +6244,29 @@ function closeChatScreen(){
   _currentChatTarget = null;
   const inputArea = document.getElementById('chatInputArea');
   if(inputArea) inputArea.style.display='flex';
-  // دائماً ارجع لقائمة الرسائل (messagesModal) بغض النظر عن مصدر الفتح
+
   const mm = document.getElementById('messagesModal');
-  if(mm){
-    mm.style.display='flex';
-    renderInboxList();
-    renderMsgActiveBar && renderMsgActiveBar();
+
+  if(_chatOpenSource === 'myprofile'){
+    // فُتحت من أيقونة "صفحتي" → أظهر قائمة المحادثات أولاً
+    // ثم زر الرجوع في قائمة المحادثات سيعود لصفحتي
+    if(mm){
+      mm.style.display='flex';
+      renderInboxList();
+      renderMsgActiveBar && renderMsgActiveBar();
+    }
+    // فتح socialHomeCard في الخلفية جاهزاً للعودة (بدون إظهاره)
+    const socialHome = document.getElementById('socialHomeCard');
+    if(socialHome && socialHome.style.display !== 'flex'){
+      // لا نفتحه، closeMessagesModal ستتحقق من _chatOpenSource
+    }
+  } else {
+    // فُتحت من أيقونة "المحادثات" → ارجع لقائمة المحادثات في لوحة التحكم
+    if(mm){
+      mm.style.display='flex';
+      renderInboxList();
+      renderMsgActiveBar && renderMsgActiveBar();
+    }
   }
 }
 
@@ -7134,7 +7126,8 @@ function renderOnlineList(users){
 }
 
 /** فتح محادثة من شريط النشطين بالاسم */
-function startChatWithName(name){
+function startChatWithName(name, source){
+  if(source) _chatOpenSource = source;
   if(_isAdmin){
     openAdminChat(name, false);
   } else {
@@ -7224,7 +7217,7 @@ const langData = {
     loginTitle: 'القادة<br>المستقبليون',
     loginSubtitle: 'مختبر الشباب للذكاء والتعلم والإبداع',
     loginEmail: 'البريد الإلكتروني',
-    loginBtn: 'دخول آمن →',
+    loginBtn: 'بسم الله →',
     switchAcc: 'تغيير الحساب',
     userRole: 'عضو القادة المستقبليين',
     logout: 'خروج',
@@ -7441,6 +7434,10 @@ function setLoginLang(code){
 }
 
 function updateLoginLangButtons(code){
+  // تحديث القائمة المنسدلة في صفحة الدخول
+  const sel = document.getElementById('loginLangSelect');
+  if(sel) sel.value = code;
+  // دعم قديم للأزرار (إن وُجدت)
   ['ar','en','es','zh'].forEach(c=>{
     const btn = document.getElementById('llb-'+c);
     if(btn) btn.classList.toggle('active-lang', c===code);
@@ -7450,12 +7447,6 @@ function updateLoginLangButtons(code){
 function setAppLang(code, fromPanel){
   localStorage.setItem(LANG_KEY, code);
   applyLang(code);
-  // إخفاء الشاشة الأولى
-  const overlay = document.getElementById('langSelectorOverlay');
-  if(overlay){
-    overlay.style.animation='fadeOut .35s ease forwards';
-    setTimeout(()=>overlay.style.display='none', 350);
-  }
   if(fromPanel) closeLangPanel();
 }
 
@@ -8290,7 +8281,7 @@ function startChatWithMpvUser(){
     if(typeof startChatWithName === 'function'){
       startChatWithName(target);
     } else {
-      openMessages();
+      openMessages('myprofile');
     }
   }, 250);
 }
@@ -9218,7 +9209,7 @@ function renderSocialMessengerPanel(){
         const icon = typeof getLeaderIcon==='function' ? getLeaderIcon(name) : '👑';
         const avatarInner = photo ? `<img src="${photo}" alt="${name}">` : `<span>${icon}</span>`;
         const shortName = name.split(' ')[0];
-        return `<div class="msg-active-item" onclick="startChatWithName('${name.replace(/'/g,"\\'")}');hideSocialHome();">
+        return `<div class="msg-active-item" onclick="startChatWithName('${name.replace(/'/g,"\\'")}','myprofile');hideSocialHome();">
           <div class="msg-active-avatar">${avatarInner}<div class="msg-active-green-dot"></div></div>
           <div class="msg-active-name">${shortName}</div>
         </div>`;
@@ -9280,7 +9271,7 @@ function _renderSmInbox(myName, filter=''){
     const ts = last.timestamp ? new Date(last.timestamp).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'}) : '';
     const isMine = last.from === myName;
     const safeName = other.replace(/'/g,"\\'");
-    return `<div onclick="openP2PChat('${safeName}',false);hideSocialHome();" style="display:flex;align-items:center;gap:12px;background:white;padding:12px 14px;border-radius:14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:.15s;position:relative;" onmouseover="this.style.background='#F7F8FA'" onmouseout="this.style.background='white'">
+    return `<div onclick="openP2PChat('${safeName}',false,'myprofile');hideSocialHome();" style="display:flex;align-items:center;gap:12px;background:white;padding:12px 14px;border-radius:14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:.15s;position:relative;" onmouseover="this.style.background='#F7F8FA'" onmouseout="this.style.background='white'">
       <div style="position:relative;flex-shrink:0;">${avatarHtml}${!isMine && unread>0 ? `<div style="position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid white;"></div>` : ''}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:14px;font-weight:${unread>0?'900':'700'};color:#050505;margin-bottom:2px;">${other}</div>
@@ -9910,16 +9901,13 @@ setInterval(()=>{ if(document.getElementById('socialHomeCard')?.style.display===
 (function(){
   const saved = getCurrentLang();
   if(saved){
-    // اللغة موجودة → تخطّي الشاشة الأولى مباشرة
-    const overlay=document.getElementById('langSelectorOverlay');
-    if(overlay) overlay.style.display='none';
+    // اللغة موجودة → تطبيقها فوراً
     applyLang(saved);
     updateLoginLangButtons(saved);
   } else {
-    // لا توجد لغة محفوظة → تعيين العربية كافتراضية في أزرار الدخول
+    // لا توجد لغة محفوظة → تعيين العربية كافتراضية
     updateLoginLangButtons('ar');
   }
-  // إذا لم تُختر لغة → تبقى الشاشة الأولى ظاهرة
 })();
 
 /** إيقاف الـ heartbeat */
@@ -10321,14 +10309,25 @@ function submitJoinUs(){
   requests.push(req);
   localStorage.setItem(_JOIN_REQUESTS_KEY, JSON.stringify(requests));
 
-  // إضافة رسالة للمدير
-  const adminMsgs = JSON.parse(localStorage.getItem('nld_member_msgs') || '[]');
-  adminMsgs.push({
-    from: userName,
-    text: `📋 طلب انضمام جديد!\n👤 الاسم: ${userName}\n📅 التاريخ: ${dateStr}\n🕐 الوقت: ${timeStr}\n\n✅ العضو يرغب في الانضمام إلى Next Leaders DZ`,
-    ts: Date.now()
-  });
-  localStorage.setItem('nld_member_msgs', JSON.stringify(adminMsgs));
+  // إضافة رسالة للمدير عبر نظام P2P
+  const msgObj = {
+    id:'join_'+Date.now(), from:userName, to:'المدير',
+    message:`📋 طلب انضمام جديد!\n👤 الاسم: ${userName}\n📅 التاريخ: ${dateStr}\n🕐 الوقت: ${timeStr}\n\n✅ العضو يرغب في الانضمام إلى Next Leaders DZ`,
+    timestamp:new Date().toISOString(), read:false
+  };
+  try{
+    const p2pKey='nld_p2p_المدير__'+userName.replace(/\s+/g,'_');
+    const p2pMsgs=JSON.parse(localStorage.getItem(p2pKey)||'[]');
+    p2pMsgs.push(msgObj);
+    localStorage.setItem(p2pKey,JSON.stringify(p2pMsgs));
+  }catch(e){}
+
+  // دعم قديم أيضاً (للتوافق)
+  try{
+    const adminMsgs = JSON.parse(localStorage.getItem('nld_member_msgs') || '[]');
+    adminMsgs.push({ from:userName, text:msgObj.message, ts:Date.now() });
+    localStorage.setItem('nld_member_msgs', JSON.stringify(adminMsgs));
+  }catch(e){}
 
   closeJoinUsDialog();
   showToast('✅ تم إرسال طلبك للمدير! سيتم التواصل معك قريباً 🎉');
