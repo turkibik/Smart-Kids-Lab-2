@@ -4,6 +4,155 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Connect DZ | Dashboard</title>
+
+<!-- ══════════════════════════════════════════════
+     🔥 Firebase Realtime Sync — localStorage Bridge
+     يزامن كل البيانات تلقائياً بين جميع المستخدمين
+     ══════════════════════════════════════════════ -->
+<script>
+(function(){
+  'use strict';
+  const DB_URL = "https://connectdz-49fab-default-rtdb.firebaseio.com";
+
+  /* ── شاشة التحميل ── */
+  function showLoader(){
+    const el = document.createElement('div');
+    el.id = '__fb_loader';
+    el.style.cssText = `
+      position:fixed;inset:0;z-index:999999;
+      background:#050a0e;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:16px;font-family:'Tajawal',sans-serif;
+    `;
+    el.innerHTML = `
+      <div style="font-size:40px;">🔥</div>
+      <div style="font-size:16px;font-weight:800;color:#00e5a0;">جارٍ تحميل البيانات...</div>
+      <div style="width:180px;height:4px;background:rgba(255,255,255,0.1);border-radius:99px;overflow:hidden;">
+        <div id="__fb_bar" style="height:100%;width:0%;background:#00e5a0;border-radius:99px;transition:width .4s ease;"></div>
+      </div>
+    `;
+    document.documentElement.appendChild(el);
+  }
+
+  function updateLoader(pct){
+    const bar = document.getElementById('__fb_bar');
+    if(bar) bar.style.width = pct + '%';
+  }
+
+  function hideLoader(){
+    const el = document.getElementById('__fb_loader');
+    if(el){
+      el.style.opacity = '0';
+      el.style.transition = 'opacity .4s ease';
+      setTimeout(() => el.remove(), 400);
+    }
+  }
+
+  /* ── الاحتفاظ بالدوال الأصلية ── */
+  const _set    = Storage.prototype.setItem.bind(localStorage);
+  const _remove = Storage.prototype.removeItem.bind(localStorage);
+  const _clear  = Storage.prototype.clear.bind(localStorage);
+  window.__lsNativeSet = _set;
+
+  /* ── مفاتيح يتم تجاهلها (خاصة بالجهاز) ── */
+  const SKIP_KEYS = new Set([
+    '__deviceId','pwa_banner_dismissed','selectedLang',
+    'lang','currentLang','__fb_loaded'
+  ]);
+
+  function shouldSkip(key){
+    return !key || SKIP_KEYS.has(key) || key.startsWith('__');
+  }
+
+  /* ── رفع مفتاح واحد إلى Firebase ── */
+  function pushKey(key, value){
+    if(shouldSkip(key)) return;
+    const safeKey = encodeURIComponent(key).replace(/%/g,'~');
+    fetch(`${DB_URL}/appdata/${safeKey}.json`, {
+      method : 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body   : JSON.stringify(value)
+    }).catch(()=>{});
+  }
+
+  /* ── حذف مفتاح من Firebase ── */
+  function deleteKey(key){
+    if(shouldSkip(key)) return;
+    const safeKey = encodeURIComponent(key).replace(/%/g,'~');
+    fetch(`${DB_URL}/appdata/${safeKey}.json`, { method:'DELETE' }).catch(()=>{});
+  }
+
+  /* ── تجاوز localStorage.setItem ── */
+  Storage.prototype.setItem = function(key, value){
+    _set(key, value);
+    pushKey(key, value);
+  };
+
+  /* ── تجاوز localStorage.removeItem ── */
+  Storage.prototype.removeItem = function(key){
+    _remove(key);
+    deleteKey(key);
+  };
+
+  /* ── تجاوز localStorage.clear ── */
+  Storage.prototype.clear = function(){
+    // احتفظ بالمفاتيح المحلية فقط قبل المسح
+    const local = {};
+    SKIP_KEYS.forEach(k => {
+      const v = localStorage.getItem(k);
+      if(v !== null) local[k] = v;
+    });
+    _clear();
+    Object.entries(local).forEach(([k,v]) => _set(k,v));
+    fetch(`${DB_URL}/appdata.json`, { method:'DELETE' }).catch(()=>{});
+  };
+
+  /* ── تحميل البيانات من Firebase عند الفتح ── */
+  showLoader();
+  updateLoader(20);
+
+  fetch(`${DB_URL}/appdata.json`)
+    .then(r => {
+      updateLoader(60);
+      return r.json();
+    })
+    .then(data => {
+      updateLoader(90);
+      if(data && typeof data === 'object'){
+        Object.entries(data).forEach(([safeKey, value]) => {
+          try{
+            const key = decodeURIComponent(safeKey.replace(/~/g,'%'));
+            if(!shouldSkip(key)){
+              _set(key, typeof value === 'string' ? value : JSON.stringify(value));
+            }
+          }catch(e){}
+        });
+        console.log(`✅ Firebase: تم تحميل ${Object.keys(data).length} مفتاح`);
+      } else {
+        console.log('ℹ️ Firebase: قاعدة البيانات فارغة');
+      }
+      updateLoader(100);
+      setTimeout(hideLoader, 300);
+    })
+    .catch(err => {
+      console.warn('⚠️ Firebase: تعذّر التحميل، يعمل محلياً', err);
+      hideLoader();
+    });
+
+  /* ── مزامنة فورية عند تغيير من تبويب آخر ── */
+  window.addEventListener('storage', e => {
+    if(e.key && !shouldSkip(e.key)){
+      if(e.newValue === null){
+        deleteKey(e.key);
+      } else {
+        pushKey(e.key, e.newValue);
+      }
+    }
+  });
+
+  console.log('🔥 Firebase localStorage Bridge: نشط');
+})();
+</script>
 <!-- ═══════════════════════════════════════════
      🏆 NEXT LEADERS DZ — Professional Favicon v2
      ND = Next Leaders identity
