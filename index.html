@@ -2750,7 +2750,7 @@ body.member-mode #onlineBar{
       <button onclick="handleAuthAction()" class="auth-btn" id="mainAuthBtn">
         <span style="font-size:13px;opacity:0.85;letter-spacing:1px;">بِسْمِ اللَّهِ</span>
         <span style="margin:0 6px;opacity:0.5;">•</span>
-        <span>دخول</span>
+        <span>على بركة الله</span>
       </button>
       <div id="switchAcc" onclick="clearSavedData()">تغيير الحساب</div>
     </div>
@@ -2863,8 +2863,34 @@ body.member-mode #onlineBar{
       <span class="section-year">2026 – 2027</span>
     </div>
 
+    <!-- ── زر طرح استفسار/سؤال للمنخرطين ── -->
+    <div onclick="openAskQuestionDialog()" style="display:flex;align-items:center;gap:12px;padding:14px 18px;background:linear-gradient(135deg,rgba(0,229,160,0.08),rgba(0,180,130,0.08));border:1.5px solid rgba(0,229,160,0.25);border-radius:18px;cursor:pointer;margin-bottom:16px;transition:all .2s;box-shadow:0 4px 16px rgba(0,229,160,0.1);" onmouseover="this.style.background='linear-gradient(135deg,rgba(0,229,160,0.14),rgba(0,180,130,0.14))';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(0,229,160,0.08),rgba(0,180,130,0.08))';this.style.transform='translateY(0)'">
+      <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#00e5a0,#00b894);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 6px 16px rgba(0,229,160,0.35);">❓</div>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:900;color:var(--text);">اطرح استفساراً على المدير</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">سيصلك الجواب عبر الرسائل</div>
+      </div>
+      <div style="font-size:20px;color:var(--accent);">›</div>
+    </div>
+
     <div id="lockedNote"></div>
     <div class="grid-container" id="mainGrid"></div>
+  </div>
+</div>
+
+<!-- ── نافذة طرح السؤال/الاستفسار ── -->
+<div id="askQuestionOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(10px);z-index:99995;align-items:center;justify-content:center;">
+  <div style="background:linear-gradient(160deg,#0d1117,#161b22);border:1px solid rgba(0,229,160,0.25);border-radius:26px;padding:28px 22px;width:90%;max-width:360px;box-shadow:0 30px 80px rgba(0,0,0,0.6);animation:fadeUp .3s ease;position:relative;">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:44px;margin-bottom:10px;">❓</div>
+      <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:6px;">اطرح سؤالك أو استفسارك</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;">سيصل سؤالك مباشرة إلى المدير وسيتواصل معك بالإجابة</div>
+    </div>
+    <textarea id="askQuestionText" placeholder="اكتب سؤالك أو استفسارك هنا…" style="width:100%;min-height:110px;padding:12px 14px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(0,229,160,0.2);border-radius:14px;color:#fff;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;resize:none;text-align:right;line-height:1.6;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+    <div style="display:flex;flex-direction:column;gap:9px;margin-top:14px;">
+      <button onclick="submitMemberQuestion()" style="width:100%;padding:14px;background:linear-gradient(135deg,#00e5a0,#00b894);border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;color:#050a0e;cursor:pointer;box-shadow:0 6px 20px rgba(0,229,160,0.35);transition:.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">📤 إرسال السؤال للمدير</button>
+      <button onclick="closeAskQuestionDialog()" style="width:100%;padding:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">إلغاء</button>
+    </div>
   </div>
 </div>
 
@@ -3876,8 +3902,8 @@ body.member-mode #onlineBar{
           <span class="stat-label">نشاط</span>
         </div>
         <div class="admin-stat-glass">
-          <span class="stat-icon">🎯</span>
-          <span class="stat-num" id="statQuizQ">…</span>
+          <span class="stat-icon">❓</span>
+          <span class="stat-num" id="statQuestions">0</span>
           <span class="stat-label">سؤال</span>
         </div>
       </div>
@@ -3969,6 +3995,26 @@ body.member-mode #onlineBar{
       <div class="admin-glass-card">
         <div id="adminInboxLog" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;">
           <p style="font-size:12px;color:rgba(100,50,10,0.4);text-align:center;padding:10px;font-weight:600;">لا توجد رسائل واردة بعد</p>
+        </div>
+      </div>
+
+      <div class="admin-divider"></div>
+
+      <!-- ── Section: أسئلة المنخرطين ── -->
+      <div class="admin-section-head">
+        <div class="admin-icon-tile" style="background:linear-gradient(145deg,#a7f3d0,#059669,#064e3b);">❓</div>
+        <div class="admin-section-head-text">
+          <div class="admin-section-head-title">أسئلة واستفسارات المنخرطين</div>
+          <div class="admin-section-head-sub">MEMBER QUESTIONS</div>
+        </div>
+        <button onclick="adminRenderQuestions()" style="background:rgba(255,255,255,0.6);border:1.5px solid rgba(180,100,40,0.18);border-radius:9px;padding:6px 12px;font-size:11px;font-weight:800;color:rgba(100,40,10,0.6);cursor:pointer;font-family:'Tajawal',sans-serif;box-shadow:0 2px 8px rgba(100,50,10,0.07),inset 0 1px 0 rgba(255,255,255,0.9);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.9)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">🔄 تحديث</button>
+      </div>
+      <div class="admin-glass-card">
+        <div style="font-size:11px;color:rgba(100,50,10,0.6);margin-bottom:10px;padding:8px 10px;background:rgba(0,229,160,0.06);border:1.5px solid rgba(0,229,160,0.15);border-radius:10px;line-height:1.6;font-weight:600;">
+          ❓ الأسئلة والاستفسارات التي يرسلها المنخرطون مباشرة إلى المدير.
+        </div>
+        <div id="adminQuestionsList" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;">
+          <p style="font-size:12px;color:rgba(100,50,10,0.4);text-align:center;padding:10px;font-weight:600;">لا توجد أسئلة بعد</p>
         </div>
       </div>
 
@@ -4453,6 +4499,7 @@ function showModal(id){
     adminRenderInbox();
     adminRenderActivity();
     adminRenderJoinRequests();
+    adminRenderQuestions();
   }
 }
 function hideModal(id){document.getElementById(id).style.display='none';}
@@ -5134,8 +5181,8 @@ function enterAsAdmin(){
               <span class="gs-label">نشاط</span>
             </div>
             <div class="admin-greeting-stat">
-              <span class="gs-icon">🎯</span>
-              <span class="gs-num" id="qstatQuizQ">…</span>
+              <span class="gs-icon">❓</span>
+              <span class="gs-num" id="qstatQuestions">0</span>
               <span class="gs-label">سؤال</span>
             </div>
           </div>
@@ -5147,11 +5194,17 @@ function enterAsAdmin(){
       inner.insertBefore(card, inner.children[1]);
       // sync quick stats after main ones load
       setTimeout(()=>{
-        ['Members','Activities','QuizQ'].forEach(k=>{
+        ['Members','Activities'].forEach(k=>{
           const src=document.getElementById('stat'+k);
           const dst=document.getElementById('qstat'+k);
           if(src&&dst) dst.innerText=src.innerText;
         });
+        // تحديث عدد الأسئلة
+        const questions = JSON.parse(localStorage.getItem('nld_member_questions')||'[]');
+        const qStatEl = document.getElementById('qstatQuestions');
+        const qStatAdmin = document.getElementById('statQuestions');
+        if(qStatEl) qStatEl.innerText = questions.length;
+        if(qStatAdmin) qStatAdmin.innerText = questions.length;
       },1400);
     }
   },300);
@@ -6692,14 +6745,15 @@ function openMessages(){
 
 function closeMessagesModal(){
   document.getElementById('messagesModal').style.display='none';
-  // العودة لصفحتي الاجتماعية دائماً (الصفحة الرئيسية لأيقونة صفحتي)
+  // العودة لصفحتي الشخصية (أيقونة صفحتي)
   const socialHome = document.getElementById('socialHomeCard');
   if(socialHome){
     if(socialHome.style.display !== 'flex'){
       socialHome.style.display = 'flex';
       socialHome.style.flexDirection = 'column';
     }
-    switchSocialTab && switchSocialTab('home');
+    // الانتقال لتبويب "صفحتي"
+    switchSocialTab && switchSocialTab('myprofile');
     refreshSocialMsgBadge && refreshSocialMsgBadge();
   }
 }
@@ -7094,7 +7148,7 @@ function closeChatScreen(){
   _currentChatTarget = null;
   const inputArea = document.getElementById('chatInputArea');
   if(inputArea) inputArea.style.display='flex';
-  // دائماً ارجع لقائمة الرسائل (messagesModal) بغض النظر عن مصدر الفتح
+  // العودة دائماً لقائمة الرسائل (messagesModal)
   const mm = document.getElementById('messagesModal');
   if(mm){
     mm.style.display='flex';
@@ -11246,6 +11300,96 @@ function adminDeleteJoinRequest(id){
   requests = requests.filter(r => r.id !== id);
   localStorage.setItem(_JOIN_REQUESTS_KEY, JSON.stringify(requests));
   adminRenderJoinRequests();
+}
+
+/* ===== نظام أسئلة واستفسارات المنخرطين ===== */
+const _QUESTIONS_KEY = 'nld_member_questions';
+
+function openAskQuestionDialog(){
+  const overlay = document.getElementById('askQuestionOverlay');
+  if(overlay){
+    const ta = document.getElementById('askQuestionText');
+    if(ta) ta.value = '';
+    overlay.style.display = 'flex';
+  }
+}
+
+function closeAskQuestionDialog(){
+  const overlay = document.getElementById('askQuestionOverlay');
+  if(overlay) overlay.style.display = 'none';
+}
+
+function submitMemberQuestion(){
+  const ta = document.getElementById('askQuestionText');
+  const text = (ta ? ta.value : '').trim();
+  if(!text){ showToast('⚠️ الرجاء كتابة سؤالك أولاً'); return; }
+
+  const userName = getCurrentUser ? getCurrentUser() : (localStorage.getItem('sklab_user_name') || 'عضو');
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
+  const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+
+  const questions = JSON.parse(localStorage.getItem(_QUESTIONS_KEY) || '[]');
+  const q = {
+    id: 'q_' + Date.now(),
+    name: userName,
+    text: text,
+    date: dateStr,
+    time: timeStr,
+    ts: Date.now(),
+    answered: false
+  };
+  questions.push(q);
+  localStorage.setItem(_QUESTIONS_KEY, JSON.stringify(questions));
+
+  // إضافة إشعار للمدير
+  const adminMsgs = JSON.parse(localStorage.getItem('nld_member_msgs') || '[]');
+  adminMsgs.push({
+    from: userName,
+    text: `❓ سؤال/استفسار جديد!\n👤 المنخرط: ${userName}\n📅 ${dateStr} - ${timeStr}\n\n💬 "${text}"`,
+    ts: Date.now()
+  });
+  localStorage.setItem('nld_member_msgs', JSON.stringify(adminMsgs));
+
+  closeAskQuestionDialog();
+  showToast('✅ تم إرسال سؤالك للمدير! سيتم الرد عليك قريباً 🎉');
+}
+
+function adminRenderQuestions(){
+  const container = document.getElementById('adminQuestionsList');
+  if(!container) return;
+  const questions = JSON.parse(localStorage.getItem(_QUESTIONS_KEY) || '[]');
+
+  // تحديث عداد الأسئلة
+  const qStatEl = document.getElementById('statQuestions');
+  const qStatEl2 = document.getElementById('qstatQuestions');
+  if(qStatEl) qStatEl.innerText = questions.length;
+  if(qStatEl2) qStatEl2.innerText = questions.length;
+
+  if(questions.length === 0){
+    container.innerHTML = '<p style="font-size:12px;color:rgba(100,50,10,0.4);text-align:center;padding:10px;font-weight:600;">لا توجد أسئلة بعد</p>';
+    return;
+  }
+  container.innerHTML = questions.slice().reverse().map(q => `
+    <div style="padding:12px;background:rgba(0,229,160,0.05);border:1.5px solid rgba(0,229,160,0.18);border-radius:14px;">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
+        <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#00e5a0,#00b894);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">❓</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:900;color:#050505;">${q.name}</div>
+          <div style="font-size:10px;color:#65676B;">${q.date} • ${q.time}</div>
+        </div>
+        <div onclick="adminDeleteQuestion('${q.id}')" style="width:26px;height:26px;border-radius:50%;background:#FEE2E2;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;" title="حذف">🗑️</div>
+      </div>
+      <div style="font-size:13px;color:#1a1a1a;line-height:1.6;padding:8px 10px;background:rgba(255,255,255,0.7);border-radius:10px;border:1px solid rgba(0,229,160,0.15);">${q.text}</div>
+    </div>
+  `).join('');
+}
+
+function adminDeleteQuestion(id){
+  let questions = JSON.parse(localStorage.getItem(_QUESTIONS_KEY) || '[]');
+  questions = questions.filter(q => q.id !== id);
+  localStorage.setItem(_QUESTIONS_KEY, JSON.stringify(questions));
+  adminRenderQuestions();
 }
 
 function _fbEscape(str){
