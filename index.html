@@ -2703,16 +2703,14 @@ body.member-mode #onlineBar{
     <!-- decorative glow orb -->
     <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,160,0.08),transparent 70%);top:-60px;right:-60px;pointer-events:none;z-index:0;"></div>
 
-    <p class="login-subtitle" id="loginSubtitle" style="position:relative;z-index:1;">مختبر الشباب للذكاء والتعلم والإبداع</p>
-
-    <!-- منتقي اللغة بالكرة الأرضية — يظهر فقط هنا -->
-    <div class="globe-lang-wrap" id="globeLangWrap">
-      <div class="globe-lang-btn" onclick="toggleGlobeLang()" id="globeLangToggle">
+    <!-- منتقي اللغة بالكرة الأرضية — في أعلى الكارد -->
+    <div class="globe-lang-wrap" id="globeLangWrap" style="position:relative;z-index:10;margin-bottom:16px;">
+      <div class="globe-lang-btn" onclick="toggleGlobeLang()" id="globeLangToggle" style="width:100%;justify-content:center;padding:9px 18px;border-radius:14px;font-size:13px;">
         <span class="globe-icon">🌐</span>
-        <span id="globeLangName">العربية</span>
-        <span style="font-size:10px;opacity:0.6;">▾</span>
+        <span id="globeLangName" style="font-weight:800;">العربية</span>
+        <span style="font-size:11px;opacity:0.6;margin-right:auto;">▾</span>
       </div>
-      <div class="globe-lang-dropdown" id="globeLangDropdown">
+      <div class="globe-lang-dropdown" id="globeLangDropdown" style="width:100%;left:0;transform:none;">
         <div class="globe-lang-item active" id="gli-ar" onclick="setGlobeLang('ar')">
           <span class="gli-flag">🇩🇿</span><span class="gli-name">العربية</span><span class="gli-check" id="glc-ar">✓</span>
         </div>
@@ -2727,6 +2725,8 @@ body.member-mode #onlineBar{
         </div>
       </div>
     </div>
+
+    <p class="login-subtitle" id="loginSubtitle" style="position:relative;z-index:1;">مختبر الشباب للذكاء والتعلم والإبداع</p>
 
     <!-- بطاقات الحسابات المحفوظة -->
     <div id="savedAccountsSection" style="display:none;">
@@ -2747,7 +2747,11 @@ body.member-mode #onlineBar{
       </div>
     </div>
     <div style="position:relative;z-index:1;">
-      <button onclick="handleAuthAction()" class="auth-btn">دخول آمن →</button>
+      <button onclick="handleAuthAction()" class="auth-btn" id="mainAuthBtn">
+        <span style="font-size:13px;opacity:0.85;letter-spacing:1px;">بِسْمِ اللَّهِ</span>
+        <span style="margin:0 6px;opacity:0.5;">•</span>
+        <span>دخول</span>
+      </button>
       <div id="switchAcc" onclick="clearSavedData()">تغيير الحساب</div>
     </div>
 
@@ -4851,17 +4855,60 @@ document.addEventListener('click', function(e){
 /* ===== نظام الحسابات المحفوظة ===== */
 const _SAVED_ACCS_KEY = 'nld_saved_accounts';
 
+/* ── الحصول على معرّف الجهاز (فريد لكل هاتف/متصفح) ── */
+function getDeviceId(){
+  let id = window.__lsNativeSet ? null : null;
+  try{
+    // استخدام النسخة الأصلية من localStorage لتجاوز المزامنة
+    const raw = localStorage.getItem('__deviceId');
+    if(raw) return raw;
+    id = 'dev_' + Math.random().toString(36).slice(2,10) + '_' + Date.now().toString(36);
+    if(window.__lsNativeSet) window.__lsNativeSet('__deviceId', id);
+    else localStorage.setItem('__deviceId', id);
+    return id;
+  }catch(e){
+    return 'dev_default';
+  }
+}
+
 function getSavedAccounts(){
-  try{ return JSON.parse(localStorage.getItem(_SAVED_ACCS_KEY)||'[]'); }
+  try{
+    const deviceId = getDeviceId();
+    const key = _SAVED_ACCS_KEY + '_' + deviceId;
+    // قراءة محلية فقط (لا مزامنة مع Firebase)
+    const raw = localStorage.getItem(key) || localStorage.getItem(_SAVED_ACCS_KEY) || '[]';
+    return JSON.parse(raw);
+  }
   catch(e){ return []; }
 }
 
 function saveAccount(name){
   if(!name || name === 'زائر') return;
+  const deviceId = getDeviceId();
+  const key = _SAVED_ACCS_KEY + '_' + deviceId;
   const accs = getSavedAccounts();
   const filtered = accs.filter(a => a.name !== name);
-  filtered.unshift({ name, ts: Date.now() });
-  localStorage.setItem(_SAVED_ACCS_KEY, JSON.stringify(filtered.slice(0, 5)));
+  filtered.unshift({ name, ts: Date.now(), device: deviceId });
+  // حفظ بمفتاح خاص بالجهاز — يتجاوز المزامنة
+  if(window.__lsNativeSet){
+    window.__lsNativeSet(key, JSON.stringify(filtered.slice(0, 5)));
+  } else {
+    localStorage.setItem(key, JSON.stringify(filtered.slice(0, 5)));
+  }
+}
+
+function deleteSavedAccount(name){
+  const deviceId = getDeviceId();
+  const key = _SAVED_ACCS_KEY + '_' + deviceId;
+  const accs = getSavedAccounts();
+  const updated = accs.filter(a => a.name !== name);
+  if(window.__lsNativeSet){
+    window.__lsNativeSet(key, JSON.stringify(updated));
+  } else {
+    localStorage.setItem(key, JSON.stringify(updated));
+  }
+  renderSavedAccounts();
+  if(typeof showToast === 'function') showToast('🗑️ تم حذف الملف الشخصي "' + name + '"');
 }
 
 function renderSavedAccounts(){
@@ -4877,12 +4924,40 @@ function renderSavedAccounts(){
     const avatarInner = photo
       ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`
       : icon;
-    return `<div class="saved-acc-card" onclick="loginWithSavedAccount('${acc.name.replace(/'/g,"\\'")}')">
+    const safeName = acc.name.replace(/'/g,"\\'");
+    return `<div class="saved-acc-card" onclick="loginWithSavedAccount('${safeName}')" style="position:relative;">
       <div class="saved-acc-avatar">${avatarInner}</div>
       <div class="saved-acc-name">${acc.name}</div>
-      <div class="saved-acc-arrow">›</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="saved-acc-arrow">›</div>
+        <div onclick="event.stopPropagation();confirmDeleteSavedAccount('${safeName}')"
+          title="حذف الملف الشخصي"
+          style="width:26px;height:26px;border-radius:50%;background:rgba(229,45,39,0.12);border:1.5px solid rgba(229,45,39,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;flex-shrink:0;transition:all .2s;"
+          onmouseover="this.style.background='rgba(229,45,39,0.22)'"
+          onmouseout="this.style.background='rgba(229,45,39,0.12)'">🗑️</div>
+      </div>
     </div>`;
   }).join('');
+}
+
+function confirmDeleteSavedAccount(name){
+  // مربع تأكيد بسيط
+  const overlay = document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML=`
+    <div style="background:rgba(13,17,23,0.98);border:1.5px solid rgba(229,45,39,0.35);border-radius:22px;padding:26px 24px;text-align:center;width:86%;max-width:310px;box-shadow:0 30px 70px rgba(0,0,0,0.7);animation:fadeUp .3s ease;">
+      <div style="font-size:40px;margin-bottom:12px;">🗑️</div>
+      <div style="font-size:16px;font-weight:900;color:#f87171;margin-bottom:8px;">حذف الملف الشخصي</div>
+      <div style="font-size:13px;color:rgba(139,148,158,0.85);margin-bottom:22px;line-height:1.6;">هل تريد حذف الملف الشخصي لـ <strong style="color:#e8eaed;">"${name}"</strong> من هذا الجهاز؟</div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="this.closest('[style*=fixed]').remove()"
+          style="flex:1;padding:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#8b949e;font-family:Tajawal,sans-serif;font-size:14px;font-weight:700;cursor:pointer;">إلغاء</button>
+        <button onclick="deleteSavedAccount('${name}');this.closest('[style*=fixed]').remove();"
+          style="flex:1;padding:12px;background:linear-gradient(135deg,#dc2626,#b91c1c);border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(220,38,38,0.4);">حذف ✓</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
 }
 
 function loginWithSavedAccount(name){
