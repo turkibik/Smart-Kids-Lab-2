@@ -4343,7 +4343,7 @@ function buildGrid(isReg){
   const grid=document.getElementById('mainGrid');
   const lang = getCurrentLang() || 'ar';
   const labels = (langData[lang] && langData[lang].gridItems) ? langData[lang].gridItems :
-    ['صفحتي','جدول الترتيب','المنخرطون','المحادثات','انظم إلينا','المعرض','اجمع النقاط','النشاطات','فيسبوك'];
+    ['صفحتي','جدول الترتيب','المنخرطون','المحادثات','على بركة الله','المعرض','اجمع النقاط','النشاطات','فيسبوك'];
   const items=[
     ['👤', labels[0], 'bg-1',"showMyProfile()", true ],
     [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30" style="filter:drop-shadow(0 0 6px rgba(255,255,255,0.6)) drop-shadow(0 2px 8px rgba(0,0,0,0.4));"><defs><linearGradient id="barG1" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#e52d27"/><stop offset="100%" stop-color="#ff6b6b"/></linearGradient><linearGradient id="barG2" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e0ffe8"/></linearGradient><linearGradient id="barG3" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#0f9b0f"/><stop offset="100%" stop-color="#00e564"/></linearGradient><linearGradient id="starG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fff7aa"/><stop offset="100%" stop-color="#ffd700"/></linearGradient></defs><rect x="4" y="24" width="11" height="16" rx="3" fill="url(#barG1)" opacity="0.95"/><text x="9.5" y="21" text-anchor="middle" font-size="7" font-weight="900" fill="rgba(255,255,255,0.9)" font-family="Arial">2</text><rect x="18.5" y="14" width="11" height="26" rx="3" fill="url(#barG2)" opacity="0.95"/><text x="24" y="11" text-anchor="middle" font-size="7" font-weight="900" fill="rgba(0,0,0,0.7)" font-family="Arial">1</text><rect x="33" y="29" width="11" height="11" rx="3" fill="url(#barG3)" opacity="0.95"/><text x="38.5" y="26" text-anchor="middle" font-size="7" font-weight="900" fill="rgba(255,255,255,0.9)" font-family="Arial">3</text><polygon points="24,5 25.5,9.5 30,9.5 26.5,12.2 27.8,17 24,14 20.2,17 21.5,12.2 18,9.5 22.5,9.5" fill="url(#starG)" opacity="0.98"/><rect x="2" y="40" width="44" height="3" rx="1.5" fill="rgba(255,255,255,0.3)"/></svg>`, labels[1], 'bg-2',"showModal('rankingCard')",  true ],
@@ -5429,33 +5429,116 @@ function renderApp(name,pts,isReg, externalEarned){
     if(mpc){ mpc.style.display="none"; }
   }
 
-  // لوحة التحكم الرئيسية: تُظهر الإجمالي الدائم (لا يتأثر بالحذف)
-  document.getElementById("mainPoints").innerHTML=`${totalPts.toLocaleString()} <span>نقطة</span>`;
+  // ══════════════════════════════════════════════════════════════════
+  // لوحة التحكم الرئيسية:
+  //   • نقاط لوحة القيادة  = تُجلب مباشرة من جدول البيانات (dataUrl)
+  //   • الرصيد             = يُحسب من نقاط جدول الترتيب (rankingUrl)
+  //   • المجموع الإجمالي   = نقاط جدول البيانات + نقاط الكويز المربوحة
+  // ══════════════════════════════════════════════════════════════════
 
-  // بطاقة رصيدك: تُظهر الإجمالي الكامل للمستوى لكن الرصيد يُحسب من نقاط الجدول فقط (لا يتأثر بنقاط الكويز)
-  const code=getMemberCode(name);
-  document.getElementById("cardName").innerText=name;
-  document.getElementById("cardCode").innerText="NLD-"+code;
-  document.getElementById("cardPoints").innerText=totalPts.toLocaleString()+" نقطة";
-  document.getElementById("cardBalance").innerText=((pts/50)*30).toFixed(2)+" دج";
-
-  // المستوى يُحسب من الإجمالي الدائم
+  // عرض أولي سريع باستخدام النقاط المحلية
   const LEVEL_PTS=3000;
-  const currentLevel=Math.floor(totalPts/LEVEL_PTS)+1;
-  const ptsInLevel=totalPts%LEVEL_PTS;
-  document.getElementById("levelBadge").innerText=`⭐ المستوى ${currentLevel}`;
-  document.getElementById("progressStart").innerText=(currentLevel-1)*LEVEL_PTS;
-  document.getElementById("progressEnd").innerText=currentLevel*LEVEL_PTS;
-  // تحديث إحصائيات بطاقة الملف الشخصي
-  const mgPts=document.getElementById("mgStatPoints");
-  if(mgPts) mgPts.innerText=pts.toLocaleString(); // نقاط الجدول فقط (بدون كويز)
-  const mgBalance=document.getElementById("mgStatBalance");
-  if(mgBalance) mgBalance.innerText=((pts/50)*30).toFixed(2)+" دج";
-  const mgLevel=document.getElementById("mgStatLevel");
-  if(mgLevel) mgLevel.innerText=`${currentLevel}`;
+  let dashPts = pts; // نقاط لوحة القيادة (من الجدول)
+  let rankPts = pts; // نقاط جدول الترتيب (للرصيد)
+
+  function _applyDashboardUI(sheetPoints, rankingPoints, quizPoints){
+    const totalForLevel = sheetPoints + quizPoints;
+    _basePoints = totalForLevel;
+    window._sheetPtsCache = sheetPoints;
+    const currentLevel = Math.floor(totalForLevel/LEVEL_PTS)+1;
+    const ptsInLevel   = totalForLevel % LEVEL_PTS;
+    const balance      = ((rankingPoints/50)*30).toFixed(2);
+
+    // لوحة القيادة: يُظهر الإجمالي (جدول + كويز)
+    document.getElementById("mainPoints").innerHTML=`${totalForLevel.toLocaleString()} <span>نقطة</span>`;
+
+    // بطاقة الرصيد
+    const code=getMemberCode(name);
+    document.getElementById("cardName").innerText=name;
+    document.getElementById("cardCode").innerText="NLD-"+code;
+    document.getElementById("cardPoints").innerText=totalForLevel.toLocaleString()+" نقطة";
+    document.getElementById("cardBalance").innerText=balance+" دج";
+
+    // شارة المستوى وشريط التقدم
+    document.getElementById("levelBadge").innerText=`⭐ المستوى ${currentLevel}`;
+    document.getElementById("progressStart").innerText=(currentLevel-1)*LEVEL_PTS;
+    document.getElementById("progressEnd").innerText=currentLevel*LEVEL_PTS;
+    setTimeout(()=>{document.getElementById("mainBar").style.width=Math.min((ptsInLevel/LEVEL_PTS)*100,100)+"%";},300);
+
+    // إحصائيات بطاقة الملف الشخصي
+    const mgPts=document.getElementById("mgStatPoints");
+    if(mgPts) mgPts.innerText=sheetPoints.toLocaleString();
+    const mgBalance=document.getElementById("mgStatBalance");
+    if(mgBalance) mgBalance.innerText=balance+" دج";
+    const mgLevel=document.getElementById("mgStatLevel");
+    if(mgLevel) mgLevel.innerText=`${currentLevel}`;
+  }
+
+  // عرض أولي فوري (قبل جلب الجداول)
+  _applyDashboardUI(dashPts, rankPts, earned);
+
+  // ── جلب نقاط محدّثة من Google Sheets (dataUrl + rankingUrl) ──
+  if(name && name !== 'زائر' && name !== 'المدير'){
+    (async ()=>{
+      try{
+        const normName = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+        const csvParse = line => {
+          const res=[]; let cur=''; let q=false;
+          for(let i=0;i<=line.length;i++){
+            const ch=line[i];
+            if(ch==='"'){q=!q;}
+            else if((ch===','||ch===undefined)&&!q){res.push(cur.replace(/^"|"$/g,'').trim());cur='';}
+            else{cur+=ch||'';}
+          }
+          return res;
+        };
+
+        // 1) نقاط جدول البيانات (dataUrl) → لوحة القيادة والإجمالي
+        const r1 = await fetch(dataUrl).then(r=>r.text()).catch(()=>null);
+        if(r1){
+          const rows = r1.split('\n');
+          for(let i=1;i<rows.length;i++){
+            if(!rows[i].trim()) continue;
+            const c = csvParse(rows[i]);
+            if(normName(c[2]||'') === normName(name)){
+              dashPts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+              break;
+            }
+          }
+        }
+
+        // 2) نقاط جدول الترتيب (rankingUrl) → الرصيد
+        const r2 = await fetch(rankingUrl).then(r=>r.text()).catch(()=>null);
+        if(r2){
+          const rrows = r2.split('\n');
+          for(let i=1;i<rrows.length;i++){
+            if(!rrows[i].trim()) continue;
+            const c = csvParse(rrows[i]);
+            // جدول الترتيب: عادةً الاسم في العمود 0 أو 1، النقاط في آخر عمود
+            const candidateName = normName(c[1]||c[0]||'');
+            if(candidateName === normName(name)){
+              rankPts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+              break;
+            }
+          }
+        }
+
+        // نقاط الكويز المحلية للمستخدم
+        const localEarnedNow = parseInt(localStorage.getItem(_earnedKey(name))||'0');
+        const finalEarned = Math.max(earned, localEarnedNow);
+
+        // تحديث الواجهة بالبيانات الحقيقية
+        _applyDashboardUI(dashPts, rankPts, finalEarned);
+        // حفظ للاستخدام لاحقاً
+        window._sheetPtsCache = dashPts;
+        _basePoints = dashPts + finalEarned;
+
+      }catch(e){ console.warn('⚠️ تعذّر جلب نقاط الجداول:', e); }
+    })();
+  }
+
   buildGrid(isReg);
   if(!isReg) document.getElementById("lockedNote").innerHTML=``;
-  setTimeout(()=>{document.getElementById("mainBar").style.width=Math.min((ptsInLevel/LEVEL_PTS)*100,100)+"%";},300);
   // تحقق من الرسائل الجديدة
   setTimeout(()=>loadUserMessagesOnLogin(name), 600);
   // تتبع الزيارة
@@ -8023,7 +8106,7 @@ const langData = {
     dashYear: '2026 – 2027',
     langPanelTitle: 'اللغة',
     flagLabel: '🇩🇿',
-    gridItems: ['صفحتي','جدول الترتيب','المنخرطون','المحادثات','انظم إلينا','المعرض','اجمع النقاط','النشاطات','فيسبوك'],
+    gridItems: ['صفحتي','جدول الترتيب','المنخرطون','المحادثات','على بركة الله','المعرض','اجمع النقاط','النشاطات','فيسبوك'],
     chatPlaceholder: 'اكتب رسالة…',
     attachImage: 'صورة', attachVideo: 'فيديو', attachAudio: 'صوت', attachVoice: 'تسجيل صوتي',
   },
@@ -8045,7 +8128,7 @@ const langData = {
     dashYear: '2026 – 2027',
     langPanelTitle: 'Language',
     flagLabel: '🇬🇧',
-    gridItems: ['My Profile','Leaderboard','Members','Messages','Join Us','Gallery','Earn Points','Activities','Facebook'],
+    gridItems: ['My Profile','Leaderboard','Members','Messages','على بركة الله','Gallery','Earn Points','Activities','Facebook'],
     chatPlaceholder: 'Write a message…',
     attachImage: 'Image', attachVideo: 'Video', attachAudio: 'Audio', attachVoice: 'Voice Note',
   },
@@ -8067,7 +8150,7 @@ const langData = {
     dashYear: '2026 – 2027',
     langPanelTitle: 'Idioma',
     flagLabel: '🇪🇸',
-    gridItems: ['Mi Perfil','Clasificación','Miembros','Mensajes','Únete','Galería','Ganar Puntos','Actividades','Facebook'],
+    gridItems: ['Mi Perfil','Clasificación','Miembros','Mensajes','على بركة الله','Galería','Ganar Puntos','Actividades','Facebook'],
     chatPlaceholder: 'Escribe un mensaje…',
     attachImage: 'Imagen', attachVideo: 'Video', attachAudio: 'Audio', attachVoice: 'Nota de voz',
   },
@@ -8089,7 +8172,7 @@ const langData = {
     dashYear: '2026 – 2027',
     langPanelTitle: '语言',
     flagLabel: '🇨🇳',
-    gridItems: ['余额','排行榜','成员','消息','加入我们','相册','获取积分','活动','脸书'],
+    gridItems: ['余额','排行榜','成员','消息','على بركة الله','相册','获取积分','活动','脸书'],
     chatPlaceholder: '写消息…',
     attachImage: '图片', attachVideo: '视频', attachAudio: '音频', attachVoice: '语音',
   }
