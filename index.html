@@ -7,6 +7,46 @@
 
 <!-- PWA Manifest -->
 <link rel="manifest" href="/manifest.json">
+
+<!-- ══════════════════════════════════════════════
+     🔔 OneSignal — إشعارات فورية حتى لو التطبيق مغلق
+     ══════════════════════════════════════════════ -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "0c7b884d-9c60-435e-a475-86b610bc5542",
+    });
+  });
+
+  /* ════════════════════════════════════════════
+     📤  إرسال إشعار لجميع المشتركين عبر OneSignal API
+     يُستدعى تلقائياً عند كل رسالة جديدة
+  ════════════════════════════════════════════ */
+  window.sendOneSignalNotif = async function(title, message) {
+    try {
+      await fetch('https://onesignal.com/api/v1/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Key os_v2_app_br5yqtm4mbbv5jdvq23bbpcvijicc62vjajuk3fvhtjfqrdcdcrxsbzhaxadsdpvzjbawjegn74nmhxml4et4q4zkyjp62votqvtcsa'
+        },
+        body: JSON.stringify({
+          app_id: '0c7b884d-9c60-435e-a475-86b610bc5542',
+          included_segments: ['Total Subscriptions'],
+          headings: { ar: title, en: title },
+          contents: { ar: message, en: message },
+          url: 'https://turkibik.github.io/Smart-Kids-Lab-2/',
+          ttl: 86400
+        })
+      });
+      console.log('✅ OneSignal: إشعار أُرسل لجميع المشتركين');
+    } catch(err) {
+      console.warn('⚠️ OneSignal: فشل إرسال الإشعار', err);
+    }
+  };
+</script>
 <meta name="theme-color" content="#00e5a0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11868,7 +11908,12 @@ function _fbErrorHTML(msg){
 
   /* ── دالة عامة لإرسال إشعار يدوياً (للمدير) ── */
   window.sendAdminPushNotif = function(title, body) {
+    // إشعار محلي (التطبيق مفتوح)
     showLocalNotification(title, body, 'admin-notif-' + Date.now());
+    // إشعار OneSignal (التطبيق مغلق) ✅
+    if (typeof window.sendOneSignalNotif === 'function') {
+      window.sendOneSignalNotif(title, body);
+    }
   };
 
   /* ── تصدير دالة بدء المراقبة ── */
