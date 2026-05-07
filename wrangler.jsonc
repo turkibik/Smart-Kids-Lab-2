@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "smart-kidslab2",
+  "name": "smart-kids-lab2",
   "compatibility_date": "2026-05-04",
   "observability": {
     "enabled": true
