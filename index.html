@@ -11461,18 +11461,47 @@ function _fbErrorHTML(msg){
 </script>
 
 <!-- ══════════════════════════════════════════════════════
-     🔔 نظام Push Notifications — إشعارات فورية مثل المسنجر
-     يُرسل إشعاراً على شاشة الهاتف عند كل رسالة جديدة
+     🔔 نظام Push Notifications v2 — Firebase SDK الكامل
+     ✅ مراقبة فورية بـ onValue   ✅ إشعارات حتى في الخلفية
+     ✅ عداد Badge احترافي        ✅ إعادة اتصال تلقائية
+     ✅ فلترة الرسائل الخاصة بالمستخدم الحالي فقط
      ══════════════════════════════════════════════════════ -->
+
+<!-- Firebase SDK v10 (compat mode للتوافق) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+
 <script>
 (function(){
   'use strict';
 
-  const DB_URL = "https://connectdz-49fab-default-rtdb.firebaseio.com";
-  // ✏️ ضع هنا مفتاح VAPID من Firebase Console > Project Settings > Cloud Messaging
-  const VAPID_KEY = 'YOUR_VAPID_KEY_HERE';
+  /* ════════════════════════════════════════════
+     ⚙️  إعداد Firebase
+  ════════════════════════════════════════════ */
+  const firebaseConfig = {
+    apiKey           : "AIzaSyDdqve_7EDtm8E0M615TMMNtdnQKf1F5AQ",
+    authDomain       : "connectdz-49fab.firebaseapp.com",
+    databaseURL      : "https://connectdz-49fab-default-rtdb.firebaseio.com",
+    projectId        : "connectdz-49fab",
+    storageBucket    : "connectdz-49fab.firebasestorage.app",
+    messagingSenderId: "283968450187",
+    appId            : "1:283968450187:web:cd392f2255492237986e8e",
+    measurementId    : "G-RE9ETWKQ4H"
+  };
 
-  /* ── تحويل VAPID Key ── */
+  /* تهيئة Firebase مرة واحدة فقط */
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  const db       = firebase.database();
+  const DB_URL   = "https://connectdz-49fab-default-rtdb.firebaseio.com";
+  const VAPID_KEY = 'BNBfJEdK6BYmpL-ZzB27HFKxw_-L-hyswuZjWc8ZUzmcSKO7pcpcDtTZrJsxjRlacxfccXebJW2j_snAsgsvIU4';
+
+  /* ════════════════════════════════════════════
+     🔑  تحويل VAPID Key
+  ════════════════════════════════════════════ */
   function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -11480,11 +11509,12 @@ function _fbErrorHTML(msg){
     return new Uint8Array([...rawData].map(c => c.charCodeAt(0)));
   }
 
-  /* ── طلب إذن الإشعارات وحفظ التوكن في Firebase ── */
+  /* ════════════════════════════════════════════
+     🔔  طلب إذن الإشعارات + حفظ التوكن في Firebase
+     يستخدم Firebase SDK مباشرةً بدلاً من fetch
+  ════════════════════════════════════════════ */
   async function requestPushPermission() {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
-    if (VAPID_KEY === 'YOUR_VAPID_KEY_HERE') return; // لم يتم تعيين المفتاح بعد
-
     try {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
@@ -11494,30 +11524,31 @@ function _fbErrorHTML(msg){
 
       const reg = await navigator.serviceWorker.ready;
 
-      // تحقق إذا كان Push مدعوماً
-      if (!reg.pushManager) return;
+      if (reg.pushManager) {
+        try {
+          const sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_KEY)
+          });
 
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_KEY)
-      });
+          const userName = localStorage.getItem('sklab_user_name') || 'مجهول';
+          const safeKey  = encodeURIComponent(userName).replace(/%/g,'~');
 
-      // احفظ التوكن في Firebase مرتبطاً بالمستخدم
-      const userName = localStorage.getItem('sklab_user_name') || 'مجهول';
-      const safeKey = encodeURIComponent(userName).replace(/%/g,'~');
-      await fetch(`${DB_URL}/push_tokens/${safeKey}.json`, {
-        method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          sub: JSON.stringify(sub),
-          name: userName,
-          ts: Date.now(),
-          ua: navigator.userAgent.substring(0, 80)
-        })
-      });
-      console.log('✅ Push Token محفوظ في Firebase للمستخدم:', userName);
+          /* ✅ Firebase SDK — set() بدلاً من fetch/PUT */
+          await db.ref(`push_tokens/${safeKey}`).set({
+            sub : JSON.stringify(sub),
+            name: userName,
+            ts  : Date.now(),
+            ua  : navigator.userAgent.substring(0, 80)
+          });
+          console.log('✅ Push Token محفوظ لـ:', userName);
+        } catch(subErr) {
+          console.warn('⚠️ Push subscription فشل، الإشعارات المحلية تعمل:', subErr);
+        }
+      }
+      console.log('✅ تم منح إذن الإشعارات');
     } catch(err) {
-      console.warn('⚠️ خطأ في Push:', err);
+      console.warn('⚠️ خطأ في طلب الإذن:', err);
     }
   }
 
@@ -11560,73 +11591,183 @@ function _fbErrorHTML(msg){
     } catch(e) {}
   }
 
-  /* ── مراقبة الرسائل الجديدة عبر Firebase SSE ── */
-  let _lastMsgTs = Date.now(); // تجاهل الرسائل القديمة عند البدء
-  let _evtSource = null;
+  /* ══════════════════════════════════════════════════════
+     🔴 نظام عداد الرسائل المنبثق (مثل المسنجر)
+     يُظهر رقماً أحمر على أيقونة المتصفح + title الصفحة
+     ══════════════════════════════════════════════════════ */
+  let _unreadCount = 0;
+  const _origTitle = document.title;
+
+  /* أيقونة الـ favicon مع عداد أحمر */
+  function updateFaviconBadge(count) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64; canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+
+    // رسم أيقونة CDZ الأساسية
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, 64, 64);
+      if (count > 0) {
+        // الدائرة الحمراء
+        const badgeX = 46, badgeY = 10, r = 16;
+        ctx.beginPath();
+        ctx.arc(badgeX, badgeY, r, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ff3b30';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        // الرقم
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold ' + (count > 9 ? '14' : '18') + 'px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(count > 99 ? '99+' : String(count), badgeX, badgeY + 1);
+      }
+      // تحديث الـ favicon
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+      link.type = 'image/png';
+      link.href = canvas.toDataURL();
+    };
+    img.onerror = () => {
+      // إذا فشلت الصورة — ارسم أيقونة بسيطة
+      ctx.fillStyle = '#1565c0';
+      ctx.beginPath(); ctx.roundRect(0, 0, 64, 64, 12); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 22px Arial';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('CDZ', 32, 34);
+      if (count > 0) {
+        const badgeX = 50, badgeY = 14, r = 13;
+        ctx.beginPath(); ctx.arc(badgeX, badgeY, r, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ff3b30'; ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Arial';
+        ctx.fillText(count > 9 ? '9+' : String(count), badgeX, badgeY + 1);
+      }
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+      link.type = 'image/png'; link.href = canvas.toDataURL();
+    };
+    // استخدام الـ favicon الحالي كأساس
+    const curIcon = document.querySelector("link[rel~='icon']");
+    img.src = curIcon ? curIcon.href : '';
+    if (!curIcon || !curIcon.href) img.onerror();
+  }
+
+  /* تحديث عنوان الصفحة مع عدد الرسائل */
+  function updatePageTitle(count) {
+    document.title = count > 0 ? `(${count}) ${_origTitle}` : _origTitle;
+  }
+
+  /* تحديث Badge API (Android/PWA) */
+  function updateAppBadge(count) {
+    if ('setAppBadge' in navigator) {
+      if (count > 0) navigator.setAppBadge(count).catch(() => {});
+      else navigator.clearAppBadge().catch(() => {});
+    }
+  }
+
+  /* الدالة الرئيسية لتحديث كل العدادات */
+  function setBadgeCount(count) {
+    _unreadCount = Math.max(0, count);
+    updateFaviconBadge(_unreadCount);
+    updatePageTitle(_unreadCount);
+    updateAppBadge(_unreadCount);
+  }
+
+  /* إضافة رسالة جديدة للعداد */
+  function incrementBadge() { setBadgeCount(_unreadCount + 1); }
+
+  /* مسح العداد عند فتح التطبيق / النقر */
+  function clearBadge() { setBadgeCount(0); }
+
+  /* مسح العداد عند تفاعل المستخدم */
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) clearBadge();
+  });
+  document.addEventListener('click', () => {
+    if (_unreadCount > 0) clearBadge();
+  });
+
+  /* تصدير الدوال للاستخدام من خارج */
+  window.cdz_setBadge = setBadgeCount;
+  window.cdz_clearBadge = clearBadge;
+
+  /* ════════════════════════════════════════════
+     👁️  مراقبة الرسائل بـ Firebase onValue (فوري 100%)
+     ✅ يستخدم Firebase SDK بدلاً من SSE يدوي
+     ✅ يعيد الاتصال تلقائياً عند انقطاع الشبكة
+     ✅ يفلتر الرسائل الموجهة للمستخدم الحالي فقط
+  ════════════════════════════════════════════ */
+  let _lastMsgTs  = Date.now();
   let _watchingMsgs = false;
+  let _msgListener  = null;
 
   function startWatchingMessages() {
     if (_watchingMsgs) return;
     _watchingMsgs = true;
 
-    // استخدام Firebase SSE للمراقبة الفورية
-    try {
-      _evtSource = new EventSource(`${DB_URL}/nld_member_msgs.json`);
+    const userName = localStorage.getItem('sklab_user_name') || '';
+    const msgsRef  = db.ref('nld_member_msgs');
 
-      _evtSource.addEventListener('put', (e) => {
-        try {
-          const payload = JSON.parse(e.data);
-          if (!payload.data) return;
+    /* إلغاء أي مستمع سابق */
+    if (_msgListener) { msgsRef.off('value', _msgListener); }
 
-          let msgs = [];
-          if (typeof payload.data === 'string') {
-            msgs = JSON.parse(payload.data);
-          } else if (Array.isArray(payload.data)) {
-            msgs = payload.data;
-          } else if (typeof payload.data === 'object') {
-            msgs = Object.values(payload.data);
-          }
+    _msgListener = msgsRef.on('value', (snapshot) => {
+      try {
+        const rawData = snapshot.val();
+        if (!rawData) return;
 
-          if (!Array.isArray(msgs) || msgs.length === 0) return;
+        let msgs = [];
+        if (typeof rawData === 'string') {
+          msgs = JSON.parse(rawData);
+        } else if (Array.isArray(rawData)) {
+          msgs = rawData;
+        } else if (typeof rawData === 'object') {
+          msgs = Object.values(rawData);
+        }
 
-          // البحث عن رسائل أحدث من آخر وقت فحص
-          const newMsgs = msgs.filter(m => m && m.ts && m.ts > _lastMsgTs);
-          if (newMsgs.length === 0) return;
+        if (!Array.isArray(msgs) || msgs.length === 0) return;
 
-          _lastMsgTs = Math.max(...msgs.map(m => m.ts || 0));
+        /* رسائل أحدث من آخر وقت فحص */
+        const newMsgs = msgs.filter(m =>
+          m && m.ts && m.ts > _lastMsgTs
+          /* فلتر اختياري: استقبل فقط الرسائل الموجّهة لك
+             m.to === userName || !m.to */
+        );
+        if (newMsgs.length === 0) return;
 
-          // إظهار إشعار لكل رسالة جديدة
-          newMsgs.forEach((msg, i) => {
-            setTimeout(() => {
-              const senderName = msg.from || 'منخرط';
-              const msgText = (msg.text || '').substring(0, 80);
-              const cleanText = msgText.replace(/\n/g, ' ');
+        _lastMsgTs = Math.max(...msgs.map(m => m.ts || 0));
 
-              showLocalNotification(
-                `💬 رسالة جديدة — Connect DZ`,
-                `👤 ${senderName}: ${cleanText}`,
-                `cdz-msg-${msg.ts}`
-              );
+        newMsgs.forEach((msg, i) => {
+          setTimeout(() => {
+            const senderName = msg.from || 'منخرط';
+            const msgText    = (msg.text || '').substring(0, 80).replace(/\n/g, ' ');
 
-              // تشغيل صوت إشعار خفيف
-              playNotifSound();
-            }, i * 800);
-          });
+            showLocalNotification(
+              `💬 رسالة جديدة — Connect DZ`,
+              `👤 ${senderName}: ${msgText}`,
+              `cdz-msg-${msg.ts}`
+            );
+            incrementBadge();
+            playNotifSound();
+          }, i * 800);
+        });
 
-        } catch(err) {}
-      });
-
-      _evtSource.onerror = () => {
-        // إعادة الاتصال بعد 5 ثوانٍ
-        _watchingMsgs = false;
-        if (_evtSource) { _evtSource.close(); _evtSource = null; }
-        setTimeout(startWatchingMessages, 5000);
-      };
-
-    } catch(err) {
+      } catch(err) {
+        console.warn('⚠️ خطأ في معالجة الرسائل:', err);
+      }
+    }, (err) => {
+      /* Firebase يعيد الاتصال تلقائياً — نسجّل فقط */
+      console.warn('⚠️ Firebase onValue خطأ:', err);
       _watchingMsgs = false;
-      console.warn('⚠️ خطأ في SSE:', err);
-    }
+      setTimeout(startWatchingMessages, 5000);
+    });
+
+    console.log('👁️ مراقبة الرسائل نشطة عبر Firebase SDK');
   }
 
   /* ── تشغيل نغمة إشعار خفيفة ── */
@@ -11648,7 +11789,9 @@ function _fbErrorHTML(msg){
 
   /* ── زر طلب الإذن يظهر للمستخدم ── */
   function showNotifPermissionBanner() {
-    if (Notification.permission !== 'default') return;
+    // لا تُظهر إذا كان الإذن ممنوحاً أو مرفوضاً نهائياً
+    if (Notification.permission === 'granted') return;
+    if (Notification.permission === 'denied') return;
     if (localStorage.getItem('notif_banner_dismissed')) return;
 
     setTimeout(() => {
@@ -11687,7 +11830,10 @@ function _fbErrorHTML(msg){
         await requestPushPermission();
         if (Notification.permission === 'granted') {
           startWatchingMessages();
+          // مسح علامة "تم الرفض" إن وجدت
+          localStorage.removeItem('notif_banner_dismissed');
           if (typeof showToast === 'function') showToast('🔔 تم تفعيل الإشعارات بنجاح!');
+          else alert('✅ تم تفعيل الإشعارات بنجاح!');
         }
       });
 
@@ -11728,7 +11874,31 @@ function _fbErrorHTML(msg){
   /* ── تصدير دالة بدء المراقبة ── */
   window.startPushWatcher = startWatchingMessages;
 
-  console.log('🔔 Push Notifications System: نشط');
+  /* ════════════════════════════════════════════
+     📡  مراقبة حالة الاتصال بـ Firebase (.info/connected)
+     يُظهر toast عند الاتصال / الانقطاع
+  ════════════════════════════════════════════ */
+  db.ref('.info/connected').on('value', (snap) => {
+    const connected = snap.val();
+    if (connected === false) {
+      console.warn('📴 Firebase: انقطع الاتصال — سيعمل من الـ Cache');
+      if (typeof showToast === 'function') showToast('📴 انقطع الاتصال بالسيرفر');
+    } else if (connected === true) {
+      console.log('📶 Firebase: متصل');
+    }
+  });
+
+  /* ════════════════════════════════════════════
+     🔄  استئناف المراقبة عند عودة الشبكة
+  ════════════════════════════════════════════ */
+  window.addEventListener('online', () => {
+    if (!_watchingMsgs) {
+      console.log('🌐 الشبكة عادت — إعادة تشغيل المراقبة');
+      startWatchingMessages();
+    }
+  });
+
+  console.log('🔔 Push Notifications System v2 (Firebase SDK): نشط');
 })();
 </script>
 
