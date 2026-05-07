@@ -11880,11 +11880,10 @@ function _fbErrorHTML(msg){
   ════════════════════════════════════════════ */
   db.ref('.info/connected').on('value', (snap) => {
     const connected = snap.val();
-    if (connected === false) {
-      console.warn('📴 Firebase: انقطع الاتصال — سيعمل من الـ Cache');
-      if (typeof showToast === 'function') showToast('📴 انقطع الاتصال بالسيرفر');
-    } else if (connected === true) {
+    if (connected === true) {
       console.log('📶 Firebase: متصل');
+    } else {
+      console.warn('📴 Firebase: انقطع الاتصال — سيعمل من الـ Cache');
     }
   });
 
