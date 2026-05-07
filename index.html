@@ -2883,13 +2883,13 @@ body.member-mode #onlineBar{
   <div style="background:linear-gradient(160deg,#0d1117,#161b22);border:1px solid rgba(0,229,160,0.25);border-radius:26px;padding:28px 22px;width:90%;max-width:360px;box-shadow:0 30px 80px rgba(0,0,0,0.6);animation:fadeUp .3s ease;position:relative;">
     <div style="text-align:center;margin-bottom:20px;">
       <div style="font-size:44px;margin-bottom:10px;">❓</div>
-      <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:6px;">اطرح سؤالك أو استفسارك</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.6;">سيصل سؤالك مباشرة إلى المدير وسيتواصل معك بالإجابة</div>
+      <div style="font-size:18px;font-weight:900;color:#ffffff;margin-bottom:6px;text-shadow:0 1px 4px rgba(0,0,0,0.5);">اطرح سؤالك أو استفسارك</div>
+      <div style="font-size:12px;color:#b0bec8;line-height:1.6;font-weight:600;">سيصل سؤالك مباشرة إلى المدير وسيتواصل معك بالإجابة</div>
     </div>
-    <textarea id="askQuestionText" placeholder="اكتب سؤالك أو استفسارك هنا…" style="width:100%;min-height:110px;padding:12px 14px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(0,229,160,0.2);border-radius:14px;color:#fff;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;resize:none;text-align:right;line-height:1.6;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+    <textarea id="askQuestionText" placeholder="اكتب سؤالك أو استفسارك هنا…" style="width:100%;min-height:110px;padding:12px 14px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(0,229,160,0.4);border-radius:14px;color:#ffffff;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:600;outline:none;resize:none;text-align:right;line-height:1.6;caret-color:#00e5a0;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
     <div style="display:flex;flex-direction:column;gap:9px;margin-top:14px;">
       <button onclick="submitMemberQuestion()" style="width:100%;padding:14px;background:linear-gradient(135deg,#00e5a0,#00b894);border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;color:#050a0e;cursor:pointer;box-shadow:0 6px 20px rgba(0,229,160,0.35);transition:.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">📤 إرسال السؤال للمدير</button>
-      <button onclick="closeAskQuestionDialog()" style="width:100%;padding:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">إلغاء</button>
+      <button onclick="closeAskQuestionDialog()" style="width:100%;padding:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#d0d8e0;cursor:pointer;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.14)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">إلغاء</button>
     </div>
   </div>
 </div>
@@ -4402,9 +4402,9 @@ function buildGrid(isReg){
     ['📱', labels[8], 'bg-9',"window.location.href='https://www.facebook.com/share/19UtXj8kRV/'", true],
   ];
   grid.innerHTML=items.map(([icon,label,bg,action,open],idx)=>{
-    // isReg=false و name=زائر: فتح صفحتي(0)، انظم إلينا(4)، فيسبوك(8) فقط
+    // isReg=false و name=زائر: فتح صفحتي(0)، انظم إلينا(4) فقط
     const isGuest = !isReg && getCurrentUser() === 'زائر';
-    const guestAllowed = isGuest && (idx===0 || idx===4 || idx===8);
+    const guestAllowed = isGuest && (idx===0 || idx===4);
     const can = guestAllowed || (open || isReg);
     const lock=!can?`<div class="lock-overlay">🔒</div>`:'';
     const cls=!can?' locked':'';
@@ -4660,10 +4660,34 @@ function showProfileEditMenu(){
     <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;text-align:center;">تعديل ملفك الشخصي</div>
     <div onclick="document.getElementById('profilePhotoInput').click();this.closest('[style*=fixed]').remove();" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=''">📷 تغيير صورة الملف الشخصي</div>
     <div onclick="document.getElementById('coverPhotoInput').click();this.closest('[style*=fixed]').remove();" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=''">🖼️ تغيير صورة الغلاف</div>
+    <div onclick="resetMemberFiles()" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#e53935;" onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background=''">🔄 إعادة تسجيل الملفات (تصفير)</div>
     <div onclick="this.closest('[style*=fixed]').remove();" style="margin-top:8px;padding:12px;background:#F0F2F5;border-radius:12px;text-align:center;font-size:14px;font-weight:700;color:#65676B;cursor:pointer;">إلغاء</div>
   </div>`;
   n.onclick = e=>{ if(e.target===n) n.remove(); };
   document.body.appendChild(n);
+}
+
+// تصفير ملفات المنخرط (الصورة الشخصية + الغلاف) لإعادة التسجيل
+function resetMemberFiles(){
+  const name = getCurrentUser(); if(!name) return;
+  // إغلاق أي نافذة مفتوحة
+  document.querySelectorAll('[style*="position:fixed"][style*="z-index:5000"]').forEach(el=>el.remove());
+  if(!confirm('⚠️ هل أنت متأكد؟\nسيتم حذف صورتك الشخصية وصورة الغلاف\nلتتمكن من رفعهما من جديد.')) return;
+  // حذف الصورة الشخصية
+  localStorage.removeItem('nld_photo_'+name.replace(/\s+/g,'_'));
+  // حذف صورة الغلاف
+  localStorage.removeItem('nld_cover_'+name.replace(/\s+/g,'_'));
+  // تحديث الواجهة
+  updateTopNavAvatar(name);
+  // تحديث أفاتار صفحتي
+  const av = document.getElementById('profilePageAvatar');
+  if(av){ av.innerHTML = '👑<div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:28px;height:28px;background:#1877F2;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid white;">📷</div>'; }
+  // تحديث الغلاف
+  const coverImg = document.getElementById('profileCoverImg');
+  if(coverImg){ coverImg.style.backgroundImage=''; }
+  const mpvCover = document.getElementById('mpvCoverImg');
+  if(mpvCover){ mpvCover.style.backgroundImage=''; }
+  showToast('✅ تم تصفير الملفات. يمكنك الآن رفع ملفات جديدة!');
 }
 
 // ── منشورات الملف الشخصي ──
@@ -6745,16 +6769,26 @@ function openMessages(){
 
 function closeMessagesModal(){
   document.getElementById('messagesModal').style.display='none';
-  // العودة لصفحتي الشخصية (أيقونة صفحتي)
+  // العودة: إذا كانت صفحتي (socialHomeCard) مفتوحة مسبقاً، ارجع إليها — وإلا ارجع للوحة القيادة
   const socialHome = document.getElementById('socialHomeCard');
-  if(socialHome){
-    if(socialHome.style.display !== 'flex'){
+  if(socialHome && socialHome._wasOpenBeforeMessages){
+    socialHome._wasOpenBeforeMessages = false;
+    socialHome.style.display = 'flex';
+    socialHome.style.flexDirection = 'column';
+    // العودة لتبويب المسنجر في صفحتي
+    switchSocialTab && switchSocialTab('pages');
+  } else if(window._messagesOpenedFromSocial){
+    // فُتحت المحادثات من داخل صفحتي (مسنجر)
+    window._messagesOpenedFromSocial = false;
+    if(socialHome){
       socialHome.style.display = 'flex';
       socialHome.style.flexDirection = 'column';
+      switchSocialTab && switchSocialTab('pages');
     }
-    // الانتقال لتبويب "صفحتي"
-    switchSocialTab && switchSocialTab('myprofile');
-    refreshSocialMsgBadge && refreshSocialMsgBadge();
+  } else {
+    if(socialHome) socialHome.style.display = 'none';
+    const appEl = document.getElementById('app');
+    if(appEl){ appEl.style.display='block'; appEl.style.opacity='1'; }
   }
 }
 
@@ -8468,7 +8502,11 @@ function showSocialHome(){
 
 function hideSocialHome(){
   const el = document.getElementById('socialHomeCard');
-  if(el) el.style.display='none';
+  if(el){
+    // نحفظ علامة أن صفحتي كانت مفتوحة عند الانتقال للمحادثة
+    window._messagesOpenedFromSocial = true;
+    el.style.display='none';
+  }
 }
 
 function syncSocialAvatar(name){
@@ -11271,6 +11309,14 @@ function submitJoinUs(){
   });
   localStorage.setItem('nld_member_msgs', JSON.stringify(adminMsgs));
 
+  // 🔔 إطلاق إشعار Push فوري للمدير
+  if (typeof window.sendAdminPushNotif === 'function') {
+    window.sendAdminPushNotif(
+      '🤝 طلب انضمام جديد — Connect DZ',
+      `👤 ${userName} يرغب في الانضمام إلى Next Leaders DZ`
+    );
+  }
+
   closeJoinUsDialog();
   showToast('✅ تم إرسال طلبك للمدير! سيتم التواصل معك قريباً 🎉');
 }
@@ -11351,6 +11397,14 @@ function submitMemberQuestion(){
   });
   localStorage.setItem('nld_member_msgs', JSON.stringify(adminMsgs));
 
+  // 🔔 إطلاق إشعار Push فوري للمدير
+  if (typeof window.sendAdminPushNotif === 'function') {
+    window.sendAdminPushNotif(
+      '❓ سؤال جديد — Connect DZ',
+      `👤 ${userName}: ${text.substring(0, 70)}`
+    );
+  }
+
   closeAskQuestionDialog();
   showToast('✅ تم إرسال سؤالك للمدير! سيتم الرد عليك قريباً 🎉');
 }
@@ -11376,11 +11430,11 @@ function adminRenderQuestions(){
         <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#00e5a0,#00b894);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">❓</div>
         <div style="flex:1;">
           <div style="font-size:13px;font-weight:900;color:#050505;">${q.name}</div>
-          <div style="font-size:10px;color:#65676B;">${q.date} • ${q.time}</div>
+          <div style="font-size:10px;color:#1877F2;font-weight:700;">${q.date} • ${q.time}</div>
         </div>
         <div onclick="adminDeleteQuestion('${q.id}')" style="width:26px;height:26px;border-radius:50%;background:#FEE2E2;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;" title="حذف">🗑️</div>
       </div>
-      <div style="font-size:13px;color:#1a1a1a;line-height:1.6;padding:8px 10px;background:rgba(255,255,255,0.7);border-radius:10px;border:1px solid rgba(0,229,160,0.15);">${q.text}</div>
+      <div style="font-size:13px;color:#050505;font-weight:700;line-height:1.6;padding:8px 10px;background:rgba(255,255,255,0.7);border-radius:10px;border:1px solid rgba(0,229,160,0.15);">${q.text}</div>
     </div>
   `).join('');
 }
@@ -11404,6 +11458,278 @@ function _fbErrorHTML(msg){
     <div onclick="loadFbFeed()" style="margin-top:18px;background:#1877F2;color:white;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:800;cursor:pointer;">إعادة المحاولة</div>
   </div>`;
 }
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     🔔 نظام Push Notifications — إشعارات فورية مثل المسنجر
+     يُرسل إشعاراً على شاشة الهاتف عند كل رسالة جديدة
+     ══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  'use strict';
+
+  const DB_URL = "https://connectdz-49fab-default-rtdb.firebaseio.com";
+  // ✏️ ضع هنا مفتاح VAPID من Firebase Console > Project Settings > Cloud Messaging
+  const VAPID_KEY = 'YOUR_VAPID_KEY_HERE';
+
+  /* ── تحويل VAPID Key ── */
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    return new Uint8Array([...rawData].map(c => c.charCodeAt(0)));
+  }
+
+  /* ── طلب إذن الإشعارات وحفظ التوكن في Firebase ── */
+  async function requestPushPermission() {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+    if (VAPID_KEY === 'YOUR_VAPID_KEY_HERE') return; // لم يتم تعيين المفتاح بعد
+
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        console.log('🔕 رُفض إذن الإشعارات');
+        return;
+      }
+
+      const reg = await navigator.serviceWorker.ready;
+
+      // تحقق إذا كان Push مدعوماً
+      if (!reg.pushManager) return;
+
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_KEY)
+      });
+
+      // احفظ التوكن في Firebase مرتبطاً بالمستخدم
+      const userName = localStorage.getItem('sklab_user_name') || 'مجهول';
+      const safeKey = encodeURIComponent(userName).replace(/%/g,'~');
+      await fetch(`${DB_URL}/push_tokens/${safeKey}.json`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          sub: JSON.stringify(sub),
+          name: userName,
+          ts: Date.now(),
+          ua: navigator.userAgent.substring(0, 80)
+        })
+      });
+      console.log('✅ Push Token محفوظ في Firebase للمستخدم:', userName);
+    } catch(err) {
+      console.warn('⚠️ خطأ في Push:', err);
+    }
+  }
+
+  /* ── إشعار مباشر في المتصفح (بدون سيرفر) ── */
+  function showLocalNotification(title, body, tag) {
+    if (Notification.permission !== 'granted') return;
+    try {
+      // محاولة عبر Service Worker أولاً (يعمل حتى في الخلفية)
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then(reg => {
+          reg.showNotification(title, {
+            body: body,
+            icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" rx="20" fill="%231565c0"/%3E%3Ctext x="50" y="68" font-size="55" text-anchor="middle" fill="white" font-weight="900"%3ECDZ%3C/text%3E%3C/svg%3E',
+            badge: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="50" fill="%2300e5a0"/%3E%3Ctext x="50" y="67" font-size="55" text-anchor="middle" fill="white" font-weight="900"%3E!%3C/text%3E%3C/svg%3E',
+            tag: tag || 'cdz-notif',
+            renotify: true,
+            vibrate: [200, 100, 200, 100, 300],
+            dir: 'rtl',
+            lang: 'ar',
+            requireInteraction: false,
+            actions: [
+              { action: 'open', title: '📖 فتح التطبيق' },
+              { action: 'dismiss', title: '✕ تجاهل' }
+            ],
+            data: { url: window.location.href, ts: Date.now() }
+          });
+        }).catch(() => {
+          // fallback: إشعار عادي
+          new Notification(title, { body, tag: tag || 'cdz-notif', dir: 'rtl' });
+        });
+      } else {
+        new Notification(title, {
+          body: body,
+          tag: tag || 'cdz-notif',
+          dir: 'rtl',
+          lang: 'ar',
+          vibrate: [200, 100, 200]
+        });
+      }
+    } catch(e) {}
+  }
+
+  /* ── مراقبة الرسائل الجديدة عبر Firebase SSE ── */
+  let _lastMsgTs = Date.now(); // تجاهل الرسائل القديمة عند البدء
+  let _evtSource = null;
+  let _watchingMsgs = false;
+
+  function startWatchingMessages() {
+    if (_watchingMsgs) return;
+    _watchingMsgs = true;
+
+    // استخدام Firebase SSE للمراقبة الفورية
+    try {
+      _evtSource = new EventSource(`${DB_URL}/nld_member_msgs.json`);
+
+      _evtSource.addEventListener('put', (e) => {
+        try {
+          const payload = JSON.parse(e.data);
+          if (!payload.data) return;
+
+          let msgs = [];
+          if (typeof payload.data === 'string') {
+            msgs = JSON.parse(payload.data);
+          } else if (Array.isArray(payload.data)) {
+            msgs = payload.data;
+          } else if (typeof payload.data === 'object') {
+            msgs = Object.values(payload.data);
+          }
+
+          if (!Array.isArray(msgs) || msgs.length === 0) return;
+
+          // البحث عن رسائل أحدث من آخر وقت فحص
+          const newMsgs = msgs.filter(m => m && m.ts && m.ts > _lastMsgTs);
+          if (newMsgs.length === 0) return;
+
+          _lastMsgTs = Math.max(...msgs.map(m => m.ts || 0));
+
+          // إظهار إشعار لكل رسالة جديدة
+          newMsgs.forEach((msg, i) => {
+            setTimeout(() => {
+              const senderName = msg.from || 'منخرط';
+              const msgText = (msg.text || '').substring(0, 80);
+              const cleanText = msgText.replace(/\n/g, ' ');
+
+              showLocalNotification(
+                `💬 رسالة جديدة — Connect DZ`,
+                `👤 ${senderName}: ${cleanText}`,
+                `cdz-msg-${msg.ts}`
+              );
+
+              // تشغيل صوت إشعار خفيف
+              playNotifSound();
+            }, i * 800);
+          });
+
+        } catch(err) {}
+      });
+
+      _evtSource.onerror = () => {
+        // إعادة الاتصال بعد 5 ثوانٍ
+        _watchingMsgs = false;
+        if (_evtSource) { _evtSource.close(); _evtSource = null; }
+        setTimeout(startWatchingMessages, 5000);
+      };
+
+    } catch(err) {
+      _watchingMsgs = false;
+      console.warn('⚠️ خطأ في SSE:', err);
+    }
+  }
+
+  /* ── تشغيل نغمة إشعار خفيفة ── */
+  function playNotifSound() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.3);
+    } catch(e) {}
+  }
+
+  /* ── زر طلب الإذن يظهر للمستخدم ── */
+  function showNotifPermissionBanner() {
+    if (Notification.permission !== 'default') return;
+    if (localStorage.getItem('notif_banner_dismissed')) return;
+
+    setTimeout(() => {
+      const banner = document.createElement('div');
+      banner.id = 'notifPermBanner';
+      banner.style.cssText = `
+        position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+        z-index:99990;width:90%;max-width:380px;
+        background:linear-gradient(135deg,#0d1117,#161b22);
+        border:1.5px solid rgba(0,229,160,0.35);
+        border-radius:20px;padding:16px 18px;
+        box-shadow:0 20px 50px rgba(0,0,0,0.6),0 0 0 1px rgba(0,229,160,0.08) inset;
+        animation:notifBannerIn .4s cubic-bezier(.22,.68,0,1.2) both;
+        display:flex;align-items:center;gap:14px;
+        font-family:'Tajawal',sans-serif;
+      `;
+      banner.innerHTML = `
+        <style>
+          @keyframes notifBannerIn{from{opacity:0;transform:translateX(-50%) translateY(30px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+        </style>
+        <div style="font-size:32px;flex-shrink:0;">🔔</div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:900;color:#e8eaed;margin-bottom:3px;">فعّل الإشعارات</div>
+          <div style="font-size:11px;color:#8b949e;line-height:1.5;">احصل على إشعار فوري على شاشتك عند وصول رسالة جديدة</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;flex-shrink:0;">
+          <button id="notifAllowBtn" style="background:linear-gradient(135deg,#00e5a0,#00b894);border:none;border-radius:10px;padding:8px 14px;color:#050505;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;">تفعيل ✓</button>
+          <button id="notifDismissBtn" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:6px 10px;color:#8b949e;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">لاحقاً</button>
+        </div>
+      `;
+
+      document.body.appendChild(banner);
+
+      document.getElementById('notifAllowBtn').addEventListener('click', async () => {
+        banner.remove();
+        await requestPushPermission();
+        if (Notification.permission === 'granted') {
+          startWatchingMessages();
+          if (typeof showToast === 'function') showToast('🔔 تم تفعيل الإشعارات بنجاح!');
+        }
+      });
+
+      document.getElementById('notifDismissBtn').addEventListener('click', () => {
+        banner.remove();
+        localStorage.setItem('notif_banner_dismissed', '1');
+      });
+
+      // إخفاء تلقائي بعد 12 ثانية
+      setTimeout(() => { if (banner.parentNode) banner.remove(); }, 12000);
+    }, 3500);
+  }
+
+  /* ── تهيئة النظام عند تحميل الصفحة ── */
+  window.addEventListener('load', () => {
+    // انتظر حتى يسجل الدخول المستخدم
+    const waitForUser = setInterval(() => {
+      const userName = localStorage.getItem('sklab_user_name');
+      if (!userName) return;
+      clearInterval(waitForUser);
+
+      // إذا كان الإذن ممنوحاً مسبقاً — ابدأ المراقبة مباشرة
+      if (Notification.permission === 'granted') {
+        startWatchingMessages();
+        requestPushPermission(); // تجديد التوكن
+      } else {
+        // اعرض البانر لطلب الإذن
+        showNotifPermissionBanner();
+      }
+    }, 1000);
+  });
+
+  /* ── دالة عامة لإرسال إشعار يدوياً (للمدير) ── */
+  window.sendAdminPushNotif = function(title, body) {
+    showLocalNotification(title, body, 'admin-notif-' + Date.now());
+  };
+
+  /* ── تصدير دالة بدء المراقبة ── */
+  window.startPushWatcher = startWatchingMessages;
+
+  console.log('🔔 Push Notifications System: نشط');
+})();
 </script>
 
 <!-- ══════════════════════════════════════════════════════

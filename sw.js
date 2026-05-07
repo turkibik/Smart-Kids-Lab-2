@@ -1,76 +1,126 @@
-/* ══════════════════════════════════════════════
-   🔧 Connect DZ — Service Worker
-   يدعم: التخزين المؤقت + العمل أوفلاين
-   ══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   🔧 Service Worker — Connect DZ
+   يدعم: PWA Cache + Push Notifications الكاملة
+   ══════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'connectdz-v1';
+const CACHE_NAME = 'connectdz-v2';
+const ASSETS = ['/'];
 
-/* الملفات التي تُخزَّن فوراً عند التثبيت */
-const PRECACHE_URLS = [
-  '/'
-];
-
-/* ── التثبيت: تخزين الملفات الأساسية ── */
+/* ── تثبيت SW ── */
 self.addEventListener('install', event => {
-  console.log('[SW] Installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(PRECACHE_URLS);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
 
-/* ── التفعيل: حذف الكاش القديم ── */
+/* ── تفعيل SW ── */
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating...');
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
-      )
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
-/* ── الاعتراض: Network First ثم الكاش ── */
+/* ── استقبال طلبات الشبكة ── */
 self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-
-  /* تجاهل طلبات Firebase والـ APIs الخارجية */
-  if (
-    url.hostname.includes('firebase') ||
-    url.hostname.includes('firebaseio') ||
-    url.hostname.includes('googleapis') ||
-    event.request.method !== 'GET'
-  ) {
-    return;
-  }
+  if (event.request.method !== 'GET') return;
+  if (event.request.url.includes('firebaseio.com')) return; // لا تخزن Firebase مؤقتاً
 
   event.respondWith(
     fetch(event.request)
-      .then(networkResponse => {
-        /* احفظ نسخة في الكاش */
-        if (networkResponse && networkResponse.status === 200) {
-          const clone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, clone);
-          });
-        }
-        return networkResponse;
+      .then(res => {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        return res;
       })
-      .catch(() => {
-        /* إذا فشل الشبكة → ارجع من الكاش */
-        return caches.match(event.request).then(cached => {
-          if (cached) return cached;
-          /* صفحة أوفلاين احتياطية */
-          if (event.request.destination === 'document') {
-            return caches.match('/');
-          }
-        });
-      })
+      .catch(() => caches.match(event.request))
   );
+});
+
+/* ══════════════════════════════════════════════════════
+   🔔 Push Notifications
+   يستقبل الإشعارات حتى عندما يكون التطبيق في الخلفية
+   ══════════════════════════════════════════════════════ */
+
+self.addEventListener('push', event => {
+  let data = {
+    title: '💬 رسالة جديدة — Connect DZ',
+    body: 'لديك رسالة جديدة',
+    tag: 'cdz-push-' + Date.now(),
+    url: self.location.origin
+  };
+
+  if (event.data) {
+    try { Object.assign(data, event.data.json()); } catch(e) {}
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || self.location.origin + '/icon-192.png',
+    badge: data.badge || self.location.origin + '/icon-72.png',
+    tag: data.tag,
+    renotify: true,
+    vibrate: [200, 100, 200, 100, 300],
+    dir: 'rtl',
+    lang: 'ar',
+    requireInteraction: false,
+    silent: false,
+    actions: [
+      { action: 'open',    title: '📖 فتح التطبيق' },
+      { action: 'dismiss', title: '✕ تجاهل'        }
+    ],
+    data: { url: data.url || self.location.origin, ts: Date.now() }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+/* ── النقر على الإشعار ── */
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+
+  if (event.action === 'dismiss') return;
+
+  const targetUrl = (event.notification.data && event.notification.data.url)
+    ? event.notification.data.url
+    : self.location.origin;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      // إذا كان التطبيق مفتوحاً — أحضره للمقدمة
+      for (const client of list) {
+        if (client.url.includes(self.location.hostname) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // وإلا — افتح نافذة جديدة
+      return clients.openWindow(targetUrl);
+    })
+  );
+});
+
+/* ── إغلاق الإشعار ── */
+self.addEventListener('notificationclose', event => {
+  console.log('🔕 تم إغلاق الإشعار:', event.notification.tag);
+});
+
+/* ── رسائل من الصفحة الرئيسية ── */
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const { title, body, tag } = event.data;
+    self.registration.showNotification(title || '💬 Connect DZ', {
+      body: body || '',
+      tag: tag || 'cdz-manual',
+      dir: 'rtl',
+      lang: 'ar',
+      vibrate: [200, 100, 200],
+      icon: self.location.origin + '/icon-192.png',
+      data: { url: self.location.origin }
+    });
+  }
 });
