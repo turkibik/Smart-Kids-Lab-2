@@ -3387,13 +3387,13 @@ body.member-mode #onlineBar{
 
 <!-- ── نافذة إنشاء منشور اجتماعي ── -->
 <div id="socialCreatePostModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:5500;align-items:flex-end;justify-content:center;">
-  <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 28px;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;overflow:hidden;">
-    <div style="padding:14px 16px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;justify-content:space-between;">
+  <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 28px;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;overflow:hidden;max-height:92vh;display:flex;flex-direction:column;">
+    <div style="padding:14px 16px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
       <div onclick="closeSocialCreatePost()" style="width:30px;height:30px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;cursor:pointer;color:#050505;">✕</div>
       <div style="font-size:16px;font-weight:900;color:#050505;">إنشاء منشور</div>
       <button onclick="submitSocialPost()" style="background:#1877F2;border:none;border-radius:20px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;padding:7px 18px;cursor:pointer;">نشر</button>
     </div>
-    <div style="padding:14px 16px;">
+    <div style="padding:14px 16px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
         <div id="scpAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;">👑</div>
         <div>
@@ -3402,13 +3402,13 @@ body.member-mode #onlineBar{
         </div>
       </div>
       <div id="scpFeelBadge" style="display:none;background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;"></div>
-      <textarea id="scpTextInput" placeholder="بماذا تفكر؟" style="width:100%;border:none;background:transparent;color:#050505;font-family:'Tajawal',sans-serif;font-size:16px;outline:none;resize:none;min-height:100px;line-height:1.6;text-align:right;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <textarea id="scpTextInput" placeholder="بماذا تفكر؟" style="width:100%;border:none;background:transparent;color:#050505;font-family:'Tajawal',sans-serif;font-size:16px;outline:none;resize:none;min-height:120px;line-height:1.6;text-align:right;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,320)+'px'"></textarea>
       <div id="scpImagePreview" style="display:none;border-radius:12px;overflow:hidden;margin-top:8px;position:relative;">
         <img id="scpImagePreviewImg" style="width:100%;max-height:200px;object-fit:cover;">
         <div onclick="document.getElementById('scpImagePreview').style.display='none';_scpImageData=null;" style="position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:white;">✕</div>
       </div>
     </div>
-    <div style="display:flex;gap:8px;padding:0 16px;flex-wrap:wrap;">
+    <div style="display:flex;gap:8px;padding:0 16px;flex-wrap:wrap;flex-shrink:0;padding-bottom:8px;">
       <label style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#F0F2F5;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;">
         🖼️ صورة
         <input type="file" accept="image/*" style="display:none;" onchange="handleScpImage(event)">
@@ -3773,31 +3773,7 @@ body.member-mode #onlineBar{
   <div class="modal-content">
     <div class="modal-handle"></div>
     <div class="modal-title">🎯 اجمع النقاط</div>
-    <!-- بطاقة دليل النقاط الشاملة -->
-    <div id="pointsGuideCard" style="background:var(--surface2);border-radius:16px;padding:16px;margin-bottom:14px;border:1px solid rgba(245,197,24,0.3);max-height:220px;overflow-y:auto;">
-      <div style="font-size:13px;font-weight:900;color:#f5c518;margin-bottom:10px;">📊 جدول النقاط الكامل</div>
-      <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);line-height:1.8;">
-        <div style="font-weight:800;color:var(--text);font-size:11px;letter-spacing:1px;margin-top:4px;">📱 المنشورات والتفاعل</div>
-        <div>📝 نشر منشور — <b style="color:#f5c518;">+5 نقاط</b></div>
-        <div>💬 تعليق على منشور — <b style="color:#f5c518;">+3 نقاط</b> (حد أقصى 20 تعليق/يوم)</div>
-        <div>👍 إعجاب بمنشور — <b style="color:#f5c518;">+1 نقطة</b></div>
-        <div>↗️ مشاركة منشور — <b style="color:#f5c518;">+5 نقاط</b></div>
-        <div style="font-weight:800;color:var(--text);font-size:11px;letter-spacing:1px;margin-top:6px;">💬 المحادثات</div>
-        <div>📨 كل 10 رسائل نصية — <b style="color:#f5c518;">+5 نقاط</b></div>
-        <div>🖼️ إرسال صورة — <b style="color:#f5c518;">+2 نقطة</b></div>
-        <div>🎥 إرسال فيديو — <b style="color:#f5c518;">+5 نقاط</b></div>
-        <div style="font-weight:800;color:var(--text);font-size:11px;letter-spacing:1px;margin-top:6px;">🖼️ المعرض</div>
-        <div>📸 مشاهدة صورة (مرة واحدة) — <b style="color:#f5c518;">+1 نقطة</b></div>
-        <div>🎬 مشاهدة فيديو (مرة واحدة) — <b style="color:#f5c518;">+5 نقاط</b></div>
-        <div>🎵 استماع أغنية (مرة واحدة) — <b style="color:#f5c518;">+2 نقطة</b></div>
-        <div style="font-weight:800;color:var(--text);font-size:11px;letter-spacing:1px;margin-top:6px;">🏙️ زيارة الأيقونات</div>
-        <div>🏆 جدول الترتيب — <b style="color:#f5c518;">+5 نقاط/يوم</b></div>
-        <div>🎯 اجمع النقاط — <b style="color:#f5c518;">+5 نقاط/يوم</b></div>
-        <div>🕌 عالم المدينة — <b style="color:#f5c518;">+5 نقاط/يوم</b></div>
-        <div>🎬 شاهد واربح — <b style="color:#f5c518;">+5 نقاط/يوم</b></div>
-        <div>🏅 النشاطات — <b style="color:#f5c518;">+3 نقاط/يوم</b></div>
-      </div>
-    </div>
+    <!-- تم حذف بطاقة الإعلان عن جدول النقاط بناءً على طلب الإدارة -->
     <div id="quizContent"></div>
     <button class="modal-close" onclick="hideModal('quizCard')">إغلاق</button>
   </div>
@@ -3906,8 +3882,7 @@ body.member-mode #onlineBar{
       <div id="callBtn" onclick="startVoiceCall()" title="اتصال صوتي" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,200,100,0.12);border:1px solid rgba(0,200,100,0.3);cursor:pointer;font-size:17px;flex-shrink:0;transition:.2s;" onmouseover="this.style.background='rgba(0,200,100,0.25)'" onmouseout="this.style.background='rgba(0,200,100,0.12)'">📞</div>
       <!-- زر ثلاث نقاط -->
       <div id="chatDotsBtn" onclick="toggleChatDotsMenu()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.08);cursor:pointer;flex-shrink:0;transition:.2s;font-size:18px;letter-spacing:1px;color:#555;" onmouseover="this.style.background='rgba(0,0,0,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.06)'">⋮</div>
-      <!-- حظر مخفي (للبرمجة الداخلية فقط) -->
-      <div id="blockBtn" style="display:none;"></div>
+      <!-- blockBtn محذوف — الحظر انتقل لداخل قائمة ثلاث شرطات -->
     </div>
 
     <!-- قائمة ثلاث نقاط -->
@@ -3984,6 +3959,14 @@ body.member-mode #onlineBar{
         <div onclick="toggleBarsMenu()" id="barsMenuBtn" style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.07);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;transition:.2s;" title="قائمة">☰</div>
         <!-- قائمة الإيموجي داخل ثلاث شرطات -->
         <div id="barsMenuPanel" style="display:none;position:fixed;bottom:70px;left:8px;background:rgba(13,17,23,0.98);border:1px solid var(--border);border-radius:18px;padding:12px;box-shadow:0 -10px 40px rgba(0,0,0,0.6);z-index:10000;width:300px;backdrop-filter:blur(20px);animation:fadeUp .2s ease;">
+          <!-- زر الحظر داخل القائمة -->
+          <div onclick="closeBarsMenu();showBlockConfirm();" id="barsBlockBtn" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.2);cursor:pointer;margin-bottom:10px;transition:.15s;" onmouseover="this.style.background='rgba(229,45,39,0.15)'" onmouseout="this.style.background='rgba(229,45,39,0.08)'">
+            <span style="font-size:18px;">🚫</span>
+            <div style="flex:1;">
+              <div id="barsBlockLabel" style="font-size:13px;font-weight:800;color:#f87171;">حظر العضو</div>
+              <div style="font-size:11px;color:var(--muted);">منع إرسال واستقبال الرسائل</div>
+            </div>
+          </div>
           <div style="font-size:11px;font-weight:800;color:var(--accent);margin-bottom:10px;padding:0 2px;letter-spacing:1px;">اختر إيموجي</div>
           <div id="barsEmojiCategoryTabs" style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;">
             <div onclick="showBarsEmojiCategory('smileys')" class="bars-emj-cat active-bars" style="padding:4px 10px;background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.3);border-radius:20px;font-size:12px;cursor:pointer;white-space:nowrap;color:var(--accent);font-weight:700;">😊 مشاعر</div>
@@ -4789,7 +4772,12 @@ function updateProfilePageData(name){
   const bal = ((Math.max(0,sheetPts)/50)*30).toFixed(2); // الرصيد من نقاط الجدول فقط
 
   const setTxt = (id,v) => { const e=document.getElementById(id); if(e) e.innerText=v; };
-  setTxt('profilePageName', name);
+  const displayName = getDisplayName(name);
+  setTxt('profilePageName', displayName);
+  setTxt('scpName', displayName);
+  // تحديث اسم في القائمة الجانبية
+  const sideNameEl = document.getElementById('sideMenuName');
+  if(sideNameEl) sideNameEl.innerText = displayName;
   setTxt('ppStatPoints', pts.toLocaleString());
   setTxt('ppStatLevel', lv);
   setTxt('ppStatBalance', bal+' دج');
@@ -4877,10 +4865,18 @@ function handleCoverUpload(event){
 
 function showProfileEditMenu(){
   const name = getCurrentUser();
+  const displayName = localStorage.getItem('nld_display_name_'+name.replace(/\s+/g,'_')) || name;
   const n = document.createElement('div');
   n.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5000;display:flex;align-items:flex-end;justify-content:center;';
   n.innerHTML=`<div style="background:white;width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:20px;animation:slideUp .3s ease;">
     <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;text-align:center;">تعديل ملفك الشخصي</div>
+    <!-- تعديل اسم العرض -->
+    <div style="padding:12px;border-radius:12px;background:#F0F2F5;margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:800;color:#1877F2;margin-bottom:8px;">✏️ اسم العرض (يظهر في صفحتي والمحادثات فقط)</div>
+      <input id="_editDisplayNameInput" type="text" value="${displayName}" placeholder="اكتب اسم العرض…" style="width:100%;padding:10px 14px;border:1.5px solid #E4E6EB;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:14px;color:#050505;outline:none;" oninput="this.style.borderColor='#1877F2'">
+      <div style="font-size:11px;color:#65676B;margin-top:6px;">⚠️ لن يؤثر على اسمك في جدول الترتيب أو قائمة المنخرطين</div>
+      <button onclick="_saveDisplayName('${name}')" style="margin-top:10px;width:100%;padding:10px;background:#1877F2;border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;">حفظ الاسم</button>
+    </div>
     <div onclick="document.getElementById('profilePhotoInput').click();this.closest('[style*=fixed]').remove();" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=''">📷 تغيير صورة الملف الشخصي</div>
     <div onclick="document.getElementById('coverPhotoInput').click();this.closest('[style*=fixed]').remove();" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=''">🖼️ تغيير صورة الغلاف</div>
     <div onclick="resetMemberFiles()" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#e53935;" onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background=''">🔄 إعادة تسجيل الملفات (تصفير)</div>
@@ -4888,6 +4884,30 @@ function showProfileEditMenu(){
   </div>`;
   n.onclick = e=>{ if(e.target===n) n.remove(); };
   document.body.appendChild(n);
+}
+
+function _saveDisplayName(realName){
+  const input = document.getElementById('_editDisplayNameInput');
+  if(!input) return;
+  const val = input.value.trim();
+  if(!val){ showToast('⚠️ أدخل اسماً صالحاً'); return; }
+  const key = 'nld_display_name_'+realName.replace(/\s+/g,'_');
+  localStorage.setItem(key, val);
+  // تحديث صفحتي
+  const ppName = document.getElementById('profilePageName');
+  if(ppName) ppName.innerText = val;
+  // تحديث اسم القائمة الجانبية
+  const sideNameEl = document.getElementById('sideMenuName');
+  if(sideNameEl) sideNameEl.innerText = val;
+  // تحديث اسم المحادثات (chatTitle)
+  // لا نغير userNameTop (اسم النظام)
+  document.querySelectorAll('[style*="position:fixed"][style*="z-index:5000"]').forEach(el=>el.remove());
+  showToast('✅ تم حفظ اسم العرض: ' + val);
+}
+
+// دالة مساعدة: جلب اسم العرض
+function getDisplayName(realName){
+  return localStorage.getItem('nld_display_name_'+realName.replace(/\s+/g,'_')) || realName;
 }
 
 // تصفير ملفات المنخرط (الصورة الشخصية + الغلاف) لإعادة التسجيل
@@ -7497,9 +7517,7 @@ function openAdminChat(targetName, readOnly){
   cs.removeAttribute('data-spy-a');
   cs.removeAttribute('data-spy-b');
 
-  document.getElementById('chatTitle').innerText = targetName;
-  // تحديث نقطة الحالة في رأس المحادثة
-  const _statusDotEl = document.getElementById('chatStatusDot');
+  document.getElementById('chatTitle').innerText = getDisplayName(targetName);
   if(_statusDotEl){
     const _st = _getOnlineStatus(targetName);
     if(_st === 'online') { _statusDotEl.style.color='#22c55e'; _statusDotEl.innerHTML='● متصل الآن'; }
@@ -7795,7 +7813,7 @@ function showMsgMenu(e, msgId, msgText, isMe){
 
   const actions = [
     ...(_isAdmin ? [{ icon:'🗑️', label:'حذف للجميع', action:`deleteMsgForAll('${msgId}')`, color:'#f87171' }] : []),
-    ...(isMe && !_isAdmin ? [{ icon:'🗑️', label:'حذف الإرسال', action:`deleteMyMsg('${msgId}')`, color:'#f87171' }] : []),
+    // الرسائل لا تُحذف بين المنخرطين — تبقى دائماً
     { icon:'📋', label:'نسخ', action:`_copyMsgText('${msgText.replace(/'/g,"\'")}')` },
     { icon:'↪️', label:'إعادة توجيه', action:`_forwardMsg('${msgId}')` },
     { icon:'💾', label:'حفظ', action:`_saveMsgLocally('${msgId}')` },
@@ -7906,6 +7924,11 @@ function _copyMsgText(text){
   else { showToast('📋 تم النسخ'); }
 }
 
+function closeBarsMenu(){
+  const p = document.getElementById('barsMenuPanel');
+  if(p) p.style.display='none';
+}
+
 function toggleBarsMenu(){
   const panel = document.getElementById('barsMenuPanel');
   const attachMenu = document.getElementById('attachMenu');
@@ -7916,6 +7939,13 @@ function toggleBarsMenu(){
   const isOpen = panel.style.display !== 'none';
   panel.style.display = isOpen ? 'none' : 'block';
   if(!isOpen){
+    // تحديث نص زر الحظر
+    const myName = _isAdmin ? 'المدير' : getCurrentUser();
+    const target = _currentChatTarget;
+    if(target && myName){
+      const lbl = document.getElementById('barsBlockLabel');
+      if(lbl) lbl.innerText = isBlocked(myName, target) ? 'إلغاء الحظر' : 'حظر العضو';
+    }
     showBarsEmojiCategory('smileys');
     setTimeout(()=>{
       const close = (ev)=>{
@@ -10653,9 +10683,43 @@ function viewMemberProfile(memberName){
   if(coverImg){ coverImg.style.backgroundImage = cover ? 'url('+cover+')' : ''; }
 
   const nameEl = document.getElementById('mpvName');
-  if(nameEl) nameEl.innerText = memberName;
+  if(nameEl) nameEl.innerText = getDisplayName(memberName);
 
-  // زر الصداقة
+  // عرض معلومات الملف الشخصي الكاملة للأصدقاء فقط
+  const extInfo = document.getElementById('mpvExtendedInfo');
+  if(extInfo && myName){
+    const myFriends = getFriends(myName);
+    const isFriend = myFriends.includes(memberName);
+    if(isFriend){
+      // جلب نقاط وترتيب العضو
+      const memberPts = parseInt(localStorage.getItem('nld_earned_'+memberName.replace(/\s+/g,'_'))||'0');
+      const LEVEL_PTS = 3000;
+      const memberLevel = Math.floor(memberPts/LEVEL_PTS)+1;
+      extInfo.innerHTML = `
+        <div style="background:white;padding:14px 16px;border-bottom:8px solid #F0F2F5;">
+          <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:10px;">📊 إحصائيات ${getDisplayName(memberName)}</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
+              <div style="font-size:20px;margin-bottom:3px;">🏆</div>
+              <div style="font-size:15px;font-weight:900;color:#050505;">${memberPts.toLocaleString()}</div>
+              <div style="font-size:10px;color:#65676B;">النقاط</div>
+            </div>
+            <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
+              <div style="font-size:20px;margin-bottom:3px;">⭐</div>
+              <div style="font-size:15px;font-weight:900;color:#1877F2;">${memberLevel}</div>
+              <div style="font-size:10px;color:#65676B;">المستوى</div>
+            </div>
+            <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
+              <div style="font-size:20px;margin-bottom:3px;">✅</div>
+              <div style="font-size:15px;font-weight:900;color:#00c853;">صديق</div>
+              <div style="font-size:10px;color:#65676B;">الحالة</div>
+            </div>
+          </div>
+        </div>`;
+    } else {
+      extInfo.innerHTML = '';
+    }
+  }
   updateMpvFriendBtn(memberName);
 
   // منشورات العضو
@@ -14482,8 +14546,76 @@ const _cityData = {
 };
 
 /* ══════════════════════════════════════════════════════
-   🕌 فتح نافذة خانة عالم المدينة
+   🤖 النشر الآلي للصفحات الرسمية كل 5 ساعات
    ══════════════════════════════════════════════════════ */
+(function initAutoPagePosts(){
+  'use strict';
+  const AUTO_POST_KEY = 'nld_auto_post_last';
+  const AUTO_POST_INTERVAL = 5 * 60 * 60 * 1000; // 5 ساعات
+
+  const _autoPostTemplates = [
+    { author:'Next Leaders DZ الرسمية', pageIcon:'🏆', pageCover:'linear-gradient(135deg,#0f9b0f,#00c853)',
+      texts:[
+        '🌟 أهلاً بكم في منصة Next Leaders DZ!\nانضموا إلى مجتمع القادة الشباب وطوروا مهاراتكم كل يوم 💪',
+        '🎯 هل أنجزت مهمة اليوم؟\nتذكر: كل نقطة تقربك من المستوى التالي 🚀\n#NextLeaders #Algeria',
+        '📚 التعلم المستمر هو سر النجاح!\nاستثمر وقتك في اكتساب المعرفة والمهارات الجديدة 🧠✨',
+        '💡 نصيحة اليوم:\n"لا تقارن نفسك بالآخرين، قارن نفسك بنفسك أمس"\nاسعَ دائماً للتطور 🌱',
+        '🏅 برنامج النقاط:\n• المشاركة في الكويز ⭐\n• التفاعل مع المنشورات 🎉\n• التواجد اليومي 🔥\nاجمع نقاطك وارتقِ في الترتيب!',
+        '🇩🇿 Next Leaders DZ\nمنصة تطوير الذات للشباب الجزائري المتميز\nكن قائداً بالمعرفة والعمل والإخلاص 💫',
+        '✅ تحدي الأسبوع:\nأجب على 10 أسئلة في الكويز وحقق أعلى نقطة!\nمن سيكون في الصدارة هذا الأسبوع؟ 🥇',
+      ]
+    },
+    { author:'Smart Kids Lab الرسمية', pageIcon:'🧠', pageCover:'linear-gradient(135deg,#00c6ff,#0072ff)',
+      texts:[
+        '🔬 Smart Kids Lab\nبيئة الإبداع والابتكار للعقول الشابة!\nانضم إلينا وطور مهاراتك التكنولوجية والعلمية 💻',
+        '🧩 تعلم بذكاء!\nالتعلم الممتع يبقى أطول في الذاكرة\nجرب أساليب التعلم الجديدة اليوم 📱',
+        '💻 برمجة • ذكاء اصطناعي • روبوتيكس\nمستقبل التكنولوجيا بين أيدي الشباب 🚀\n#SmartKids #Tech #Algeria',
+      ]
+    }
+  ];
+
+  function _triggerAutoPost(){
+    const now = Date.now();
+    const last = parseInt(localStorage.getItem(AUTO_POST_KEY)||'0');
+    if(now - last < AUTO_POST_INTERVAL) return;
+
+    // نشر منشور لكل صفحة
+    const posts = getSocialPosts();
+    const nowDate = new Date().toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
+
+    _autoPostTemplates.forEach(page=>{
+      // اختر نصاً عشوائياً من القوالب
+      const idx = Math.floor(Math.random() * page.texts.length);
+      const text = page.texts[idx];
+      posts.push({
+        id: 'ap_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+        author: page.author,
+        text,
+        image: null,
+        feeling: null,
+        date: nowDate,
+        ts: Date.now(),
+        reactions:{},
+        comments:[],
+        isPage: true,
+        pageIcon: page.pageIcon,
+        pageCover: page.pageCover,
+        isAd: true
+      });
+    });
+
+    saveSocialPosts(posts);
+    localStorage.setItem(AUTO_POST_KEY, String(now));
+    // تحديث الفيد إن كان مفتوحاً
+    if(typeof renderSocialFeed === 'function') renderSocialFeed();
+    console.log('🤖 تم النشر الآلي للصفحات الرسمية');
+  }
+
+  // تشغيل عند فتح التطبيق
+  window.addEventListener('load', ()=>{ setTimeout(_triggerAutoPost, 3000); });
+  // فحص دوري كل دقيقتين
+  setInterval(_triggerAutoPost, 2 * 60 * 1000);
+})();
 function openCityFeature(key){
   ebPointsCityFeature(key, _cityData[key]?.title || key);
   const data = _cityData[key];
