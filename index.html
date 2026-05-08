@@ -2826,7 +2826,7 @@ body.member-mode #onlineBar{
       <div class="user-info-box">
         <!-- الأفاتار يعرض صورة أو رمز قيادة -->
         <div style="position:relative;display:inline-block;">
-          <div class="avatar" id="userInitial" onclick="document.getElementById('profilePhotoInput').click()" title="تغيير صورتك الشخصية" style="overflow:hidden;">👑
+          <div class="avatar" id="userInitial" onclick="openMyProfileFromAvatar()" title="ملفك الشخصي" style="overflow:hidden;">👑
             <div class="avatar-upload-btn">📷</div>
             <div class="online-dot" id="onlineDot" style="display:none;"></div>
           </div>
@@ -3773,6 +3773,31 @@ body.member-mode #onlineBar{
   <div class="modal-content">
     <div class="modal-handle"></div>
     <div class="modal-title">🎯 اجمع النقاط</div>
+    <!-- بطاقة دليل النقاط الشاملة -->
+    <div id="pointsGuideCard" style="background:var(--surface2);border-radius:16px;padding:16px;margin-bottom:14px;border:1px solid rgba(245,197,24,0.3);max-height:220px;overflow-y:auto;">
+      <div style="font-size:13px;font-weight:900;color:#f5c518;margin-bottom:10px;">📊 جدول النقاط الكامل</div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);line-height:1.8;">
+        <div style="font-weight:800;color:var(--text);font-size:11px;letter-spacing:1px;margin-top:4px;">📱 المنشورات والتفاعل</div>
+        <div>📝 نشر منشور — <b style="color:#f5c518;">+5 نقاط</b></div>
+        <div>💬 تعليق على منشور — <b style="color:#f5c518;">+3 نقاط</b> (حد أقصى 20 تعليق/يوم)</div>
+        <div>👍 إعجاب بمنشور — <b style="color:#f5c518;">+1 نقطة</b></div>
+        <div>↗️ مشاركة منشور — <b style="color:#f5c518;">+5 نقاط</b></div>
+        <div style="font-weight:800;color:var(--text);font-size:11px;letter-spacing:1px;margin-top:6px;">💬 المحادثات</div>
+        <div>📨 كل 10 رسائل نصية — <b style="color:#f5c518;">+5 نقاط</b></div>
+        <div>🖼️ إرسال صورة — <b style="color:#f5c518;">+2 نقطة</b></div>
+        <div>🎥 إرسال فيديو — <b style="color:#f5c518;">+5 نقاط</b></div>
+        <div style="font-weight:800;color:var(--text);font-size:11px;letter-spacing:1px;margin-top:6px;">🖼️ المعرض</div>
+        <div>📸 مشاهدة صورة (مرة واحدة) — <b style="color:#f5c518;">+1 نقطة</b></div>
+        <div>🎬 مشاهدة فيديو (مرة واحدة) — <b style="color:#f5c518;">+5 نقاط</b></div>
+        <div>🎵 استماع أغنية (مرة واحدة) — <b style="color:#f5c518;">+2 نقطة</b></div>
+        <div style="font-weight:800;color:var(--text);font-size:11px;letter-spacing:1px;margin-top:6px;">🏙️ زيارة الأيقونات</div>
+        <div>🏆 جدول الترتيب — <b style="color:#f5c518;">+5 نقاط/يوم</b></div>
+        <div>🎯 اجمع النقاط — <b style="color:#f5c518;">+5 نقاط/يوم</b></div>
+        <div>🕌 عالم المدينة — <b style="color:#f5c518;">+5 نقاط/يوم</b></div>
+        <div>🎬 شاهد واربح — <b style="color:#f5c518;">+5 نقاط/يوم</b></div>
+        <div>🏅 النشاطات — <b style="color:#f5c518;">+3 نقاط/يوم</b></div>
+      </div>
+    </div>
     <div id="quizContent"></div>
     <button class="modal-close" onclick="hideModal('quizCard')">إغلاق</button>
   </div>
@@ -3826,17 +3851,99 @@ body.member-mode #onlineBar{
 </div>
 
 <!-- شاشة 2: نافذة المحادثة الفردية -->
-<div id="chatScreen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:3000;background:linear-gradient(180deg,rgba(235,245,255,0.98) 0%,rgba(245,250,255,0.97) 100%);flex-direction:column;max-width:480px;left:50%;transform:translateX(-50%);">
+<style>
+/* ═══ قائمة ثلاث نقاط المحادثة ═══ */
+#chatDotsMenu{
+  display:none;position:fixed;top:64px;left:50%;transform:translateX(-50%);
+  width:calc(100% - 32px);max-width:448px;
+  background:rgba(255,255,255,0.98);
+  border:1px solid rgba(0,0,0,0.08);
+  border-radius:20px;padding:8px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.18);
+  z-index:9000;backdrop-filter:blur(20px);
+  animation:fadeUp .2s ease;
+}
+#chatDotsMenu.open{display:block;}
+.cdm-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;border-radius:13px;
+  cursor:pointer;transition:.15s;font-size:14px;
+  font-weight:700;color:#1C1E21;font-family:'Tajawal',sans-serif;
+}
+.cdm-item:hover{background:rgba(0,120,255,0.07);}
+.cdm-item .cdm-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+/* نافذة تغيير سمة المحادثة */
+#chatThemeModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);z-index:9500;align-items:flex-end;justify-content:center;}
+#chatThemeModal.open{display:flex;}
+.ctm-box{width:100%;max-width:480px;background:white;border-radius:24px 24px 0 0;padding:20px 16px 32px;animation:slideUp .3s cubic-bezier(.32,.72,0,1);}
+.ctm-handle{width:38px;height:4px;background:rgba(0,0,0,0.12);border-radius:10px;margin:0 auto 16px;}
+.ctm-title{font-size:16px;font-weight:900;color:#1C1E21;text-align:center;margin-bottom:16px;}
+.ctm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.ctm-swatch{height:60px;border-radius:14px;cursor:pointer;border:3px solid transparent;transition:.2s;position:relative;}
+.ctm-swatch.selected::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:22px;color:white;font-weight:900;text-shadow:0 2px 6px rgba(0,0,0,0.4);}
+.ctm-swatch:hover{transform:scale(1.05);}
+/* نافذة المحادثة السرية */
+#secretChatBanner{display:none;padding:8px 14px;background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(99,102,241,0.15));border-bottom:1px solid rgba(168,85,247,0.3);font-size:12px;font-weight:700;color:#7c3aed;text-align:center;flex-shrink:0;}
+/* لوحة الإيموجي السريع */
+#emojiQuickBar{display:none;padding:8px 12px;background:rgba(255,255,255,0.98);border-top:1px solid rgba(0,0,0,0.06);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
+#emojiQuickBar::-webkit-scrollbar{display:none;}
+.eqb-inner{display:flex;gap:6px;width:max-content;}
+.eqb-emoji{font-size:26px;cursor:pointer;padding:6px;border-radius:10px;transition:.15s;flex-shrink:0;}
+.eqb-emoji:hover{background:rgba(0,0,0,0.06);transform:scale(1.2);}
+</style>
+
+<div id="chatScreen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:3000;background:var(--chat-bg,linear-gradient(180deg,rgba(235,245,255,0.98) 0%,rgba(245,250,255,0.97) 100%));flex-direction:column;max-width:480px;left:50%;transform:translateX(-50%);">
+
     <!-- رأس المحادثة الفردية -->
     <div style="display:flex;align-items:center;gap:11px;padding:14px 16px 12px;background:rgba(255,255,255,0.97);border-bottom:1px solid rgba(0,0,0,0.08);backdrop-filter:blur(20px);flex-shrink:0;z-index:10;box-shadow:0 2px 12px rgba(0,0,0,0.05);">
       <div onclick="closeChatScreen()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,120,255,0.1);border:none;cursor:pointer;font-size:22px;flex-shrink:0;color:#0078FF;font-weight:700;">‹</div>
-      <div id="chatAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#00B2FF,#0078FF);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,120,255,0.35);border:2px solid rgba(0,120,255,0.2);">👤</div>
-      <div style="flex:1;">
+      <div id="chatAvatar" onclick="_goToChatProfile()" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#00B2FF,#0078FF);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,120,255,0.35);border:2px solid rgba(0,120,255,0.2);cursor:pointer;">👤</div>
+      <div style="flex:1;cursor:pointer;" onclick="_goToChatProfile()">
         <div style="font-size:15px;font-weight:900;color:#1C1E21;" id="chatTitle">…</div>
         <div id="chatStatusDot" style="font-size:11px;color:#0078FF;font-weight:700;">● متصل الآن</div>
       </div>
-      <!-- زر الحظر -->
-      <div id="blockBtn" onclick="showBlockConfirm()" title="حظر" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(229,45,39,0.12);border:1px solid rgba(229,45,39,0.3);cursor:pointer;font-size:17px;flex-shrink:0;transition:.2s;" onmouseover="this.style.background='rgba(229,45,39,0.22)'" onmouseout="this.style.background='rgba(229,45,39,0.12)'">🚫</div>
+      <!-- زر الاتصال -->
+      <div id="callBtn" onclick="startVoiceCall()" title="اتصال صوتي" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,200,100,0.12);border:1px solid rgba(0,200,100,0.3);cursor:pointer;font-size:17px;flex-shrink:0;transition:.2s;" onmouseover="this.style.background='rgba(0,200,100,0.25)'" onmouseout="this.style.background='rgba(0,200,100,0.12)'">📞</div>
+      <!-- زر ثلاث نقاط -->
+      <div id="chatDotsBtn" onclick="toggleChatDotsMenu()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.08);cursor:pointer;flex-shrink:0;transition:.2s;font-size:18px;letter-spacing:1px;color:#555;" onmouseover="this.style.background='rgba(0,0,0,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.06)'">⋮</div>
+      <!-- حظر مخفي (للبرمجة الداخلية فقط) -->
+      <div id="blockBtn" style="display:none;"></div>
+    </div>
+
+    <!-- قائمة ثلاث نقاط -->
+    <div id="chatDotsMenu">
+      <!-- تغيير سمة المحادثة -->
+      <div class="cdm-item" onclick="closeChatDotsMenu();openChatTheme()">
+        <div class="cdm-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);">🎨</div>
+        <div>
+          <div>تغيير سمة المحادثة</div>
+          <div style="font-size:11px;font-weight:600;color:#65676B;margin-top:1px;">تخصيص خلفية ولون الدردشة</div>
+        </div>
+      </div>
+      <!-- محادثة سرية -->
+      <div class="cdm-item" onclick="closeChatDotsMenu();toggleSecretChat()">
+        <div class="cdm-icon" style="background:linear-gradient(135deg,#a855f7,#6d28d9);">🔒</div>
+        <div>
+          <div id="secretChatLabel">تفعيل المحادثة السرية</div>
+          <div style="font-size:11px;font-weight:600;color:#65676B;margin-top:1px;">رسائل تختفي بعد 5 ثوانٍ</div>
+        </div>
+      </div>
+      <!-- قائمة الإيموجي السريعة -->
+      <div class="cdm-item" onclick="closeChatDotsMenu();toggleEmojiQuickBar()">
+        <div class="cdm-icon" style="background:linear-gradient(135deg,#f5c518,#f97316);">😊</div>
+        <div>
+          <div>قائمة الإيموجي السريعة</div>
+          <div style="font-size:11px;font-weight:600;color:#65676B;margin-top:1px;">اضغط على إيموجي لإرساله فوراً</div>
+        </div>
+      </div>
+      <!-- الملف الشخصي -->
+      <div class="cdm-item" onclick="closeChatDotsMenu();_goToChatProfile()">
+        <div class="cdm-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);">👤</div>
+        <div>
+          <div>الملف الشخصي</div>
+          <div style="font-size:11px;font-weight:600;color:#65676B;margin-top:1px;">زيارة صفحة العضو مباشرة</div>
+        </div>
+      </div>
     </div>
 
 <!-- نافذة تأكيد الحظر -->
@@ -3852,34 +3959,90 @@ body.member-mode #onlineBar{
   </div>
 </div>
 
+<!-- نافذة تغيير سمة المحادثة -->
+<div id="chatThemeModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="ctm-box">
+    <div class="ctm-handle"></div>
+    <div class="ctm-title">🎨 سمة المحادثة</div>
+    <div class="ctm-grid" id="chatThemeGrid"></div>
+    <button onclick="document.getElementById('chatThemeModal').classList.remove('open')" style="width:100%;padding:13px;background:#F0F2F5;border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;color:#65676B;cursor:pointer;">إغلاق</button>
+  </div>
+</div>
+
+    <!-- شريط المحادثة السرية -->
+    <div id="secretChatBanner">🔒 محادثة سرية — الرسائل تختفي بعد 5 ثوانٍ</div>
+    <!-- شريط الإيموجي السريع -->
+    <div id="emojiQuickBar"><div class="eqb-inner" id="emojiQuickInner"></div></div>
+
     <!-- منطقة الرسائل -->
     <div id="messagesContent" style="flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:6px;background:transparent;"></div>
 
     <!-- صندوق الكتابة -->
     <div id="chatInputArea" style="padding:10px 12px;background:rgba(255,255,255,0.97);border-top:1px solid rgba(0,0,0,0.08);display:flex;align-items:flex-end;gap:8px;flex-shrink:0;box-shadow:0 -2px 12px rgba(0,0,0,0.05);">
+      <!-- زر ثلاث شرطات — يحتوي قائمة الإيموجي -->
+      <div style="position:relative;flex-shrink:0;">
+        <div onclick="toggleBarsMenu()" id="barsMenuBtn" style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.07);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;transition:.2s;" title="قائمة">☰</div>
+        <!-- قائمة الإيموجي داخل ثلاث شرطات -->
+        <div id="barsMenuPanel" style="display:none;position:fixed;bottom:70px;left:8px;background:rgba(13,17,23,0.98);border:1px solid var(--border);border-radius:18px;padding:12px;box-shadow:0 -10px 40px rgba(0,0,0,0.6);z-index:10000;width:300px;backdrop-filter:blur(20px);animation:fadeUp .2s ease;">
+          <div style="font-size:11px;font-weight:800;color:var(--accent);margin-bottom:10px;padding:0 2px;letter-spacing:1px;">اختر إيموجي</div>
+          <div id="barsEmojiCategoryTabs" style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;">
+            <div onclick="showBarsEmojiCategory('smileys')" class="bars-emj-cat active-bars" style="padding:4px 10px;background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.3);border-radius:20px;font-size:12px;cursor:pointer;white-space:nowrap;color:var(--accent);font-weight:700;">😊 مشاعر</div>
+            <div onclick="showBarsEmojiCategory('gestures')" class="bars-emj-cat" style="padding:4px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;font-size:12px;cursor:pointer;white-space:nowrap;color:var(--muted);font-weight:700;">👋 حركات</div>
+            <div onclick="showBarsEmojiCategory('nature')" class="bars-emj-cat" style="padding:4px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;font-size:12px;cursor:pointer;white-space:nowrap;color:var(--muted);font-weight:700;">🌿 طبيعة</div>
+            <div onclick="showBarsEmojiCategory('objects')" class="bars-emj-cat" style="padding:4px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;font-size:12px;cursor:pointer;white-space:nowrap;color:var(--muted);font-weight:700;">🎯 أشياء</div>
+            <div onclick="showBarsEmojiCategory('flags')" class="bars-emj-cat" style="padding:4px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;font-size:12px;cursor:pointer;white-space:nowrap;color:var(--muted);font-weight:700;">🇩🇿 أعلام</div>
+          </div>
+          <div id="barsEmojiGrid" style="display:grid;grid-template-columns:repeat(8,1fr);gap:3px;max-height:180px;overflow-y:auto;scrollbar-width:thin;"></div>
+        </div>
+      </div>
+      <!-- زر المرفقات -->
       <div style="position:relative;flex-shrink:0;">
         <div onclick="toggleAttachMenu()" id="attachBtn" style="width:40px;height:40px;border-radius:50%;background:rgba(0,120,255,0.1);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:.2s;" title="إرفاق">📎</div>
         <div id="attachMenu" style="display:none;position:fixed;bottom:70px;background:rgba(13,17,23,0.97);border:1px solid var(--border);border-radius:16px;padding:8px;box-shadow:0 -10px 30px rgba(0,0,0,0.5);z-index:10000;white-space:nowrap;">
           <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
-            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:16px;">🖼️</span>صورة
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:16px;">🖼️</span>إرسال صورة
             <input type="file" accept="image/*" style="display:none;" onchange="handleMediaUpload(event,'image')">
           </label>
           <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
-            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:16px;">🎬</span>فيديو
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:16px;">🎬</span>إرسال فيديو
             <input type="file" accept="video/*" style="display:none;" onchange="handleMediaUpload(event,'video')">
           </label>
           <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
-            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:16px;">🎵</span>صوت
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#4caf50,#2e7d32);display:flex;align-items:center;justify-content:center;font-size:16px;">🎙️</span>إرسال صوت
             <input type="file" accept="audio/*" style="display:none;" onchange="handleMediaUpload(event,'audio')">
           </label>
-          <div onclick="startVoiceRecord()" style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
-            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:16px;">🎙️</span>تسجيل صوتي
+          <!-- إرسال مستندات — تفتح picker الهاتف -->
+          <div onclick="showDocSubMenu()" style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:16px;">📄</span>إرسال مستندات ›
           </div>
+        </div>
+        <!-- قائمة فرعية للمستندات -->
+        <div id="docSubMenu" style="display:none;position:fixed;bottom:70px;background:rgba(13,17,23,0.97);border:1px solid var(--border);border-radius:16px;padding:8px;box-shadow:0 -10px 30px rgba(0,0,0,0.5);z-index:10001;white-space:nowrap;">
+          <div onclick="document.getElementById('docSubMenu').style.display='none'" style="display:flex;align-items:center;gap:6px;padding:7px 13px;font-size:12px;font-weight:800;color:var(--accent);cursor:pointer;border-bottom:1px solid var(--border);margin-bottom:4px;">‹ رجوع</div>
+          <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:16px;">📕</span>PDF
+            <input type="file" accept=".pdf" style="display:none;" onchange="handleMediaUpload(event,'document')">
+          </label>
+          <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#2196f3,#1565c0);display:flex;align-items:center;justify-content:center;font-size:16px;">📝</span>Word
+            <input type="file" accept=".doc,.docx" style="display:none;" onchange="handleMediaUpload(event,'document')">
+          </label>
+          <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#4caf50,#2e7d32);display:flex;align-items:center;justify-content:center;font-size:16px;">📊</span>Excel
+            <input type="file" accept=".xls,.xlsx,.csv" style="display:none;" onchange="handleMediaUpload(event,'document')">
+          </label>
+          <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#ff5722,#bf360c);display:flex;align-items:center;justify-content:center;font-size:16px;">📑</span>PowerPoint
+            <input type="file" accept=".ppt,.pptx" style="display:none;" onchange="handleMediaUpload(event,'document')">
+          </label>
+          <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#9e9e9e,#424242);display:flex;align-items:center;justify-content:center;font-size:16px;">🗜️</span>ZIP / RAR
+            <input type="file" accept=".zip,.rar,.7z" style="display:none;" onchange="handleMediaUpload(event,'document')">
+          </label>
         </div>
       </div>
       <textarea id="replyText" placeholder="اكتب رسالة…" style="flex:1;background:#F0F2F5;border:none;border-radius:22px;padding:10px 16px;color:#1C1E21;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;resize:none;max-height:100px;min-height:40px;line-height:1.5;text-align:right;transition:all .2s;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
       <div onclick="sendChatMessage()" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00B2FF,#0078FF);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;box-shadow:0 4px 14px rgba(0,120,255,0.4);transition:.15s;" title="إرسال">➤</div>
-      <div id="micBtn" onclick="startVoiceRecord()" style="width:40px;height:40px;border-radius:50%;background:rgba(0,120,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;transition:.15s;border:none;" title="تسجيل صوتي">🎙️</div>
     </div>
 
     <!-- مؤشر التسجيل الصوتي -->
@@ -4447,12 +4610,12 @@ function buildGrid(isReg){
     [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,0.35)) drop-shadow(0 0 10px rgba(255,215,0,0.5));"><defs><linearGradient id="mg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f9b0f"/><stop offset="50%" stop-color="#f8fff8"/><stop offset="100%" stop-color="#e52d27"/></linearGradient><linearGradient id="mg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#16a34a"/></linearGradient><linearGradient id="mg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#b91c1c"/></linearGradient><radialGradient id="glow1" cx="50%" cy="30%" r="50%"><stop offset="0%" stop-color="rgba(255,255,255,0.9)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="26" cy="17" r="8.5" fill="url(#mg1)" opacity="0.97"/><circle cx="26" cy="17" r="8.5" fill="url(#glow1)" opacity="0.4"/><path d="M10 42 C10 31 42 31 42 42" fill="url(#mg1)" opacity="0.95"/><circle cx="13" cy="22" r="6" fill="url(#mg2)" opacity="0.88"/><path d="M2 38 C2 29.5 24 29.5 24 38" fill="url(#mg2)" opacity="0.75"/><circle cx="39" cy="22" r="6" fill="url(#mg3)" opacity="0.88"/><path d="M28 38 C28 29.5 50 29.5 50 38" fill="url(#mg3)" opacity="0.75"/><circle cx="26" cy="17" r="4" fill="rgba(255,255,255,0.3)"/></svg>`, labels[2], 'bg-3',"showModal('membersCard')",  true],
     ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="white"><path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z"/></svg>', labels[3], 'bg-4',"openMessages()", true],
     ['🌟', labels[4], 'bg-5',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform')", true],
-    ['🖼️',labels[5], 'bg-6',"window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3')", false],
+    ['🖼️',labels[5], 'bg-6',"_iconEnter('gallery_open');window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3')", false],
     [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 10px rgba(245,197,24,0.7)) drop-shadow(0 0 6px rgba(255,140,0,0.5));"><defs><radialGradient id="qg1" cx="50%" cy="30%" r="60%"><stop offset="0%" stop-color="#fff7aa"/><stop offset="60%" stop-color="#f5c518"/><stop offset="100%" stop-color="#f97316"/></radialGradient><radialGradient id="qg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(255,255,255,0.9)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient><filter id="qglow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><circle cx="26" cy="26" r="24" fill="url(#qg1)" filter="url(#qglow)"/><circle cx="26" cy="26" r="24" fill="url(#qg2)" opacity="0.5"/><polygon points="26,7 29,17 39.5,17 31,23.5 34,34 26,27.5 18,34 21,23.5 12.5,17 23,17" fill="white" opacity="0.95" filter="url(#qglow)"/><text x="26" y="45" text-anchor="middle" font-size="8" font-weight="900" fill="rgba(120,50,0,0.85)" font-family="Arial,sans-serif" letter-spacing="0.5">نقاط</text></svg>`, labels[6], 'bg-7',"showModal('quizCard')",    false],
     ['🏅', labels[7], 'bg-8',"showModal('activitiesCard')", false],
-    ['📱', labels[8], 'bg-9',"window.location.href='https://www.facebook.com/share/19UtXj8kRV/'", true],
+    ['📱', labels[8], 'bg-9',"ebPointsFacebook();window.location.href='https://www.facebook.com/share/19UtXj8kRV/'", true],
     ['🏛️', 'من نحن', 'bg-who',"showWhoWeAreModal()", true],
-    ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 8px rgba(240,147,251,0.6));"><defs><linearGradient id="mqg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f093fb"/><stop offset="100%" stop-color="#f5576c"/></linearGradient></defs><!-- القبة الرئيسية --><ellipse cx="26" cy="18" rx="9" ry="10" fill="url(#mqg1)" opacity="0.95"/><rect x="17" y="17" width="18" height="2" fill="url(#mqg1)"/><!-- الهلال --><text x="22.5" y="12" font-size="8" fill="white" opacity="0.9">☽</text><!-- المئذنة اليسار --><rect x="8" y="20" width="5" height="18" rx="2" fill="url(#mqg1)" opacity="0.9"/><ellipse cx="10.5" cy="20" rx="3" ry="4" fill="url(#mqg1)"/><rect x="9.5" y="14" width="2" height="6" fill="url(#mqg1)"/><!-- المئذنة اليمين --><rect x="39" y="20" width="5" height="18" rx="2" fill="url(#mqg1)" opacity="0.9"/><ellipse cx="41.5" cy="20" rx="3" ry="4" fill="url(#mqg1)"/><rect x="40.5" y="14" width="2" height="6" fill="url(#mqg1)"/><!-- البوابة --><rect x="13" y="19" width="26" height="19" rx="2" fill="url(#mqg1)" opacity="0.85"/><path d="M22 38 L22 28 Q26 23 30 28 L30 38 Z" fill="rgba(255,255,255,0.25)"/><!-- الأرضية --><rect x="6" y="38" width="40" height="3" rx="1.5" fill="white" opacity="0.4"/></svg>', 'عالم المدينة', 'bg-city',"showCityWorldModal()", true],
+    ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 8px rgba(240,147,251,0.6));"><defs><linearGradient id="mqg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f093fb"/><stop offset="100%" stop-color="#f5576c"/></linearGradient></defs><!-- القبة الرئيسية --><ellipse cx="26" cy="18" rx="9" ry="10" fill="url(#mqg1)" opacity="0.95"/><rect x="17" y="17" width="18" height="2" fill="url(#mqg1)"/><!-- الهلال --><text x="22.5" y="12" font-size="8" fill="white" opacity="0.9">☽</text><!-- المئذنة اليسار --><rect x="8" y="20" width="5" height="18" rx="2" fill="url(#mqg1)" opacity="0.9"/><ellipse cx="10.5" cy="20" rx="3" ry="4" fill="url(#mqg1)"/><rect x="9.5" y="14" width="2" height="6" fill="url(#mqg1)"/><!-- المئذنة اليمين --><rect x="39" y="20" width="5" height="18" rx="2" fill="url(#mqg1)" opacity="0.9"/><ellipse cx="41.5" cy="20" rx="3" ry="4" fill="url(#mqg1)"/><rect x="40.5" y="14" width="2" height="6" fill="url(#mqg1)"/><!-- البوابة --><rect x="13" y="19" width="26" height="19" rx="2" fill="url(#mqg1)" opacity="0.85"/><path d="M22 38 L22 28 Q26 23 30 28 L30 38 Z" fill="rgba(255,255,255,0.25)"/><!-- الأرضية --><rect x="6" y="38" width="40" height="3" rx="1.5" fill="white" opacity="0.4"/></svg>', 'عالم المدينة', 'bg-city',"ebPointsCity();showCityWorldModal()", true],
     ['🎬', 'شاهد واربح', 'bg-watch',"", false],
   ];
   grid.innerHTML=items.map(([icon,label,bg,action,open],idx)=>{
@@ -4555,8 +4718,14 @@ function showModal(id){
     adminRenderJoinRequests();
     adminRenderQuestions();
   }
+  // تسجيل وقت الدخول لحساب نقاط الزيارة
+  if(typeof _iconEnter === 'function') _iconEnter(id);
 }
-function hideModal(id){document.getElementById(id).style.display='none';}
+function hideModal(id){
+  document.getElementById(id).style.display='none';
+  // منح نقاط الزيارة عند الخروج من الأيقونة
+  if(typeof _iconLeave === 'function') _iconLeave(id);
+}
 
 /* ===================================================================
    👤 صفحتي – Facebook Style Profile
@@ -4809,12 +4978,16 @@ function addProfilePostReaction(ownerName, idx, emoji){
   const posts = JSON.parse(localStorage.getItem(getProfilePostsKey(ownerName)) || '[]');
   const post = posts[idx]; if(!post) return;
   if(!post.reactions) post.reactions={};
-  Object.keys(post.reactions).forEach(e=>{ post.reactions[e]=(post.reactions[e]||[]).filter(u=>u!==viewer); });
-  if(!post.reactions[emoji]) post.reactions[emoji]=[];
-  if(!post.reactions[emoji].includes(viewer)){
-    post.reactions[emoji].push(viewer);
-    if(ownerName!==viewer) addSocialNotif(ownerName, `${viewer} تفاعل مع منشورك بـ ${emoji}`, emoji);
+  // التحقق: هل سبق الإعجاب؟
+  const alreadyReacted = Object.values(post.reactions).flat().includes(viewer);
+  if(alreadyReacted) {
+    document.querySelectorAll('[id^="reactPicker_"]').forEach(el=>{ el.style.display='none'; });
+    return; // منع الإعجاب مرة ثانية
   }
+  if(!post.reactions[emoji]) post.reactions[emoji]=[];
+  post.reactions[emoji].push(viewer);
+  if(ownerName!==viewer) addSocialNotif(ownerName, `${viewer} تفاعل مع منشورك بـ ${emoji}`, emoji);
+  ebPointsLike();
   localStorage.setItem(getProfilePostsKey(ownerName), JSON.stringify(posts));
   document.querySelectorAll('[id^="reactPicker_"]').forEach(el=>{ el.style.display='none'; });
   renderProfilePosts(ownerName);
@@ -4830,6 +5003,7 @@ function submitProfileComment(ownerName, idx, postId){
   post.comments.push({ author:viewer, text, ts:Date.now() });
   localStorage.setItem(getProfilePostsKey(ownerName), JSON.stringify(posts));
   if(ownerName!==viewer) addSocialNotif(ownerName, `${viewer} علّق على منشورك: "${text.substring(0,30)}"`, '💬');
+  ebPointsComment();
   renderProfilePosts(ownerName);
   setTimeout(()=>{
     const section = document.getElementById('commentsSection_'+postId);
@@ -4840,6 +5014,7 @@ function submitProfileComment(ownerName, idx, postId){
 function shareProfilePost(ownerName, idx){
   const posts = JSON.parse(localStorage.getItem(getProfilePostsKey(ownerName)) || '[]');
   const post = posts[idx]; if(!post) return;
+  ebPointsShare();
   const text = `${ownerName}: ${post.text||''}`;
   if(navigator.share){ navigator.share({title:'Next Leaders DZ',text,url:window.location.href}).catch(()=>{}); }
   else { navigator.clipboard.writeText(text).then(()=>showToast('تم النسخ 📋')).catch(()=>showToast('تمت المشاركة ↗️')); }
@@ -4933,6 +5108,7 @@ function submitPost(){
     date: dateStr, ts: Date.now(), reactions:{}, comments:[]
   });
   saveSocialPosts(socialPosts);
+  ebPointsPost();
   closeCreatePost();
   renderProfilePosts(name);
   switchProfileTab('posts');
@@ -5954,6 +6130,193 @@ const quizCsvUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vQi_JTvEBgrlT-
 
 /* الحصول على اسم المستخدم الحالي */
 function getCurrentUser(){return document.getElementById("userNameTop").innerText||'guest';}
+
+/* ══════════════════════════════════════════════════════════════════
+   🏆 نظام نقاط الأوائل الـ15 — امتيازات المسجلين الأوائل
+   ══════════════════════════════════════════════════════════════════ */
+window._earlyBirdCache = null;
+
+async function isEarlyBirdUser(){
+  if(window._earlyBirdCache !== null) return window._earlyBirdCache;
+  const name = getCurrentUser();
+  if(!name || name === 'زائر' || name === 'المدير' || name === 'guest'){
+    window._earlyBirdCache = false; return false;
+  }
+  try{
+    const norm = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+    const csvParse = line => {
+      const res=[]; let cur=''; let q=false;
+      for(let i=0;i<=line.length;i++){
+        const ch=line[i];
+        if(ch==='"'){q=!q;}
+        else if((ch===','||ch===undefined)&&!q){res.push(cur.replace(/^"|"$/g,'').trim());cur='';}
+        else{cur+=ch||'';}
+      }
+      return res;
+    };
+    const r = await fetch(dataUrl).then(r=>r.text()).catch(()=>null);
+    if(!r){ window._earlyBirdCache=false; return false; }
+    const rows = r.split('\n').slice(1).filter(x=>x.trim());
+    const validRows = rows.filter(row=>{ const c=csvParse(row); return (c[2]||'').trim(); });
+    const myIdx = validRows.findIndex(row=>{ const c=csvParse(row); return norm(c[2]||'')===norm(name); });
+    window._earlyBirdCache = (myIdx >= 0 && myIdx < 15);
+    return window._earlyBirdCache;
+  }catch(e){ window._earlyBirdCache=false; return false; }
+}
+
+async function grantEarlyBirdPoints(activityKey, pts, dailyLimit, label){
+  try{
+    const isEarly = await isEarlyBirdUser();
+    if(!isEarly) return;
+    const name = getCurrentUser();
+    if(dailyLimit){
+      const storageKey = 'nld_eb_' + name.replace(/\s+/g,'_') + '_' + activityKey;
+      const lastTs = parseInt(localStorage.getItem(storageKey) || '0');
+      if(Date.now() - lastTs < 24*60*60*1000) return;
+      localStorage.setItem(storageKey, String(Date.now()));
+    }
+    addPointsInstant(pts);
+    showToast('\u2B50 +' + pts + ' \u0646\u0642\u0637\u0629 \u2014 ' + label);
+  }catch(e){}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   📊 نظام النقاط الشامل — جميع الأنشطة
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── حد التعليقات: 20 تعليق كل 24 ساعة ── */
+const COMMENT_DAILY_LIMIT = 20;
+function _getCommentCountToday(name){
+  const key = 'pts_comment_day_' + name.replace(/\s+/g,'_');
+  try{
+    const stored = JSON.parse(localStorage.getItem(key)||'{"count":0,"ts":0}');
+    if(Date.now() - stored.ts > 24*60*60*1000) return { count:0, ts:Date.now() };
+    return stored;
+  }catch(e){ return {count:0,ts:Date.now()}; }
+}
+function _incCommentCount(name){
+  const key = 'pts_comment_day_' + name.replace(/\s+/g,'_');
+  const d = _getCommentCountToday(name);
+  const newCount = (d.count||0)+1;
+  const ts = (Date.now() - d.ts > 24*60*60*1000) ? Date.now() : d.ts;
+  localStorage.setItem(key, JSON.stringify({count:newCount, ts}));
+  return newCount;
+}
+
+/* ── نقاط المنشورات والتفاعلات ── */
+function ebPointsComment(){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  const count = _incCommentCount(name);
+  if(count > COMMENT_DAILY_LIMIT){ return; }
+  addPointsInstant(3);
+}
+
+function ebPointsLike(){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  addPointsInstant(1);
+}
+
+function ebPointsPost(){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  addPointsInstant(5);
+}
+
+function ebPointsShare(){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  addPointsInstant(5);
+}
+
+function ebPointsStory(){ grantEarlyBirdPoints('story_'+Date.now(), 1, false, 'قصة'); }
+function ebPointsVisit(){ grantEarlyBirdPoints('daily_visit', 5, true, 'زيارة يومية'); }
+function ebPointsFacebook(){ grantEarlyBirdPoints('facebook_open', 10, true, 'فتح فيسبوك'); }
+
+/* ══════════════════════════════════════════════════════════════════
+   💬 نقاط المحادثات — 10 رسائل = 5 نقاط، صورة=2، فيديو=5
+   ══════════════════════════════════════════════════════════════════ */
+function _getChatMsgCount(me, other){
+  const key = 'pts_chat_msgcnt_' + me.replace(/\s+/g,'_') + '__' + other.replace(/\s+/g,'_');
+  return parseInt(localStorage.getItem(key)||'0');
+}
+function _setChatMsgCount(me, other, v){
+  const key = 'pts_chat_msgcnt_' + me.replace(/\s+/g,'_') + '__' + other.replace(/\s+/g,'_');
+  localStorage.setItem(key, String(v));
+}
+
+function ebPointsChatText(me, other){
+  if(!me||me==='زائر') return;
+  let cnt = _getChatMsgCount(me, other) + 1;
+  _setChatMsgCount(me, other, cnt);
+  if(cnt % 10 === 0){
+    addPointsInstant(5);
+  }
+}
+function ebPointsChatImage(){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  addPointsInstant(2);
+}
+function ebPointsChatVideo(){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  addPointsInstant(5);
+}
+
+/* دالة مؤقتة للتوافق */
+function ebPointsChat(){ /* يُستبدل بالدوال الجديدة */ }
+
+/* ══════════════════════════════════════════════════════════════════
+   🏙️ نقاط زيارة الأيقونات — تُعطى عند الخروج لتأكيد الزيارة
+   ══════════════════════════════════════════════════════════════════ */
+const _iconVisitTimes = {};
+const ICON_VISIT_PTS = {
+  'rankingCard':5, 'quizCard':5, 'activitiesCard':3,
+  'cityWorldModal':5, 'watchEarnModal':5, 'whoWeAreModal':3,
+  'membersCard':3
+};
+
+function _iconEnter(iconId){
+  _iconVisitTimes[iconId] = Date.now();
+}
+function _iconLeave(iconId){
+  const entered = _iconVisitTimes[iconId];
+  if(!entered) return;
+  const spent = Date.now() - entered;
+  delete _iconVisitTimes[iconId];
+  if(spent < 2000) return; // أقل من ثانيتين لا تُحتسب
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  const pts = ICON_VISIT_PTS[iconId];
+  if(!pts) return;
+  const storageKey = 'pts_icon_visit_' + name.replace(/\s+/g,'_') + '_' + iconId;
+  const lastTs = parseInt(localStorage.getItem(storageKey)||'0');
+  if(Date.now() - lastTs < 24*60*60*1000) return; // مرة واحدة كل 24 ساعة
+  localStorage.setItem(storageKey, String(Date.now()));
+  addPointsInstant(pts);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   🖼️ نقاط المعرض — صورة=1(مرة واحدة), فيديو=5(مرة واحدة), أغنية=2(مرة واحدة)
+   ══════════════════════════════════════════════════════════════════ */
+function _galleryOnce(type, itemKey, pts, label){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  const storageKey = 'pts_gallery_' + type + '_' + name.replace(/\s+/g,'_') + '_' + (itemKey||'');
+  if(localStorage.getItem(storageKey)) return; // سبق مشاهدته
+  localStorage.setItem(storageKey, '1');
+  addPointsInstant(pts);
+}
+function ebPointsGalleryImage(imgKey){ _galleryOnce('img', imgKey||('img_'+Date.now()), 1, 'مشاهدة صورة'); }
+function ebPointsGalleryVideo(vidKey){ _galleryOnce('vid', vidKey||('vid_'+Date.now()), 5, 'مشاهدة فيديو'); }
+function ebPointsGalleryAudio(audioKey){ _galleryOnce('aud', audioKey||('aud_'+Date.now()), 2, 'استماع أغنية'); }
+
+/* دالة قديمة للتوافق — فتح المعرض يمنح نقاط الزيارة فقط */
+function ebPointsGallery(){ _iconLeave('gallery_open'); }
+
+/* ══════════════════════════════════════════════════════════════════
+   🕌 نقاط عالم المدينة
+   ══════════════════════════════════════════════════════════════════ */
+function ebPointsCity(){ _iconEnter('cityWorldModal'); grantEarlyBirdPoints('city_visit', 5, true, 'زيارة عالم المدينة'); }
+function ebPointsCityFeature(k,n){
+  grantEarlyBirdPoints('city_feat_'+k, 5, true, n||'ميزة عالم المدينة');
+}
+/* ══════════════════════════════════════════════════════════════════ */
+
 /* مفتاح الأسئلة المجابة في localStorage */
 function getDoneKey(level){const u=getCurrentUser().replace(/\s+/g,'_');return `quiz_done_${u}_lvl${level}`;}
 /* جلب قائمة الأسئلة المجابة */
@@ -7190,6 +7553,7 @@ function openP2PChat(targetName, readOnly){
   cs.style.flexDirection = 'column';
 
   document.getElementById('chatTitle').innerText = targetName;
+  if(typeof _applySavedChatTheme==='function') _applySavedChatTheme();
   // تحديث نقطة الحالة في رأس المحادثة
   const _statusDotEl = document.getElementById('chatStatusDot');
   if(_statusDotEl){
@@ -7201,7 +7565,7 @@ function openP2PChat(targetName, readOnly){
   const chatAv = document.getElementById('chatAvatar');
   const chatPhoto = getProfilePhoto(targetName);
   if(chatPhoto){
-    chatAv.innerHTML = `<img src="${chatPhoto}" style="width:100%;height:100%;border-radius:13px;object-fit:cover;" alt="${targetName}">`;
+    chatAv.innerHTML = `<img src="${chatPhoto}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="${targetName}">`;
     chatAv.style.background = 'transparent';
   } else {
     chatAv.innerHTML = getLeaderIcon(targetName);
@@ -7281,16 +7645,39 @@ function adminSpyChat(memberA, memberB, convKey){
   if(blockedNoticeSpy) blockedNoticeSpy.remove();
 
   const msgs = _getP2PMsgs(memberA, memberB);
+
+  // إضافة الرسائل المحذوفة من سجل المدير
+  const adminLogKey = 'nld_admin_deleted_log';
+  let deletedLog = [];
+  try{ deletedLog = JSON.parse(localStorage.getItem(adminLogKey)||'[]'); }catch(e){}
+  const pairKeys = [convKey, _p2pKey(memberB, memberA)];
+  const deletedForThisPair = deletedLog.filter(m => pairKeys.includes(m._convKey));
+
+  // دمج الرسائل العادية والمحذوفة
+  const allMsgs = [...(msgs||[]), ...deletedForThisPair].sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
+
   const div = document.getElementById('messagesContent');
 
   // إضافة شريط المراقبة
-  const spyBanner = '<div style="background:rgba(229,45,39,0.12);border:1px solid rgba(229,45,39,0.3);border-radius:10px;padding:8px 14px;margin:10px 14px;font-size:11px;color:#f87171;font-weight:700;text-align:center;">🛡️ وضع المراقبة — هذه المحادثة بين عضوين</div>';
+  const spyBanner = '<div style="background:rgba(229,45,39,0.12);border:1px solid rgba(229,45,39,0.3);border-radius:10px;padding:8px 14px;margin:10px 14px;font-size:11px;color:#f87171;font-weight:700;text-align:center;">🛡️ وضع المراقبة — هذه المحادثة بين عضوين' + (deletedForThisPair.length>0 ? ` · <span style="color:#fbbf24;">${deletedForThisPair.length} رسالة محذوفة مرئية للمدير</span>` : '') + '</div>';
 
-  if(!msgs || msgs.length===0){
+  if(!allMsgs || allMsgs.length===0){
     div.innerHTML = spyBanner + `<div style="text-align:center;margin:auto;color:var(--muted);padding:30px 20px;"><div style="font-size:48px;margin-bottom:12px;">💬</div><div style="font-weight:700;">لا توجد رسائل بعد</div></div>`;
     return;
   }
-  div.innerHTML = spyBanner + msgs.map(m=>renderBubble(m, m.from===memberA)).join('');
+
+  div.innerHTML = spyBanner + allMsgs.map(m=>{
+    const isDeleted = !!m._deletedAt;
+    const bubble = renderBubble(m, m.from===memberA);
+    if(isDeleted){
+      // تغليف الرسالة المحذوفة بإطار خاص
+      return `<div style="position:relative;opacity:0.85;">
+        <div style="position:absolute;top:-2px;inset-inline-end:50%;transform:translateX(50%);background:rgba(251,191,36,0.9);color:#1a1a1a;font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;white-space:nowrap;z-index:5;">🗑️ محذوف — مرئي للمدير فقط</div>
+        <div style="border:1.5px dashed rgba(251,191,36,0.5);border-radius:14px;padding:6px;margin:6px 0;">${bubble}</div>
+      </div>`;
+    }
+    return bubble;
+  }).join('');
   setTimeout(()=>{ div.scrollTop=div.scrollHeight; },80);
 }
 
@@ -7354,6 +7741,15 @@ function renderBubble(m, isMe){
       mediaHtml=`<div style="padding:12px;background:rgba(255,255,255,0.05);border-radius:12px;margin-top:6px;font-size:12px;color:var(--muted);text-align:center;">🎬 فيديو<br><span style="font-size:10px;">متاح في هذه الجلسة فقط</span></div>`;
     }
 
+  } else if(m.mediaType==='document' && m.mediaData){
+    const ext = (m.fileName||'ملف').split('.').pop().toUpperCase();
+    const iconMap = {PDF:'📕',DOC:'📘',DOCX:'📘',XLS:'📗',XLSX:'📗',PPT:'📙',PPTX:'📙',TXT:'📄',CSV:'📊',ZIP:'🗜️',RAR:'🗜️'};
+    const fileIcon = iconMap[ext] || '📎';
+    mediaHtml=`<a href="${m.mediaData}" download="${m.fileName||'ملف'}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,0.08);border-radius:12px;margin-top:6px;text-decoration:none;border:1px solid rgba(255,255,255,0.12);">
+      <span style="font-size:28px;">${fileIcon}</span>
+      <div><div style="font-size:13px;font-weight:800;color:white;">${m.fileName||'ملف'}</div><div style="font-size:10px;color:rgba(255,255,255,0.6);">${ext} • اضغط للتنزيل</div></div>
+    </a>`;
+
   } else if((m.mediaType==='audio'||m.mediaType==='voice') && m.mediaData){
     mediaHtml=`<audio controls src="${m.mediaData}" style="width:220px;margin-top:6px;display:block;border-radius:10px;"></audio>`;
   }
@@ -7398,7 +7794,8 @@ function showMsgMenu(e, msgId, msgText, isMe){
   menu.style.cssText = `position:fixed;left:${Math.min(x, window.innerWidth-180)}px;top:${Math.min(y, window.innerHeight-200)}px;z-index:99999;background:rgba(30,30,40,0.97);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,0.6);min-width:160px;backdrop-filter:blur(20px);animation:fadeUp .15s ease;`;
 
   const actions = [
-    { icon:'🗑️', label:'حذف للجميع', action:`deleteMsgForAll('${msgId}')` },
+    ...(_isAdmin ? [{ icon:'🗑️', label:'حذف للجميع', action:`deleteMsgForAll('${msgId}')`, color:'#f87171' }] : []),
+    ...(isMe && !_isAdmin ? [{ icon:'🗑️', label:'حذف الإرسال', action:`deleteMyMsg('${msgId}')`, color:'#f87171' }] : []),
     { icon:'📋', label:'نسخ', action:`_copyMsgText('${msgText.replace(/'/g,"\'")}')` },
     { icon:'↪️', label:'إعادة توجيه', action:`_forwardMsg('${msgId}')` },
     { icon:'💾', label:'حفظ', action:`_saveMsgLocally('${msgId}')` },
@@ -7406,7 +7803,7 @@ function showMsgMenu(e, msgId, msgText, isMe){
 
   menu.innerHTML = actions.map(a=>`
     <div onclick="${a.action};document.getElementById('msgActionMenu')?.remove();"
-      style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;color:#e8eaed;transition:.1s;"
+      style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;color:${a.color||'#e8eaed'};transition:.1s;"
       onmouseover="this.style.background='rgba(255,255,255,0.08)'"
       onmouseout="this.style.background='transparent'">
       <span style="font-size:16px;">${a.icon}</span>${a.label}
@@ -7427,7 +7824,33 @@ async function deleteMsgForAll(msgId){
   const targetName = _currentChatTarget;
   if(!targetName && !_isAdmin) return;
 
-  // حذف من localStorage للطرفين
+  // حفظ نسخة المدير قبل الحذف (لأغراض المراقبة)
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith('nld_p2p_')){
+      let msgs = JSON.parse(localStorage.getItem(k)||'[]');
+      const msg = msgs.find(m => m.id === msgId);
+      if(msg){
+        // حفظ في سجل المدير للمراقبة (مع علامة "محذوف")
+        const adminLogKey = 'nld_admin_deleted_log';
+        let adminLog = JSON.parse(localStorage.getItem(adminLogKey)||'[]');
+        adminLog.push({ ...msg, _deletedAt: new Date().toISOString(), _deletedBy: myName, _convKey: k });
+        // الاحتفاظ بآخر 500 رسالة محذوفة فقط
+        if(adminLog.length > 500) adminLog = adminLog.slice(-500);
+        window.__lsNativeSet(adminLogKey, JSON.stringify(adminLog));
+        // تحديث Supabase بعلامة محذوف بدلاً من حذف فعلي — مرئي للمدير فقط
+        try{
+          await fetch(`${SUPABASE_URL}/rest/v1/messages?id=eq.${encodeURIComponent(msgId)}`, {
+            method: 'PATCH', headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+            body: JSON.stringify({ deleted_for_members: true, deleted_at: new Date().toISOString() })
+          });
+        }catch(e){}
+        break;
+      }
+    }
+  }
+
+  // حذف من localStorage للأعضاء (إخفاء من الواجهة)
   let changed = false;
   for(let i=0;i<localStorage.length;i++){
     const k = localStorage.key(i);
@@ -7442,15 +7865,8 @@ async function deleteMsgForAll(msgId){
     }
   }
 
-  // حذف من Supabase
-  try{
-    await fetch(`${SUPABASE_URL}/rest/v1/messages?id=eq.${encodeURIComponent(msgId)}`, {
-      method: 'DELETE', headers: SB_HEADERS
-    });
-  }catch(e){}
-
   if(changed){
-    // حذف من الواجهة
+    // حذف من الواجهة للأعضاء
     const wrap = document.querySelector(`[data-msg-id="${msgId}"]`);
     if(wrap){
       wrap.style.opacity='0';
@@ -7461,11 +7877,113 @@ async function deleteMsgForAll(msgId){
   }
 }
 
+function deleteMyMsg(msgId){
+  if(!msgId) return;
+  const myName = getCurrentUser();
+  let changed = false;
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith('nld_p2p_')){
+      let msgs = JSON.parse(localStorage.getItem(k)||'[]');
+      const before = msgs.length;
+      const msg = msgs.find(m=>m.id===msgId);
+      if(msg && msg.from===myName){
+        msgs = msgs.filter(m=>m.id!==msgId);
+        if(msgs.length!==before){ localStorage.setItem(k,JSON.stringify(msgs)); changed=true; }
+      }
+    }
+  }
+  if(changed){
+    const wrap=document.querySelector(`[data-msg-id="${msgId}"]`);
+    if(wrap){ wrap.style.opacity='0'; wrap.style.transition='opacity .2s ease'; setTimeout(()=>wrap.remove(),200); }
+    showToast('🗑️ تم حذف رسالتك');
+  }
+}
+
 function _copyMsgText(text){
   if(!text) return;
   if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>showToast('📋 تم نسخ الرسالة')).catch(()=>{}); }
   else { showToast('📋 تم النسخ'); }
 }
+
+function toggleBarsMenu(){
+  const panel = document.getElementById('barsMenuPanel');
+  const attachMenu = document.getElementById('attachMenu');
+  const docSub = document.getElementById('docSubMenu');
+  if(attachMenu) attachMenu.style.display='none';
+  if(docSub) docSub.style.display='none';
+  if(!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    showBarsEmojiCategory('smileys');
+    setTimeout(()=>{
+      const close = (ev)=>{
+        const btn=document.getElementById('barsMenuBtn');
+        if(!panel.contains(ev.target) && ev.target!==btn && !btn?.contains(ev.target)){
+          panel.style.display='none';
+          document.removeEventListener('click',close);
+        }
+      };
+      document.addEventListener('click',close);
+    },10);
+  }
+}
+
+const _barsEmojiData = {
+  smileys:['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😊','😇','🥰','😍','🤩','😘','😚','😋','😛','😜','🤪','😝','🤑','🤗','🤔','🤐','🤨','😐','😏','😒','🙄','😬','😔','😪','😴','😷','🤒','🤕','🤢','🥵','🥶','😵','🤯','🤠','🥳','😎','🤓','🧐','😈','👿','💀','💩','🤡','👹','👺','👻','👽','👾'],
+  gestures:['👋','🤚','🖐️','✋','🖖','👌','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','💪','🫶','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','☯️','🙏'],
+  nature:['🌸','🌺','🌻','🌹','🌷','🌼','🌾','🍀','🌿','🌱','🌲','🌳','🌴','🌵','🍄','💐','🍁','🍂','🍃','🌍','🌙','☀️','🌤️','⛅','🌧️','❄️','☃️','⛄','🌈','☔','⚡','🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐻‍❄️','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🦅','🦆','🦉','🦇','🐺','🐗'],
+  objects:['⚽','🏀','🏈','⚾','🎾','🏸','🎯','🎮','🕹️','🎲','♟️','🎭','🎨','🎬','🎤','🎧','🎵','🎶','🎷','🎸','🎹','🎺','🎻','🥁','📱','💻','🖥️','⌨️','🖱️','🖨️','📷','📸','📹','🎥','📞','☎️','📺','📻','🧭','⏰','⌚','💡','🔦','🕯️','🪔','🧲','🔋','💰','💳','📦','📫','📬','📭','✉️','📧'],
+  flags:['🇩🇿','🇸🇦','🇲🇦','🇹🇳','🇱🇾','🇲🇷','🇸🇩','🇪🇬','🇫🇷','🇬🇧','🇺🇸','🇩🇪','🇪🇸','🇮🇹','🇵🇹','🇷🇺','🇨🇳','🇯🇵','🇰🇷','🇧🇷','🇦🇺','🇨🇦','🇮🇳','🇮🇷','🇹🇷','🇵🇸','🇮🇶','🇾🇪','🇸🇾','🇯🇴','🇱🇧','🇰🇼','🇶🇦','🇦🇪','🇴🇲','🇧🇭']
+};
+
+function showBarsEmojiCategory(cat){
+  const grid = document.getElementById('barsEmojiGrid');
+  if(!grid) return;
+  const emojis = _barsEmojiData[cat] || _barsEmojiData.smileys;
+  grid.innerHTML = emojis.map(e=>`<div onclick="insertBarsEmoji('${e}')" style="font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;height:34px;border-radius:8px;transition:.1s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">${e}</div>`).join('');
+  document.querySelectorAll('.bars-emj-cat').forEach(el=>{
+    el.style.background='rgba(255,255,255,0.05)';
+    el.style.borderColor='rgba(255,255,255,0.1)';
+    el.style.color='var(--muted)';
+  });
+  const active = document.querySelector(`.bars-emj-cat[onclick*="'${cat}'"]`);
+  if(active){ active.style.background='rgba(0,229,160,0.15)'; active.style.borderColor='rgba(0,229,160,0.3)'; active.style.color='var(--accent)'; }
+}
+
+function insertBarsEmoji(emoji){
+  const ta = document.getElementById('replyText');
+  if(ta){
+    const start = ta.selectionStart||ta.value.length, end = ta.selectionEnd||ta.value.length;
+    ta.value = ta.value.substring(0,start) + emoji + ta.value.substring(end);
+    ta.selectionStart = ta.selectionEnd = start + emoji.length;
+    ta.focus();
+  }
+  const panel = document.getElementById('barsMenuPanel');
+  if(panel) panel.style.display='none';
+}
+
+function showDocSubMenu(){
+  const attachMenu = document.getElementById('attachMenu');
+  const docSub = document.getElementById('docSubMenu');
+  if(attachMenu) attachMenu.style.display='none';
+  if(docSub){
+    const btn = document.getElementById('attachBtn');
+    if(btn){
+      const rect = btn.getBoundingClientRect();
+      docSub.style.left = Math.max(4, rect.left - 10) + 'px';
+    }
+    docSub.style.display='block';
+    setTimeout(()=>{
+      const close=(ev)=>{
+        if(!docSub.contains(ev.target)){ docSub.style.display='none'; document.removeEventListener('click',close); }
+      };
+      document.addEventListener('click',close);
+    },10);
+  }
+}
+
 
 function _forwardMsg(msgId){
   if(!msgId) return;
@@ -7685,6 +8203,14 @@ async function sendChatMessage(){
   const txt = (document.getElementById('replyText')?.value||'').trim();
   if(!txt && !_mediaToSend) return;
 
+  // نقاط المحادثة حسب نوع الرسالة
+  if(_mediaToSend){
+    if(_mediaToSend.type==='video') ebPointsChatVideo();
+    else if(_mediaToSend.type==='image') ebPointsChatImage();
+  } else {
+    ebPointsChatText(myName, targetName);
+  }
+
   const isVideo = _mediaToSend?.type==='video';
   // للفيديو: استخدم msgId الموجود في _mediaToSend للربط مع الكاش
   const msgId = (isVideo && _mediaToSend.msgId) ? _mediaToSend.msgId : 'msg_'+Date.now();
@@ -7699,7 +8225,8 @@ async function sendChatMessage(){
     read: false,
     mediaType: _mediaToSend?.type||null,
     // فيديو: لا نخزّن data في localStorage — نعتمد على _videoBlobCache
-    mediaData: isVideo ? null : (_mediaToSend?.data||null)
+    mediaData: isVideo ? null : (_mediaToSend?.data||null),
+    fileName: _mediaToSend?.fileName || _mediaToSend?.name || null
   };
 
   // أضف فقاعة فوراً في الواجهة (قبل الحفظ)
@@ -7707,8 +8234,11 @@ async function sendChatMessage(){
   if(div.querySelector('[style*="margin:auto"]')||div.querySelector('[style*="padding:30px"]')) div.innerHTML='';
   const el = document.createElement('div');
   el.innerHTML = renderBubble(msgObj, true);
-  div.appendChild(el.firstElementChild);
+  const newBubble = el.firstElementChild;
+  div.appendChild(newBubble);
   div.scrollTop = div.scrollHeight;
+  // محادثة سرية: الفقاعة تختفي بعد 5 ثوانٍ
+  if(typeof _applySecretIfNeeded === 'function') _applySecretIfNeeded(newBubble);
 
   // حفظ في localStorage (بدون data الفيديو)
   try{
@@ -7901,6 +8431,10 @@ function adminHandleMedia(event, type){
 function toggleAttachMenu(){
   const m = document.getElementById('attachMenu');
   const btn = document.getElementById('attachBtn');
+  const barsPanel = document.getElementById('barsMenuPanel');
+  const docSub = document.getElementById('docSubMenu');
+  if(barsPanel) barsPanel.style.display='none';
+  if(docSub) docSub.style.display='none';
   if(m.style.display==='none'){
     m.style.display='block';
     const rect = btn.getBoundingClientRect();
@@ -7912,6 +8446,12 @@ function toggleAttachMenu(){
       m.style.left = rect.left + 'px';
       m.style.right = 'auto';
     }
+    setTimeout(()=>{
+      const close=(ev)=>{
+        if(!m.contains(ev.target)&&ev.target!==btn&&!btn.contains(ev.target)){ m.style.display='none'; document.removeEventListener('click',close); }
+      };
+      document.addEventListener('click',close);
+    },10);
   } else {
     m.style.display = 'none';
   }
@@ -7975,7 +8515,7 @@ function handleMediaUpload(event, type){
     event.target.value=''; return;
   }
 
-  // صوت: base64
+  // صوت أو مستند: base64
   let pct=0;
   const iv = setInterval(()=>{ pct=Math.min(pct+15,90); if(bar) bar.style.width=pct+'%'; },80);
   const reader = new FileReader();
@@ -7983,7 +8523,7 @@ function handleMediaUpload(event, type){
     clearInterval(iv);
     if(bar) bar.style.width='100%';
     setTimeout(()=>{ if(prog) prog.style.display='none'; if(bar) bar.style.width='0%'; },300);
-    _mediaToSend={type, data:e.target.result, name:file.name};
+    _mediaToSend={type, data:e.target.result, name:file.name, fileName:file.name};
     sendChatMessage();
   };
   reader.onerror=()=>{ clearInterval(iv); if(prog) prog.style.display='none'; showToast('❌ فشل رفع الملف'); };
@@ -7991,11 +8531,514 @@ function handleMediaUpload(event, type){
   event.target.value='';
 }
 
-/* ===== تسجيل صوتي ===== */
+/* ===================================================================
+   ⋮ قائمة ثلاث نقاط المحادثة - كل ميزات المحادثة
+   =================================================================== */
+
+/* فتح/إغلاق القائمة */
+function toggleChatDotsMenu(){
+  const menu = document.getElementById('chatDotsMenu');
+  if(!menu) return;
+  const open = menu.classList.contains('open');
+  menu.classList.toggle('open', !open);
+  if(!open){
+    setTimeout(()=>{
+      const close = (e)=>{ if(!menu.contains(e.target) && e.target.id!=='chatDotsBtn'){ menu.classList.remove('open'); document.removeEventListener('click',close); } };
+      document.addEventListener('click', close);
+    },10);
+  }
+}
+function closeChatDotsMenu(){
+  const menu = document.getElementById('chatDotsMenu');
+  if(menu) menu.classList.remove('open');
+}
+
+/* ═══ تغيير سمة المحادثة ═══ */
+const _chatThemes = [
+  { name:'زرقاء', bg:'linear-gradient(180deg,rgba(235,245,255,0.98) 0%,rgba(220,238,255,0.97) 100%)', msgMe:'linear-gradient(135deg,#0078FF,#00B2FF)' },
+  { name:'خضراء', bg:'linear-gradient(180deg,rgba(235,255,240,0.98) 0%,rgba(220,255,228,0.97) 100%)', msgMe:'linear-gradient(135deg,#00b894,#00c853)' },
+  { name:'بنفسجية', bg:'linear-gradient(180deg,rgba(245,235,255,0.98) 0%,rgba(235,220,255,0.97) 100%)', msgMe:'linear-gradient(135deg,#a855f7,#6d28d9)' },
+  { name:'وردية', bg:'linear-gradient(180deg,rgba(255,235,240,0.98) 0%,rgba(255,220,228,0.97) 100%)', msgMe:'linear-gradient(135deg,#f093fb,#f5576c)' },
+  { name:'دافئة', bg:'linear-gradient(180deg,rgba(255,248,235,0.98) 0%,rgba(255,240,215,0.97) 100%)', msgMe:'linear-gradient(135deg,#f5c518,#f97316)' },
+  { name:'ليلية', bg:'linear-gradient(180deg,#0d1117 0%,#161b22 100%)', msgMe:'linear-gradient(135deg,#00e5a0,#0099ff)' },
+  { name:'فجر', bg:'linear-gradient(180deg,rgba(255,240,245,0.98) 0%,rgba(240,245,255,0.97) 100%)', msgMe:'linear-gradient(135deg,#f43f5e,#8b5cf6)' },
+  { name:'طبيعة', bg:'linear-gradient(180deg,rgba(240,255,245,0.98) 0%,rgba(230,250,235,0.97) 100%)', msgMe:'linear-gradient(135deg,#11998e,#38ef7d)' },
+];
+
+function openChatTheme(){
+  const modal = document.getElementById('chatThemeModal');
+  const grid = document.getElementById('chatThemeGrid');
+  if(!modal || !grid) return;
+  const savedIdx = parseInt(localStorage.getItem('nld_chat_theme')||'0');
+  grid.innerHTML = _chatThemes.map((t,i)=>`
+    <div class="ctm-swatch ${i===savedIdx?'selected':''}" onclick="_applyChatTheme(${i})"
+      style="background:${t.bg};border-color:${i===savedIdx?'#0078FF':'transparent'};"
+      title="${t.name}">
+      <div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:60%;height:10px;border-radius:6px;background:${t.msgMe};box-shadow:0 2px 6px rgba(0,0,0,0.2);"></div>
+    </div>`).join('');
+  modal.classList.add('open');
+}
+
+function _applyChatTheme(idx){
+  const t = _chatThemes[idx];
+  if(!t) return;
+  const cs = document.getElementById('chatScreen');
+  if(cs) cs.style.background = t.bg;
+  localStorage.setItem('nld_chat_theme', String(idx));
+  localStorage.setItem('nld_chat_theme_bg', t.bg);
+  // تحديث الشبكة المحددة
+  document.querySelectorAll('.ctm-swatch').forEach((el,i)=>{
+    el.classList.toggle('selected', i===idx);
+    el.style.borderColor = i===idx ? '#0078FF' : 'transparent';
+  });
+  showToast('🎨 تم تطبيق السمة: '+t.name);
+}
+
+/* تطبيق السمة المحفوظة عند فتح المحادثة */
+function _applySavedChatTheme(){
+  const savedBg = localStorage.getItem('nld_chat_theme_bg');
+  if(savedBg){
+    const cs = document.getElementById('chatScreen');
+    if(cs) cs.style.background = savedBg;
+  }
+}
+
+/* ═══ المحادثة السرية ═══ */
+let _secretChatActive = false;
+let _secretTimers = {};
+
+function toggleSecretChat(){
+  _secretChatActive = !_secretChatActive;
+  const banner = document.getElementById('secretChatBanner');
+  const label = document.getElementById('secretChatLabel');
+  if(banner) banner.style.display = _secretChatActive ? 'block' : 'none';
+  if(label) label.innerText = _secretChatActive ? 'إلغاء المحادثة السرية ✓' : 'تفعيل المحادثة السرية';
+  showToast(_secretChatActive ? '🔒 المحادثة السرية مفعّلة — الرسائل تختفي بعد 5 ثوانٍ' : '🔓 تم إلغاء المحادثة السرية');
+}
+
+/* تفعيل الاختفاء على رسالة جديدة مرسلة */
+function _applySecretIfNeeded(bubbleEl){
+  if(!_secretChatActive) return;
+  if(!bubbleEl) return;
+  bubbleEl.style.transition = 'opacity 1s ease';
+  const timerId = setTimeout(()=>{
+    bubbleEl.style.opacity = '0';
+    setTimeout(()=>{ if(bubbleEl.parentNode) bubbleEl.remove(); }, 1000);
+  }, 5000);
+}
+
+/* ═══ قائمة الإيموجي السريعة ═══ */
+const _quickEmojis = ['😂','❤️','🔥','😍','👏','😊','🎉','💯','😮','😢','🙏','💪','✨','👍','🥳','😎','🤣','💙','💚','💛','🥰','😁','🤩','🎊','⭐','🌟','🚀','🎯','👌','💐','🌹','🦋','🌺','🎈','🍕','🎶','🤝','👋','💎','🏆'];
+
+function toggleEmojiQuickBar(){
+  const bar = document.getElementById('emojiQuickBar');
+  if(!bar) return;
+  const open = bar.style.display === 'flex';
+  if(!open){
+    const inner = document.getElementById('emojiQuickInner');
+    if(inner && !inner.children.length){
+      inner.innerHTML = _quickEmojis.map(em=>`<div class="eqb-emoji" onclick="_sendQuickEmoji('${em}')">${em}</div>`).join('');
+    }
+    bar.style.display = 'flex';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function _sendQuickEmoji(emoji){
+  const ta = document.getElementById('replyText');
+  if(ta){
+    ta.value = (ta.value || '') + emoji;
+    ta.focus();
+  }
+}
+
+/* ═══ منتقي الإيموجي الكامل ═══ */
+const _emojiCategories = {
+  smileys: ['😀','😁','😂','🤣','😃','😄','😅','😆','😊','🥰','😍','🤩','😘','😗','😙','😚','🙂','🤗','🤭','😎','🥳','😏','😢','😭','😤','😠','😡','🤬','😱','😨','😰','😥','😓','🤔','🤫','🤐','😶','😑','🤤','😴','🤒','🤕','🤧','🥵','🥶','😵','🤯','🤠','🥴','🤢','🤮','😇','🥺','😬','🤥'],
+  gestures: ['👋','🤚','🖐','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','☝️','👇','👍','👎','✊','👊','🤛','🤜','👏','🙌','🫶','🤝','🙏','💪','🦾','🦿','🖕','✍️','💅','🤳'],
+  nature: ['🌸','🌺','🌹','🌷','🌻','🌼','💐','🍀','🌿','🌱','🌲','🌳','🌴','🌵','🦋','🐝','🐞','🦊','🐺','🦁','🐯','🐻','🐼','🦄','🦋','🐸','🦎','🐢','🐠','🌍','☀️','🌤','⛅','🌥','☁️','🌦','🌧','⛈','🌩','🌨','❄️','🌊','🌬','🌀','🌈'],
+  objects: ['🎯','🎮','🕹','🎲','🧩','🏆','🥇','🎖','🏅','🎗','🎫','🎪','🎭','🎨','🖼','🎬','🎤','🎧','🎸','🎹','🎺','🥁','📱','💻','⌨️','🖥','🖨','🖱','💡','🔦','📚','📖','✏️','📝','🔒','🔑','💰','💎','⚽','🏀','🏈','⚾','🥎','🎾','🏐','🎱'],
+  flags: ['🇩🇿','🇸🇦','🇲🇦','🇹🇳','🇱🇾','🇲🇷','🇪🇬','🇶🇦','🇰🇼','🇦🇪','🇧🇭','🇴🇲','🇯🇴','🇱🇧','🇸🇾','🇮🇶','🇾🇪','🇵🇸','🇫🇷','🇬🇧','🇺🇸','🇩🇪','🇮🇹','🇪🇸','🇹🇷','🏴‍☠️']
+};
+let _emojiCurrentCat = 'smileys';
+
+function toggleEmojiPickerPanel(){
+  const panel = document.getElementById('emojiPickerPanel');
+  if(!panel) return;
+  const isOpen = panel.style.display === 'block';
+  // إغلاق قوائم أخرى
+  const attachMenu = document.getElementById('attachMenu');
+  if(attachMenu) attachMenu.style.display = 'none';
+  if(isOpen){
+    panel.style.display = 'none';
+  } else {
+    panel.style.display = 'block';
+    showEmojiCategory(_emojiCurrentCat);
+    setTimeout(()=>{
+      const close = (e)=>{
+        const btn = document.getElementById('emojiPickerBtn');
+        if(!panel.contains(e.target) && e.target !== btn && !btn?.contains(e.target)){
+          panel.style.display = 'none';
+          document.removeEventListener('click', close);
+        }
+      };
+      document.addEventListener('click', close);
+    }, 10);
+  }
+}
+
+function showEmojiCategory(cat){
+  _emojiCurrentCat = cat;
+  // تحديث التبويبات
+  document.querySelectorAll('.emj-cat').forEach(el=>{
+    const active = el.getAttribute('onclick').includes(`'${cat}'`);
+    el.style.background = active ? 'rgba(0,229,160,0.15)' : 'rgba(255,255,255,0.05)';
+    el.style.borderColor = active ? 'rgba(0,229,160,0.3)' : 'rgba(255,255,255,0.1)';
+    el.style.color = active ? 'var(--accent)' : 'var(--muted)';
+  });
+  const grid = document.getElementById('emojiGrid');
+  if(!grid) return;
+  const emojis = _emojiCategories[cat] || [];
+  grid.innerHTML = emojis.map(em=>`
+    <div onclick="insertEmoji('${em}')" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border-radius:8px;transition:.1s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">${em}</div>
+  `).join('');
+}
+
+function insertEmoji(emoji){
+  const ta = document.getElementById('replyText');
+  if(ta){
+    const pos = ta.selectionStart || ta.value.length;
+    ta.value = ta.value.slice(0,pos) + emoji + ta.value.slice(pos);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = pos + emoji.length;
+  }
+}
+
+/* ═══ التوجه للملف الشخصي ═══ */
+function _goToChatProfile(){
+  const target = _currentChatTarget;
+  if(!target) return;
+  closeChatScreen();
+  setTimeout(()=>{
+    if(typeof showSocialHome === 'function') showSocialHome();
+    setTimeout(()=>{
+      if(typeof viewMemberProfile === 'function') viewMemberProfile(target);
+      else if(typeof openUserProfileById === 'function') openUserProfileById(target);
+      else showToast('👤 ملف ' + target);
+    }, 300);
+  }, 200);
+}
+
+
+function openMyProfileFromAvatar(){
+  const name = getCurrentUser();
+  if(!name){ document.getElementById('profilePhotoInput').click(); return; }
+  if(typeof openSocialHome === 'function') openSocialHome();
+  setTimeout(()=>{
+    if(typeof viewMyOwnProfile === 'function') viewMyOwnProfile();
+    else if(typeof switchSocialTab === 'function') switchSocialTab('myprofile');
+  }, 300);
+}
+
+/* ===== زر الاتصال الصوتي في المحادثة ===== */
+function startVoiceCall(){
+  const target = _currentChatTarget;
+  if(!target){ showToast('⚠️ لا يوجد محادثة مفتوحة'); return; }
+  const old = document.getElementById('_voiceCallOverlay');
+  if(old){ old.remove(); return; }
+
+  /* ── نغمة الانتظار (Ringback Tone) ── */
+  let _ringCtx = null, _ringOscArr = [], _ringInterval = null;
+  function _startRingbackTone(){
+    try{
+      _ringCtx = new (window.AudioContext||window.webkitAudioContext)();
+      function _playRingPulse(){
+        if(!_ringCtx) return;
+        [440,480].forEach(freq=>{
+          const osc = _ringCtx.createOscillator();
+          const gain = _ringCtx.createGain();
+          osc.connect(gain); gain.connect(_ringCtx.destination);
+          osc.frequency.value = freq;
+          osc.type = 'sine';
+          gain.gain.setValueAtTime(0, _ringCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.06, _ringCtx.currentTime+0.05);
+          gain.gain.setValueAtTime(0.06, _ringCtx.currentTime+0.35);
+          gain.gain.linearRampToValueAtTime(0, _ringCtx.currentTime+0.45);
+          osc.start(_ringCtx.currentTime);
+          osc.stop(_ringCtx.currentTime+0.5);
+          _ringOscArr.push(osc);
+        });
+      }
+      _playRingPulse();
+      _ringInterval = setInterval(()=>{ if(_ringCtx) _playRingPulse(); }, 3000);
+    }catch(e){}
+  }
+  function _stopRingTones(){
+    if(_ringInterval){ clearInterval(_ringInterval); _ringInterval=null; }
+    _ringOscArr.forEach(o=>{ try{o.stop();}catch(e){} });
+    _ringOscArr=[];
+    if(_ringCtx){ _ringCtx.close().catch(()=>{}); _ringCtx=null; }
+  }
+
+  /* ── نغمة الاتصال عند المتصل به (Caller Ringtone) ── */
+  /* يُحاكى بالإشعار + نغمة محلية */
+  let _callerRingCtx = null, _callerRingInterval = null;
+  function _startCallerRingtone(){
+    try{
+      _callerRingCtx = new (window.AudioContext||window.webkitAudioContext)();
+      const callerTarget = target;
+      // نغمة رنين تقليدية (هاتف)
+      function _playCallerBell(){
+        if(!_callerRingCtx) return;
+        const freqs = [800, 960, 800, 960];
+        freqs.forEach((freq, i)=>{
+          const osc = _callerRingCtx.createOscillator();
+          const gain = _callerRingCtx.createGain();
+          osc.connect(gain); gain.connect(_callerRingCtx.destination);
+          osc.frequency.value = freq;
+          osc.type = 'sine';
+          const t = _callerRingCtx.currentTime + i * 0.2;
+          gain.gain.setValueAtTime(0, t);
+          gain.gain.linearRampToValueAtTime(0.12, t+0.03);
+          gain.gain.setValueAtTime(0.12, t+0.15);
+          gain.gain.linearRampToValueAtTime(0, t+0.18);
+          osc.start(t); osc.stop(t+0.2);
+        });
+      }
+      _playCallerBell();
+      _callerRingInterval = setInterval(()=>{ if(_callerRingCtx) _playCallerBell(); }, 2500);
+    }catch(e){}
+  }
+  function _stopCallerRingtone(){
+    if(_callerRingInterval){ clearInterval(_callerRingInterval); _callerRingInterval=null; }
+    if(_callerRingCtx){ _callerRingCtx.close().catch(()=>{}); _callerRingCtx=null; }
+  }
+
+  const callOv = document.createElement('div');
+  callOv.id = '_voiceCallOverlay';
+  callOv.style.cssText = 'position:fixed;inset:0;background:linear-gradient(135deg,#0a1628,#0d2040);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;animation:fadeIn .3s ease;';
+  const targetPhoto = localStorage.getItem('nld_photo_' + target.replace(/\s+/g,'_'));
+  const avatarHtml = targetPhoto
+    ? `<img src="${targetPhoto}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid rgba(0,229,160,0.5);">`
+    : `<div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#00e5a0,#0099ff);display:flex;align-items:center;justify-content:center;font-size:46px;">👤</div>`;
+  let _callSecs = 0, _callTimer = null, _callConnected = false;
+
+  callOv.innerHTML = `
+    <style>
+      @keyframes callRing{0%,100%{transform:scale(1);}20%{transform:scale(1.08);}40%{transform:scale(1);}}
+      @keyframes callWave{0%{opacity:0.6;transform:scale(1);}100%{opacity:0;transform:scale(1.8);}}
+    </style>
+    <div style="position:relative;display:flex;align-items:center;justify-content:center;">
+      <div style="position:absolute;width:120px;height:120px;border-radius:50%;border:2px solid rgba(0,229,160,0.5);animation:callWave 2s infinite;"></div>
+      <div style="position:absolute;width:140px;height:140px;border-radius:50%;border:2px solid rgba(0,229,160,0.3);animation:callWave 2s infinite .5s;"></div>
+      <div style="animation:callRing 2s infinite;">${avatarHtml}</div>
+    </div>
+    <div style="font-size:22px;font-weight:900;color:white;">${target}</div>
+    <div id="_callStatus" style="font-size:14px;color:rgba(255,255,255,0.6);">🔔 جاري الاتصال…</div>
+    <div id="_callTimer" style="font-size:28px;font-weight:900;color:#00e5a0;display:none;">0:00</div>
+    <div style="display:flex;gap:24px;margin-top:20px;">
+      <div onclick="_endVoiceCall()" style="width:64px;height:64px;border-radius:50%;background:#ef4444;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:28px;box-shadow:0 8px 24px rgba(239,68,68,0.5);">📵</div>
+      <div id="_callMuteBtn" onclick="_toggleCallMute(this)" data-muted="0" style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:28px;">🎤</div>
+      <div onclick="_toggleCallSpeaker(this)" data-speaker="0" style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:28px;">🔊</div>
+    </div>`;
+  document.body.appendChild(callOv);
+
+  // بدء نغمة الانتظار عند المتصِل
+  _startRingbackTone();
+  // إرسال طلب الاتصال للمتصَل به عبر Firebase
+  const myName = getCurrentUser() || 'المدير';
+  _sendCallRequest(target, myName);
+  // إرسال إشعار للمتصَل به (يُحاكى بـ Firebase + نغمة رنين)
+  _startCallerRingtone();
+
+  // بعد 4 ثواني → محاكاة رد المتصل به
+  const _connectTimeout = setTimeout(()=>{
+    _stopRingTones();
+    _stopCallerRingtone();
+    _callConnected = true;
+    const statusEl = document.getElementById('_callStatus');
+    const timerEl = document.getElementById('_callTimer');
+    if(statusEl) statusEl.innerText = '📞 متصل ✓';
+    if(timerEl) timerEl.style.display='block';
+    _callTimer = setInterval(()=>{
+      _callSecs++;
+      const m = Math.floor(_callSecs/60), s = _callSecs%60;
+      const tel = document.getElementById('_callTimer');
+      if(tel) tel.innerText = `${m}:${String(s).padStart(2,'0')}`;
+    }, 1000);
+  }, 4000);
+
+  window._endVoiceCall = function(){
+    clearTimeout(_connectTimeout);
+    if(_callTimer) clearInterval(_callTimer);
+    _stopRingTones();
+    _stopCallerRingtone();
+    callOv.style.opacity='0'; callOv.style.transition='opacity .3s ease';
+    setTimeout(()=>{ callOv.remove(); delete window._endVoiceCall; delete window._toggleCallMute; delete window._toggleCallSpeaker; }, 300);
+  };
+  window._toggleCallMute = function(btn){
+    btn.dataset.muted = btn.dataset.muted==='1'?'0':'1';
+    btn.style.background = btn.dataset.muted==='1'?'rgba(229,45,39,0.5)':'rgba(255,255,255,0.15)';
+    btn.innerText = btn.dataset.muted==='1'?'🔇':'🎤';
+  };
+  window._toggleCallSpeaker = function(btn){
+    btn.dataset.speaker = btn.dataset.speaker==='0'?'1':'0';
+    btn.style.background = btn.dataset.speaker==='1'?'rgba(0,229,160,0.3)':'rgba(255,255,255,0.15)';
+  };
+}
+
+/* ===== شاشة المتصل به (Incoming Call) ===== */
+function _showIncomingCall(callerName){
+  const old = document.getElementById('_incomingCallOverlay');
+  if(old) return; // مكالمة جارية بالفعل
+
+  // نغمة رنين عند المتصل به
+  let _inRingCtx = null, _inRingInterval = null;
+  function _startIncomingRing(){
+    try{
+      _inRingCtx = new (window.AudioContext||window.webkitAudioContext)();
+      function _playBell(){
+        if(!_inRingCtx) return;
+        const freqs = [880, 0, 880, 0, 1174, 0];
+        freqs.forEach((freq, i)=>{
+          if(!freq) return;
+          const osc = _inRingCtx.createOscillator();
+          const gain = _inRingCtx.createGain();
+          osc.connect(gain); gain.connect(_inRingCtx.destination);
+          osc.frequency.value = freq;
+          osc.type = 'sine';
+          const t = _inRingCtx.currentTime + i * 0.22;
+          gain.gain.setValueAtTime(0, t);
+          gain.gain.linearRampToValueAtTime(0.15, t+0.04);
+          gain.gain.setValueAtTime(0.15, t+0.18);
+          gain.gain.linearRampToValueAtTime(0, t+0.22);
+          osc.start(t); osc.stop(t+0.25);
+        });
+      }
+      _playBell();
+      _inRingInterval = setInterval(()=>{ if(_inRingCtx) _playBell(); }, 2200);
+    }catch(e){}
+  }
+  function _stopIncomingRing(){
+    if(_inRingInterval){ clearInterval(_inRingInterval); _inRingInterval=null; }
+    if(_inRingCtx){ _inRingCtx.close().catch(()=>{}); _inRingCtx=null; }
+  }
+
+  const callerPhoto = localStorage.getItem('nld_photo_' + callerName.replace(/\s+/g,'_'));
+  const avatarHtml = callerPhoto
+    ? `<img src="${callerPhoto}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid rgba(0,229,160,0.5);">`
+    : `<div style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#00e5a0,#0099ff);display:flex;align-items:center;justify-content:center;font-size:40px;">👤</div>`;
+
+  const inOv = document.createElement('div');
+  inOv.id = '_incomingCallOverlay';
+  inOv.style.cssText = 'position:fixed;inset:0;background:linear-gradient(135deg,#0a1628,#1a0a28);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;animation:fadeIn .3s ease;';
+  inOv.innerHTML = `
+    <style>@keyframes incRing{0%,100%{transform:rotate(-12deg);}50%{transform:rotate(12deg);}}</style>
+    <div style="font-size:52px;animation:incRing .5s infinite;">📲</div>
+    <div style="position:relative;">${avatarHtml}</div>
+    <div style="font-size:20px;font-weight:900;color:white;">${callerName}</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.6);">مكالمة واردة…</div>
+    <div style="display:flex;gap:40px;margin-top:16px;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div onclick="_rejectIncomingCall()" style="width:64px;height:64px;border-radius:50%;background:#ef4444;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:28px;box-shadow:0 8px 24px rgba(239,68,68,0.5);">📵</div>
+        <span style="font-size:11px;color:rgba(255,255,255,0.6);">رفض</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div onclick="_acceptIncomingCall('${callerName}')" style="width:64px;height:64px;border-radius:50%;background:#22c55e;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:28px;box-shadow:0 8px 24px rgba(34,197,94,0.5);">📞</div>
+        <span style="font-size:11px;color:rgba(255,255,255,0.6);">قبول</span>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(inOv);
+  _startIncomingRing();
+
+  // رفض تلقائي بعد 30 ثانية
+  const _autoReject = setTimeout(()=>{ _rejectIncomingCall(); }, 30000);
+
+  window._rejectIncomingCall = function(){
+    clearTimeout(_autoReject);
+    _stopIncomingRing();
+    inOv.style.opacity='0'; inOv.style.transition='opacity .3s';
+    setTimeout(()=>{ inOv.remove(); delete window._rejectIncomingCall; delete window._acceptIncomingCall; }, 300);
+    showToast('📵 تم رفض المكالمة');
+  };
+
+  window._acceptIncomingCall = function(caller){
+    clearTimeout(_autoReject);
+    _stopIncomingRing();
+    inOv.remove();
+    delete window._rejectIncomingCall;
+    delete window._acceptIncomingCall;
+    // فتح شاشة الاتصال المتصل
+    _currentChatTarget = caller;
+    startVoiceCall();
+  };
+}
+
+/* ===== إرسال طلب اتصال عبر Firebase ===== */
+function _sendCallRequest(toName, fromName){
+  const DB_URL = "https://connectdz-49fab-default-rtdb.firebaseio.com";
+  const callKey = encodeURIComponent(toName).replace(/%/g,'~');
+  fetch(`${DB_URL}/calls/${callKey}.json`, {
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ from: fromName, ts: Date.now(), status: 'ringing' })
+  }).catch(()=>{});
+}
+
+/* ===== الاستماع لطلبات الاتصال الواردة ===== */
+function _listenForCalls(myName){
+  if(!myName || myName==='المدير') return;
+  const DB_URL = "https://connectdz-49fab-default-rtdb.firebaseio.com";
+  const callKey = encodeURIComponent(myName).replace(/%/g,'~');
+  let _lastCallTs = 0;
+  setInterval(async ()=>{
+    try{
+      const res = await fetch(`${DB_URL}/calls/${callKey}.json`);
+      const data = await res.json();
+      if(data && data.from && data.ts && data.status === 'ringing'){
+        if(data.ts > _lastCallTs && (Date.now() - data.ts) < 35000){
+          _lastCallTs = data.ts;
+          if(!document.getElementById('_incomingCallOverlay') && !document.getElementById('_voiceCallOverlay')){
+            _showIncomingCall(data.from);
+            // مسح بعد 30 ثانية
+            setTimeout(()=>{
+              fetch(`${DB_URL}/calls/${callKey}.json`, {method:'DELETE'}).catch(()=>{});
+            }, 30000);
+          }
+        }
+      }
+    }catch(e){}
+  }, 5000);
+}
+
+
+let _isRecording = false;
+
+function toggleVoiceRecord(){
+  if(_isRecording){
+    stopVoiceRecord();
+  } else {
+    startVoiceRecord();
+  }
+}
+
 async function startVoiceRecord(){
   document.getElementById('attachMenu').style.display='none';
   try{
     const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    _isRecording = true;
+    // تغيير شكل الزر للإشارة أن التسجيل جارٍ
+    const micBtn = document.getElementById('micBtn');
+    if(micBtn){
+      micBtn.innerText = '⏹️';
+      micBtn.style.background = 'rgba(239,68,68,0.25)';
+      micBtn.style.boxShadow = '0 0 0 4px rgba(239,68,68,0.2)';
+      micBtn.style.animation = 'pulse 1s infinite';
+    }
+    const micDot = document.getElementById('micRecordingDot');
+    if(micDot) micDot.style.display = 'block';
     _recordedChunks=[]; _mediaRecorder = new MediaRecorder(stream);
     _mediaRecorder.ondataavailable = e=>{ if(e.data.size>0) _recordedChunks.push(e.data); };
     _mediaRecorder.start(); _voiceSeconds=0;
@@ -8005,11 +9048,22 @@ async function startVoiceRecord(){
       const mo=Math.floor(_voiceSeconds/60), s=_voiceSeconds%60;
       document.getElementById('voiceTimer').innerText=`${mo}:${String(s).padStart(2,'0')}`;
     },1000);
-  }catch(e){alert('لا يمكن الوصول إلى الميكروفون');}
+  }catch(e){
+    _isRecording = false;
+    if(e.name==='NotAllowedError') showToast('🚫 تم رفض إذن الميكروفون — اسمح من إعدادات المتصفح');
+    else if(e.name==='NotFoundError') showToast('🎙️ لم يُعثر على ميكروفون في جهازك');
+    else if(e.name==='NotSupportedError'||e.name==='SecurityError') showToast('⚠️ الميكروفون لا يعمل إلا على HTTPS');
+    else showToast('❌ خطأ في الميكروفون: ' + e.message);
+  }
 }
 
 function stopVoiceRecord(){
   if(!_mediaRecorder) return;
+  _isRecording = false;
+  const micBtn = document.getElementById('micBtn');
+  if(micBtn){ micBtn.innerText='🎙️'; micBtn.style.background='rgba(0,120,255,0.1)'; micBtn.style.boxShadow='none'; micBtn.style.animation='none'; }
+  const micDot2 = document.getElementById('micRecordingDot');
+  if(micDot2) micDot2.style.display='none';
   _mediaRecorder.onstop = ()=>{
     const blob = new Blob(_recordedChunks,{type:'audio/webm'});
     const reader = new FileReader();
@@ -8023,6 +9077,11 @@ function stopVoiceRecord(){
 }
 
 function cancelVoiceRecord(){
+  _isRecording = false;
+  const micBtn = document.getElementById('micBtn');
+  if(micBtn){ micBtn.innerText='🎙️'; micBtn.style.background='rgba(0,120,255,0.1)'; micBtn.style.boxShadow='none'; micBtn.style.animation='none'; }
+  const micDot3 = document.getElementById('micRecordingDot');
+  if(micDot3) micDot3.style.display='none';
   if(_mediaRecorder){ _mediaRecorder.stream.getTracks().forEach(t=>t.stop()); _mediaRecorder=null; }
   clearInterval(_voiceTimerInt); _recordedChunks=[];
   document.getElementById('voiceRecordBar').style.display='none';
@@ -8110,6 +9169,7 @@ let _visitStartTime = null;
 
 function trackVisitStart(name){
   _visitStartTime = new Date();
+  ebPointsVisit();
   try{
     // محاولة إرسال بيانات الزيارة لـ Apps Script (إذا كان الرابط مضبوطاً)
     if(activityApiUrl && !activityApiUrl.includes('YOUR_')) {
@@ -8754,12 +9814,21 @@ function applyLang(code, skipOverlay){
         <input type="file" accept="video/*" style="display:none;" onchange="handleMediaUpload(event,'video')">
       </label>
       <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
-        <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:16px;">🎵</span>${d.attachAudio}
-        <input type="file" accept="audio/*" style="display:none;" onchange="handleMediaUpload(event,'audio')">
+        <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:16px;">📄</span>PDF
+        <input type="file" accept=".pdf" style="display:none;" onchange="handleMediaUpload(event,'document')">
       </label>
-      <div onclick="startVoiceRecord()" style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
-        <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:16px;">🎙️</span>${d.attachVoice}
-      </div>`;
+      <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+        <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#2196f3,#1565c0);display:flex;align-items:center;justify-content:center;font-size:16px;">📝</span>Word
+        <input type="file" accept=".doc,.docx" style="display:none;" onchange="handleMediaUpload(event,'document')">
+      </label>
+      <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+        <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#4caf50,#2e7d32);display:flex;align-items:center;justify-content:center;font-size:16px;">📊</span>Excel
+        <input type="file" accept=".xls,.xlsx,.csv" style="display:none;" onchange="handleMediaUpload(event,'document')">
+      </label>
+      <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:var(--text);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+        <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#ff5722,#bf360c);display:flex;align-items:center;justify-content:center;font-size:16px;">📑</span>PowerPoint
+        <input type="file" accept=".ppt,.pptx" style="display:none;" onchange="handleMediaUpload(event,'document')">
+      </label>`;
   }
 
   // ترجمة الشبكة الاجتماعية (صفحتي)
@@ -9161,7 +10230,7 @@ function renderSocialPostCard(p){
     <!-- أزرار التفاعل -->
     <div style="display:flex;border-top:1px solid #E4E6EB;padding:2px 4px;">
       <div style="position:relative;flex:1;">
-        <div id="likeBtn_${p.id}" onmousedown="_startReactTimer('${p.id}')" onmouseup="_cancelReactTimer()" ontouchstart="_startReactTimer('${p.id}')" ontouchend="_cancelReactTimer()" onclick="_handleLikeClick('${p.id}')" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:${myReact?'#1877F2':'#65676B'};transition:.15s;user-select:none;-webkit-user-select:none;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div id="likeBtn_${p.id}" onmousedown="${myReact?'':'_startReactTimer(\''+p.id+'\')'}" onmouseup="${myReact?'':'_cancelReactTimer()'}" ontouchstart="${myReact?'':'_startReactTimer(\''+p.id+'\')'}" ontouchend="${myReact?'':'_cancelReactTimer()'}" onclick="${myReact?'':'_handleLikeClick(\''+p.id+'\')'}" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:${myReact?'default':'pointer'};font-size:13px;font-weight:700;color:${myReact?'#1877F2':'#65676B'};transition:.15s;user-select:none;-webkit-user-select:none;" ${myReact?'':'onmouseover="this.style.background=\'#F0F2F5\'" onmouseout="this.style.background=\'transparent\'"'}>
           ${myReact||'👍'} ${myReact?'معجب':'إعجاب'}
         </div>
         <div id="reactPicker_${p.id}" style="display:none;position:absolute;bottom:48px;left:50%;transform:translateX(-50%);background:white;border-radius:30px;padding:8px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.25);gap:8px;z-index:200;border:1px solid #E4E6EB;white-space:nowrap;flex-direction:row;animation:reactPickerIn .2s ease;">
@@ -9224,19 +10293,16 @@ function addReaction(postId, emoji){
   const post = posts.find(p=>p.id===postId);
   if(!post) return;
   if(!post.reactions) post.reactions = {};
-  // إزالة التفاعل السابق
-  Object.keys(post.reactions).forEach(e=>{
-    post.reactions[e] = (post.reactions[e]||[]).filter(u=>u!==name);
-  });
-  // إضافة التفاعل الجديد (أو إلغاؤه إذا هو نفس القديم)
+  // التحقق: هل سبق للمستخدم الإعجاب بهذا المنشور؟
+  const alreadyReacted = Object.values(post.reactions).flat().includes(name);
+  if(alreadyReacted) return; // منع الإعجاب مرة ثانية أو تغييره
+  // إضافة الإعجاب الجديد
   if(!post.reactions[emoji]) post.reactions[emoji]=[];
-  const alreadyReacted = post.reactions[emoji].includes(name);
-  if(!alreadyReacted){
-    post.reactions[emoji].push(name);
-    // إشعار لصاحب المنشور
-    if(post.author !== name) addSocialNotif(post.author, `${name} تفاعل مع منشورك بـ ${emoji}`, emoji);
-  }
+  post.reactions[emoji].push(name);
+  // إشعار لصاحب المنشور
+  if(post.author !== name) addSocialNotif(post.author, `${name} تفاعل مع منشورك بـ ${emoji}`, emoji);
   saveSocialPosts(posts);
+  ebPointsLike();
   // إخفاء picker وتحديث الكارت
   document.querySelectorAll('[id^="reactPicker_"]').forEach(el=>{ el.style.display='none'; });
   refreshPostCard(postId);
@@ -9276,6 +10342,7 @@ function submitComment(postId){
   if(inp) inp.value='';
   // إشعار لصاحب المنشور
   if(post.author !== name) addSocialNotif(post.author, `${name} علّق على منشورك: "${text.substring(0,30)}…"`, '💬');
+  ebPointsComment();
   refreshPostCard(postId);
   // إبقاء قسم التعليقات مفتوحاً
   const section = document.getElementById('commentsSection_'+postId);
@@ -9316,6 +10383,7 @@ function sharePost(postId){
   const posts = getSocialPosts();
   const post = posts.find(p=>p.id===postId);
   if(!post) return;
+  ebPointsShare();
   const text = `${post.author}: ${post.text||''}`;
   if(navigator.share){
     navigator.share({ title:'Next Leaders DZ', text, url: window.location.href }).catch(()=>{});
@@ -10024,6 +11092,7 @@ function _handleLikeClick(postId){
     // إضافة إعجاب
     post.reactions[defaultEmoji].push(name);
     if(post.author !== name) addSocialNotif(post.author, `${name} أعجب بمنشورك 👍`, '👍');
+    ebPointsLike();
     saveSocialPosts(posts);
     refreshPostCard(postId);
     // تأثير قفز صغير
@@ -10813,14 +11882,25 @@ function renderStoriesBar(myName){
   container.innerHTML = allUsersWithStories.map(({name: friend, stories: fStories})=>{
     const fPhoto = typeof getProfilePhoto==='function' ? getProfilePhoto(friend) : null;
     const fIcon = typeof getLeaderIcon==='function' ? getLeaderIcon(friend) : '👑';
-    const thumbContent = fPhoto
-      ? `<img src="${fPhoto}" style="width:100%;height:100%;object-fit:cover;">`
-      : `<span style="font-size:28px;">${fIcon}</span>`;
+    const lastStory = fStories[fStories.length-1];
+    let thumbBg = 'linear-gradient(135deg,#1877F2,#00c853)';
+    let thumbContent;
+    if(lastStory && lastStory.type === 'text'){
+      thumbBg = lastStory.bgColor || thumbBg;
+      thumbContent = `<span style="font-size:14px;font-weight:900;color:white;padding:4px;text-align:center;word-break:break-word;">${(lastStory.text||'').substring(0,20)}</span>`;
+    } else if(lastStory && lastStory.type === 'audio'){
+      thumbBg = lastStory.bgColor || 'linear-gradient(135deg,#11998e,#38ef7d)';
+      thumbContent = `<span style="font-size:32px;">🎙️</span>`;
+    } else if(fPhoto){
+      thumbContent = `<img src="${fPhoto}" style="width:100%;height:100%;object-fit:cover;">`;
+    } else {
+      thumbContent = `<span style="font-size:28px;">${fIcon}</span>`;
+    }
     const shortName = friend.split(' ')[0];
     const safeFriend = friend.replace(/'/g,"\\'");
     return `<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;" onclick="_showStoryViewer('${safeFriend}',getMyStories('${safeFriend}').filter(s=>Date.now()<s.expires),0)">
       <div style="position:relative;width:68px;height:110px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#e3f0ff,#c8dfff);border:2.5px solid #1877F2;">
-        <div style="width:100%;height:70%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);">${thumbContent}</div>
+        <div style="width:100%;height:70%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:${thumbBg};">${thumbContent}</div>
         <div style="position:absolute;bottom:0;width:100%;height:40%;background:white;display:flex;align-items:center;justify-content:center;padding:0 3px;">
           <span style="font-size:9px;font-weight:700;color:#050505;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;padding:0 3px;">${shortName}</span>
         </div>
@@ -10864,31 +11944,421 @@ function _refreshMyStoryAvatar(name){
 function addMyStory(){
   const name = getCurrentUser(); if(!name) return;
 
-  // نافذة اختيار نوع القصة
-  const chooser = document.createElement('div');
-  chooser.id = '_storyTypeChooser';
-  chooser.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(12px);z-index:99999;display:flex;align-items:flex-end;justify-content:center;';
-  chooser.innerHTML = `
-    <div style="background:var(--surface);width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:22px 18px 36px;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;">
-      <div style="width:38px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 18px;"></div>
-      <div style="font-size:16px;font-weight:900;color:var(--text);text-align:center;margin-bottom:6px;">📸 أضف قصة</div>
-      <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:18px;">اختر نوع القصة</div>
-      <div style="display:flex;gap:12px;margin-bottom:14px;">
-        <div onclick="_pickStoryType('image')" style="flex:1;padding:18px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:18px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.5)'" onmouseout="this.style.borderColor='var(--border)'">
-          <span style="font-size:34px;">🖼️</span>
-          <div style="font-size:13px;font-weight:800;color:var(--text);">صورة</div>
-          <div style="font-size:10px;color:var(--muted);text-align:center;">من معرض الهاتف</div>
+  const old = document.getElementById('_storyTypeModal');
+  if(old) old.remove();
+
+  const modal = document.createElement('div');
+  modal.id = '_storyTypeModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;animation:fadeIn .2s ease;';
+  modal.innerHTML = `
+    <div style="width:100%;max-width:480px;background:#18191A;border-radius:24px 24px 0 0;padding:20px 16px 36px;animation:slideUp .3s cubic-bezier(.32,.72,0,1);">
+      <div style="width:38px;height:4px;background:rgba(255,255,255,0.18);border-radius:10px;margin:0 auto 20px;"></div>
+      <div style="font-size:18px;font-weight:900;color:white;margin-bottom:18px;text-align:center;letter-spacing:-.3px;">✨ إنشاء قصة</div>
+
+      <!-- 📸 كاميرا فورية -->
+      <div onclick="document.getElementById('_storyTypeModal').remove();_openInstantCamera('${name.replace(/'/g,"\\'")}');" style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:linear-gradient(135deg,rgba(24,119,242,0.25),rgba(0,120,255,0.15));border:1.5px solid rgba(24,119,242,0.45);border-radius:18px;cursor:pointer;margin-bottom:10px;transition:.2s;" onmouseover="this.style.background='rgba(24,119,242,0.35)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(24,119,242,0.25),rgba(0,120,255,0.15))'">
+        <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#1877F2,#00B2FF);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;box-shadow:0 6px 16px rgba(24,119,242,0.4);">📸</div>
+        <div style="flex:1;">
+          <div style="font-size:16px;font-weight:900;color:white;margin-bottom:3px;">كاميرا فورية</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);">التقط صورة أو سجّل فيديو الآن</div>
         </div>
-        <div onclick="_pickStoryType('video')" style="flex:1;padding:18px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:18px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.5)'" onmouseout="this.style.borderColor='var(--border)'">
-          <span style="font-size:34px;">🎬</span>
-          <div style="font-size:13px;font-weight:800;color:var(--text);">فيديو</div>
-          <div style="font-size:10px;color:var(--muted);text-align:center;">حتى 60 ثانية</div>
+        <div style="font-size:20px;color:rgba(255,255,255,0.5);">›</div>
+      </div>
+
+      <!-- 🖼️ صورة أو فيديو من الهاتف -->
+      <label style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:18px;cursor:pointer;margin-bottom:10px;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+        <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;box-shadow:0 6px 16px rgba(79,172,254,0.4);">🖼️</div>
+        <div style="flex:1;">
+          <div style="font-size:16px;font-weight:900;color:white;margin-bottom:3px;">صورة أو فيديو</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);">اختر من معرض هاتفك</div>
+        </div>
+        <div style="font-size:20px;color:rgba(255,255,255,0.5);">›</div>
+        <input type="file" accept="image/*,video/*" style="display:none;" onchange="_handleStoryFileNew(event)">
+      </label>
+
+      <!-- ✏️ قصة نصية -->
+      <div onclick="document.getElementById('_storyTypeModal').remove();_openTextOnlyStory();" style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:18px;cursor:pointer;margin-bottom:10px;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+        <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;box-shadow:0 6px 16px rgba(240,147,251,0.4);">✏️</div>
+        <div style="flex:1;">
+          <div style="font-size:16px;font-weight:900;color:white;margin-bottom:3px;">قصة نصية</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);">نص بخلفية ملونة جذابة</div>
+        </div>
+        <div style="font-size:20px;color:rgba(255,255,255,0.5);">›</div>
+      </div>
+
+      <!-- 🎙️ قصة صوتية -->
+      <div onclick="document.getElementById('_storyTypeModal').remove();_openAudioStory();" style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:18px;cursor:pointer;margin-bottom:10px;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+        <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;box-shadow:0 6px 16px rgba(17,153,142,0.4);">🎙️</div>
+        <div style="flex:1;">
+          <div style="font-size:16px;font-weight:900;color:white;margin-bottom:3px;">قصة صوتية</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);">سجّل رسالة صوتية كقصة</div>
+        </div>
+        <div style="font-size:20px;color:rgba(255,255,255,0.5);">›</div>
+      </div>
+
+      <div onclick="document.getElementById('_storyTypeModal').remove();" style="text-align:center;padding:14px;font-size:14px;font-weight:700;color:rgba(255,255,255,0.4);cursor:pointer;letter-spacing:.3px;">إلغاء</div>
+    </div>
+  `;
+
+  window._handleStoryFileNew = function(e){
+    modal.remove();
+    const file = e.target.files[0]; if(!file) return;
+    const isVideo = file.type.startsWith('video/');
+    if(isVideo){
+      const url = URL.createObjectURL(file);
+      const vid = document.createElement('video');
+      vid.src = url;
+      vid.onloadedmetadata = ()=>{
+        if(vid.duration > 60){ showToast('⚠️ مدة الفيديو لا تتجاوز 60 ثانية'); URL.revokeObjectURL(url); return; }
+        _openVideoStoryPreview(name, file, url, vid.duration);
+      };
+    } else {
+      const reader = new FileReader();
+      reader.onload = ev=>{ _openStoryEditorWithImage(name, ev.target.result); };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+/* ═══ كاميرا فورية للقصة ═══ */
+function _openInstantCamera(name){
+  const old = document.getElementById('_instantCameraOverlay');
+  if(old) old.remove();
+
+  const ov = document.createElement('div');
+  ov.id = '_instantCameraOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;animation:fadeIn .2s ease;';
+
+  ov.innerHTML = `
+    <style>
+      #_camStream{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+      #_camOverlay{position:absolute;inset:0;display:flex;flex-direction:column;z-index:5;}
+      #_camCaptureBtnWrap{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:24px;}
+      #_camCaptureBtn{width:74px;height:74px;border-radius:50%;border:5px solid white;background:white;cursor:pointer;box-shadow:0 0 0 3px rgba(255,255,255,0.35);transition:.15s;display:flex;align-items:center;justify-content:center;font-size:30px;}
+      #_camCaptureBtn:active{transform:scale(.92);}
+      #_camFlipBtn{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:.2s;}
+      #_camFlipBtn:active{background:rgba(255,255,255,0.4);}
+      #_camModeToggle{position:absolute;top:60px;left:50%;transform:translateX(-50%);display:flex;gap:0;background:rgba(0,0,0,0.45);border-radius:20px;overflow:hidden;}
+      .ctm-mode{padding:8px 22px;font-size:13px;font-weight:800;color:rgba(255,255,255,0.65);cursor:pointer;font-family:'Tajawal',sans-serif;transition:.2s;}
+      .ctm-mode.active{background:white;color:#000;border-radius:20px;}
+      #_camRecordDot{display:none;width:12px;height:12px;border-radius:50%;background:#ef4444;animation:pulse 1s infinite;position:absolute;top:14px;right:14px;}
+    </style>
+    <video id="_camStream" autoplay playsinline muted></video>
+    <canvas id="_camCanvas" style="display:none;"></canvas>
+    <div id="_camRecordDot"></div>
+    <div id="_camOverlay">
+      <!-- Top bar -->
+      <div style="position:absolute;top:0;left:0;right:0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,0.6),transparent);">
+        <div onclick="_closeCameraOverlay()" style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:white;">✕</div>
+        <div style="font-size:15px;font-weight:900;color:white;">الكاميرا</div>
+        <div id="_camFlashBtn" onclick="_toggleFlash()" style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;">⚡</div>
+      </div>
+      <!-- Mode toggle -->
+      <div id="_camModeToggle">
+        <div class="ctm-mode active" id="_camModePhoto" onclick="_setCamMode('photo')">صورة</div>
+        <div class="ctm-mode" id="_camModeVideo" onclick="_setCamMode('video')">فيديو</div>
+      </div>
+      <!-- Bottom controls -->
+      <div id="_camCaptureBtnWrap">
+        <div id="_camFlipBtn" onclick="_flipCamera()">🔄</div>
+        <div id="_camCaptureBtn" onclick="_camCapture()">📸</div>
+        <div style="width:50px;height:50px;"></div>
+      </div>
+      <!-- Timer -->
+      <div id="_camTimer" style="display:none;position:absolute;bottom:130px;left:50%;transform:translateX(-50%);font-size:28px;font-weight:900;color:white;text-shadow:0 2px 8px rgba(0,0,0,0.6);">0:00</div>
+    </div>
+  `;
+  document.body.appendChild(ov);
+
+  let _stream = null;
+  let _facingMode = 'user';
+  let _camMode = 'photo';
+  let _mediaRecorder = null;
+  let _recordedChunks = [];
+  let _recordingTimer = null;
+  let _recordSecs = 0;
+  let _isRecording = false;
+
+  async function _startCam(facing){
+    if(_stream){ _stream.getTracks().forEach(t=>t.stop()); }
+    try{
+      _stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:facing, width:{ideal:1280}, height:{ideal:720} }, audio:true });
+      const vid = document.getElementById('_camStream');
+      if(vid){ vid.srcObject = _stream; vid.play().catch(()=>{}); }
+    }catch(e){
+      showToast('⚠️ تعذّر الوصول للكاميرا');
+      ov.remove();
+    }
+  }
+  _startCam(_facingMode);
+
+  window._flipCamera = ()=>{
+    _facingMode = _facingMode==='user'?'environment':'user';
+    _startCam(_facingMode);
+  };
+
+  window._setCamMode = (mode)=>{
+    _camMode = mode;
+    const btn = document.getElementById('_camCaptureBtn');
+    const dot = document.getElementById('_camRecordDot');
+    if(mode==='photo'){ if(btn) btn.innerText='📸'; document.getElementById('_camModePhoto').classList.add('active'); document.getElementById('_camModeVideo').classList.remove('active'); }
+    else { if(btn) btn.innerText='🔴'; document.getElementById('_camModeVideo').classList.add('active'); document.getElementById('_camModePhoto').classList.remove('active'); }
+  };
+
+  window._camCapture = ()=>{
+    if(_camMode==='photo'){
+      const vid = document.getElementById('_camStream');
+      const canvas = document.getElementById('_camCanvas');
+      if(!vid||!canvas) return;
+      canvas.width = vid.videoWidth||640; canvas.height = vid.videoHeight||480;
+      canvas.getContext('2d').drawImage(vid,0,0);
+      const dataUrl = canvas.toDataURL('image/jpeg',0.88);
+      _closeCameraOverlay();
+      _openStoryEditorWithImage(name, dataUrl);
+    } else {
+      if(_isRecording){
+        _stopCamRecord();
+      } else {
+        _startCamRecord();
+      }
+    }
+  };
+
+  function _startCamRecord(){
+    if(!_stream) return;
+    _recordedChunks=[];
+    try{
+      _mediaRecorder = new MediaRecorder(_stream, { mimeType:'video/webm;codecs=vp9,opus' });
+    }catch(e){
+      _mediaRecorder = new MediaRecorder(_stream);
+    }
+    _mediaRecorder.ondataavailable = e=>{ if(e.data.size>0) _recordedChunks.push(e.data); };
+    _mediaRecorder.onstop = ()=>{
+      const blob = new Blob(_recordedChunks, {type:'video/webm'});
+      const url = URL.createObjectURL(blob);
+      _closeCameraOverlay();
+      _openVideoStoryPreview(name, null, url, _recordSecs);
+    };
+    _mediaRecorder.start(200);
+    _isRecording=true;
+    const btn = document.getElementById('_camCaptureBtn');
+    const dot = document.getElementById('_camRecordDot');
+    const timerEl = document.getElementById('_camTimer');
+    if(btn) btn.innerText='⏹';
+    if(dot) dot.style.display='block';
+    if(timerEl) timerEl.style.display='block';
+    _recordSecs=0;
+    _recordingTimer = setInterval(()=>{
+      _recordSecs++;
+      const m=Math.floor(_recordSecs/60), s=_recordSecs%60;
+      const te = document.getElementById('_camTimer');
+      if(te) te.innerText=`${m}:${String(s).padStart(2,'0')}`;
+      if(_recordSecs>=60) _stopCamRecord();
+    },1000);
+  }
+
+  function _stopCamRecord(){
+    if(_recordingTimer){ clearInterval(_recordingTimer); _recordingTimer=null; }
+    if(_mediaRecorder&&_mediaRecorder.state!=='inactive') _mediaRecorder.stop();
+    _isRecording=false;
+  }
+
+  window._closeCameraOverlay = ()=>{
+    _stopCamRecord();
+    if(_stream) _stream.getTracks().forEach(t=>t.stop());
+    ov.style.opacity='0'; ov.style.transition='opacity .3s';
+    setTimeout(()=>ov.remove(),300);
+    ['_flipCamera','_setCamMode','_camCapture','_closeCameraOverlay','_toggleFlash'].forEach(k=>delete window[k]);
+  };
+
+  window._toggleFlash = ()=>{ showToast('⚡ الفلاش: يعتمد على الجهاز'); };
+}
+
+// قصة نصية بخلفية ملونة (مثل فيسبوك)
+function _openTextOnlyStory(){
+  const name = getCurrentUser(); if(!name) return;
+  const old = document.getElementById('_textStoryOverlay');
+  if(old) old.remove();
+
+  const bgColors = [
+    'linear-gradient(135deg,#1877F2,#0d5bda)',
+    'linear-gradient(135deg,#e52d27,#f5c518)',
+    'linear-gradient(135deg,#11998e,#38ef7d)',
+    'linear-gradient(135deg,#f093fb,#f5576c)',
+    'linear-gradient(135deg,#4facfe,#00f2fe)',
+    'linear-gradient(135deg,#a855f7,#6d28d9)',
+    'linear-gradient(135deg,#f97316,#fbbf24)',
+    'linear-gradient(135deg,#18191A,#3a3b3c)',
+  ];
+  let _selBg = bgColors[0];
+
+  const ov = document.createElement('div');
+  ov.id = '_textStoryOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;animation:fadeIn .25s ease;';
+
+  function _renderTextStory(text, bg){
+    ov.innerHTML = `
+      <style>
+        #_tsInput{background:transparent;border:none;outline:none;width:90%;text-align:center;font-size:28px;font-weight:900;color:white;font-family:Tajawal,sans-serif;text-shadow:0 2px 8px rgba(0,0,0,0.4);resize:none;min-height:60px;max-height:200px;line-height:1.3;}
+        #_tsInput::placeholder{color:rgba(255,255,255,0.6);}
+      </style>
+      <!-- Preview -->
+      <div id="_tsPreview" style="flex:1;background:${bg};display:flex;align-items:center;justify-content:center;position:relative;cursor:text;" onclick="document.getElementById('_tsInput').focus()">
+        <textarea id="_tsInput" placeholder="ماذا تريد أن تقول؟" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${text||''}</textarea>
+      </div>
+      <!-- Top bar -->
+      <div style="position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;z-index:10;background:linear-gradient(to bottom,rgba(0,0,0,0.5),transparent);">
+        <div onclick="document.getElementById('_textStoryOverlay').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:white;">✕</div>
+        <div style="font-size:14px;font-weight:800;color:white;">قصة نصية</div>
+        <button onclick="_publishTextStory()" style="background:#1877F2;border:none;border-radius:20px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:800;padding:8px 18px;cursor:pointer;">نشر ✅</button>
+      </div>
+      <!-- Bottom: خلفيات -->
+      <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 14px 28px;background:linear-gradient(to top,rgba(0,0,0,0.85),transparent);">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;margin-bottom:8px;text-align:right;">الخلفية:</div>
+        <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;">
+          ${bgColors.map((c,i)=>`
+            <div onclick="_changeTsBg(${i})" style="width:44px;height:44px;border-radius:12px;background:${c};cursor:pointer;flex-shrink:0;border:3px solid ${'_selBg'===c?'white':'transparent'};transition:.15s;" id="_tsBgBtn_${i}"></div>
+          `).join('')}
         </div>
       </div>
-      <button onclick="document.getElementById('_storyTypeChooser')?.remove()" style="width:100%;padding:12px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:14px;color:var(--muted);font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">إلغاء</button>
-    </div>`;
-  document.body.appendChild(chooser);
-  chooser.addEventListener('click', e=>{if(e.target===chooser) chooser.remove();});
+    `;
+    // تحديد أول زر
+    setTimeout(()=>{
+      const b = document.getElementById('_tsBgBtn_0');
+      if(b) b.style.borderColor='white';
+      const inp = document.getElementById('_tsInput');
+      if(inp) inp.focus();
+    },100);
+  }
+
+  _renderTextStory('', bgColors[0]);
+  document.body.appendChild(ov);
+
+  window._changeTsBg = function(idx){
+    _selBg = bgColors[idx];
+    const prev = document.getElementById('_tsPreview');
+    if(prev) prev.style.background = _selBg;
+    bgColors.forEach((_,i)=>{
+      const b = document.getElementById('_tsBgBtn_'+i);
+      if(b) b.style.borderColor = i===idx?'white':'transparent';
+    });
+  };
+
+  window._publishTextStory = function(){
+    const inp = document.getElementById('_tsInput');
+    const text = inp ? inp.value.trim() : '';
+    if(!text){ showToast('⚠️ اكتب شيئاً أولاً'); return; }
+    const stories = getMyStories(name);
+    const story = {
+      id: 'st'+Date.now(),
+      type: 'text',
+      data: null,
+      bgColor: _selBg,
+      text,
+      ts: Date.now(),
+      expires: Date.now() + 100*365*24*60*60*1000,
+      filter: null, music: null, stickers: [], reactions: {}, duration: 6
+    };
+    stories.push(story);
+    saveMyStories(name, stories);
+    _refreshMyStoryAvatar(name);
+    document.getElementById('_textStoryOverlay')?.remove();
+    showToast('✅ تمت إضافة قصتك النصية!');
+    setTimeout(()=>renderStoriesBar(name), 100);
+    delete window._changeTsBg;
+    delete window._publishTextStory;
+  };
+}
+
+// قصة صوتية
+function _openAudioStory(){
+  const name = getCurrentUser(); if(!name) return;
+  let _audioRec = null, _audioChunks = [], _audioSeconds = 0, _audioTimer = null, _isAudioRec = false;
+
+  const ov = document.createElement('div');
+  ov.id = '_audioStoryOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:linear-gradient(135deg,#0a0f1a,#11998e);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;animation:fadeIn .25s ease;';
+  ov.innerHTML = `
+    <div onclick="document.getElementById('_audioStoryOverlay').remove()" style="position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:white;">✕</div>
+    <div style="font-size:17px;font-weight:900;color:white;">قصة صوتية</div>
+    <div id="_audioWave" style="display:flex;gap:4px;align-items:center;height:60px;">
+      ${Array.from({length:16},(_,i)=>`<div class="_aBar" style="width:6px;background:rgba(255,255,255,0.4);border-radius:6px;height:${8+Math.random()*30}px;transition:height .15s;"></div>`).join('')}
+    </div>
+    <div id="_audioStatus" style="font-size:14px;color:rgba(255,255,255,0.7);">اضغط للتسجيل</div>
+    <div id="_audioTimer" style="font-size:32px;font-weight:900;color:white;">0:00</div>
+    <div id="_audioRecBtn" onclick="_toggleAudioStoryRec()" style="width:80px;height:80px;border-radius:50%;background:#ef4444;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:36px;box-shadow:0 8px 28px rgba(239,68,68,0.6);">🎙️</div>
+    <div id="_audioPublishBtn" style="display:none;padding:14px 32px;background:#1877F2;border-radius:20px;font-size:15px;font-weight:800;color:white;cursor:pointer;" onclick="_publishAudioStory()">نشر القصة الصوتية ✅</div>
+  `;
+  document.body.appendChild(ov);
+
+  let _wavAnim = null;
+  function _animWave(on){
+    clearInterval(_wavAnim);
+    if(!on) return;
+    _wavAnim = setInterval(()=>{
+      document.querySelectorAll('._aBar').forEach(b=>{ b.style.height=(8+Math.random()*44)+'px'; });
+    }, 150);
+  }
+
+  window._toggleAudioStoryRec = async function(){
+    if(_isAudioRec){
+      _isAudioRec = false;
+      clearInterval(_audioTimer);
+      _animWave(false);
+      _audioRec.stop();
+      document.getElementById('_audioRecBtn').innerHTML = '🎙️';
+      document.getElementById('_audioRecBtn').style.background = '#ef4444';
+      document.getElementById('_audioStatus').innerText = 'اكتمل التسجيل';
+    } else {
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+        _isAudioRec = true; _audioChunks = []; _audioSeconds = 0;
+        _audioRec = new MediaRecorder(stream);
+        _audioRec.ondataavailable = e=>{ if(e.data.size>0) _audioChunks.push(e.data); };
+        _audioRec.onstop = ()=>{
+          stream.getTracks().forEach(t=>t.stop());
+          document.getElementById('_audioPublishBtn').style.display='block';
+        };
+        _audioRec.start();
+        _animWave(true);
+        document.getElementById('_audioRecBtn').innerHTML = '⏹️';
+        document.getElementById('_audioRecBtn').style.background = '#374151';
+        document.getElementById('_audioStatus').innerText = '● جاري التسجيل…';
+        _audioTimer = setInterval(()=>{
+          _audioSeconds++;
+          const m=Math.floor(_audioSeconds/60),s=_audioSeconds%60;
+          const el = document.getElementById('_audioTimer');
+          if(el) el.innerText=`${m}:${String(s).padStart(2,'0')}`;
+          if(_audioSeconds>=60){ window._toggleAudioStoryRec(); }
+        },1000);
+      }catch(e){ showToast('🚫 تعذر الوصول للميكروفون'); }
+    }
+  };
+
+  window._publishAudioStory = function(){
+    if(!_audioChunks.length){ showToast('⚠️ لا يوجد تسجيل'); return; }
+    const blob = new Blob(_audioChunks, {type:'audio/webm'});
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      const stories = getMyStories(name);
+      stories.push({
+        id:'sa'+Date.now(), type:'audio', data:ev.target.result,
+        ts:Date.now(), expires:Date.now()+100*365*24*60*60*1000,
+        text:'🎙️ قصة صوتية', bgColor:'linear-gradient(135deg,#11998e,#38ef7d)',
+        filter:null, music:null, stickers:[], reactions:{}, duration:Math.max(5,_audioSeconds)
+      });
+      saveMyStories(name, stories);
+      _refreshMyStoryAvatar(name);
+      document.getElementById('_audioStoryOverlay')?.remove();
+      clearInterval(_wavAnim);
+      showToast('✅ تمت إضافة قصتك الصوتية!');
+      setTimeout(()=>renderStoriesBar(name), 100);
+    };
+    reader.readAsDataURL(blob);
+  };
 }
 
 function _pickStoryType(type){
@@ -11214,6 +12684,7 @@ function _openStoryEditorWithImage(name, imageData){
     document.getElementById('storyCreatorOverlay').remove();
     delete window._storyEditorState;
     if(typeof showToast==='function') showToast('✅ تمت إضافة قصتك!');
+    ebPointsStory();
     setTimeout(()=>renderStoriesBar(name), 100);
   };
 }
@@ -11270,6 +12741,7 @@ function _showStoryViewer(authorName, stories, startIdx){
       <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
       <div class="story-progress-bar">${progress}</div>
       <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:94%;max-width:460px;z-index:10;display:flex;align-items:center;gap:10px;padding:0 4px;">
+        ${authorName !== getCurrentUser() ? `<div onclick="closeStoryViewer()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;font-weight:900;color:white;flex-shrink:0;">‹</div>` : ''}
         ${authorAvatar}
         <div style="flex:1;">
           <div style="font-size:14px;font-weight:900;color:white;text-shadow:0 1px 6px rgba(0,0,0,0.6);">${authorName}</div>
@@ -11279,12 +12751,16 @@ function _showStoryViewer(authorName, stories, startIdx){
         <div onclick="closeStoryViewer()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:900;color:white;">✕</div>
       </div>
       ${musicBar}
-      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;">
+      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;${s.type==='text'?`background:${s.bgColor||'linear-gradient(135deg,#1877F2,#0d5bda)'};`:s.type==='audio'?`background:${s.bgColor||'linear-gradient(135deg,#11998e,#38ef7d)'};`:''}">
         ${s.type==='video'
           ? `<video id="storyVideo" src="${s.data}" autoplay ${s.muted!==false?'muted':''} playsinline style="max-width:100%;max-height:100vh;object-fit:contain;" onended="nextStory()"></video>`
-          : `<img src="${s.data}" style="max-width:100%;max-height:100vh;object-fit:contain;" onclick="nextStory()">`
+          : s.type==='text'
+            ? `<div style="text-align:center;padding:30px;max-width:85%;font-size:28px;font-weight:900;color:white;font-family:'Tajawal',sans-serif;text-shadow:0 2px 12px rgba(0,0,0,0.4);line-height:1.4;word-break:break-word;">${s.text||''}</div>`
+            : s.type==='audio'
+              ? `<div style="display:flex;flex-direction:column;align-items:center;gap:20px;padding:30px;"><div style="font-size:72px;animation:onlinePulse 2s infinite;">🎙️</div><div style="font-size:18px;font-weight:800;color:white;font-family:'Tajawal',sans-serif;">${s.text||'قصة صوتية'}</div><audio id="storyAudio" src="${s.data}" autoplay controls style="width:85%;border-radius:12px;"></audio></div>`
+              : `<img src="${s.data}" style="max-width:100%;max-height:100vh;object-fit:contain;" onclick="nextStory()">`
         }
-        ${textOverlay}
+        ${s.type !== 'text' && s.type !== 'audio' ? textOverlay : ''}
       </div>
 
       <!-- Bottom reactions bar -->
@@ -11295,7 +12771,7 @@ function _showStoryViewer(authorName, stories, startIdx){
         </div>
         <!-- Bottom action bar -->
         <div style="display:flex;align-items:center;gap:8px;">
-          <div onclick="toggleStoryReactPicker()" style="flex:1;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.35);border-radius:24px;padding:9px 16px;font-size:13px;color:rgba(255,255,255,0.7);cursor:pointer;text-align:right;font-family:'Tajawal',sans-serif;">أرسل تفاعلاً…</div>
+          <div onclick="toggleStoryReactPicker()" style="flex:1;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.35);border-radius:24px;padding:9px 16px;font-size:13px;color:rgba(255,255,255,0.7);cursor:pointer;text-align:right;font-family:'Tajawal',sans-serif;">💬 رد على القصة…</div>
           ${topReacts ? `<div style="background:rgba(0,0,0,0.4);border-radius:20px;padding:5px 10px;display:flex;align-items:center;gap:4px;">${topReacts}</div>` : ''}
           <div onclick="shareStory()" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;">↗️</div>
         </div>
@@ -11458,6 +12934,8 @@ function showOnlineDot(){
   // بدء نظام الحضور المباشر
   const name = getCurrentUser();
   if(name) startOnlineHeartbeat(name);
+  // بدء الاستماع لطلبات الاتصال الواردة
+  if(name && name !== 'المدير') _listenForCalls(name);
 }
 
 function hideOnlineDot(){
@@ -11719,6 +13197,7 @@ async function _initAutoPagePosts(){
 const _FB_PAGE_NAME = 'next.leaders.dz';
 
 function openFbFeedPanel(){
+  ebPointsFacebook();
   const panel = document.getElementById('fbFeedPanel');
   panel.style.display = 'flex';
   const container = document.getElementById('fbFeedContainer');
@@ -12454,33 +13933,169 @@ function _fbErrorHTML(msg){
      🏛️ نافذة من نحن
      ══════════════════════════════════════════════════════ -->
 <div class="modal" id="whoWeAreModal">
-  <div class="modal-content">
+  <div class="modal-content" style="max-width:480px;">
     <div class="modal-handle"></div>
-    <div class="modal-title">🏛️ من نحن</div>
-    <div style="max-height:400px;overflow-y:auto;padding:0 2px;">
-      <div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:20px;padding:24px;color:white;text-align:center;margin-bottom:16px;">
-        <div style="font-size:52px;margin-bottom:10px;">🏛️</div>
-        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">Connect DZ</div>
-        <div style="font-size:13px;opacity:0.9;">منصة القادة المستقبليين — الجزائر</div>
-      </div>
-      <div style="background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid var(--border);">
-        <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:8px;">🎯 رسالتنا</div>
-        <div style="font-size:13px;color:var(--muted);line-height:1.7;">Connect DZ هي منصة رقمية متكاملة تهدف إلى تمكين الشباب الجزائري وتطوير مهاراتهم القيادية والتقنية من خلال برامج تدريبية وأنشطة تفاعلية متنوعة.</div>
-      </div>
-      <div style="background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid var(--border);">
-        <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:10px;">✨ قيمنا</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🌟</span><span style="font-size:13px;color:var(--muted);">التميز والإبداع</span></div>
-          <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🤝</span><span style="font-size:13px;color:var(--muted);">العمل الجماعي والتعاون</span></div>
-          <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🎓</span><span style="font-size:13px;color:var(--muted);">التعلم المستمر والتطوير الذاتي</span></div>
-          <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🇩🇿</span><span style="font-size:13px;color:var(--muted);">الانتماء والولاء للوطن</span></div>
-          <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">💡</span><span style="font-size:13px;color:var(--muted);">الابتكار وحل المشكلات</span></div>
+    <div class="modal-title" style="background:linear-gradient(135deg,#00e5a0,#0099ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:18px;">🚀 Smart Kids Lab 2026</div>
+    <div style="max-height:72vh;overflow-y:auto;padding:0 2px;scrollbar-width:thin;">
+
+      <!-- Hero Banner -->
+      <div style="background:linear-gradient(135deg,#0d1f3c,#1a3a6b,#0d2d4a);border-radius:20px;padding:22px 20px;color:white;text-align:center;margin-bottom:14px;position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(0,229,160,0.18),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(0,153,255,0.15),transparent 50%);pointer-events:none;"></div>
+        <div style="font-size:44px;margin-bottom:8px;position:relative;">🚀</div>
+        <div style="font-size:19px;font-weight:900;letter-spacing:.5px;position:relative;">Smart Kids Lab 2026</div>
+        <div style="font-size:12px;opacity:0.85;margin-top:5px;position:relative;">مختبر الابتكار والقيادة — تلمسان</div>
+        <div style="margin-top:14px;background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.35);border-radius:30px;padding:7px 16px;font-size:12px;font-weight:800;color:#00e5a0;display:inline-block;position:relative;">
+          💎 "نحن لا نعلّم المهارات.. نحن نصنع القادة"
         </div>
       </div>
-      <div style="background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid var(--border);">
-        <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:8px;">📍 موقعنا</div>
-        <div style="font-size:13px;color:var(--muted);line-height:1.7;">الجزائر — قسنطينة — بودغن<br>نحن هنا لخدمتكم وتطوير جيل قادر على قيادة مستقبل الجزائر.</div>
+
+      <!-- الجوهر الاستراتيجي -->
+      <div style="background:var(--surface2);border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid rgba(0,229,160,0.2);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#00e5a0,#059669);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">💎</div>
+          <div>
+            <div style="font-size:14px;font-weight:900;color:var(--text);">الجوهر الاستراتيجي</div>
+            <div style="font-size:10px;color:var(--accent);font-weight:700;letter-spacing:1px;">STRATEGIC ESSENCE</div>
+          </div>
+        </div>
+        <div style="font-size:12.5px;color:var(--muted);line-height:1.85;margin-bottom:12px;">Smart Kids Lab ليس مجرد نادي أطفال، بل هو بيئة ابتكارية <span style="color:var(--accent);font-weight:700;">Ecosystem</span> تعمل على صناعة الأثر عبر فلسفة التعلم بالقيادة.</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:rgba(0,229,160,0.07);border:1px solid rgba(0,229,160,0.15);border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;gap:9px;">
+            <span style="font-size:16px;flex-shrink:0;">🎯</span>
+            <div>
+              <div style="font-size:12px;font-weight:800;color:var(--text);">الرؤية</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">الريادة في صناعة جيل جزائري يمتلك "عقلية الابتكار" و"أصالة الهوية".</div>
+            </div>
+          </div>
+          <div style="background:rgba(0,153,255,0.07);border:1px solid rgba(0,153,255,0.15);border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;gap:9px;">
+            <span style="font-size:16px;flex-shrink:0;">🏹</span>
+            <div>
+              <div style="font-size:12px;font-weight:800;color:var(--text);">المهمة</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">تزويد اليافعين بأدوات القرن الـ21 — الذكاء الاصطناعي، التفكير التصميمي، وريادة الأعمال — في قالب تربوي قيمي.</div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- المسارات القيادية -->
+      <div style="background:var(--surface2);border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid rgba(168,85,247,0.2);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#a855f7,#6d28d9);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🧩</div>
+          <div>
+            <div style="font-size:14px;font-weight:900;color:var(--text);">الهندسة البشرية</div>
+            <div style="font-size:10px;color:#a855f7;font-weight:700;letter-spacing:1px;">LEADERSHIP TRACKS</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:rgba(0,229,160,0.06);border-right:3px solid #00e5a0;border-radius:0 10px 10px 0;padding:10px 12px;">
+            <div style="font-size:12px;font-weight:800;color:#00e5a0;">🌱 المسار الاستكشافي — 10 إلى 14 سنة</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:3px;">"البراعم المبتكرون" — إيقاد شرارة الفضول العلمي وبناء النواة الفكرية.</div>
+          </div>
+          <div style="background:rgba(0,153,255,0.06);border-right:3px solid #0099ff;border-radius:0 10px 10px 0;padding:10px 12px;">
+            <div style="font-size:12px;font-weight:800;color:#0099ff;">⚡ المسار العملي — 15 إلى 19 سنة</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:3px;">"القادة الشباب" — الانتقال من التنفيذ إلى الإدارة والدبلوماسية الشبابية.</div>
+          </div>
+          <div style="background:rgba(168,85,247,0.06);border-right:3px solid #a855f7;border-radius:0 10px 10px 0;padding:10px 12px;">
+            <div style="font-size:12px;font-weight:800;color:#a855f7;">👑 المسار الإشرافي — 20 إلى 40 سنة</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:3px;">"رواد التنفيذ" — المرافقة الاستراتيجية وضمان جودة المخرجات.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- الأركان التشغيلية -->
+      <div style="background:var(--surface2);border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid rgba(245,197,24,0.2);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🏗️</div>
+          <div>
+            <div style="font-size:14px;font-weight:900;color:var(--text);">الأركان التشغيلية</div>
+            <div style="font-size:10px;color:#f5c518;font-weight:700;letter-spacing:1px;">4 DYNAMIC HUBS</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:linear-gradient(135deg,rgba(0,153,255,0.08),rgba(0,229,160,0.05));border:1px solid rgba(0,153,255,0.2);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:24px;margin-bottom:6px;">🧠</div>
+            <div style="font-size:12px;font-weight:800;color:var(--text);">مختبر العقل</div>
+            <div style="font-size:10.5px;color:var(--muted);margin-top:3px;">AI — البرمجة — الأمن السيبراني</div>
+          </div>
+          <div style="background:linear-gradient(135deg,rgba(245,93,251,0.08),rgba(245,86,92,0.05));border:1px solid rgba(245,93,251,0.2);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:24px;margin-bottom:6px;">💡</div>
+            <div style="font-size:12px;font-weight:800;color:var(--text);">مختبر الأثر</div>
+            <div style="font-size:10.5px;color:var(--muted);margin-top:3px;">الإعلام — الدبلوماسية — الإقناع</div>
+          </div>
+          <div style="background:linear-gradient(135deg,rgba(17,153,142,0.08),rgba(56,239,125,0.05));border:1px solid rgba(17,153,142,0.2);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:24px;margin-bottom:6px;">🏛️</div>
+            <div style="font-size:12px;font-weight:800;color:var(--text);">مختبر الإرث</div>
+            <div style="font-size:10.5px;color:var(--muted);margin-top:3px;">الأصالة — الهوية — المجتمع</div>
+          </div>
+          <div style="background:linear-gradient(135deg,rgba(245,197,24,0.08),rgba(249,115,22,0.05));border:1px solid rgba(245,197,24,0.2);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:24px;margin-bottom:6px;">🏕️</div>
+            <div style="font-size:12px;font-weight:800;color:var(--text);">مختبر المغامرة</div>
+            <div style="font-size:10.5px;color:var(--muted);margin-top:3px;">القيادة الميدانية — اللياقة</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- نظام التلعيب -->
+      <div style="background:var(--surface2);border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid rgba(245,86,92,0.2);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#f5576c,#c0392b);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎮</div>
+          <div>
+            <div style="font-size:14px;font-weight:900;color:var(--text);">نظام التلعيب</div>
+            <div style="font-size:10px;color:#f5576c;font-weight:700;letter-spacing:1px;">GAMIFICATION SYSTEM</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:rgba(245,86,92,0.06);border-radius:10px;">
+            <span style="font-size:20px;">📔</span>
+            <div>
+              <div style="font-size:12px;font-weight:800;color:var(--text);">Passport of Excellence</div>
+              <div style="font-size:11px;color:var(--muted);">جواز سفر بأختام مهارية لكل إنجاز</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:rgba(245,197,24,0.06);border-radius:10px;">
+            <span style="font-size:20px;">🏅</span>
+            <div>
+              <div style="font-size:12px;font-weight:800;color:var(--text);">Badges of Honor</div>
+              <div style="font-size:11px;color:var(--muted);">أوسمة مبتكر · قائد · سفير تفتح صلاحيات جديدة</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:rgba(0,229,160,0.06);border-radius:10px;">
+            <span style="font-size:20px;">⬆️</span>
+            <div>
+              <div style="font-size:12px;font-weight:800;color:var(--text);">المستويات القيادية</div>
+              <div style="font-size:11px;color:var(--muted);">الصعود يتطلب مخرجات ملموسة ومشاريع حقيقية</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- الاستدامة -->
+      <div style="background:var(--surface2);border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid rgba(0,153,255,0.2);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📈</div>
+          <div>
+            <div style="font-size:14px;font-weight:900;color:var(--text);">الاستدامة والمخرجات</div>
+            <div style="font-size:10px;color:#4facfe;font-weight:700;letter-spacing:1px;">LEGACY & OUTPUT</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:16px;">📺</span><span style="font-size:12px;color:var(--muted);"><span style="color:var(--text);font-weight:700;">Smart Kids Channel</span> — قناة رقمية تدار ذاتياً من الشباب</span></div>
+          <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:16px;">🛒</span><span style="font-size:12px;color:var(--muted);"><span style="color:var(--text);font-weight:700;">سوق الابتكار</span> — معرض سنوي للمشاريع وربطها بالمستثمرين</span></div>
+          <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:16px;">📊</span><span style="font-size:12px;color:var(--muted);"><span style="color:var(--text);font-weight:700;">نظام تقييم ذكي</span> — KPIs لقياس التطور الفكري والإبداعي</span></div>
+        </div>
+      </div>
+
+      <!-- معلومات التواصل -->
+      <div style="background:linear-gradient(135deg,rgba(0,229,160,0.12),rgba(0,153,255,0.08));border:1px solid rgba(0,229,160,0.25);border-radius:16px;padding:16px;margin-bottom:4px;">
+        <div style="font-size:13px;font-weight:900;color:var(--accent);margin-bottom:10px;">📞 تواصل معنا</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);"><span>📍</span><span>القاعة متعددة الخدمات للشباب — بودغن، تلمسان</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);"><span>📱</span><span style="direction:ltr;">0773415454 | 0671373694</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);"><span>✉️</span><span>turkibik27@gmail.com</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);"><span>👤</span><span>إشراف: الأستاذ يحي ديش — صاحب الفكرة والرؤية</span></div>
+        </div>
+      </div>
+
     </div>
     <button class="modal-close" onclick="hideModal('whoWeAreModal')">إغلاق</button>
   </div>
@@ -12499,38 +14114,39 @@ function _fbErrorHTML(msg){
         <div style="font-size:20px;font-weight:900;margin-bottom:6px;">عالم المدينة الإسلامي</div>
         <div style="font-size:13px;opacity:0.9;">نور العلم والإيمان</div>
       </div>
+
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <div onclick="showToast('📖 قريباً — القرآن الكريم')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div onclick="openCityFeature('quran')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
           <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#00b09b,#96c93d);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📖</div>
           <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:var(--text);">القرآن الكريم</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">تلاوة وحفظ وتدبر</div></div>
           <div style="color:var(--muted);font-size:16px;">›</div>
         </div>
-        <div onclick="showToast('📜 قريباً — الأحاديث النبوية')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div onclick="openCityFeature('hadith')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
           <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#f7971e,#ffd200);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📜</div>
           <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:var(--text);">الأحاديث النبوية</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">السنة النبوية الشريفة</div></div>
           <div style="color:var(--muted);font-size:16px;">›</div>
         </div>
-        <div onclick="showToast('⭐ قريباً — قصص الأنبياء')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div onclick="openCityFeature('prophets')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
           <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⭐</div>
           <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:var(--text);">قصص الأنبياء</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">سير الأنبياء والمرسلين</div></div>
           <div style="color:var(--muted);font-size:16px;">›</div>
         </div>
-        <div onclick="showToast('🏅 قريباً — قصص الصحابة')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div onclick="openCityFeature('companions')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
           <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏅</div>
           <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:var(--text);">قصص الصحابة</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">أصحاب رسول الله ﷺ</div></div>
           <div style="color:var(--muted);font-size:16px;">›</div>
         </div>
-        <div onclick="showToast('🌙 قريباً — الثقافة الإسلامية')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div onclick="openCityFeature('islamic_culture')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
           <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌙</div>
           <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:var(--text);">ثقافة عامة إسلامية</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">معلومات دينية متنوعة</div></div>
           <div style="color:var(--muted);font-size:16px;">›</div>
         </div>
-        <div onclick="showToast('🌿 قريباً — الطب النبوي')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div onclick="openCityFeature('prophetic_medicine')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
           <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌿</div>
           <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:var(--text);">الطب النبوي</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">العلاج بالسنة النبوية</div></div>
           <div style="color:var(--muted);font-size:16px;">›</div>
         </div>
-        <div onclick="showToast('💡 قريباً — تفاسير القرآن')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div onclick="openCityFeature('tafseer')" style="background:var(--surface2);border-radius:14px;padding:15px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
           <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#f7971e,#f5576c);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">💡</div>
           <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:var(--text);">تفاسير القرآن</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">شرح وتفسير الآيات الكريمة</div></div>
           <div style="color:var(--muted);font-size:16px;">›</div>
@@ -12577,6 +14193,325 @@ function _fbErrorHTML(msg){
     <button class="modal-close" onclick="hideModal('watchEarnModal')">إغلاق</button>
   </div>
 </div>
+
+<!-- ══════════════════════════════════════════════════════
+     🕌 نافذة محتوى عالم المدينة التفصيلية (AI-Powered)
+     ══════════════════════════════════════════════════════ -->
+<div class="modal" id="cityFeatureModal" style="z-index:6000;">
+  <div class="modal-content" style="max-height:90vh;">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="cityFeatureTitle">📖 المحتوى</div>
+    <div id="cityFeatureBody" style="max-height:calc(90vh - 140px);overflow-y:auto;padding:0 4px;">
+      <div style="text-align:center;padding:40px;">
+        <div style="font-size:36px;animation:spinLoad 1s linear infinite;display:inline-block;">✨</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:10px;">جارٍ تحميل المحتوى…</div>
+      </div>
+    </div>
+    <button class="modal-close" onclick="hideModal('cityFeatureModal')">إغلاق</button>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   🕌 بيانات عالم المدينة — محتوى ثابت ومنسّق
+   ══════════════════════════════════════════════════════ */
+const _cityData = {
+  quran: {
+    title: '📖 القرآن الكريم',
+    color: 'linear-gradient(135deg,#00b09b,#96c93d)',
+    sections: [
+      {
+        label: '🌟 آية اليوم',
+        items: [
+          { title: 'سورة البقرة — الآية 286', text: '﴿لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا﴾', sub: 'لا يُلزم الله أحداً بما يتجاوز طاقته، تيسير ورحمة من الله.' },
+          { title: 'سورة الإنشراح — الآية 5-6', text: '﴿فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۞ إِنَّ مَعَ الْعُسْرِ يُسْرًا﴾', sub: 'بشارة إلهية بأن الفرج يأتي مع كل شدة.' },
+        ]
+      },
+      {
+        label: '📚 أطول وأقصر السور',
+        items: [
+          { title: '📏 أطول سورة', text: 'سورة البقرة', sub: '286 آية — تحتوي على آية الكرسي وآيات الدَّين وختامها آمن الرسول.' },
+          { title: '🔖 أقصر سورة', text: 'سورة الكوثر', sub: '3 آيات — أعطاها الله النبي ﷺ نهراً في الجنة.' },
+        ]
+      },
+      {
+        label: '🏆 فضائل القرآن',
+        items: [
+          { title: 'خير من تعلّم', text: '«خيركم من تعلّم القرآن وعلّمه»', sub: 'رواه البخاري — تعلّم القرآن وتعليمه من أعظم القُرُبات.' },
+          { title: 'الماهر والمتتعتع', text: '«الماهر بالقرآن مع السفرة الكرام البررة، والذي يقرأ القرآن ويتتعتع فيه وهو عليه شاق له أجران»', sub: 'رواه مسلم' },
+          { title: 'شفيع يوم القيامة', text: '«اقرؤوا القرآن فإنه يأتي يوم القيامة شفيعاً لأصحابه»', sub: 'رواه مسلم' },
+        ]
+      },
+      {
+        label: '📖 الأجزاء الثلاثون',
+        items: [
+          { title: 'الجزء الأول', text: 'من الفاتحة إلى البقرة (141)', sub: 'يبدأ بأم الكتاب وسورة البقرة أطول سور القرآن.' },
+          { title: 'الجزء العاشر', text: 'من الأنفال (41) إلى التوبة (92)', sub: 'يتضمن سورة الأنفال وأحكام الغنائم والتوبة.' },
+          { title: 'الجزء الثلاثون (جزء عمّ)', text: 'من النبأ إلى الناس', sub: 'أكثر جزء تُحفظ سوره في السن الصغيرة.' },
+        ]
+      },
+    ]
+  },
+  hadith: {
+    title: '📜 الأحاديث النبوية',
+    color: 'linear-gradient(135deg,#f7971e,#ffd200)',
+    sections: [
+      {
+        label: '✨ أحاديث الأخلاق',
+        items: [
+          { title: 'الدين المعاملة', text: '«إنما بُعثت لأُتمِّم مكارم الأخلاق»', sub: 'رواه أحمد والبيهقي — رسالة النبي ﷺ تتمحور حول الأخلاق الفاضلة.' },
+          { title: 'الابتسامة صدقة', text: '«تبسُّمك في وجه أخيك صدقة»', sub: 'رواه الترمذي — حتى البسمة الصادقة لها ثواب عظيم.' },
+          { title: 'من كظم غيظه', text: '«من كظم غيظًا وهو قادر على أن ينفذه، دعاه الله على رؤوس الخلائق حتى يخيِّره من الحور العين»', sub: 'رواه الترمذي وأبو داود' },
+        ]
+      },
+      {
+        label: '🌙 أحاديث العبادات',
+        items: [
+          { title: 'فضل الصلاة', text: '«الصلوات الخمس والجمعة إلى الجمعة ورمضان إلى رمضان مكفِّرات ما بينهن إذا اجتُنبت الكبائر»', sub: 'رواه مسلم' },
+          { title: 'فضل ذكر الله', text: '«ألا أُنبِّئكم بخير أعمالكم وأزكاها عند مليككم وأرفعها في درجاتكم؟ ذكر الله»', sub: 'رواه الترمذي وابن ماجه' },
+          { title: 'الدعاء مفتاح الرحمة', text: '«الدعاء هو العبادة»', sub: 'رواه الترمذي وأبو داود — الدعاء جوهر العبودية لله.' },
+        ]
+      },
+      {
+        label: '💡 أحاديث العلم',
+        items: [
+          { title: 'طلب العلم فريضة', text: '«طلب العلم فريضة على كل مسلم»', sub: 'رواه ابن ماجه — العلم واجب على كل مسلم ومسلمة.' },
+          { title: 'من سلك طريقاً', text: '«من سلك طريقاً يلتمس فيه علماً سهَّل الله له به طريقاً إلى الجنة»', sub: 'رواه مسلم' },
+        ]
+      },
+      {
+        label: '🤝 أحاديث المجتمع',
+        items: [
+          { title: 'المسلم أخو المسلم', text: '«المسلم أخو المسلم لا يظلمه ولا يُسلمه ولا يحقره»', sub: 'رواه مسلم — ثلاث ضمانات بين المسلمين.' },
+          { title: 'الجار', text: '«ما زال جبريل يوصيني بالجار حتى ظننت أنه سيورِّثه»', sub: 'رواه البخاري ومسلم — منزلة الجار عظيمة في الإسلام.' },
+        ]
+      },
+    ]
+  },
+  prophets: {
+    title: '⭐ قصص الأنبياء',
+    color: 'linear-gradient(135deg,#667eea,#764ba2)',
+    sections: [
+      {
+        label: '🌊 سيدنا نوح عليه السلام',
+        items: [
+          { title: 'لقب: شيخ الأنبياء', text: 'عاش نوح عليه السلام 950 سنة يدعو قومه إلى التوحيد.', sub: 'بنى السفينة بأمر الله ونجا مع المؤمنين من الطوفان العظيم.' },
+          { title: 'الدرس المستفاد', text: 'الصبر على الأذى والاستمرار في الدعوة مهما طالت السنين.', sub: 'دعا قومه ليلاً ونهاراً ألف سنة إلا خمسين عاماً.' },
+        ]
+      },
+      {
+        label: '🔥 سيدنا إبراهيم عليه السلام',
+        items: [
+          { title: 'خليل الله وأبو الأنبياء', text: 'ألقاه قومه في النار فكانت بردًا وسلامًا عليه بأمر الله.', sub: 'بنى الكعبة المشرفة مع ابنه إسماعيل وأسّس ملة التوحيد.' },
+          { title: 'ابتلاء ذبح إسماعيل', text: 'أُمر بذبح ابنه فاستسلم كلاهما لأمر الله ففداه الله بكبش عظيم.', sub: 'هذه القصة تُحيي بعيد الأضحى في كل عام.' },
+        ]
+      },
+      {
+        label: '⚓ سيدنا موسى عليه السلام',
+        items: [
+          { title: 'كليم الله', text: 'كلّمه الله مباشرة وأرسله إلى فرعون أقوى ملوك الأرض في زمانه.', sub: 'شقّ البحر بعصاه بإذن الله ونجا بنو إسرائيل من الغرق.' },
+          { title: 'التوراة والألواح', text: 'أعطاه الله التوراة في ألواح وبيّن له الشريعة على جبل الطور.', sub: 'ظل يناضل لتحرير قومه من العبودية وقيادتهم للتوحيد.' },
+        ]
+      },
+      {
+        label: '🌹 سيدنا عيسى عليه السلام',
+        items: [
+          { title: 'روح الله وكلمته', text: 'وُلد من أم دون أب آية وكرامة، وأُوتي معجزات عظيمة.', sub: 'أحيا الموتى وأبرأ الأكمه والأبرص بإذن الله.' },
+          { title: 'رُفع إلى السماء', text: 'رفعه الله إليه ولم يُصلب، وسينزل آخر الزمان ليُكمل رسالة التوحيد.', sub: 'الإنجيل هو الكتاب الذي أنزله الله عليه.' },
+        ]
+      },
+      {
+        label: '🌙 سيدنا محمد ﷺ خاتم الأنبياء',
+        items: [
+          { title: 'سيد المرسلين', text: 'وُلد عام الفيل في مكة المكرمة وبُعث في الأربعين رسولاً للبشرية.', sub: 'أتمّ رسالته في 23 سنة وخلّف الكتاب والسنة للأمة.' },
+          { title: 'الإسراء والمعراج', text: 'أُسري به ليلاً من مكة إلى المسجد الأقصى ثم عُرج به إلى السماوات العلى.', sub: 'فُرضت الصلاة الخمس في تلك الليلة المباركة.' },
+        ]
+      },
+    ]
+  },
+  companions: {
+    title: '🏅 قصص الصحابة',
+    color: 'linear-gradient(135deg,#f093fb,#f5576c)',
+    sections: [
+      {
+        label: '🥇 أبو بكر الصديق رضي الله عنه',
+        items: [
+          { title: 'أول الخلفاء الراشدين', text: 'أوّل من أسلم من الرجال وأقرب الناس من النبي ﷺ، صاحبه في الهجرة.', sub: 'جمع القرآن الكريم في مصحف واحد وحارب المرتدين.' },
+          { title: 'كرمه الفريد', text: 'أنفق كل ماله في سبيل الله حين سألهم النبي ﷺ عن النفقة.', sub: 'قال النبي ﷺ: «ما نفعني مال أحد قط ما نفعني مال أبي بكر».' },
+        ]
+      },
+      {
+        label: '⚔️ عمر بن الخطاب رضي الله عنه',
+        items: [
+          { title: 'الفاروق', text: 'الخليفة الثاني فتح في عهده فارس والشام ومصر والعراق.', sub: 'عدالته مضرب المثل؛ كان يمشي الليل ويطوف الأسواق يراقب أحوال الناس.' },
+          { title: 'موافقاته للقرآن', text: 'وافق رأيه ما نزل به القرآن في مواضع عديدة كتحريم الخمر والحجاب وصلاة الجنازة.', sub: 'قال النبي ﷺ: «لو كان بعدي نبي لكان عمر».' },
+        ]
+      },
+      {
+        label: '📖 عثمان بن عفان رضي الله عنه',
+        items: [
+          { title: 'ذو النورين', text: 'جمع القرآن ووحّد الأمة على مصحف واحد ومنع الاختلاف في القراءة.', sub: 'تزوج بنتَي النبي ﷺ متتاليتين فسُمّي بذي النورين.' },
+          { title: 'سخاؤه في الإسلام', text: 'اشترى بئر رومة وجعلها وقفاً للمسلمين ولا تزال ثمرتها تنمو إلى اليوم.', sub: 'جهّز جيش العسرة بألف بعير ومائة فرس وألف دينار.' },
+        ]
+      },
+      {
+        label: '🦁 علي بن أبي طالب رضي الله عنه',
+        items: [
+          { title: 'باب مدينة العلم', text: 'ابن عم النبي ﷺ وزوج فاطمة، أسلم وهو صغير ونام في فراش النبي ليلة الهجرة.', sub: 'قال النبي ﷺ: «أنا مدينة العلم وعلي بابها».' },
+          { title: 'شجاعته في المعارك', text: 'حامل راية الإسلام في بدر وأُحد والخندق وخيبر.', sub: 'رابع الخلفاء الراشدين وأحد أعلم الصحابة بالقضاء والفقه.' },
+        ]
+      },
+      {
+        label: '🌺 خديجة رضي الله عنها',
+        items: [
+          { title: 'أم المؤمنين الأولى', text: 'أول زوجات النبي ﷺ وأول من آمن به وأول من أنفق في سبيل الله.', sub: 'أتت النبي برسائل الاطمئنان حين بدأ الوحى وكانت سنده العاطفي.' },
+          { title: 'بشارة الجنة', text: 'بشّرها النبي ﷺ ببيت في الجنة من قصب لا نصب فيه ولا صخب.', sub: 'أنجبت له القاسم وزينب ورقية وأم كلثوم وفاطمة وعبدالله.' },
+        ]
+      },
+    ]
+  },
+  islamic_culture: {
+    title: '🌙 الثقافة الإسلامية',
+    color: 'linear-gradient(135deg,#4facfe,#00f2fe)',
+    sections: [
+      {
+        label: '🕌 أركان الإسلام الخمسة',
+        items: [
+          { title: '1 - الشهادتان', text: 'أشهد أن لا إله إلا الله وأن محمداً رسول الله', sub: 'هي مفتاح الإسلام والإقرار بالتوحيد والنبوة.' },
+          { title: '2 - الصلاة', text: 'خمس صلوات يومياً: الفجر والظهر والعصر والمغرب والعشاء', sub: 'عمود الدين وأول ما يُحاسب عليه العبد يوم القيامة.' },
+          { title: '3 - الزكاة', text: '2.5٪ من المال الذي حال عليه الحول وبلغ النصاب', sub: 'ركن اجتماعي يُطهّر المال ويُقوّي التكافل بين المسلمين.' },
+          { title: '4 - صوم رمضان', text: 'إمساك عن المفطرات من الفجر إلى المغرب طوال شهر رمضان', sub: 'شهر القرآن والتقوى والمغفرة وفيه ليلة القدر.' },
+          { title: '5 - الحج', text: 'قصد البيت الحرام لأداء المناسك مرة في العمر للمستطيع', sub: 'أكبر تجمّع سنوي للمسلمين من جميع أنحاء العالم.' },
+        ]
+      },
+      {
+        label: '✨ أركان الإيمان الستة',
+        items: [
+          { title: 'الإيمان بالله', text: 'الإيمان بوجود الله وأسمائه وصفاته وأفعاله', sub: 'أصل الإيمان الذي تبنى عليه بقية الأركان.' },
+          { title: 'الإيمان بالملائكة', text: 'مخلوقات من نور خُلقت لعبادة الله وتنفيذ أوامره', sub: 'جبريل ميكائيل إسرافيل عزرائيل من أشهرهم.' },
+          { title: 'الإيمان بالكتب', text: 'التوراة والإنجيل والزبور والقرآن وصحف إبراهيم وموسى', sub: 'القرآن آخرها وأكملها ومحفوظ بحفظ الله إلى الأبد.' },
+          { title: 'الإيمان بالأنبياء', text: '25 نبياً ذُكروا في القرآن وعددهم 124 ألف نبي', sub: 'محمد ﷺ خاتمهم وأفضلهم.' },
+          { title: 'الإيمان باليوم الآخر', text: 'الموت والبرزخ والبعث والحساب والجنة والنار', sub: 'اليقين بالآخرة يحفّز على العمل الصالح في الدنيا.' },
+          { title: 'الإيمان بالقدر', text: 'الإيمان بأن كل شيء بعلم الله وكتابته ومشيئته وخلقه', sub: 'يمنح المؤمن السكينة في الشدائد والشكر في النعم.' },
+        ]
+      },
+      {
+        label: '🕋 المساجد الثلاثة المقدسة',
+        items: [
+          { title: 'المسجد الحرام - مكة', text: 'أعظم مسجد في العالم ويحتضن الكعبة المشرفة قبلة المسلمين', sub: 'الصلاة فيه بمائة ألف صلاة.' },
+          { title: 'المسجد النبوي - المدينة', text: 'بناه النبي ﷺ بيده ويضم قبره الشريف', sub: 'الصلاة فيه بألف صلاة.' },
+          { title: 'المسجد الأقصى - القدس', text: 'أولى القبلتين وثالث الحرمين ومسرى النبي ﷺ', sub: 'الصلاة فيه بخمسمائة صلاة.' },
+        ]
+      },
+    ]
+  },
+  prophetic_medicine: {
+    title: '🌿 الطب النبوي',
+    color: 'linear-gradient(135deg,#11998e,#38ef7d)',
+    sections: [
+      {
+        label: '🍯 العسل — شفاء للناس',
+        items: [
+          { title: 'فيه شفاء للناس', text: '﴿يَخْرُجُ مِن بُطُونِهَا شَرَابٌ مُّخْتَلِفٌ أَلْوَانُهُ فِيهِ شِفَاءٌ لِّلنَّاسِ﴾', sub: 'العسل مضاد طبيعي للبكتيريا ويقوي المناعة ومغذٍّ ممتاز.' },
+          { title: 'طريقة الاستخدام', text: 'ملعقة عسل طبيعي على الريق بماء فاتر', sub: 'تستمر على ذلك شهراً لتشعر بالفرق في طاقتك وصحة جهازك الهضمي.' },
+        ]
+      },
+      {
+        label: '🌱 الحبة السوداء — شفاء من كل داء',
+        items: [
+          { title: 'الدليل النبوي', text: '«عليكم بالحبة السوداء فإن فيها شفاء من كل داء إلا السام»', sub: 'رواه البخاري ومسلم — والسام هو الموت.' },
+          { title: 'فوائدها المثبتة علمياً', text: 'مضاد للالتهابات ومقوّي للمناعة وخافض لضغط الدم ومفيد للجهاز التنفسي', sub: 'تؤخذ مطحونة مع العسل أو في الطعام.' },
+        ]
+      },
+      {
+        label: '🫒 زيت الزيتون',
+        items: [
+          { title: 'طعام ودواء', text: '«كُلوا الزيت وادّهنوا به فإنه من شجرة مباركة»', sub: 'رواه الترمذي وابن ماجه.' },
+          { title: 'فوائده الصحية', text: 'يحمي القلب والشرايين ويقاوم السرطان ويُحسّن وظائف المخ', sub: 'ملعقتان يومياً تكفيان للاستفادة من خواصه الطبية.' },
+        ]
+      },
+      {
+        label: '💧 ماء زمزم',
+        items: [
+          { title: 'أفضل ماء على وجه الأرض', text: '«ماء زمزم لما شُرب له»', sub: 'رواه ابن ماجه — تشربه بنية الشفاء فيشفيك أو بنية التقوّي فيقويك.' },
+          { title: 'خصائصه الفريدة', text: 'لم ينضب منذ آلاف السنين وتركيبته المعدنية فريدة لا تشبهها مياه أخرى', sub: 'ثبت علمياً احتواؤه على نسب متوازنة من المعادن المفيدة.' },
+        ]
+      },
+      {
+        label: '🌴 التمر',
+        items: [
+          { title: 'سنة الإفطار', text: 'كان النبي ﷺ يُفطر على رطبات أو تمرات', sub: 'التمر أسرع غذاء يُعيد سكر الدم لمستواه الطبيعي.' },
+          { title: 'العجوة خاصة', text: '«من تصبّح بسبع تمرات عجوة لم يضره ذلك اليوم سمٌّ ولا سحر»', sub: 'رواه البخاري — تمر المدينة من أفضل التمور طبياً.' },
+        ]
+      },
+    ]
+  },
+  tafseer: {
+    title: '💡 تفاسير القرآن',
+    color: 'linear-gradient(135deg,#f7971e,#f5576c)',
+    sections: [
+      {
+        label: '🌟 تفسير الفاتحة',
+        items: [
+          { title: 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ', text: 'ابتداء كل عمل باسم الله استعانة وتبرّك وإقرار بأن الله مصدر القوة', sub: 'الرحمن: رحمة عامة تشمل الجميع. الرحيم: رحمة خاصة بالمؤمنين.' },
+          { title: 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ', text: 'الحمد: الثناء الكامل. ربّ العالمين: خالق كل موجود ومالكه', sub: 'هذه الآية تُلقّننا أن نبدأ كل عمل بالشكر والاعتراف بفضل الله.' },
+          { title: 'إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ', text: 'قصر العبادة والاستعانة على الله وحده', sub: 'تقديم المعبود (إياك) قبل الفعل يُفيد الحصر: لا نعبد إلا أنت.' },
+          { title: 'اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ', text: 'طلب الهداية إلى أقرب طريق يوصل إلى رضا الله', sub: 'نكررها 17 مرة يومياً في الصلاة — دعاء متواصل لا ينقطع.' },
+        ]
+      },
+      {
+        label: '🌊 تفسير آية الكرسي',
+        items: [
+          { title: 'اللَّهُ لَا إِلَهَ إِلَّا هُوَ', text: 'توحيد الله وإثبات انفراده بالألوهية', sub: 'نفي الشريك نفياً قاطعاً ثم إثبات الربوبية له وحده.' },
+          { title: 'الْحَيُّ الْقَيُّومُ', text: 'الحي: دائم الحياة لا يموت. القيوم: القائم بنفسه المُقيم لغيره', sub: 'اسمان يجمعان كل صفات الكمال الإلهي.' },
+          { title: 'لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ', text: 'الله لا يأخذه نعاس ولا نوم وهو يُدير الكون بعلمه الشامل', sub: 'دليل على كمال حفظه لكل مخلوقاته في كل لحظة.' },
+          { title: 'فضلها العظيم', text: '«من قرأ آية الكرسي دبر كل صلاة لم يمنعه من دخول الجنة إلا أن يموت»', sub: 'رواه النسائي وصحّحه الألباني.' },
+        ]
+      },
+      {
+        label: '💎 تفسير سورة الإخلاص',
+        items: [
+          { title: 'قُلْ هُوَ اللَّهُ أَحَدٌ', text: 'إعلان التوحيد الخالص: الله واحد أحد لا شريك له', sub: 'أحد: نفي الكثرة بالمطابقة والتركيب.' },
+          { title: 'اللَّهُ الصَّمَدُ', text: 'الصمد: السيد الذي يُصمد إليه في الحاجات وهو مستغنٍ عن كل شيء', sub: 'كل شيء محتاج إلى الله وهو لا يحتاج إلى أحد.' },
+          { title: 'لَمْ يَلِدْ وَلَمْ يُولَدْ', text: 'ردٌّ على من زعم له ولداً كالنصارى أو والداً كبعض الجاهليين', sub: 'الولادة تستلزم النقص والاحتياج وهذان منافيان لكمال الله.' },
+          { title: 'تعدل ثلث القرآن', text: '«قل هو الله أحد تعدل ثلث القرآن»', sub: 'رواه مسلم — لأنها تضمّنت التوحيد الخالص وهو ثُلث القرآن.' },
+        ]
+      },
+    ]
+  },
+};
+
+/* ══════════════════════════════════════════════════════
+   🕌 فتح نافذة خانة عالم المدينة
+   ══════════════════════════════════════════════════════ */
+function openCityFeature(key){
+  ebPointsCityFeature(key, _cityData[key]?.title || key);
+  const data = _cityData[key];
+  if(!data) return;
+  document.getElementById('cityFeatureTitle').innerText = data.title;
+  const body = document.getElementById('cityFeatureBody');
+  const gradHeader = `<div style="background:${data.color};border-radius:18px;padding:22px;color:white;text-align:center;margin-bottom:16px;">
+    <div style="font-size:48px;margin-bottom:8px;">${data.title.split(' ')[0]}</div>
+    <div style="font-size:18px;font-weight:900;">${data.title.slice(3)}</div>
+  </div>`;
+
+  const sectionsHtml = (data.sections||[]).map(sec=>`
+    <div style="background:var(--surface2);border-radius:16px;padding:16px;margin-bottom:14px;border:1px solid var(--border);">
+      <div style="font-size:13px;font-weight:900;color:var(--accent);margin-bottom:12px;">${sec.label}</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${(sec.items||[]).map(item=>`
+          <div style="background:var(--surface);border-radius:12px;padding:13px 14px;border:1px solid var(--border);">
+            <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:5px;">${item.title}</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.7;margin-bottom:4px;">${item.text}</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.6;">${item.sub}</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+
+  body.innerHTML = gradHeader + sectionsHtml;
+  showModal('cityFeatureModal');
+}
+</script>
 
 <!-- ══════════════════════════════════════════════════════
      📲 نظام تثبيت PWA الكامل
