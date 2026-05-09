@@ -21,12 +21,11 @@
   });
 
   /* ════════════════════════════════════════════
-     📤  إرسال إشعار لمستخدم محدد عبر OneSignal API
-     يُستدعى تلقائياً عند كل رسالة جديدة لشخص بعينه
+     📤  إرسال إشعار لجميع المشتركين عبر OneSignal API
+     يُستدعى تلقائياً عند كل رسالة جديدة
   ════════════════════════════════════════════ */
   window.sendOneSignalNotif = async function(title, message, targetUserName) {
     try {
-      // إرسال لمستخدم محدد فقط عبر external_id أو tag الاسم
       const notifBody = {
         app_id: '0c7b884d-9c60-435e-a475-86b610bc5542',
         headings: { ar: title, en: title },
@@ -34,13 +33,11 @@
         url: 'https://turkibik.github.io/Smart-Kids-Lab-2/',
         ttl: 86400
       };
-      // إرسال لمستخدم محدد عبر filters (tag الاسم)
       if(targetUserName && targetUserName !== 'all'){
         notifBody.filters = [
           { field: 'tag', key: 'username', relation: '=', value: targetUserName }
         ];
       } else {
-        // فقط لجميع (للإشعارات العامة من المدير)
         notifBody.included_segments = ['Total Subscriptions'];
       }
       await fetch('https://onesignal.com/api/v1/notifications', {
@@ -119,13 +116,7 @@
   ]);
 
   function shouldSkip(key){
-    // حماية مفاتيح المحادثات والبيانات الهامة من الحذف
-    if(!key) return true;
-    if(SKIP_KEYS.has(key)) return true;
-    if(key.startsWith('__')) return true;
-    // لا تتجاهل مفاتيح المحادثات والرسائل
-    if(key.startsWith('nld_p2p_')) return false;
-    return false;
+    return !key || SKIP_KEYS.has(key) || key.startsWith('__');
   }
 
   /* ── رفع مفتاح واحد إلى Firebase ── */
@@ -166,22 +157,21 @@
       const v = localStorage.getItem(k);
       if(v !== null) local[k] = v;
     });
-    // ── حماية المحادثات من الحذف ──
-    const p2pKeys = [];
+    // ══ حماية المحادثات — لا تُحذف أبداً حتى عند تحديث التطبيق ══
+    const savedConvs = {};
     try{
       for(let i=0;i<localStorage.length;i++){
         const k = localStorage.key(i);
-        if(k && k.startsWith('nld_p2p_')){
+        if(k && (k.startsWith('nld_p2p_') || k.startsWith('nld_star_') || k.startsWith('nld_friends_') || k.startsWith('nld_freq_'))){
           const v = localStorage.getItem(k);
-          if(v) p2pKeys.push([k,v]);
+          if(v) savedConvs[k] = v;
         }
       }
     }catch(e){}
     _clear();
     Object.entries(local).forEach(([k,v]) => _set(k,v));
-    // استعادة المحادثات
-    p2pKeys.forEach(([k,v]) => _set(k,v));
-    // حذف فقط البيانات غير الهامة من Firebase
+    // استعادة المحادثات والعلاقات المحفوظة
+    Object.entries(savedConvs).forEach(([k,v]) => _set(k,v));
     fetch(`${DB_URL}/appdata.json`, { method:'DELETE' }).catch(()=>{});
   };
 
@@ -8730,9 +8720,9 @@ const _videoBlobCache = {};
 
 function renderBubble(m, isMe){
   const ts = m.timestamp ? new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
-  // شارة التوثيق الزرقاء للمدير (دائرة زرقاء فوق الصورة)
+  // شارة التوثيق الزرقاء للمدير
   const isAdminMsg = (m.from === 'المدير');
-  const verifiedBadge = isAdminMsg ? `<span title="حساب موثق ✓" style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:linear-gradient(135deg,#1877F2,#0052cc);border-radius:50%;font-size:8px;color:white;font-weight:900;margin-right:3px;flex-shrink:0;vertical-align:middle;box-shadow:0 1px 4px rgba(24,119,242,0.5);">✓</span>` : '';
+  const verifiedBadge = isAdminMsg ? `<span title="المدير الرسمي ✓" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:linear-gradient(135deg,#1877F2,#0052cc);border-radius:50%;font-size:9px;color:white;font-weight:900;margin-right:3px;flex-shrink:0;vertical-align:middle;box-shadow:0 1px 4px rgba(24,119,242,0.4);">✓</span>` : '';
   const senderLabel = !isMe ? `<div class="chat-sender-name">${m.from||''}${verifiedBadge}</div>` : '';
   let mediaHtml='';
 
@@ -9272,11 +9262,11 @@ async function sendChatMessage(){
   // حفظ في Supabase (للمزامنة بين الأجهزة)
   sbSendMessage(msgObj);
 
-  // ── إرسال إشعار للمستلم فقط (خصوصية) ──
+  // ── إرسال إشعار للمستلم فقط (خصوصية كاملة) ──
   if(typeof sendOneSignalNotif === 'function'){
     const senderDisplay = myName === 'المدير' ? '🛡️ المدير' : myName;
     const notifText = txt ? txt.substring(0,60) : (msgObj.mediaType==='image'?'🖼️ صورة':msgObj.mediaType==='video'?'🎬 فيديو':'🎙️ رسالة صوتية');
-    sendOneSignalNotif(`💬 رسالة من ${senderDisplay}`, notifText, targetName);
+    sendOneSignalNotif('💬 رسالة من ' + senderDisplay, notifText, targetName);
   }
 
   // ── إضافة 1000 نقطة للمدير عند الرد في المحادثة ──
@@ -11780,14 +11770,14 @@ function _updateMpvAdminBadge(memberName){
   const badge = document.getElementById('mpvVerifiedBadge');
   if(!badge) return;
   if(_isAdminUser(memberName)){
-    // شارة خاصة بالمدير — زرقاء توثيق (مثل تويتر/فيسبوك)
+    // شارة خاصة بالمدير — ذهبية مميزة
     badge.style.display = 'block';
     badge.style.background = 'linear-gradient(135deg,#1877F2,#0052cc)';
     badge.style.color = 'white';
     badge.style.border = '2px solid rgba(255,255,255,0.3)';
     badge.style.borderRadius = '20px';
-    badge.style.padding = '4px 10px';
-    badge.style.fontSize = '11px';
+    badge.style.padding = '4px 12px';
+    badge.style.fontSize = '12px';
     badge.style.fontWeight = '900';
     badge.style.whiteSpace = 'nowrap';
     badge.style.boxShadow = '0 2px 10px rgba(24,119,242,0.5)';
@@ -11810,7 +11800,7 @@ function _updateMpvAdminBadge(memberName){
 /** إضافة شارة المدير عند عرض منشور أو تعليق للمدير */
 function getAdminVerifiedBadgeHtml(authorName){
   if(!_isAdminUser(authorName)) return '';
-  return `<span style="display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#1877F2,#0052cc);color:white;border-radius:50%;width:16px;height:16px;padding:0;font-size:9px;font-weight:900;margin-right:4px;box-shadow:0 1px 5px rgba(24,119,242,0.5);vertical-align:middle;justify-content:center;flex-shrink:0;">✓</span>`;
+  return `<span title="حساب المدير الرسمي" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:linear-gradient(135deg,#1877F2,#0052cc);color:white;border-radius:50%;font-size:9px;font-weight:900;margin-right:4px;box-shadow:0 1px 5px rgba(24,119,242,0.5);vertical-align:middle;flex-shrink:0;">✓</span>`;
 }
 
 /* ══ نهاية شارة المدير ══ */
@@ -11927,20 +11917,6 @@ function viewMemberProfile(memberName){
               <div style="font-size:10px;color:#65676B;">الرصيد</div>
             </div>
           </div>
-          <!-- شريط تقييم النجوم — يظهر للأصدقاء فقط -->
-          <div id="mpvStarRatingBox_${memberName.replace(/\s+/g,'_')}" style="background:linear-gradient(135deg,rgba(245,197,24,0.1),rgba(255,160,0,0.05));border:1px solid rgba(245,197,24,0.3);border-radius:12px;padding:12px 14px;margin-top:6px;">
-            <div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:8px;text-align:center;">⭐ قيّم هذا الصديق</div>
-            <div style="display:flex;justify-content:center;gap:6px;margin-bottom:6px;" id="mpvStars_${memberName.replace(/\s+/g,'_')}">
-              ${[1,2,3,4,5].map(s=>{
-                const myRating = parseInt(localStorage.getItem('nld_star_'+myName.replace(/\s+/g,'_')+'_'+memberName.replace(/\s+/g,'_'))||'0');
-                const filled = s <= myRating;
-                return `<span onclick="rateMember('${memberName}',${s})" style="font-size:28px;cursor:pointer;transition:transform .15s;color:${filled?'#f5c518':'#E4E6EB'};" onmouseover="hoverStars('${memberName}',${s})" onmouseout="restoreStars('${memberName}')" title="${s} نجمة">${filled?'★':'☆'}</span>`;
-              }).join('')}
-            </div>
-            <div id="mpvStarMsg_${memberName.replace(/\s+/g,'_')}" style="font-size:11px;color:#92400e;text-align:center;font-weight:700;">
-              ${(()=>{const r=parseInt(localStorage.getItem('nld_star_'+myName.replace(/\s+/g,'_')+'_'+memberName.replace(/\s+/g,'_'))||'0');const avg=_getMemberAvgRating(memberName);return r>0?`تقييمك: ${r} نجوم ${avg>0?'· معدل التقييم: '+avg.toFixed(1)+' ⭐':''}`:avg>0?`معدل التقييم: ${avg.toFixed(1)} ⭐`:'لم تقيّم بعد';})()}
-            </div>
-          </div>
         </div>`;
     } else {
       extInfo.innerHTML = '';
@@ -12004,59 +11980,6 @@ function closeMemberProfileView(){
   const el = document.getElementById('memberProfileView');
   if(el) el.style.display='none';
   _mpvCurrentUser = null;
-}
-
-/* ══ نظام تقييم النجوم بين الأصدقاء ══ */
-function _getMemberAvgRating(memberName){
-  try{
-    const safe = memberName.replace(/\s+/g,'_');
-    const allKeys = Object.keys(localStorage).filter(k=>k.startsWith('nld_star_')&&k.endsWith('_'+safe));
-    if(allKeys.length===0) return 0;
-    const vals = allKeys.map(k=>parseInt(localStorage.getItem(k)||'0')).filter(v=>v>0);
-    if(vals.length===0) return 0;
-    return vals.reduce((a,b)=>a+b,0)/vals.length;
-  }catch(e){ return 0; }
-}
-
-function rateMember(memberName, stars){
-  const myName = getCurrentUser(); if(!myName) return;
-  const key = 'nld_star_'+myName.replace(/\s+/g,'_')+'_'+memberName.replace(/\s+/g,'_');
-  localStorage.setItem(key, String(stars));
-  // تجميع النجوم الإجمالية للعضو
-  const totalKey = 'nld_total_stars_'+memberName.replace(/\s+/g,'_');
-  const avg = _getMemberAvgRating(memberName);
-  // تحديث الشاشة
-  restoreStars(memberName);
-  const msgEl = document.getElementById('mpvStarMsg_'+memberName.replace(/\s+/g,'_'));
-  if(msgEl){
-    const newAvg = _getMemberAvgRating(memberName);
-    msgEl.innerText = `تقييمك: ${stars} نجوم ${newAvg>0?'· معدل التقييم: '+newAvg.toFixed(1)+' ⭐':''}`;
-  }
-  addSocialNotif(memberName, `${myName} قيّمك بـ ${stars} نجوم ⭐`, '⭐');
-  showToast(`⭐ تم تقييم ${memberName} بـ ${stars} نجوم`);
-}
-
-function hoverStars(memberName, upTo){
-  const starsEl = document.getElementById('mpvStars_'+memberName.replace(/\s+/g,'_'));
-  if(!starsEl) return;
-  const myName = getCurrentUser()||'';
-  const mySaved = parseInt(localStorage.getItem('nld_star_'+myName.replace(/\s+/g,'_')+'_'+memberName.replace(/\s+/g,'_'))||'0');
-  starsEl.querySelectorAll('span').forEach((s,i)=>{
-    s.style.color = (i+1)<=upTo ? '#f5c518' : '#E4E6EB';
-    s.style.transform = (i+1)<=upTo ? 'scale(1.2)' : 'scale(1)';
-  });
-}
-
-function restoreStars(memberName){
-  const starsEl = document.getElementById('mpvStars_'+memberName.replace(/\s+/g,'_'));
-  if(!starsEl) return;
-  const myName = getCurrentUser()||'';
-  const mySaved = parseInt(localStorage.getItem('nld_star_'+myName.replace(/\s+/g,'_')+'_'+memberName.replace(/\s+/g,'_'))||'0');
-  starsEl.querySelectorAll('span').forEach((s,i)=>{
-    s.style.color = (i+1)<=mySaved ? '#f5c518' : '#E4E6EB';
-    s.textContent = (i+1)<=mySaved ? '★' : '☆';
-    s.style.transform = 'scale(1)';
-  });
 }
 
 // بدء محادثة من ملف العضو مباشرة
@@ -13145,7 +13068,7 @@ function renderSocialMessengerPanel(){
         const icon = typeof getLeaderIcon==='function' ? getLeaderIcon(name) : '👑';
         const avatarInner = photo ? `<img src="${photo}" alt="${name}">` : `<span>${icon}</span>`;
         const shortName = name.split(' ')[0];
-        return `<div class="msg-active-item" onclick="openChatFromSocial('${name.replace(/'/g,"\\'")}')">
+        return `<div class="msg-active-item" onclick="openChatFromSocial('${name.replace(/'/g,"\\'")}');">
           <div class="msg-active-avatar">${avatarInner}<div class="msg-active-green-dot"></div></div>
           <div class="msg-active-name">${shortName}</div>
         </div>`;
@@ -13233,18 +13156,20 @@ function filterSmInbox(q){
   _renderSmInbox(getCurrentUser(), q);
 }
 
-/* فتح محادثة من صفحتي — يفتح messagesModal ثم يفتح المحادثة الخاصة (خصوصية كاملة) */
+/* ══ فتح محادثة من صفحتي المسنجر — يفتح نافذة المحادثات مع الحفاظ على الخصوصية ══ */
 function openChatFromSocial(targetName){
-  // نعلّم صفحتي كـ "مفتوحة قبل المحادثات"
-  const socialHome = document.getElementById('socialHomeCard');
-  if(socialHome) socialHome._wasOpenBeforeMessages = true;
+  if(!targetName) return;
   // فتح نافذة المحادثات
   const msgModal = document.getElementById('messagesModal');
-  if(msgModal){ msgModal.style.display='flex'; renderInboxList(); }
-  // فتح المحادثة مباشرة
-  setTimeout(()=>{
-    if(_isAdmin){ openAdminChat(targetName, false); }
-    else { openP2PChat(targetName, false); }
+  if(msgModal) msgModal.style.display = 'flex';
+  renderInboxList && renderInboxList();
+  // فتح المحادثة الخاصة مباشرة
+  setTimeout(function(){
+    if(typeof _isAdmin !== 'undefined' && _isAdmin){
+      typeof openAdminChat === 'function' && openAdminChat(targetName, false);
+    } else {
+      typeof openP2PChat === 'function' && openP2PChat(targetName, false);
+    }
   }, 80);
 }
 
