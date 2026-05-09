@@ -5842,6 +5842,18 @@ function _addAdminPoints(reason){
   if(mainPtsEl && _isAdmin){
     mainPtsEl.innerHTML = `${newPts.toLocaleString()} <span>نقطة</span>`;
   }
+  // تحديث شارة المستوى تلقائياً عند المدير
+  const _LEVEL_PTS = 3000;
+  const _adminLevel = Math.floor(newPts / _LEVEL_PTS) + 1;
+  const _adminInLevel = newPts % _LEVEL_PTS;
+  const lb = document.getElementById('levelBadge');
+  if(lb && _isAdmin) lb.innerText = `⭐ المستوى ${_adminLevel}`;
+  const ps = document.getElementById('progressStart');
+  const pe = document.getElementById('progressEnd');
+  const mb = document.getElementById('mainBar');
+  if(ps && _isAdmin) ps.innerText = (_adminLevel-1)*_LEVEL_PTS;
+  if(pe && _isAdmin) pe.innerText = _adminLevel*_LEVEL_PTS;
+  if(mb && _isAdmin) mb.style.width = Math.min((_adminInLevel/_LEVEL_PTS)*100,100)+'%';
   // تأثير نقاط
   if(typeof playGoldSound === 'function') playGoldSound();
   console.log('🛡️ المدير +1000 نقطة — '+reason+' — المجموع: '+newPts);
@@ -5993,11 +6005,10 @@ function getSavedAccounts(){
 }
 
 function saveAccount(name){
-  if(!name || name === 'زائر' || name === 'المدير') return; // لا نحفظ المدير أبداً
+  if(!name || name === 'زائر') return;
   const deviceId = getDeviceId();
   const key = _SAVED_ACCS_KEY + '_' + deviceId;
-  // احذف أي إدخال بإسم المدير إن وُجد من قبل
-  let accs = getSavedAccounts().filter(a => a.name !== 'المدير');
+  let accs = getSavedAccounts();
   const filtered = accs.filter(a => a.name !== name);
   filtered.unshift({ name, ts: Date.now(), device: deviceId });
   // حفظ بمفتاح خاص بالجهاز — يتجاوز المزامنة
@@ -6023,7 +6034,7 @@ function deleteSavedAccount(name){
 }
 
 function renderSavedAccounts(){
-  let accs = getSavedAccounts().filter(a => a.name !== 'المدير'); // حذف ملفات المدير دائماً
+  let accs = getSavedAccounts();
   const section = document.getElementById('savedAccountsSection');
   const list = document.getElementById('savedAccList');
   if(!section || !list) return;
@@ -6209,6 +6220,18 @@ function enterAsAdmin(){
   localStorage.setItem("sklab_user_name","المدير");
   localStorage.setItem("sklab_admin_email", ADMIN_EMAIL);
   _updateLastSeen("المدير");
+  // حفظ المدير في الدخول السريع (محلي بالجهاز)
+  (function(){
+    try{
+      const _did = getDeviceId();
+      const _key = _SAVED_ACCS_KEY + '_' + _did;
+      let _accs = getSavedAccounts().filter(function(a){ return a.name !== 'المدير'; });
+      _accs.unshift({ name: 'المدير', ts: Date.now(), device: _did });
+      const _val = JSON.stringify(_accs.slice(0,5));
+      if(window.__lsNativeSet) window.__lsNativeSet(_key, _val);
+      else localStorage.setItem(_key, _val);
+    }catch(e){}
+  })();
   renderApp("المدير",0,true,0);
   // إظهار الزر العائم للمدير + زر الأعلى
   const tb=document.getElementById("adminToggleBtn");
@@ -8223,11 +8246,15 @@ function renderInboxList(){
     const allSpyConvs = [];
     const seenAdminKeys = new Set();
 
-    for(let i=0;i<localStorage.length;i++){
-      const k = localStorage.key(i);
+    // جمع مفاتيح localStorage بطريقة موثوقة (تشمل Firebase)
+    const _adminAllKeys = new Set();
+    try{ for(let i=0;i<localStorage.length;i++){ const _k=localStorage.key(i); if(_k) _adminAllKeys.add(_k); } }catch(e){}
+    try{ Object.keys(localStorage).forEach(function(_k){ _adminAllKeys.add(_k); }); }catch(e){}
+
+    for(const k of _adminAllKeys){
       if(k && k.startsWith('nld_p2p_') && !seenAdminKeys.has(k)){
         seenAdminKeys.add(k);
-        const msgs = JSON.parse(localStorage.getItem(k)||'[]');
+        let msgs; try{ msgs = JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ msgs=[]; }
         if(msgs.length === 0) continue;
         const last = msgs[msgs.length-1];
         // تحديد ما إذا كانت المحادثة تشمل المدير
@@ -12388,11 +12415,30 @@ function _renderMpvExtendedInfo(memberName, canSeeAll){
   if(!infoEl) return;
 
   if(!canSeeAll){
-    // ملف مقيّد: يظهر فقط الاسم وزر إضافة صديق
+    // ملف مقيّد: يظهر رسالة التقييد + شريط النجوم للتقييم
+    const myName2 = getCurrentUser();
+    const _rKey = 'nld_star_rating_' + (myName2||'').replace(/\s+/g,'_') + '_to_' + memberName.replace(/\s+/g,'_');
+    const _myR = parseInt(localStorage.getItem(_rKey)||'0');
+    const _totKey = 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
+    const _totS = parseInt(localStorage.getItem(_totKey)||'0');
+    const _starsHtml = Array.from({length:7}, function(_,i){
+      const val=i+1;
+      return `<span id="mpvStar_${val}" onclick="rateMember('${memberName}',${val})" style="font-size:28px;cursor:pointer;transition:transform .15s;${val<=_myR?'color:#f5c518;':'color:#ddd;'}" onmouseover="highlightStars(${val},'mpvStar')" onmouseout="resetStars(${_myR},'mpvStar')">★</span>`;
+    }).join('');
     infoEl.innerHTML=`<div style="background:#F7F8FA;border-radius:12px;padding:16px;text-align:center;margin:10px 16px;">
       <div style="font-size:32px;margin-bottom:8px;">🔒</div>
       <div style="font-size:14px;font-weight:800;color:#050505;margin-bottom:6px;">الملف مقيّد</div>
       <div style="font-size:12px;color:#65676B;line-height:1.6;">أضف هذا العضو كصديق لترى ملفه الكامل</div>
+    </div>
+    <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin:0 10px 10px;">
+      <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">⭐ قيّم هذا العضو</div>
+      <div style="display:flex;justify-content:center;gap:4px;margin-bottom:10px;" id="mpvStarsRow">${_starsHtml}</div>
+      <div style="text-align:center;">
+        ${_myR>0
+          ? `<div style="font-size:12px;color:#65676B;">قيّمت بـ <strong style="color:#f5c518;">${_myR} نجمة</strong></div>`
+          : `<div style="font-size:12px;color:#65676B;">اضغط على النجوم لتقييم هذا العضو</div>`}
+        <div style="margin-top:6px;font-size:11px;color:#9ca3af;">إجمالي النجوم: <strong style="color:#f5c518;">${_totS} ⭐</strong></div>
+      </div>
     </div>`;
     return;
   }
@@ -13013,12 +13059,15 @@ function _renderSmInbox(myName, filter=''){
   if(!listEl) return;
   if(!myName){ listEl.innerHTML=`<div style="text-align:center;padding:40px 20px;font-size:13px;color:#65676B;">سجّل دخولك أولاً</div>`; return; }
 
-  // جمع كل المحادثات
+  // جمع كل المحادثات (بطريقة موثوقة تشمل Firebase)
   const convMap = {};
-  for(let i=0;i<localStorage.length;i++){
-    const k = localStorage.key(i);
+  const _smAllKeys = new Set();
+  try{ for(let i=0;i<localStorage.length;i++){ const _k=localStorage.key(i); if(_k) _smAllKeys.add(_k); } }catch(e){}
+  try{ Object.keys(localStorage).forEach(function(_k){ _smAllKeys.add(_k); }); }catch(e){}
+
+  for(const k of _smAllKeys){
     if(!k || !k.startsWith('nld_p2p_')) continue;
-    const msgs = JSON.parse(localStorage.getItem(k)||'[]');
+    let msgs; try{ msgs = JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ msgs=[]; }
     const conv = msgs.filter(m=>m.from===myName||m.to===myName);
     if(conv.length===0) continue;
     const other = conv[0].from===myName ? conv[0].to : conv[0].from;
@@ -13029,12 +13078,17 @@ function _renderSmInbox(myName, filter=''){
       convMap[other] = { other, last, unread };
     }
   }
-  // أيضاً: المحادثات مع المدير
-  const adminMsgs = JSON.parse(localStorage.getItem('nld_p2p_المدير_'+myName.replace(/\s+/g,'_'))||'[]');
-  if(adminMsgs.length>0){
-    const last = adminMsgs[adminMsgs.length-1];
-    const unread = adminMsgs.filter(m=>m.to===myName&&!m.read).length;
-    convMap['المدير'] = { other:'المدير', last, unread };
+  // أيضاً: المحادثات مع المدير (فحص عدة صيغ للمفتاح)
+  const _adminKeys = ['nld_p2p_المدير_'+myName.replace(/\s+/g,'_'), 'nld_p2p_'+myName.replace(/\s+/g,'_')+'_المدير'];
+  for(const _ak of _adminKeys){
+    try{
+      const adminMsgs = JSON.parse(localStorage.getItem(_ak)||'[]');
+      if(adminMsgs.length>0 && !convMap['المدير']){
+        const last = adminMsgs[adminMsgs.length-1];
+        const unread = adminMsgs.filter(m=>m.to===myName&&!m.read).length;
+        convMap['المدير'] = { other:'المدير', last, unread };
+      }
+    }catch(e){}
   }
 
   let convList = Object.values(convMap).sort((a,b)=>new Date(b.last.timestamp)-new Date(a.last.timestamp));
