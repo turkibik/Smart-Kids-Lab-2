@@ -798,6 +798,35 @@ button.auth-btn.loading{
 .globe-lang-item .gli-name{font-size:12px;font-weight:800;color:var(--text);}
 .globe-lang-item .gli-check{color:var(--accent);font-size:13px;margin-right:auto;}
 
+
+/* ===== شريط التقييم بالنجوم السبع ===== */
+.star-rating-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: center;
+  padding: 10px 0;
+}
+.star-rating-bar .star-item {
+  font-size: 22px;
+  cursor: pointer;
+  transition: transform .2s, filter .2s;
+  filter: grayscale(1);
+  line-height: 1;
+}
+.star-rating-bar .star-item.active,
+.star-rating-bar .star-item:hover ~ .star-item.active {
+  filter: none;
+}
+.star-rating-bar .star-item.active,
+.star-rating-bar .star-item:hover {
+  transform: scale(1.25);
+  filter: none;
+}
+.star-rating-bar .star-item.filled {
+  filter: none;
+}
+
 /* ===== APP ===== */
 .app{width:100%;height:100vh;position:fixed;top:0;left:0;overflow-y:auto;display:none;z-index:5;}
 .app-inner{max-width:480px;margin:0 auto;padding:20px 16px 40px;}
@@ -2901,6 +2930,11 @@ body.member-mode #onlineBar{
             <span class="gs-num" id="mgStatActivities">أنشطة</span>
             <span class="gs-label">أنشطة</span>
           </div>
+          <div class="member-greeting-stat">
+            <span class="gs-icon">🥇</span>
+            <span class="gs-num" id="mgStatRank">—</span>
+            <span class="gs-label">ترتيبي</span>
+          </div>
         </div>
       </div>
     </div>
@@ -3483,6 +3517,20 @@ body.member-mode #onlineBar{
       <button id="mpvFriendBtn" onclick="handleMpvFriendAction()" style="flex:1;padding:9px;background:#1877F2;border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">👥 إضافة صديق</button>
       <button onclick="startChatWithMpvUser()" style="flex:1;padding:9px;background:linear-gradient(135deg,#25D366,#128C7E);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">💬 رسالة</button>
       <button onclick="closeMemberProfileView()" style="padding:9px 14px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">رجوع</button>
+    </div>
+    <!-- شريط تقييم النجوم السبع -->
+    <div id="mpvStarRatingArea" style="margin-top:10px;background:#F7F8FA;border-radius:12px;padding:10px 14px;">
+      <div style="font-size:11px;font-weight:800;color:#65676B;text-align:center;margin-bottom:6px;">⭐ قيّم هذا العضو</div>
+      <div class="star-rating-bar" id="mpvStarBar">
+        <span class="star-item" data-v="1" onclick="rateMember(1)">⭐</span>
+        <span class="star-item" data-v="2" onclick="rateMember(2)">⭐</span>
+        <span class="star-item" data-v="3" onclick="rateMember(3)">⭐</span>
+        <span class="star-item" data-v="4" onclick="rateMember(4)">⭐</span>
+        <span class="star-item" data-v="5" onclick="rateMember(5)">⭐</span>
+        <span class="star-item" data-v="6" onclick="rateMember(6)">⭐</span>
+        <span class="star-item" data-v="7" onclick="rateMember(7)">⭐</span>
+      </div>
+      <div id="mpvStarScore" style="font-size:11px;color:#1877F2;text-align:center;font-weight:800;min-height:16px;"></div>
     </div>
   </div>
   <div id="mpvPostsFeed" style="width:100%;max-width:480px;margin:0 auto 0;padding-bottom:40px;">
@@ -5496,6 +5544,11 @@ async function _computeAndShowBalance(){
     });
     const mgBal = document.getElementById('mgStatBalance');
     if(mgBal) mgBal.innerText = balance + ' دج';
+    // تحديث الترتيب في لوحة العضو
+    if(!_isAdmin){
+      const mgRk = document.getElementById('mgStatRank');
+      if(mgRk && myIdx >= 0) mgRk.innerText = '#'+(myIdx+1);
+    }
 
     // شارة نوع السعر
     if(rateEl){
@@ -5874,6 +5927,14 @@ function _addAdminPoints(reason){
   if(ps && _isAdmin) ps.innerText = (_adminLevel-1)*_LEVEL_PTS;
   if(pe && _isAdmin) pe.innerText = _adminLevel*_LEVEL_PTS;
   if(mb && _isAdmin) mb.style.width = Math.min((_adminInLevel/_LEVEL_PTS)*100,100)+'%';
+  // تحديث رصيد المدير في لوحة القيادة (35 دج / 50 نقطة — أفضل سعر)
+  const _adminBalance = ((newPts / 50) * 35).toFixed(2);
+  ['cardBalance','ppStatBalance','ppInfoBalance','mgStatBalance'].forEach(function(bid){
+    const bel = document.getElementById(bid);
+    if(bel) bel.innerText = _adminBalance + ' دج';
+  });
+  const mgStat = document.getElementById('mgStatPoints');
+  if(mgStat) mgStat.innerText = newPts.toLocaleString();
   // تأثير نقاط
   if(typeof playGoldSound === 'function') playGoldSound();
   console.log('🛡️ المدير +1000 نقطة — '+reason+' — المجموع: '+newPts);
@@ -5902,6 +5963,36 @@ function _applyAdminBadgeToUI(){
   const mainPtsEl = document.getElementById('mainPoints');
   if(mainPtsEl && _isAdmin){
     mainPtsEl.innerHTML = `${adminPts.toLocaleString()} <span>نقطة</span>`;
+  }
+  // تحديث رصيد ومستوى المدير
+  if(_isAdmin){
+    const _aLevel = Math.floor(adminPts / 3000) + 1;
+    const _aBal = ((adminPts / 50) * 35).toFixed(2);
+    const lbEl = document.getElementById('levelBadge');
+    if(lbEl) lbEl.innerText = '⭐ المستوى ' + _aLevel;
+    ['cardBalance','ppStatBalance','ppInfoBalance','mgStatBalance'].forEach(function(bid){
+      const bel = document.getElementById(bid);
+      if(bel) bel.innerText = _aBal + ' دج';
+    });
+    const mgStat = document.getElementById('mgStatPoints');
+    if(mgStat) mgStat.innerText = adminPts.toLocaleString();
+    // إظهار بطاقة ملف المدير الشخصي
+    const mpc = document.getElementById('memberProfileCard');
+    if(mpc) mpc.style.display = 'block';
+    const mgName = document.getElementById('memberGreetingName');
+    if(mgName) mgName.innerText = 'مرحباً، المدير!';
+    const mgRank = document.getElementById('mgStatRank');
+    if(mgRank) mgRank.innerText = '#1';
+    // تحديث أفاتار ملف المدير
+    const mpaEl = document.getElementById('memberProfileAvatar');
+    if(mpaEl){
+      const adminPhoto = typeof getProfilePhoto==='function' ? getProfilePhoto('المدير') : null;
+      if(adminPhoto){ mpaEl.innerHTML = '<img src="'+adminPhoto+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">'; }
+      else{ mpaEl.innerText = '👑'; }
+    }
+    // تحديث الزر في بطاقة المدير
+    const mgRole = document.getElementById('memberGreetingRole');
+    if(mgRole) mgRole.innerText = 'لوحة القيادة — المدير';
   }
 }
 
@@ -7046,6 +7137,11 @@ async function loadRanking(){
         });
         const mgBal=document.getElementById('mgStatBalance');
         if(mgBal) mgBal.innerText = smartBalance+' دج';
+        // تحديث الترتيب في لوحة العضو
+        if(!_isAdmin){
+          const mgRk = document.getElementById('mgStatRank');
+          if(mgRk && myRankInList >= 0) mgRk.innerText = '#'+(myRankInList+1);
+        }
         // شارة نوع السعر
         const rateEl = document.getElementById('_balanceRateBadge');
         if(rateEl) rateEl.innerHTML = isTop15
@@ -8484,6 +8580,12 @@ function startNewChat(targetName){
 
 /* المدير يفتح محادثة مع عضو */
 function openAdminChat(targetName, readOnly){
+  // تأكد من أن targetName ليس 'المدير' (لا يرسل المدير لنفسه)
+  if(!targetName || targetName === 'المدير') {
+    console.warn('⚠️ openAdminChat: لا يمكن فتح محادثة المدير مع نفسه');
+    showNewChatScreen();
+    return;
+  }
   _currentChatTarget = targetName;
   _lastPolledMsgId = null; // إعادة تعيين عند فتح محادثة جديدة
   const cs = document.getElementById('chatScreen');
@@ -11604,7 +11706,7 @@ function renderFriendsPanel(){
     } else {
       reqEl.innerHTML = myRequests.map(req=>`
         <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#F7F8FA;border-radius:12px;">
-          <div onclick="viewMemberProfile('${req.from}')" style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(req.from):'👑'}</div>
+          <div onclick="viewMemberProfile('${req.from}')" style="width:50px;height:50px;border-radius:50%;overflow:hidden;flex-shrink:0;cursor:pointer;">${getMemberAvatarHtml(req.from, 50, 50)}</div>
           <div style="flex:1;">
             <div style="font-size:14px;font-weight:900;color:#050505;">${req.from}</div>
             <div style="font-size:11px;color:#65676B;">أرسل لك طلب صداقة</div>
@@ -11625,7 +11727,7 @@ function renderFriendsPanel(){
     } else {
       friendsEl.innerHTML = myFriends.map(f=>`
         <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#F7F8FA;border-radius:12px;">
-          <div onclick="viewMemberProfile('${f}')" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(f):'👑'}</div>
+          <div onclick="viewMemberProfile('${f}')" style="width:46px;height:46px;border-radius:50%;overflow:hidden;flex-shrink:0;cursor:pointer;">${getMemberAvatarHtml(f, 46, 46)}</div>
           <div onclick="viewMemberProfile('${f}')" style="flex:1;cursor:pointer;">
             <div style="font-size:14px;font-weight:900;color:#050505;">${f}</div>
             <div style="font-size:11px;color:#65676B;">صديق</div>
@@ -11656,7 +11758,7 @@ function renderSuggestedFriends(){
   el.innerHTML = allAuthors.slice(0,6).map(a=>{
     const alreadySent = (JSON.parse(localStorage.getItem(_friendReqKey(a))||'[]')).some(r=>r.from===name);
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#F7F8FA;border-radius:12px;">
-      <div onclick="viewMemberProfile('${a}')" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(a):'👑'}</div>
+      <div onclick="viewMemberProfile('${a}')" style="width:46px;height:46px;border-radius:50%;overflow:hidden;flex-shrink:0;cursor:pointer;">${getMemberAvatarHtml(a, 46, 46)}</div>
       <div style="flex:1;">
         <div style="font-size:14px;font-weight:900;color:#050505;">${a}</div>
         <div style="font-size:11px;color:#65676B;">عضو في المجموعة</div>
@@ -11806,6 +11908,128 @@ function getAdminVerifiedBadgeHtml(authorName){
 /* ══ نهاية شارة المدير ══ */
 
 
+
+/* ══════════════════════════════════════════════════════════
+   ⭐ نظام التقييم بالنجوم السبع
+   ══════════════════════════════════════════════════════════ */
+
+function _getStarRatingsKey(memberName){
+  return 'nld_stars_' + memberName.replace(/\s+/g,'_');
+}
+
+function _getTotalStarsKey(memberName){
+  return 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
+}
+
+function rateMember(stars){
+  const myName = getCurrentUser();
+  const targetName = _mpvCurrentUser;
+  if(!myName || !targetName || myName === targetName) return;
+  if(myName === 'زائر'){ showToast('⚠️ يجب تسجيل الدخول أولاً'); return; }
+
+  const key = _getStarRatingsKey(targetName);
+  let ratings = {};
+  try{ ratings = JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){ ratings = {}; }
+
+  const prevStars = ratings[myName] || 0;
+  ratings[myName] = stars;
+  localStorage.setItem(key, JSON.stringify(ratings));
+
+  // حساب مجموع النجوم
+  const total = Object.values(ratings).reduce((s,v)=>s+(parseInt(v)||0), 0);
+  const totalKey = _getTotalStarsKey(targetName);
+  localStorage.setItem(totalKey, String(total));
+
+  // تحديث عداد نجوم التوثيق
+  _updateMpvAdminBadge(targetName);
+
+  // تحديث واجهة النجوم
+  _renderMpvStars(targetName);
+
+  // إشعار لصاحب الملف
+  if(prevStars !== stars){
+    addSocialNotif(targetName, myName + ' قيّمك بـ ' + stars + ' نجوم ⭐', '⭐');
+  }
+
+  showToast('⭐ تم تقييمك بـ ' + stars + ' نجمة!');
+}
+
+function _renderMpvStars(memberName){
+  const myName = getCurrentUser();
+  const bar = document.getElementById('mpvStarBar');
+  const scoreEl = document.getElementById('mpvStarScore');
+  const area = document.getElementById('mpvStarRatingArea');
+  if(!bar) return;
+
+  // أخفِ التقييم إذا كان العضو يعرض ملفه الشخصي
+  if(memberName === myName){
+    if(area) area.style.display = 'none';
+    return;
+  }
+  if(area) area.style.display = 'block';
+
+  const key = _getStarRatingsKey(memberName);
+  let ratings = {};
+  try{ ratings = JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){}
+
+  const myRating = ratings[myName] || 0;
+  const total = Object.values(ratings).reduce((s,v)=>s+(parseInt(v)||0), 0);
+  const count = Object.keys(ratings).length;
+
+  // تلوين النجوم
+  const stars = bar.querySelectorAll('.star-item');
+  stars.forEach(function(s){
+    const v = parseInt(s.getAttribute('data-v'));
+    if(v <= myRating){
+      s.classList.add('filled');
+      s.style.filter = 'none';
+      s.style.opacity = '1';
+    } else {
+      s.classList.remove('filled');
+      s.style.filter = 'grayscale(1)';
+      s.style.opacity = '0.4';
+    }
+  });
+
+  // تحديث النص
+  if(scoreEl){
+    if(myRating > 0){
+      const avg = count > 0 ? (total/count).toFixed(1) : '0';
+      scoreEl.innerHTML = 'تقييمك: ' + '⭐'.repeat(myRating) + ' | متوسط: ' + avg + ' من ' + count + ' تقييم';
+    } else {
+      scoreEl.innerText = 'لم تقيّم هذا العضو بعد';
+    }
+  }
+}
+
+/* ─── hover effect on stars ─── */
+(function _setupStarHover(){
+  document.addEventListener('mouseover', function(e){
+    const s = e.target.closest('.star-item');
+    const bar = s && s.closest('.star-rating-bar');
+    if(!bar) return;
+    const v = parseInt(s.getAttribute('data-v'));
+    const allStars = bar.querySelectorAll('.star-item');
+    allStars.forEach(function(st){
+      const sv = parseInt(st.getAttribute('data-v'));
+      if(sv <= v){
+        st.style.filter = 'none';
+        st.style.opacity = '1';
+        st.style.transform = 'scale(1.2)';
+      } else {
+        st.style.filter = 'grayscale(1)';
+        st.style.opacity = '0.4';
+        st.style.transform = 'scale(1)';
+      }
+    });
+  });
+  document.addEventListener('mouseleave', function(e){
+    const s = e.target;
+    if(!s.classList || !s.classList.contains('star-item')) return;
+    // reset on mouseout from bar
+  }, true);
+})();
+
 let _mpvCurrentUser = null;
 function viewMemberProfile(memberName){
   const myName = getCurrentUser();
@@ -11919,10 +12143,31 @@ function viewMemberProfile(memberName){
           </div>
         </div>`;
     } else {
-      extInfo.innerHTML = '';
+      // غير أصدقاء: نعرض عدد المنشورات فقط (بدون رصيد أو نقاط خاصة)
+      const memberPosts2 = getSocialPosts().filter(p=>p.author===memberName).length;
+      const memberFriends2 = getFriends(memberName).length;
+      extInfo.innerHTML = `
+        <div style="background:white;padding:14px 16px;border-bottom:8px solid #F0F2F5;">
+          <div style="font-size:12px;color:#65676B;text-align:center;margin-bottom:10px;">أضفه كصديق لرؤية معلوماته الكاملة 👥</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
+              <div style="font-size:18px;margin-bottom:3px;">📝</div>
+              <div style="font-size:15px;font-weight:900;color:#050505;">${memberPosts2}</div>
+              <div style="font-size:10px;color:#65676B;">المنشورات</div>
+            </div>
+            <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
+              <div style="font-size:18px;margin-bottom:3px;">👥</div>
+              <div style="font-size:15px;font-weight:900;color:#050505;">${memberFriends2}</div>
+              <div style="font-size:10px;color:#65676B;">الأصدقاء</div>
+            </div>
+          </div>
+        </div>`;
     }
   }
   updateMpvFriendBtn(memberName);
+
+  // عرض شريط النجوم
+  setTimeout(function(){ _renderMpvStars(memberName); }, 150);
 
   // منشورات العضو
   renderMpvPosts(memberName);
