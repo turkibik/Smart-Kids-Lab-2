@@ -21,27 +21,37 @@
   });
 
   /* ════════════════════════════════════════════
-     📤  إرسال إشعار لجميع المشتركين عبر OneSignal API
-     يُستدعى تلقائياً عند كل رسالة جديدة
+     📤  إرسال إشعار لمستخدم محدد عبر OneSignal API
+     يُستدعى تلقائياً عند كل رسالة جديدة لشخص بعينه
   ════════════════════════════════════════════ */
-  window.sendOneSignalNotif = async function(title, message) {
+  window.sendOneSignalNotif = async function(title, message, targetUserName) {
     try {
+      // إرسال لمستخدم محدد فقط عبر external_id أو tag الاسم
+      const notifBody = {
+        app_id: '0c7b884d-9c60-435e-a475-86b610bc5542',
+        headings: { ar: title, en: title },
+        contents: { ar: message, en: message },
+        url: 'https://turkibik.github.io/Smart-Kids-Lab-2/',
+        ttl: 86400
+      };
+      // إرسال لمستخدم محدد عبر filters (tag الاسم)
+      if(targetUserName && targetUserName !== 'all'){
+        notifBody.filters = [
+          { field: 'tag', key: 'username', relation: '=', value: targetUserName }
+        ];
+      } else {
+        // فقط لجميع (للإشعارات العامة من المدير)
+        notifBody.included_segments = ['Total Subscriptions'];
+      }
       await fetch('https://onesignal.com/api/v1/notifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Key os_v2_app_br5yqtm4mbbv5jdvq23bbpcvijicc62vjajuk3fvhtjfqrdcdcrxsbzhaxadsdpvzjbawjegn74nmhxml4et4q4zkyjp62votqvtcsa'
         },
-        body: JSON.stringify({
-          app_id: '0c7b884d-9c60-435e-a475-86b610bc5542',
-          included_segments: ['Total Subscriptions'],
-          headings: { ar: title, en: title },
-          contents: { ar: message, en: message },
-          url: 'https://turkibik.github.io/Smart-Kids-Lab-2/',
-          ttl: 86400
-        })
+        body: JSON.stringify(notifBody)
       });
-      console.log('✅ OneSignal: إشعار أُرسل لجميع المشتركين');
+      console.log('✅ OneSignal: إشعار أُرسل لـ', targetUserName || 'الجميع');
     } catch(err) {
       console.warn('⚠️ OneSignal: فشل إرسال الإشعار', err);
     }
@@ -109,7 +119,13 @@
   ]);
 
   function shouldSkip(key){
-    return !key || SKIP_KEYS.has(key) || key.startsWith('__');
+    // حماية مفاتيح المحادثات والبيانات الهامة من الحذف
+    if(!key) return true;
+    if(SKIP_KEYS.has(key)) return true;
+    if(key.startsWith('__')) return true;
+    // لا تتجاهل مفاتيح المحادثات والرسائل
+    if(key.startsWith('nld_p2p_')) return false;
+    return false;
   }
 
   /* ── رفع مفتاح واحد إلى Firebase ── */
@@ -144,14 +160,28 @@
 
   /* ── تجاوز localStorage.clear ── */
   Storage.prototype.clear = function(){
-    // احتفظ بالمفاتيح المحلية فقط قبل المسح
+    // احتفظ بالمفاتيح المحلية والمحادثات قبل المسح
     const local = {};
     SKIP_KEYS.forEach(k => {
       const v = localStorage.getItem(k);
       if(v !== null) local[k] = v;
     });
+    // ── حماية المحادثات من الحذف ──
+    const p2pKeys = [];
+    try{
+      for(let i=0;i<localStorage.length;i++){
+        const k = localStorage.key(i);
+        if(k && k.startsWith('nld_p2p_')){
+          const v = localStorage.getItem(k);
+          if(v) p2pKeys.push([k,v]);
+        }
+      }
+    }catch(e){}
     _clear();
     Object.entries(local).forEach(([k,v]) => _set(k,v));
+    // استعادة المحادثات
+    p2pKeys.forEach(([k,v]) => _set(k,v));
+    // حذف فقط البيانات غير الهامة من Firebase
     fetch(`${DB_URL}/appdata.json`, { method:'DELETE' }).catch(()=>{});
   };
 
@@ -8700,9 +8730,9 @@ const _videoBlobCache = {};
 
 function renderBubble(m, isMe){
   const ts = m.timestamp ? new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
-  // شارة التوثيق الزرقاء للمدير
+  // شارة التوثيق الزرقاء للمدير (دائرة زرقاء فوق الصورة)
   const isAdminMsg = (m.from === 'المدير');
-  const verifiedBadge = isAdminMsg ? `<span title="حساب موثق ✅" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;background:#1877F2;border-radius:50%;font-size:8px;color:white;font-weight:900;margin-right:3px;flex-shrink:0;vertical-align:middle;">✓</span>` : '';
+  const verifiedBadge = isAdminMsg ? `<span title="حساب موثق ✓" style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:linear-gradient(135deg,#1877F2,#0052cc);border-radius:50%;font-size:8px;color:white;font-weight:900;margin-right:3px;flex-shrink:0;vertical-align:middle;box-shadow:0 1px 4px rgba(24,119,242,0.5);">✓</span>` : '';
   const senderLabel = !isMe ? `<div class="chat-sender-name">${m.from||''}${verifiedBadge}</div>` : '';
   let mediaHtml='';
 
@@ -9241,6 +9271,13 @@ async function sendChatMessage(){
 
   // حفظ في Supabase (للمزامنة بين الأجهزة)
   sbSendMessage(msgObj);
+
+  // ── إرسال إشعار للمستلم فقط (خصوصية) ──
+  if(typeof sendOneSignalNotif === 'function'){
+    const senderDisplay = myName === 'المدير' ? '🛡️ المدير' : myName;
+    const notifText = txt ? txt.substring(0,60) : (msgObj.mediaType==='image'?'🖼️ صورة':msgObj.mediaType==='video'?'🎬 فيديو':'🎙️ رسالة صوتية');
+    sendOneSignalNotif(`💬 رسالة من ${senderDisplay}`, notifText, targetName);
+  }
 
   // ── إضافة 1000 نقطة للمدير عند الرد في المحادثة ──
   if(_isAdmin){ _addAdminPoints('رد المدير في المحادثة'); }
@@ -11743,18 +11780,18 @@ function _updateMpvAdminBadge(memberName){
   const badge = document.getElementById('mpvVerifiedBadge');
   if(!badge) return;
   if(_isAdminUser(memberName)){
-    // شارة خاصة بالمدير — ذهبية مميزة
+    // شارة خاصة بالمدير — زرقاء توثيق (مثل تويتر/فيسبوك)
     badge.style.display = 'block';
-    badge.style.background = 'linear-gradient(135deg,#f5c518,#f97316)';
-    badge.style.color = '#1a1a1a';
-    badge.style.border = '2px solid white';
+    badge.style.background = 'linear-gradient(135deg,#1877F2,#0052cc)';
+    badge.style.color = 'white';
+    badge.style.border = '2px solid rgba(255,255,255,0.3)';
     badge.style.borderRadius = '20px';
     badge.style.padding = '4px 10px';
     badge.style.fontSize = '11px';
     badge.style.fontWeight = '900';
     badge.style.whiteSpace = 'nowrap';
-    badge.style.boxShadow = '0 2px 10px rgba(245,197,24,0.7)';
-    badge.innerHTML = '🛡️ مدير رسمي';
+    badge.style.boxShadow = '0 2px 10px rgba(24,119,242,0.5)';
+    badge.innerHTML = '✓ مدير موثّق';
   } else {
     // شارة توثيق عادية (300 نجمة)
     const totalStarsKey = 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
@@ -11773,7 +11810,7 @@ function _updateMpvAdminBadge(memberName){
 /** إضافة شارة المدير عند عرض منشور أو تعليق للمدير */
 function getAdminVerifiedBadgeHtml(authorName){
   if(!_isAdminUser(authorName)) return '';
-  return `<span style="display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#f5c518,#f97316);color:#1a1a1a;border-radius:12px;padding:2px 7px;font-size:10px;font-weight:900;margin-right:4px;box-shadow:0 1px 5px rgba(245,197,24,0.5);vertical-align:middle;">🛡️ مدير</span>`;
+  return `<span style="display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#1877F2,#0052cc);color:white;border-radius:50%;width:16px;height:16px;padding:0;font-size:9px;font-weight:900;margin-right:4px;box-shadow:0 1px 5px rgba(24,119,242,0.5);vertical-align:middle;justify-content:center;flex-shrink:0;">✓</span>`;
 }
 
 /* ══ نهاية شارة المدير ══ */
@@ -11890,6 +11927,20 @@ function viewMemberProfile(memberName){
               <div style="font-size:10px;color:#65676B;">الرصيد</div>
             </div>
           </div>
+          <!-- شريط تقييم النجوم — يظهر للأصدقاء فقط -->
+          <div id="mpvStarRatingBox_${memberName.replace(/\s+/g,'_')}" style="background:linear-gradient(135deg,rgba(245,197,24,0.1),rgba(255,160,0,0.05));border:1px solid rgba(245,197,24,0.3);border-radius:12px;padding:12px 14px;margin-top:6px;">
+            <div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:8px;text-align:center;">⭐ قيّم هذا الصديق</div>
+            <div style="display:flex;justify-content:center;gap:6px;margin-bottom:6px;" id="mpvStars_${memberName.replace(/\s+/g,'_')}">
+              ${[1,2,3,4,5].map(s=>{
+                const myRating = parseInt(localStorage.getItem('nld_star_'+myName.replace(/\s+/g,'_')+'_'+memberName.replace(/\s+/g,'_'))||'0');
+                const filled = s <= myRating;
+                return `<span onclick="rateMember('${memberName}',${s})" style="font-size:28px;cursor:pointer;transition:transform .15s;color:${filled?'#f5c518':'#E4E6EB'};" onmouseover="hoverStars('${memberName}',${s})" onmouseout="restoreStars('${memberName}')" title="${s} نجمة">${filled?'★':'☆'}</span>`;
+              }).join('')}
+            </div>
+            <div id="mpvStarMsg_${memberName.replace(/\s+/g,'_')}" style="font-size:11px;color:#92400e;text-align:center;font-weight:700;">
+              ${(()=>{const r=parseInt(localStorage.getItem('nld_star_'+myName.replace(/\s+/g,'_')+'_'+memberName.replace(/\s+/g,'_'))||'0');const avg=_getMemberAvgRating(memberName);return r>0?`تقييمك: ${r} نجوم ${avg>0?'· معدل التقييم: '+avg.toFixed(1)+' ⭐':''}`:avg>0?`معدل التقييم: ${avg.toFixed(1)} ⭐`:'لم تقيّم بعد';})()}
+            </div>
+          </div>
         </div>`;
     } else {
       extInfo.innerHTML = '';
@@ -11953,6 +12004,59 @@ function closeMemberProfileView(){
   const el = document.getElementById('memberProfileView');
   if(el) el.style.display='none';
   _mpvCurrentUser = null;
+}
+
+/* ══ نظام تقييم النجوم بين الأصدقاء ══ */
+function _getMemberAvgRating(memberName){
+  try{
+    const safe = memberName.replace(/\s+/g,'_');
+    const allKeys = Object.keys(localStorage).filter(k=>k.startsWith('nld_star_')&&k.endsWith('_'+safe));
+    if(allKeys.length===0) return 0;
+    const vals = allKeys.map(k=>parseInt(localStorage.getItem(k)||'0')).filter(v=>v>0);
+    if(vals.length===0) return 0;
+    return vals.reduce((a,b)=>a+b,0)/vals.length;
+  }catch(e){ return 0; }
+}
+
+function rateMember(memberName, stars){
+  const myName = getCurrentUser(); if(!myName) return;
+  const key = 'nld_star_'+myName.replace(/\s+/g,'_')+'_'+memberName.replace(/\s+/g,'_');
+  localStorage.setItem(key, String(stars));
+  // تجميع النجوم الإجمالية للعضو
+  const totalKey = 'nld_total_stars_'+memberName.replace(/\s+/g,'_');
+  const avg = _getMemberAvgRating(memberName);
+  // تحديث الشاشة
+  restoreStars(memberName);
+  const msgEl = document.getElementById('mpvStarMsg_'+memberName.replace(/\s+/g,'_'));
+  if(msgEl){
+    const newAvg = _getMemberAvgRating(memberName);
+    msgEl.innerText = `تقييمك: ${stars} نجوم ${newAvg>0?'· معدل التقييم: '+newAvg.toFixed(1)+' ⭐':''}`;
+  }
+  addSocialNotif(memberName, `${myName} قيّمك بـ ${stars} نجوم ⭐`, '⭐');
+  showToast(`⭐ تم تقييم ${memberName} بـ ${stars} نجوم`);
+}
+
+function hoverStars(memberName, upTo){
+  const starsEl = document.getElementById('mpvStars_'+memberName.replace(/\s+/g,'_'));
+  if(!starsEl) return;
+  const myName = getCurrentUser()||'';
+  const mySaved = parseInt(localStorage.getItem('nld_star_'+myName.replace(/\s+/g,'_')+'_'+memberName.replace(/\s+/g,'_'))||'0');
+  starsEl.querySelectorAll('span').forEach((s,i)=>{
+    s.style.color = (i+1)<=upTo ? '#f5c518' : '#E4E6EB';
+    s.style.transform = (i+1)<=upTo ? 'scale(1.2)' : 'scale(1)';
+  });
+}
+
+function restoreStars(memberName){
+  const starsEl = document.getElementById('mpvStars_'+memberName.replace(/\s+/g,'_'));
+  if(!starsEl) return;
+  const myName = getCurrentUser()||'';
+  const mySaved = parseInt(localStorage.getItem('nld_star_'+myName.replace(/\s+/g,'_')+'_'+memberName.replace(/\s+/g,'_'))||'0');
+  starsEl.querySelectorAll('span').forEach((s,i)=>{
+    s.style.color = (i+1)<=mySaved ? '#f5c518' : '#E4E6EB';
+    s.textContent = (i+1)<=mySaved ? '★' : '☆';
+    s.style.transform = 'scale(1)';
+  });
 }
 
 // بدء محادثة من ملف العضو مباشرة
@@ -13041,7 +13145,7 @@ function renderSocialMessengerPanel(){
         const icon = typeof getLeaderIcon==='function' ? getLeaderIcon(name) : '👑';
         const avatarInner = photo ? `<img src="${photo}" alt="${name}">` : `<span>${icon}</span>`;
         const shortName = name.split(' ')[0];
-        return `<div class="msg-active-item" onclick="startChatWithName('${name.replace(/'/g,"\\'")}');hideSocialHome();">
+        return `<div class="msg-active-item" onclick="openChatFromSocial('${name.replace(/'/g,"\\'")}')">
           <div class="msg-active-avatar">${avatarInner}<div class="msg-active-green-dot"></div></div>
           <div class="msg-active-name">${shortName}</div>
         </div>`;
@@ -13111,7 +13215,7 @@ function _renderSmInbox(myName, filter=''){
     const ts = last.timestamp ? new Date(last.timestamp).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'}) : '';
     const isMine = last.from === myName;
     const safeName = other.replace(/'/g,"\\'");
-    return `<div onclick="openP2PChat('${safeName}',false);hideSocialHome();" style="display:flex;align-items:center;gap:12px;background:white;padding:12px 14px;border-radius:14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:.15s;position:relative;" onmouseover="this.style.background='#F7F8FA'" onmouseout="this.style.background='white'">
+    return `<div onclick="openChatFromSocial('${safeName}')" style="display:flex;align-items:center;gap:12px;background:white;padding:12px 14px;border-radius:14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:.15s;position:relative;" onmouseover="this.style.background='#F7F8FA'" onmouseout="this.style.background='white'">
       <div style="position:relative;flex-shrink:0;">${avatarHtml}${!isMine && unread>0 ? `<div style="position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid white;"></div>` : ''}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:14px;font-weight:${unread>0?'900':'700'};color:#050505;margin-bottom:2px;">${other}</div>
@@ -13127,6 +13231,21 @@ function _renderSmInbox(myName, filter=''){
 
 function filterSmInbox(q){
   _renderSmInbox(getCurrentUser(), q);
+}
+
+/* فتح محادثة من صفحتي — يفتح messagesModal ثم يفتح المحادثة الخاصة (خصوصية كاملة) */
+function openChatFromSocial(targetName){
+  // نعلّم صفحتي كـ "مفتوحة قبل المحادثات"
+  const socialHome = document.getElementById('socialHomeCard');
+  if(socialHome) socialHome._wasOpenBeforeMessages = true;
+  // فتح نافذة المحادثات
+  const msgModal = document.getElementById('messagesModal');
+  if(msgModal){ msgModal.style.display='flex'; renderInboxList(); }
+  // فتح المحادثة مباشرة
+  setTimeout(()=>{
+    if(_isAdmin){ openAdminChat(targetName, false); }
+    else { openP2PChat(targetName, false); }
+  }, 80);
 }
 
 // Override switchSocialTab to handle messenger
