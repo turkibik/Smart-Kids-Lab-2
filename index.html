@@ -10874,7 +10874,7 @@ function renderMembersPanelList(members){
     return `<div onclick="viewMemberProfile('${name}')" style="display:flex;align-items:center;gap:12px;background:white;padding:12px 14px;border-radius:14px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:.15s;" onmouseover="this.style.background='#F7F8FA'" onmouseout="this.style.background='white'">
       <div style="position:relative;flex-shrink:0;">${avatarHtml}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:2px;">${name}${name===curUser?'  <span style="font-size:10px;background:#E8F4FD;color:#1877F2;border-radius:6px;padding:1px 6px;font-weight:700;">أنت</span>':''}</div>
+        <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:2px;">${name}${typeof getAdminVerifiedBadgeHtml==='function'?getAdminVerifiedBadgeHtml(name):''}${name===curUser?'  <span style="font-size:10px;background:#E8F4FD;color:#1877F2;border-radius:6px;padding:1px 6px;font-weight:700;">أنت</span>':''}</div>
         <div style="font-size:11px;color:#65676B;">⭐ ${pts} نقطة  •  المستوى ${level}</div>
       </div>
       <div style="font-size:18px;color:#BCC0C4;">›</div>
@@ -10980,7 +10980,7 @@ function renderSocialPostCard(p){
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
         ${avatarHtml}
         <div style="flex:1;">
-          <div style="font-size:14px;font-weight:900;color:#050505;cursor:${isAd?'default':'pointer'};" ${isAd?'':` onclick="viewMemberProfile('${p.author}')"`}>${p.author}</div>
+          <div style="font-size:14px;font-weight:900;color:#050505;cursor:${isAd?'default':'pointer'};" ${isAd?'':` onclick="viewMemberProfile('${p.author}')"`}>${p.author}${!isAd && typeof getAdminVerifiedBadgeHtml==='function' ? getAdminVerifiedBadgeHtml(p.author) : ''}</div>
           <div style="font-size:11px;color:#65676B;">${p.date} • ${isAd?'📢 إعلان':(p.privacy||'🌐 عام')}</div>
         </div>
         ${!isAd ? `<div style="position:relative;">
@@ -11054,7 +11054,7 @@ function renderCommentItem(c, postId){
   return `<div id="comment_${c.id||c.ts}" style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;">
     <div onclick="viewMemberProfile('${c.author}')" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;cursor:pointer;">${typeof getLeaderIcon==='function'?getLeaderIcon(c.author||'?'):'👑'}</div>
     <div style="background:white;border-radius:16px;padding:8px 12px;flex:1;border:1px solid #E4E6EB;position:relative;">
-      <div onclick="viewMemberProfile('${c.author}')" style="font-size:12px;font-weight:900;color:#050505;margin-bottom:2px;cursor:pointer;">${c.author}</div>
+      <div onclick="viewMemberProfile('${c.author}')" style="font-size:12px;font-weight:900;color:#050505;margin-bottom:2px;cursor:pointer;">${c.author}${typeof getAdminVerifiedBadgeHtml==='function' ? getAdminVerifiedBadgeHtml(c.author) : ''}</div>
       <div id="commentText_${c.id||c.ts}" style="font-size:13px;color:#050505;line-height:1.5;">${c.text}</div>
       ${isOwner ? `<div style="display:flex;gap:8px;margin-top:4px;">
         <span onclick="editComment('${postId}','${c.id||c.ts}')" style="font-size:11px;color:#1877F2;cursor:pointer;font-weight:700;">✏️ تعديل</span>
@@ -11434,8 +11434,52 @@ function acceptFriendRequest(fromUser){
   const theirFriends = getFriends(fromUser);
   if(!theirFriends.includes(name)){ theirFriends.push(name); localStorage.setItem(_friendsKey(fromUser), JSON.stringify(theirFriends)); }
   addSocialNotif(fromUser, `${name} قبل طلب صداقتك! أنتما الآن أصدقاء 🎉`, '🎉');
-  showToast('تمت إضافة الصديق ✅');
+  showToast('تمت إضافة الصديق ✅ — يمكنك الآن رؤية ملفه الكامل');
   renderFriendsPanel();
+  // ── فتح الملف الشخصي الكامل للصديق بعد قبول الطلب ──
+  setTimeout(() => {
+    openFullMemberProfile(fromUser);
+  }, 600);
+}
+
+/* ══ فتح الملف الشخصي الكامل بعد قبول الصداقة ══ */
+function openFullMemberProfile(memberName){
+  // إغلاق أي نافذة صداقة مفتوحة
+  const friendsModal = document.getElementById('friendsPanel');
+  if(friendsModal) friendsModal.style.display = 'none';
+
+  _mpvCurrentUser = memberName;
+  const el = document.getElementById('memberProfileView');
+  if(!el) return;
+  el.style.display = 'flex';
+  el.style.flexDirection = 'column';
+  el.scrollTop = 0;
+
+  // صورة الأفاتار
+  const photo = typeof getProfilePhoto==='function' ? getProfilePhoto(memberName) : null;
+  const avatarEl = document.getElementById('mpvAvatar');
+  if(avatarEl){
+    if(photo){ avatarEl.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`; }
+    else{ avatarEl.innerHTML = typeof getLeaderIcon==='function'?getLeaderIcon(memberName):'👑'; }
+  }
+  const cover = localStorage.getItem('nld_cover_'+memberName.replace(/\s+/g,'_'));
+  const coverImg = document.getElementById('mpvCoverImg');
+  if(coverImg){ coverImg.style.backgroundImage = cover ? 'url('+cover+')' : ''; }
+  const nameEl = document.getElementById('mpvName');
+  if(nameEl) nameEl.innerText = memberName;
+
+  // شارة المدير
+  _updateMpvAdminBadge(memberName);
+
+  // عرض الملف الكامل (هو الآن صديق)
+  _renderMpvExtendedInfo(memberName, true);
+  renderMpvPosts(memberName, true);
+  updateMpvFriendBtn(memberName);
+
+  // بانر ترحيبي بالصديق الجديد
+  setTimeout(()=>{
+    showToast(`🎉 مرحباً! يمكنك الآن رؤية ملف ${memberName} الكامل`);
+  }, 400);
 }
 
 function declineFriendRequest(fromUser){
@@ -11455,9 +11499,56 @@ function removeFriend(friendName){
   renderFriendsPanel();
 }
 
-/* ══════════════════════════════════════════
-   👤 مشاهدة ملف شخصي عضو آخر
-   ══════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   🛡️ شارة توثيق المدير — تظهر في كل الملفات
+   ══════════════════════════════════════════════════════════════════ */
+
+/** هل هذا الاسم هو المدير؟ */
+function _isAdminUser(name){
+  return name === 'المدير' || name === 'admin' || name === 'ADMIN';
+}
+
+/** تحديث شارة التوثيق في نافذة ملف العضو */
+function _updateMpvAdminBadge(memberName){
+  const badge = document.getElementById('mpvVerifiedBadge');
+  if(!badge) return;
+  if(_isAdminUser(memberName)){
+    // شارة خاصة بالمدير — ذهبية مميزة
+    badge.style.display = 'block';
+    badge.style.background = 'linear-gradient(135deg,#f5c518,#f97316)';
+    badge.style.color = '#1a1a1a';
+    badge.style.border = '2px solid white';
+    badge.style.borderRadius = '20px';
+    badge.style.padding = '4px 10px';
+    badge.style.fontSize = '11px';
+    badge.style.fontWeight = '900';
+    badge.style.whiteSpace = 'nowrap';
+    badge.style.boxShadow = '0 2px 10px rgba(245,197,24,0.7)';
+    badge.innerHTML = '🛡️ مدير رسمي';
+  } else {
+    // شارة توثيق عادية (300 نجمة)
+    const totalStarsKey = 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
+    const totalStars = parseInt(localStorage.getItem(totalStarsKey)||'0');
+    if(totalStars >= 300){
+      badge.style.display = 'block';
+      badge.style.background = 'linear-gradient(135deg,#1877F2,#0052cc)';
+      badge.style.color = 'white';
+      badge.innerHTML = '✅ موثّق';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+
+/** إضافة شارة المدير عند عرض منشور أو تعليق للمدير */
+function getAdminVerifiedBadgeHtml(authorName){
+  if(!_isAdminUser(authorName)) return '';
+  return `<span style="display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#f5c518,#f97316);color:#1a1a1a;border-radius:12px;padding:2px 7px;font-size:10px;font-weight:900;margin-right:4px;box-shadow:0 1px 5px rgba(245,197,24,0.5);vertical-align:middle;">🛡️ مدير</span>`;
+}
+
+/* ══ نهاية شارة المدير ══ */
+
+
 let _mpvCurrentUser = null;
 function viewMemberProfile(memberName){
   const myName = getCurrentUser();
@@ -11493,6 +11584,9 @@ function viewMemberProfile(memberName){
 
   const nameEl = document.getElementById('mpvName');
   if(nameEl) nameEl.innerText = getDisplayName(memberName);
+
+  // ── شارة المدير أو التوثيق ──
+  _updateMpvAdminBadge(memberName);
 
   // عرض معلومات الملف الشخصي الكاملة للأصدقاء فقط
   const extInfo = document.getElementById('mpvExtendedInfo');
@@ -12072,6 +12166,9 @@ function viewMemberProfile(memberName){
 
   const nameEl = document.getElementById('mpvName');
   if(nameEl) nameEl.innerText = memberName;
+
+  // ── شارة المدير أو التوثيق ──
+  _updateMpvAdminBadge(memberName);
 
   const isFriend = myName && _isFriendOf(myName, memberName);
   const isMe = myName === memberName;
