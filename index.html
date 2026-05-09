@@ -5815,6 +5815,122 @@ const SMARTKIDS_MEMBER_NAME = 'يحيى ديش';        // اسم العضو
 
 let _isAdmin = false;
 
+/* ══════════════════════════════════════════════════════════
+   🛡️ نظام المدير المتقدم — yahia_nex_smart
+   • 1000 نقطة عند كل دخول / رد / عملية
+   • شارة زرقاء ✅ حساب موثق
+   • محادثات المدير ثابتة لا تُحذف
+   • نقاط الكويز تُرسل للمدير في محادثة العضو الفائز
+   ══════════════════════════════════════════════════════════ */
+
+/* ── مفتاح نقاط المدير ── */
+const _ADMIN_PTS_KEY = 'nld_admin_yahia_pts';
+const _ADMIN_VERIFIED_KEY = 'nld_admin_verified_badge';
+
+/* ── إضافة 1000 نقطة للمدير + حفظ ── */
+function _addAdminPoints(reason){
+  if(!_isAdmin) return;
+  const prev = parseInt(localStorage.getItem(_ADMIN_PTS_KEY) || '0');
+  const newPts = prev + 1000;
+  if(window.__lsNativeSet){
+    window.__lsNativeSet(_ADMIN_PTS_KEY, String(newPts));
+  } else {
+    localStorage.setItem(_ADMIN_PTS_KEY, String(newPts));
+  }
+  // تحديث الشاشة إن كانت مفتوحة
+  const mainPtsEl = document.getElementById('mainPoints');
+  if(mainPtsEl && _isAdmin){
+    mainPtsEl.innerHTML = `${newPts.toLocaleString()} <span>نقطة</span>`;
+  }
+  // تأثير نقاط
+  if(typeof playGoldSound === 'function') playGoldSound();
+  console.log('🛡️ المدير +1000 نقطة — '+reason+' — المجموع: '+newPts);
+}
+
+/* ── الشارة الزرقاء للمدير ── */
+function _getAdminVerifiedBadge(){
+  return `<span title="حساب موثق" style="display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;background:#1877F2;border-radius:50%;font-size:9px;color:white;font-weight:900;margin-right:2px;flex-shrink:0;box-shadow:0 0 6px rgba(24,119,242,0.5);">✓</span>`;
+}
+
+/* ── تمييز اسم المدير في أي واجهة ── */
+function _applyAdminBadgeToUI(){
+  if(!_isAdmin) return;
+  // تحديث شريط الاسم العلوي
+  const nameTopEl = document.getElementById('userNameTop');
+  if(nameTopEl && !nameTopEl.innerHTML.includes('1877F2')){
+    nameTopEl.innerHTML = 'المدير ' + _getAdminVerifiedBadge();
+  }
+  // تحديث بطاقة الإدارة
+  const adminGrtTitle = document.querySelector('.admin-greeting-title');
+  if(adminGrtTitle && !adminGrtTitle.innerHTML.includes('1877F2')){
+    adminGrtTitle.innerHTML = 'أهلاً يا مدير التطبيق ' + _getAdminVerifiedBadge();
+  }
+  // تحديث نقاط المدير من المخزن المحلي
+  const adminPts = parseInt(localStorage.getItem(_ADMIN_PTS_KEY) || '0');
+  const mainPtsEl = document.getElementById('mainPoints');
+  if(mainPtsEl && _isAdmin){
+    mainPtsEl.innerHTML = `${adminPts.toLocaleString()} <span>نقطة</span>`;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   🔒 حماية محادثات المدير من الحذف
+   ══════════════════════════════════════════════════════════ */
+(function _protectAdminChats(){
+  'use strict';
+  const _origRemoveItem = Storage.prototype.removeItem;
+  Storage.prototype.removeItem = function(key){
+    // منع حذف محادثات المدير nld_p2p_المدير_* أو *_المدير
+    if(key && (key.includes('nld_p2p_') && (key.includes('المدير') || key.includes('~D8~A7~D9~84~D9~85~D8~AF~D9~8A~D8~B1')))){
+      console.log('🔒 محادثة المدير محمية من الحذف:', key);
+      return; // منع الحذف
+    }
+    return _origRemoveItem.call(this, key);
+  };
+  console.log('🔒 نظام حماية محادثات المدير: نشط');
+})();
+
+/* ══════════════════════════════════════════════════════════
+   🏆 إرسال نقاط الكويز للمدير عند إكمال المستوى
+   ══════════════════════════════════════════════════════════ */
+function _notifyAdminQuizWinner(memberName, ptsEarned, level){
+  if(!memberName || memberName === 'المدير' || memberName === 'زائر') return;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
+  const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+
+  // بناء محتوى الرسالة
+  const msgText = `🏆 نتيجة الكويز!\n👤 العضو: ${memberName}\n📚 المستوى: ${level}\n⭐ النقاط المكسوبة: ${ptsEarned} نقطة\n📅 ${dateStr} — ${timeStr}\n\n✅ تم إضافة النقاط تلقائياً لرصيد العضو`;
+
+  // إرسال للمدير عبر نظام المحادثات
+  const chatKey = _getChatKey('المدير', memberName);
+  const msgs = JSON.parse(localStorage.getItem(chatKey) || '[]');
+  msgs.push({
+    id: 'quiz_result_'+Date.now(),
+    from: 'النظام',
+    to: 'المدير',
+    message: msgText,
+    timestamp: new Date().toISOString(),
+    isSystem: true
+  });
+  localStorage.setItem(chatKey, JSON.stringify(msgs));
+
+  // إشعار Push للمدير إن أمكن
+  if(typeof window.sendOneSignalNotif === 'function'){
+    window.sendOneSignalNotif(
+      '🏆 نقاط كويز جديدة — '+memberName,
+      `العضو ${memberName} أكمل المستوى ${level} وكسب ${ptsEarned} نقطة`
+    );
+  }
+  console.log('📤 تم إرسال نتيجة الكويز للمدير:', memberName, ptsEarned, 'نقطة');
+}
+
+/* مساعدة: الحصول على مفتاح المحادثة بين شخصين */
+function _getChatKey(a, b){
+  const sorted = [a,b].sort();
+  return 'nld_p2p_' + sorted[0].replace(/\s+/g,'_') + '__' + sorted[1].replace(/\s+/g,'_');
+}
+
 /* ===== نظام الكرة الأرضية للغة (في واجهة التسجيل فقط) ===== */
 const _globeLangNames = {ar:'العربية',en:'English',es:'Español',zh:'中文'};
 
@@ -6122,6 +6238,10 @@ function enterAsAdmin(){
   // تعيين روابط الجداول
   setAdminLinks();
 
+  // ── إضافة 1000 نقطة للمدير عند الدخول + شارة زرقاء ──
+  _addAdminPoints('دخول المدير');
+  setTimeout(()=>{ _applyAdminBadgeToUI(); }, 500);
+
   // إظهار بطاقة أدوات المدير الفاخرة
   setTimeout(()=>{
     const storedEmail = localStorage.getItem("sklab_admin_email")||'';
@@ -6235,6 +6355,8 @@ function adminEditPoints(){
     msg.className="admin-msg err"; msg.innerText="⚠️ أدخل اسم العضو والنقاط بشكل صحيح"; msg.style.display="block"; return;
   }
   syncQuizPts(name,pts).then(()=>{
+    // ── إضافة 1000 نقطة للمدير عند تعديل النقاط ──
+    _addAdminPoints('تعديل نقاط عضو: '+name);
     msg.className="admin-msg ok";
     msg.innerText='✅ تم تعيين نقاط "'+name+'" إلى '+pts+' نقطة';
     msg.style.display="block";
@@ -7427,18 +7549,24 @@ function renderQuestion(){
         ts:Date.now()
       });
       localStorage.setItem('nld_member_msgs',JSON.stringify(adminMsgs));
-      // إشعار عبر p2p للمدير أيضاً
+      // إشعار عبر p2p للمدير أيضاً — باستخدام مفتاح موحد (ثابت)
       try{
-        const p2pKey='nld_p2p_المدير__'+name.replace(/\s+/g,'_');
+        // استخدام المفتاح الموحد المرتب أبجدياً (مقاوم للتحديثات)
+        const sorted = ['المدير', name].sort();
+        const p2pKey = 'nld_p2p_' + sorted[0].replace(/\s+/g,'_') + '__' + sorted[1].replace(/\s+/g,'_');
         const p2pMsgs=JSON.parse(localStorage.getItem(p2pKey)||'[]');
         p2pMsgs.push({
           id:'quiz_'+Date.now(),
           from:name,to:'المدير',
-          message:`🏆 أكملت المستوى ${currentQuizLevel} من الكويز!\n⭐ نقاط الكويز: ${finalQuizPts.toLocaleString()} نقطة\n📅 ${dateStr} — ${timeStr}`,
+          message:`🏆 أكملت المستوى ${currentQuizLevel} من الكويز!\n⭐ نقاط الكويز: ${finalQuizPts.toLocaleString()} نقطة\n📅 ${dateStr} — ${timeStr}\n\n✅ النقاط أُضيفت للإجمالي تلقائياً`,
           timestamp:now.toISOString(),read:false
         });
         localStorage.setItem(p2pKey,JSON.stringify(p2pMsgs));
       }catch(e){}
+      // استدعاء دالة الإشعار المتقدمة
+      if(typeof _notifyAdminQuizWinner === 'function'){
+        _notifyAdminQuizWinner(name, finalQuizPts, currentQuizLevel);
+      }
 
       div.innerHTML=`
         <div class="quiz-result">
@@ -8545,7 +8673,10 @@ const _videoBlobCache = {};
 
 function renderBubble(m, isMe){
   const ts = m.timestamp ? new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
-  const senderLabel = !isMe ? `<div class="chat-sender-name">${m.from||''}</div>` : '';
+  // شارة التوثيق الزرقاء للمدير
+  const isAdminMsg = (m.from === 'المدير');
+  const verifiedBadge = isAdminMsg ? `<span title="حساب موثق ✅" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;background:#1877F2;border-radius:50%;font-size:8px;color:white;font-weight:900;margin-right:3px;flex-shrink:0;vertical-align:middle;">✓</span>` : '';
+  const senderLabel = !isMe ? `<div class="chat-sender-name">${m.from||''}${verifiedBadge}</div>` : '';
   let mediaHtml='';
 
   if(m.mediaType==='image' && m.mediaData){
@@ -9084,6 +9215,9 @@ async function sendChatMessage(){
   // حفظ في Supabase (للمزامنة بين الأجهزة)
   sbSendMessage(msgObj);
 
+  // ── إضافة 1000 نقطة للمدير عند الرد في المحادثة ──
+  if(_isAdmin){ _addAdminPoints('رد المدير في المحادثة'); }
+
   document.getElementById('replyText').value='';
   document.getElementById('replyText').style.height='40px';
   _mediaToSend=null;
@@ -9193,6 +9327,9 @@ async function adminSendMessages(){
     return sbSendMessage(m);
   });
   await Promise.all(sendPromises);
+
+  // ── إضافة 1000 نقطة للمدير عند الإرسال ──
+  _addAdminPoints('إرسال رسالة للأعضاء');
 
   _adminMediaToSend=null;
   const prev=document.getElementById('adminMediaPreview'); if(prev) prev.style.display='none';
@@ -15798,40 +15935,51 @@ function openCityFeature(key){
 </script>
 
 <!-- ══════════════════════════════════════════════════════
-     🛡️ تنظيف تلقائي: حذف ملفات "المدير" من الحسابات المحفوظة
-     وضمان ثبات خلفية المسنجر عبر التحديثات
+     🛡️ حماية ملف المدير yahia_nex_smart — ثبات دائم
      ══════════════════════════════════════════════════════ -->
 <script>
-(function _cleanupAdminFromSavedAccounts(){
+(function _preserveAdminAccount(){
   'use strict';
-  // حذف أي حساب باسم المدير من جميع مفاتيح الحسابات المحفوظة
-  try{
-    for(let i = 0; i < localStorage.length; i++){
-      const k = localStorage.key(i);
-      if(k && k.startsWith('nld_saved_accounts')){
-        try{
-          const accs = JSON.parse(localStorage.getItem(k) || '[]');
-          const cleaned = accs.filter(a => a.name !== 'المدير');
-          if(cleaned.length !== accs.length){
-            if(window.__lsNativeSet){ window.__lsNativeSet(k, JSON.stringify(cleaned)); }
-            else { localStorage.setItem(k, JSON.stringify(cleaned)); }
-            console.log('🛡️ تم حذف ملف المدير من الحسابات المحفوظة');
-          }
-        }catch(e){}
-      }
-    }
-  }catch(e){}
 
-  // عند تحميل الصفحة — تطبيق خلفية المسنجر المحفوظة فوراً
+  /* ── الاحتفاظ بملف المدير في الحسابات المحفوظة دائماً ── */
+  const ADMIN_SAVED_KEY = 'nld_saved_accounts_admin_protected';
+  const ADMIN_PROFILE_KEY = 'nld_admin_profile_yahia';
+
+  /* حفظ بيانات المدير بشكل دائم (مقاومة للتحديثات) */
+  function _saveAdminProfile(){
+    const profile = {
+      name: 'المدير',
+      code: 'yahia_nex_smart',
+      badge: '✅',   // شارة زرقاء توثيق
+      verified: true,
+      savedAt: Date.now()
+    };
+    if(window.__lsNativeSet){
+      window.__lsNativeSet(ADMIN_PROFILE_KEY, JSON.stringify(profile));
+    } else {
+      localStorage.setItem(ADMIN_PROFILE_KEY, JSON.stringify(profile));
+    }
+  }
+
+  /* ── لا نحذف المدير من الحسابات المحفوظة — نتجاهل التنظيف ── */
+  // (تم إلغاء منطق الحذف السابق)
+
+  // حفظ ملف المدير عند كل تحميل
+  _saveAdminProfile();
+
+  /* ── عند تحميل الصفحة — تطبيق خلفية المسنجر المحفوظة فوراً ── */
   window.addEventListener('load', function(){
-    // تطبيق السمة المحفوظة على شاشة المحادثة
     const savedBg = localStorage.getItem('nld_chat_theme_bg');
     const cs = document.getElementById('chatScreen');
     if(cs && savedBg){
       cs.style.setProperty('--chat-bg', savedBg);
       cs.style.background = savedBg;
     }
+    // ضمان ثبات بيانات المدير بعد التحميل
+    _saveAdminProfile();
   });
+
+  console.log('🛡️ ملف المدير yahia_nex_smart محمي ودائم');
 })();
 </script>
 
