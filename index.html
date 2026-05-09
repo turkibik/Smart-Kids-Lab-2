@@ -3286,12 +3286,12 @@ body.member-mode #onlineBar{
       <!-- Stories Bar (Facebook-style) -->
       <div id="storiesBar" style="background:white;padding:12px 12px 4px;margin-bottom:8px;border-bottom:1px solid #E4E6EB;box-shadow:0 1px 4px rgba(0,0,0,0.04);">
         <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none;-ms-overflow-style:none;" id="storiesScroll">
-          <!-- قصتي - أول عنصر -->
+          <!-- يومياتي - أول عنصر -->
           <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;" onclick="openMyStoryOrCreate()">
             <div style="position:relative;width:68px;height:110px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#e3f0ff 0%,#c8dfff 100%);border:2.5px solid #1877F2;">
               <div id="myStoryThumb" style="width:100%;height:70%;background:linear-gradient(135deg,#1877F2,#0d5bda);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;">👑</div>
               <div style="position:absolute;bottom:0;width:100%;height:40%;background:white;display:flex;align-items:center;justify-content:center;">
-                <span style="font-size:10px;font-weight:700;color:#050505;text-align:center;line-height:1.2;">قصتي</span>
+                <span style="font-size:10px;font-weight:700;color:#050505;text-align:center;line-height:1.2;">يومياتي</span>
               </div>
               <div style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%);width:24px;height:24px;background:#1877F2;border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:white;line-height:1;">+</div>
             </div>
@@ -3307,7 +3307,7 @@ body.member-mode #onlineBar{
           <div id="socialPostAvatarWrap" onclick="openMyStory()" style="flex-shrink:0;cursor:pointer;position:relative;">
             <div class="story-ring" id="myStoryRing">
               <div class="story-ring-inner">
-                <div id="socialPostAvatar" style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;" title="قصتي">👑</div>
+                <div id="socialPostAvatar" style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;" title="يومياتي">👑</div>
               </div>
             </div>
             <div class="story-add-btn" onclick="event.stopPropagation();addMyStory()" title="إضافة قصة">+</div>
@@ -3452,6 +3452,8 @@ body.member-mode #onlineBar{
     <div onclick="closeMemberProfileView()" style="position:absolute;top:10px;left:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;color:white;font-weight:700;z-index:5;">‹</div>
     <div style="position:absolute;bottom:-46px;right:14px;z-index:5;">
       <div id="mpvAvatar" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:38px;border:4px solid white;overflow:hidden;">👑</div>
+      <!-- شارة التوثيق الرسمية -->
+      <div id="mpvVerifiedBadge" style="display:none;position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#1877F2,#0052cc);border:2px solid white;border-radius:20px;padding:3px 8px;font-size:11px;font-weight:900;color:white;white-space:nowrap;box-shadow:0 2px 8px rgba(24,119,242,0.5);z-index:6;">✅ موثّق</div>
     </div>
   </div>
   <div style="width:100%;max-width:480px;margin:0 auto;background:white;padding:54px 16px 14px;border-bottom:1px solid #E4E6EB;">
@@ -3488,6 +3490,8 @@ body.member-mode #onlineBar{
       <div id="profilePageAvatar" onclick="document.getElementById('profilePhotoInput').click()" style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:44px;border:4px solid white;box-shadow:0 4px 16px rgba(0,0,0,0.25);cursor:pointer;overflow:hidden;position:relative;">👑
         <div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:28px;height:28px;background:#1877F2;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid white;">📷</div>
       </div>
+      <!-- شارة التوثيق الرسمية لصاحب الحساب -->
+      <div id="myVerifiedBadge" style="display:none;margin-top:4px;background:linear-gradient(135deg,#1877F2,#0052cc);border:2px solid white;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:900;color:white;white-space:nowrap;box-shadow:0 2px 8px rgba(24,119,242,0.5);text-align:center;">✅ حساب موثّق</div>
     </div>
   </div>
 
@@ -3612,6 +3616,26 @@ body.member-mode #onlineBar{
       <div style="background:white;margin-top:8px;padding:16px;">
         <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;">🏅 إنجازاتي وشاراتي</div>
         <div id="profileBadgesGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
+      </div>
+      <!-- شارة التوثيق الرسمية -->
+      <div style="background:white;margin-top:8px;padding:16px;">
+        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:12px;">⭐ هدف التوثيق الرسمي</div>
+        <div id="verifiedBadgeGoalBox" style="background:linear-gradient(135deg,#EEF4FF,#F0F7FF);border:1.5px solid rgba(24,119,242,0.2);border-radius:16px;padding:16px;">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+            <div id="verifiedBadgeIcon" style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#E0E0E0,#BDBDBD);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,0.15);">🔒</div>
+            <div style="flex:1;">
+              <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:3px;">شارة التوثيق الرسمية ✅</div>
+              <div style="font-size:12px;color:#65676B;line-height:1.6;">احصل على <strong>300 نجمة ذهبية ⭐</strong> من الأصدقاء لتفعيل شارة الحساب الموثّق تحت صورتك الشخصية</div>
+            </div>
+          </div>
+          <div style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;font-weight:700;color:#65676B;">التقدم نحو التوثيق</span>
+            <span id="verifiedStarsCount" style="font-size:13px;font-weight:900;color:#1877F2;">0 / 300 ⭐</span>
+          </div>
+          <div style="height:10px;background:#E4E6EB;border-radius:10px;overflow:hidden;">
+            <div id="verifiedStarsBar" style="height:100%;background:linear-gradient(90deg,#f5c518,#ff9800);width:0%;transition:width 1s ease;border-radius:10px;"></div>
+          </div>
+        </div>
       </div>
       <!-- Progress Section -->
       <div style="background:white;margin-top:8px;padding:16px;">
@@ -5268,6 +5292,8 @@ function openMyFullProfile(){
   }
   const codeEl = document.getElementById('ppMemberCode');
   if(codeEl) codeEl.innerText = 'NLD-' + getMemberCode(name);
+  // تحديث شارة التوثيق
+  _refreshMyVerifiedBadge(name);
 }
 
 function hideMyProfile(){
@@ -5362,6 +5388,11 @@ function switchProfileTab(tab){
     }
     if(panEl) panEl.style.display = t===tab ? 'block' : 'none';
   });
+  // تحديث شارة التوثيق عند فتح تبويب الإنجازات
+  if(tab === 'activity'){
+    const name = getCurrentUser();
+    if(name) _refreshMyVerifiedBadge(name);
+  }
 }
 
 function showBalanceModal(){
@@ -12066,6 +12097,8 @@ function _renderMpvExtendedInfo(memberName, canSeeAll){
     return;
   }
 
+  const myName = getCurrentUser();
+
   // ملف كامل للأصدقاء
   const pts = (() => {
     const raw = localStorage.getItem('sklab_pts_'+memberName.replace(/\s+/g,'_'));
@@ -12077,6 +12110,25 @@ function _renderMpvExtendedInfo(memberName, canSeeAll){
   const code = localStorage.getItem('nld_code_'+memberName.replace(/\s+/g,'_')) || '—';
   const joinDate = localStorage.getItem('nld_join_'+memberName.replace(/\s+/g,'_')) || 'عضو';
 
+  // جلب التقييم الحالي لهذا العضو من طرف الصديق
+  const ratingKey = 'nld_star_rating_' + myName.replace(/\s+/g,'_') + '_to_' + memberName.replace(/\s+/g,'_');
+  const myRating = parseInt(localStorage.getItem(ratingKey)||'0');
+
+  // إجمالي النجوم التي حصل عليها هذا العضو من الجميع
+  const totalStarsKey = 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
+  const totalStars = parseInt(localStorage.getItem(totalStarsKey)||'0');
+
+  // هل هو موثق (300 نجمة+)؟
+  const isVerified = totalStars >= 300;
+  const verifiedBadge = document.getElementById('mpvVerifiedBadge');
+  if(verifiedBadge) verifiedBadge.style.display = isVerified ? 'block' : 'none';
+
+  // بناء نجوم التقييم (7 نجوم)
+  const starsHtml = Array.from({length:7}, (_,i)=>{
+    const val = i+1;
+    return `<span id="mpvStar_${val}" onclick="rateMember('${memberName}',${val})" style="font-size:28px;cursor:pointer;transition:transform .15s;${val<=myRating?'color:#f5c518;':'color:#ddd;'}" onmouseover="highlightStars(${val},'mpvStar')" onmouseout="resetStars(${myRating},'mpvStar')">★</span>`;
+  }).join('');
+
   infoEl.innerHTML=`
     <div style="margin:10px 16px;">
       <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
@@ -12084,7 +12136,7 @@ function _renderMpvExtendedInfo(memberName, canSeeAll){
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
           <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
             <div style="font-size:18px;font-weight:900;color:#050505;">${pts.toLocaleString()}</div>
-            <div style="font-size:10px;color:#65676B;margin-top:2px;">🏆 النقاط</div>
+            <div style="font-size:10px;color:#65676B;margin-top:2px;">🏆 النقاط الإجمالية</div>
           </div>
           <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
             <div style="font-size:18px;font-weight:900;color:#1877F2;">${level}</div>
@@ -12106,8 +12158,113 @@ function _renderMpvExtendedInfo(memberName, canSeeAll){
             <div style="font-size:10px;color:#65676B;">Next Leaders DZ</div>
           </div>
         </div>
+        ${isVerified ? `<div style="margin-top:10px;background:linear-gradient(135deg,#EEF4FF,#DBEAFE);border:1.5px solid rgba(24,119,242,0.35);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">✅</span><div><div style="font-size:13px;font-weight:900;color:#1877F2;">حساب موثّق رسمياً</div><div style="font-size:10px;color:#65676B;">${totalStars} نجمة ذهبية</div></div></div>` : ''}
+      </div>
+
+      <!-- نظام التقييم بالنجوم (7 نجوم) -->
+      <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-top:10px;">
+        <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">⭐ قيّم صفحة هذا الصديق</div>
+        <div style="display:flex;justify-content:center;gap:4px;margin-bottom:10px;" id="mpvStarsRow">
+          ${starsHtml}
+        </div>
+        <div style="text-align:center;">
+          ${myRating > 0
+            ? `<div style="font-size:12px;color:#65676B;">قيّمت بـ <strong style="color:#f5c518;">${myRating} نجمة</strong> — اضغط لتغيير تقييمك</div>`
+            : `<div style="font-size:12px;color:#65676B;">اضغط على عدد النجوم لتقييم هذا الصديق</div>`}
+          <div style="margin-top:6px;font-size:11px;color:#9ca3af;">إجمالي النجوم التي حصل عليها: <strong style="color:#f5c518;">${totalStars} ⭐</strong></div>
+        </div>
       </div>
     </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ⭐ نظام التقييم بالنجوم (7 نجوم) بين الأصدقاء
+   ══════════════════════════════════════════════════════════════════ */
+
+/** تظليل النجوم عند مرور المؤشر */
+function highlightStars(val, prefix){
+  for(let i=1;i<=7;i++){
+    const el=document.getElementById(prefix+'_'+i);
+    if(el) el.style.color = i<=val ? '#f5c518' : '#ddd';
+  }
+}
+
+/** إعادة النجوم لحالتها الأصلية */
+function resetStars(myRating, prefix){
+  for(let i=1;i<=7;i++){
+    const el=document.getElementById(prefix+'_'+i);
+    if(el) el.style.color = i<=myRating ? '#f5c518' : '#ddd';
+  }
+}
+
+/** تقييم صديق بعدد معين من النجوم */
+function rateMember(memberName, stars){
+  const myName = getCurrentUser();
+  if(!myName || myName === memberName) return;
+
+  const ratingKey = 'nld_star_rating_' + myName.replace(/\s+/g,'_') + '_to_' + memberName.replace(/\s+/g,'_');
+  const oldRating = parseInt(localStorage.getItem(ratingKey)||'0');
+
+  // تحديث تقييمي الشخصي
+  localStorage.setItem(ratingKey, String(stars));
+
+  // تحديث إجمالي نجوم هذا العضو
+  const totalStarsKey = 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
+  const currentTotal = parseInt(localStorage.getItem(totalStarsKey)||'0');
+  const newTotal = Math.max(0, currentTotal - oldRating + stars);
+  localStorage.setItem(totalStarsKey, String(newTotal));
+
+  // تحديث النجوم في الواجهة فوراً
+  for(let i=1;i<=7;i++){
+    const el=document.getElementById('mpvStar_'+i);
+    if(el) el.style.color = i<=stars ? '#f5c518' : '#ddd';
+  }
+
+  // إشعار لصاحب الملف
+  addSocialNotif(memberName, `${myName} قيّم ملفك الشخصي بـ ${stars} نجمات ⭐`, '⭐');
+
+  // تحديث إنجازات صاحب الملف (شارة التوثيق)
+  _checkVerifiedBadge(memberName, newTotal);
+
+  // تحديث العرض في المحادثة
+  showToast(`✅ قيّمت ${memberName} بـ ${stars} نجوم!`);
+}
+
+/** فحص وتفعيل شارة التوثيق إذا وصل لـ 300 نجمة */
+function _checkVerifiedBadge(memberName, totalStars){
+  const verifiedKey = 'nld_is_verified_' + memberName.replace(/\s+/g,'_');
+  const wasVerified = localStorage.getItem(verifiedKey) === '1';
+
+  if(totalStars >= 300 && !wasVerified){
+    localStorage.setItem(verifiedKey, '1');
+    // إشعار بتفعيل الشارة
+    addSocialNotif(memberName, '🎉 تهانينا! حصلت على شارة التوثيق الرسمية بعد 300 نجمة ذهبية! ✅', '✅');
+    showToast(`🎉 ${memberName} حصل على شارة التوثيق الرسمية!`);
+  }
+}
+
+/** تحديث عرض شارة التوثيق في ملف صاحب الحساب */
+function _refreshMyVerifiedBadge(name){
+  const totalStarsKey = 'nld_total_stars_' + name.replace(/\s+/g,'_');
+  const totalStars = parseInt(localStorage.getItem(totalStarsKey)||'0');
+  const myVerifiedEl = document.getElementById('myVerifiedBadge');
+  if(myVerifiedEl) myVerifiedEl.style.display = totalStars >= 300 ? 'block' : 'none';
+
+  // تحديث قسم إنجازاتي
+  const countEl = document.getElementById('verifiedStarsCount');
+  if(countEl) countEl.innerText = `${totalStars} / 300 ⭐`;
+  const barEl = document.getElementById('verifiedStarsBar');
+  if(barEl) barEl.style.width = Math.min((totalStars/300)*100, 100) + '%';
+  const iconEl = document.getElementById('verifiedBadgeIcon');
+  if(iconEl){
+    if(totalStars >= 300){
+      iconEl.style.background = 'linear-gradient(135deg,#1877F2,#0052cc)';
+      iconEl.innerText = '✅';
+    } else {
+      iconEl.style.background = 'linear-gradient(135deg,#E0E0E0,#BDBDBD)';
+      iconEl.innerText = '🔒';
+    }
+  }
 }
 
 // override renderMpvPosts to respect friendship
@@ -12737,7 +12894,7 @@ function openMyStoryOrCreate(){
 
 function renderStoriesBar(myName){
   if(!myName) return;
-  // تحديث صورة قصتي
+  // تحديث صورة يومياتي
   const myPhoto = typeof getProfilePhoto==='function' ? getProfilePhoto(myName) : null;
   const myThumb = document.getElementById('myStoryThumb');
   if(myThumb){
@@ -12755,7 +12912,7 @@ function renderStoriesBar(myName){
     if(k && k.startsWith('nld_stories_')){
       try{
         const userName = k.replace('nld_stories_','').replace(/_/g,' ');
-        if(userName === myName) continue; // قصتي تظهر بشكل منفصل
+        if(userName === myName) continue; // يومياتي تظهر بشكل منفصل
         const rawStories = JSON.parse(localStorage.getItem(k)||'[]'); const stories = rawStories;
         if(stories.length > 0) allUsersWithStories.push({ name: userName, stories });
       }catch(e){}
@@ -12837,7 +12994,7 @@ function addMyStory(){
   modal.innerHTML = `
     <div style="width:100%;max-width:480px;background:#18191A;border-radius:24px 24px 0 0;padding:20px 16px 36px;animation:slideUp .3s cubic-bezier(.32,.72,0,1);">
       <div style="width:38px;height:4px;background:rgba(255,255,255,0.18);border-radius:10px;margin:0 auto 20px;"></div>
-      <div style="font-size:18px;font-weight:900;color:white;margin-bottom:18px;text-align:center;letter-spacing:-.3px;">✨ إنشاء قصة</div>
+      <div style="font-size:18px;font-weight:900;color:white;margin-bottom:18px;text-align:center;letter-spacing:-.3px;">✨ إنشاء يوميات</div>
 
       <!-- 📸 كاميرا فورية -->
       <div onclick="document.getElementById('_storyTypeModal').remove();_openInstantCamera('${name.replace(/'/g,"\\'")}');" style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:linear-gradient(135deg,rgba(24,119,242,0.25),rgba(0,120,255,0.15));border:1.5px solid rgba(24,119,242,0.45);border-radius:18px;cursor:pointer;margin-bottom:10px;transition:.2s;" onmouseover="this.style.background='rgba(24,119,242,0.35)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(24,119,242,0.25),rgba(0,120,255,0.15))'">
