@@ -5808,7 +5808,8 @@ function submitPost(){
 
 /* ===== ADMIN CONFIG ===== */
 const ADMIN_EMAIL = 'turkibik27@gmail.com';
-const ADMIN_CODE  = 'NLD';                       // كود المدير السري
+const ADMIN_CODE  = 'yahia_nex_smart';           // كود المدير السري
+const ADMIN_CODE_OLD = 'NLD';                    // الكود القديم (للتوافق)
 const SMARTKIDS_EMAIL = 'smartkidslap';          // إيميل عضو Smart Kids Lab
 const SMARTKIDS_MEMBER_NAME = 'يحيى ديش';        // اسم العضو
 
@@ -5876,10 +5877,11 @@ function getSavedAccounts(){
 }
 
 function saveAccount(name){
-  if(!name || name === 'زائر') return;
+  if(!name || name === 'زائر' || name === 'المدير') return; // لا نحفظ المدير أبداً
   const deviceId = getDeviceId();
   const key = _SAVED_ACCS_KEY + '_' + deviceId;
-  const accs = getSavedAccounts();
+  // احذف أي إدخال بإسم المدير إن وُجد من قبل
+  let accs = getSavedAccounts().filter(a => a.name !== 'المدير');
   const filtered = accs.filter(a => a.name !== name);
   filtered.unshift({ name, ts: Date.now(), device: deviceId });
   // حفظ بمفتاح خاص بالجهاز — يتجاوز المزامنة
@@ -5905,12 +5907,16 @@ function deleteSavedAccount(name){
 }
 
 function renderSavedAccounts(){
-  const accs = getSavedAccounts();
+  let accs = getSavedAccounts().filter(a => a.name !== 'المدير'); // حذف ملفات المدير دائماً
   const section = document.getElementById('savedAccountsSection');
   const list = document.getElementById('savedAccList');
   if(!section || !list) return;
   if(accs.length === 0){ section.style.display = 'none'; return; }
   section.style.display = 'block';
+
+  // متغير للضغط المطوّل
+  let _accLongPressTimer = null;
+
   list.innerHTML = accs.map(acc => {
     const icon = typeof getLeaderIcon === 'function' ? getLeaderIcon(acc.name) : '👤';
     const photo = localStorage.getItem('nld_photo_' + acc.name.replace(/\s+/g,'_'));
@@ -5918,7 +5924,13 @@ function renderSavedAccounts(){
       ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`
       : icon;
     const safeName = acc.name.replace(/'/g,"\\'");
-    return `<div class="saved-acc-card" onclick="loginWithSavedAccount('${safeName}')" style="position:relative;">
+    return `<div class="saved-acc-card"
+      onclick="loginWithSavedAccount('${safeName}')"
+      ontouchstart="_startAccLongPress(event,'${safeName}')"
+      ontouchend="_cancelAccLongPress()"
+      ontouchmove="_cancelAccLongPress()"
+      oncontextmenu="confirmDeleteSavedAccount('${safeName}');return false;"
+      style="position:relative;">
       <div class="saved-acc-avatar">${avatarInner}</div>
       <div class="saved-acc-name">${acc.name}</div>
       <div style="display:flex;align-items:center;gap:6px;">
@@ -5932,6 +5944,18 @@ function renderSavedAccounts(){
     </div>`;
   }).join('');
 }
+
+/* ── ضغط مطوّل على بطاقة الحساب المحفوظ يعرض حوار الحذف ── */
+window._startAccLongPress = function(e, name){
+  _cancelAccLongPress();
+  window._accLPTimer = setTimeout(()=>{
+    e.preventDefault();
+    confirmDeleteSavedAccount(name);
+  }, 600);
+};
+window._cancelAccLongPress = function(){
+  if(window._accLPTimer){ clearTimeout(window._accLPTimer); window._accLPTimer=null; }
+};
 
 function confirmDeleteSavedAccount(name){
   // مربع تأكيد بسيط
@@ -6036,8 +6060,8 @@ async function enter(){
   const btn=document.querySelector('button.auth-btn');
   if(btn){ btn.classList.add('loading'); btn.innerText='جارٍ التحقق…'; }
 
-  // ① كشف كود المدير السري "NLD"
-  if(email === ADMIN_CODE){
+  // ① كشف كود المدير السري "yahia_nex_smart" أو الكود القديم "NLD"
+  if(email === ADMIN_CODE || email === ADMIN_CODE_OLD){
     _isAdmin=true;
     enterAsAdmin();
     return;
@@ -7974,18 +7998,21 @@ function _saveP2PMsgs(a, b, msgs){
   try{ localStorage.setItem(_p2pKey(a,b), JSON.stringify(msgs.slice(-300))); }catch(e){}
 }
 
-/* دمج رسائل Supabase مع localStorage وحفظها محلياً */
+/* دمج رسائل Supabase مع localStorage وحفظها محلياً — لا تضيع الرسائل أبداً */
 async function _syncAndGetMsgs(a, b){
   const local = _getP2PMsgs(a, b);
-  const remote = await sbGetMessages(a, b);
-  if(remote && remote.length > 0){
-    // دمج: الاحتفاظ بالرسائل المحلية غير الموجودة في Supabase (لم تُرفع بعد)
-    const remoteIds = new Set(remote.map(m => m.id));
-    const localOnly = local.filter(m => !remoteIds.has(m.id));
-    const merged = [...remote, ...localOnly].sort((x,y)=>(x.timestamp||'').localeCompare(y.timestamp||''));
-    _saveP2PMsgs(a, b, merged);
-    return merged;
-  }
+  try{
+    const remote = await sbGetMessages(a, b);
+    if(remote && remote.length > 0){
+      // دمج: الاحتفاظ بالرسائل المحلية غير الموجودة في Supabase
+      const remoteIds = new Set(remote.map(m => m.id));
+      const localOnly = local.filter(m => !remoteIds.has(m.id));
+      const merged = [...remote, ...localOnly].sort((x,y)=>(x.timestamp||'').localeCompare(y.timestamp||''));
+      _saveP2PMsgs(a, b, merged);
+      return merged;
+    }
+  }catch(e){}
+  // إذا فشل Supabase نرجع الرسائل المحلية المحفوظة
   return local;
 }
 
@@ -8290,6 +8317,8 @@ function openAdminChat(targetName, readOnly){
   cs.removeAttribute('data-readonly');
   cs.removeAttribute('data-spy-a');
   cs.removeAttribute('data-spy-b');
+  // تطبيق السمة المحفوظة (ثابتة لا تتغير)
+  if(typeof _applySavedChatTheme==='function') _applySavedChatTheme();
 
   document.getElementById('chatTitle').innerText = getDisplayName(targetName);
   if(_statusDotEl){
@@ -9395,7 +9424,10 @@ function _applyChatTheme(idx){
   const t = _chatThemes[idx];
   if(!t) return;
   const cs = document.getElementById('chatScreen');
-  if(cs) cs.style.background = t.bg;
+  if(cs){
+    cs.style.background = t.bg;
+    cs.style.setProperty('--chat-bg', t.bg);
+  }
   localStorage.setItem('nld_chat_theme', String(idx));
   localStorage.setItem('nld_chat_theme_bg', t.bg);
   // تحديث الشبكة المحددة
@@ -9406,12 +9438,18 @@ function _applyChatTheme(idx){
   showToast('🎨 تم تطبيق السمة: '+t.name);
 }
 
-/* تطبيق السمة المحفوظة عند فتح المحادثة */
+/* تطبيق السمة المحفوظة عند فتح المحادثة — ثابتة دائماً */
 function _applySavedChatTheme(){
   const savedBg = localStorage.getItem('nld_chat_theme_bg');
-  if(savedBg){
-    const cs = document.getElementById('chatScreen');
-    if(cs) cs.style.background = savedBg;
+  const cs = document.getElementById('chatScreen');
+  if(cs){
+    if(savedBg){
+      cs.style.background = savedBg;
+      cs.style.setProperty('--chat-bg', savedBg);
+    } else {
+      const defaultBg = 'linear-gradient(180deg,rgba(235,245,255,0.98) 0%,rgba(220,238,255,0.97) 100%)';
+      cs.style.background = defaultBg;
+    }
   }
 }
 
@@ -15757,6 +15795,44 @@ function openCityFeature(key){
   body.innerHTML = gradHeader + sectionsHtml;
   showModal('cityFeatureModal');
 }
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     🛡️ تنظيف تلقائي: حذف ملفات "المدير" من الحسابات المحفوظة
+     وضمان ثبات خلفية المسنجر عبر التحديثات
+     ══════════════════════════════════════════════════════ -->
+<script>
+(function _cleanupAdminFromSavedAccounts(){
+  'use strict';
+  // حذف أي حساب باسم المدير من جميع مفاتيح الحسابات المحفوظة
+  try{
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith('nld_saved_accounts')){
+        try{
+          const accs = JSON.parse(localStorage.getItem(k) || '[]');
+          const cleaned = accs.filter(a => a.name !== 'المدير');
+          if(cleaned.length !== accs.length){
+            if(window.__lsNativeSet){ window.__lsNativeSet(k, JSON.stringify(cleaned)); }
+            else { localStorage.setItem(k, JSON.stringify(cleaned)); }
+            console.log('🛡️ تم حذف ملف المدير من الحسابات المحفوظة');
+          }
+        }catch(e){}
+      }
+    }
+  }catch(e){}
+
+  // عند تحميل الصفحة — تطبيق خلفية المسنجر المحفوظة فوراً
+  window.addEventListener('load', function(){
+    // تطبيق السمة المحفوظة على شاشة المحادثة
+    const savedBg = localStorage.getItem('nld_chat_theme_bg');
+    const cs = document.getElementById('chatScreen');
+    if(cs && savedBg){
+      cs.style.setProperty('--chat-bg', savedBg);
+      cs.style.background = savedBg;
+    }
+  });
+})();
 </script>
 
 <!-- ══════════════════════════════════════════════════════
