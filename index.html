@@ -871,7 +871,9 @@ button.auth-btn.loading{
 .bg-who{background:linear-gradient(135deg,#667eea,#764ba2);}
 .bg-city{background:linear-gradient(135deg,#f093fb,#f5576c);}
 .bg-watch{background:linear-gradient(135deg,#4facfe,#00f2fe);}
-.bg-2{
+.bg-sport{background:linear-gradient(135deg,#43e97b,#1e9e5e);}
+.bg-law{background:linear-gradient(135deg,#0f9b0f,#1a1a2e,#e52d27);}
+.bg-iq{background:linear-gradient(135deg,#a855f7,#6d28d9);}
   background:
     radial-gradient(ellipse 80% 80% at 20% 20%, rgba(0,229,100,0.55) 0%, transparent 55%),
     radial-gradient(ellipse 70% 70% at 80% 80%, rgba(229,45,39,0.55) 0%, transparent 55%),
@@ -3679,10 +3681,24 @@ body.member-mode #onlineBar{
         <div class="card-pts-badge"><span id="cardPoints"></span></div>
       </div>
     </div>
-    <div class="account-row">
+
+    <!-- صف الرصيد الرئيسي -->
+    <div class="account-row" style="margin-top:16px;">
       <span class="account-key">💎 الرصيد القابل للسحب</span>
-      <span class="account-val green" id="cardBalance"></span>
+      <span class="account-val green" id="cardBalance" style="font-size:20px;font-weight:900;">0 دج</span>
     </div>
+
+    <!-- شارة نوع السعر -->
+    <div id="_balanceRateBadge" style="text-align:center;margin-top:10px;"></div>
+
+    <!-- شرح التحويل -->
+    <div id="_balanceExplainBox" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:13px 16px;margin-top:12px;">
+      <div style="font-size:12px;font-weight:800;color:var(--accent);margin-bottom:8px;">📊 نظام تحويل النقاط</div>
+      <div id="_balanceExplainText" style="font-size:12px;color:var(--muted);line-height:1.8;">
+        جارٍ تحميل بيانات الرصيد…
+      </div>
+    </div>
+
     <button onclick="hideBalanceModal()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:13px;width:100%;border-radius:14px;font-family:'Tajawal',sans-serif;font-weight:700;font-size:14px;margin-top:16px;cursor:pointer;transition:.2s;">إغلاق</button>
   </div>
 </div>
@@ -4597,6 +4613,493 @@ function showWatchEarnModal(){ showModal('watchEarnModal'); }
 
 /* ===== بناء الشبكة ===== */
 let _lastIsReg = true;
+/* ══════════════════════════════════════════════════════
+   ⚽ قسم الرياضة
+   ══════════════════════════════════════════════════════ */
+function openSportsSection(){
+  const old = document.getElementById('_sportsSectionOverlay');
+  if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = '_sportsSectionOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:var(--dark);z-index:9000;display:flex;flex-direction:column;animation:fadeIn .2s ease;overflow:hidden;';
+  ov.innerHTML = `
+    <div style="background:linear-gradient(135deg,#1e9e5e,#43e97b);padding:20px 18px 16px;flex-shrink:0;position:relative;">
+      <div onclick="document.getElementById('_sportsSectionOverlay').remove()" style="position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:white;font-weight:700;">✕</div>
+      <div onclick="document.getElementById('_sportsSectionOverlay').remove()" style="position:absolute;top:16px;left:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;color:white;font-weight:700;">‹</div>
+      <div style="font-size:36px;margin-bottom:8px;">⚽</div>
+      <div style="font-size:20px;font-weight:900;color:white;">الرياضة</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.85);margin-top:4px;">معلومات رياضية وكرة قدم جزائرية</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px;" id="_sportsContent">
+      ${_buildSportsContent()}
+    </div>`;
+  document.body.appendChild(ov);
+}
+
+function _buildSportsContent(){
+  const cards = [
+    { icon:'🇩🇿', title:'المنتخب الوطني الجزائري', desc:'بطل أفريقيا 2019 — أعظم إنجازات الخضر والتاريخ الكروي', color:'linear-gradient(135deg,#0f9b0f,#1a1a2e,#e52d27)', action:"_showSportsCard('algeria')" },
+    { icon:'🏆', title:'دوري المحترفين الجزائري', desc:'ليغ برو — أحداث الموسم والترتيب', color:'linear-gradient(135deg,#f5c518,#f97316)', action:"_showSportsCard('ligue')" },
+    { icon:'🎯', title:'كرة القدم العالمية', desc:'كأس العالم وأبرز الأحداث الكروية العالمية', color:'linear-gradient(135deg,#4facfe,#00f2fe)', action:"_showSportsCard('world')" },
+    { icon:'🏋️', title:'الرياضات الأولمبية', desc:'رياضات الميداليات الجزائرية — ملاكمة، عدو، جودو', color:'linear-gradient(135deg,#f093fb,#f5576c)', action:"_showSportsCard('olympic')" },
+    { icon:'💪', title:'نصائح اللياقة البدنية', desc:'تمارين وبرامج لياقة يومية', color:'linear-gradient(135deg,#43e97b,#38f9d7)', action:"_showSportsCard('fitness')" },
+    { icon:'🏅', title:'أبطال الجزائر', desc:'أشهر الرياضيين الجزائريين في التاريخ', color:'linear-gradient(135deg,#667eea,#764ba2)', action:"_showSportsCard('champions')" },
+  ];
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">` +
+    cards.map(c=>`
+    <div onclick="${c.action}" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px 12px;cursor:pointer;transition:.2s;text-align:center;position:relative;overflow:hidden;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
+      <div style="width:50px;height:50px;border-radius:14px;background:${c.color};display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 10px;box-shadow:0 4px 14px rgba(0,0,0,0.3);">${c.icon}</div>
+      <div style="font-size:12px;font-weight:900;color:var(--text);margin-bottom:4px;line-height:1.3;">${c.title}</div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.5;">${c.desc}</div>
+    </div>`).join('') + `</div>`;
+}
+
+function _showSportsCard(type){
+  const data = {
+    algeria: {
+      title:'🇩🇿 المنتخب الجزائري',
+      color:'linear-gradient(135deg,#0f9b0f,#1a1a2e,#e52d27)',
+      items:[
+        { t:'🏆 بطولة أمم أفريقيا 2019', v:'الجزائر بطلة أفريقيا في مصر 2019 بفوز نهائي على السنغال 1-0' },
+        { t:'🥇 ألقاب تاريخية', v:'بطولة 1990 بالجزائر — أول لقب قاري. اللقبان جاءا بفارق 29 سنة' },
+        { t:'⭐ أفضل اللاعبين', v:'رياض محرز — ليستر سيتي، مانشستر سيتي. سعيد حجاف أفضل لاعب 2019' },
+        { t:'🌍 المشاركات الدولية', v:'4 مشاركات في كأس العالم: 1982، 1986، 2010، 2014 — أبطال مونديال 2014 أفضل موسم' },
+        { t:'📊 الترتيب الفيفا', v:'الجزائر تتراوح بين المرتبة 30-70 عالمياً وتُصنَّف أفضل منتخب في أفريقيا موسمياً' },
+      ]
+    },
+    ligue: {
+      title:'🏆 دوري المحترفين',
+      color:'linear-gradient(135deg,#f5c518,#f97316)',
+      items:[
+        { t:'📋 هيكل الدوري', v:'ليغ برو 1 (16 فريق) + ليغ برو 2 — يلعب كل فريق 30 مباراة موسمياً' },
+        { t:'🥇 الأكثر تتويجاً', v:'مولودية الجزائر 9 ألقاب — شبيبة القبائل 8 — اتحاد العاصمة 7 ألقاب' },
+        { t:'⚽ أبرز الأندية', v:'مولودية الجزائر، اتحاد العاصمة، شبيبة القبائل، اتحاد بليدة، إيفري' },
+        { t:'🏅 كأس الجزائر', v:'منافسة الكأس متوازية مع الدوري — الفائز يشارك في كأس الاتحاد الأفريقي' },
+        { t:'🌟 النجوم المحليون', v:'الدوري ينتج مواهب تنتقل لأوروبا كمحرز وبوعناني وبراهيمي' },
+      ]
+    },
+    world: {
+      title:'🌍 كرة القدم العالمية',
+      color:'linear-gradient(135deg,#4facfe,#00f2fe)',
+      items:[
+        { t:'🏆 تاريخ كأس العالم', v:'أول مشاركة 1930 — الجزائر أول عربية تفوز في المونديال (1982 ضد ألمانيا 2-1)' },
+        { t:'⭐ أفضل الدوريات', v:'الدوري الإسباني، الإنجليزي، الألماني، الفرنسي، الإيطالي — أقوى 5 دوريات في العالم' },
+        { t:'🥇 أكثر الأندية تتويجاً', v:'ريال مدريد 14 دوري أبطال — ليفربول 6 — ميلان 7 — بايرن ميونيخ 6' },
+        { t:'👑 الأساطير', v:'بيليه، مارادونا، رونالدو الفينومينو، رونالدو، ميسي — أعظم في التاريخ' },
+        { t:'🌟 جيل اليوم', v:'ميسي، رونالدو، مبابي، هالاند، فينيسيوس — أبرز نجوم العقد الحالي' },
+      ]
+    },
+    olympic: {
+      title:'🏅 الرياضات الأولمبية',
+      color:'linear-gradient(135deg,#f093fb,#f5576c)',
+      items:[
+        { t:'🥊 الملاكمة', v:'الجزائر الأفضل عربياً وأفريقياً في الملاكمة — بطل أولمبي حسيبة بولمرقة وبوعزة' },
+        { t:'🏃 الألعاب القوى', v:'نورالدين مورسلي أسطورة 1500م — حسيبة بولمرقة ذهبية 1992 برشلونة' },
+        { t:'🥋 الجودو', v:'صورية حداد — بطلة أولمبية 2012 لندن. أفضل رياضية جزائرية في التاريخ' },
+        { t:'🎯 الرماية', v:'لمين غازي ونورية ميهوبي — أبرز مشاركات جزائرية في أولمبياد الرماية' },
+        { t:'🏊 السباحة', v:'رامي مبارك مقدم — أبرز سباح جزائري في العالمية والأولمبياد' },
+      ]
+    },
+    fitness: {
+      title:'💪 برنامج اللياقة',
+      color:'linear-gradient(135deg,#43e97b,#38f9d7)',
+      items:[
+        { t:'🌅 تمرين الصباح (15 دقيقة)', v:'5 قفزات حبل + 20 ضغط + 30 بطن + 15 ثني ركبة + 10 دقائق مشي سريع' },
+        { t:'🏋️ يوم القوة', v:'تمارين بدون معدات: بلانك 1 دقيقة × 3 + 4 × 12 ضغطة + 4 × 15 سكوات' },
+        { t:'🧘 يوم المرونة', v:'يوغا بسيطة: تمدد الظهر + الكتفين + الساقين — 20 دقيقة تحسّن الأداء 40%' },
+        { t:'🥗 التغذية الرياضية', v:'بروتين + كربوهيدرات معقدة + مياه كافية — تجنب السكريات قبل التمرين' },
+        { t:'💤 التعافي مهم', v:'8 ساعات نوم + يوم راحة أسبوعي — العضلات تنمو أثناء النوم لا أثناء التمرين' },
+      ]
+    },
+    champions: {
+      title:'🏅 أبطال الجزائر',
+      color:'linear-gradient(135deg,#667eea,#764ba2)',
+      items:[
+        { t:'رياض محرز 🌟', v:'أفضل لاعب أفريقي 2016 — بطل بريميرليغ × 5 مع ليستر ومانشستر سيتي' },
+        { t:'صورية حداد 🥋', v:'بطلة أولمبية جودو 2012 — أول ذهبية جزائرية وعربية في تاريخ الأولمبياد' },
+        { t:'نورالدين مورسلي 🏃', v:'أسطورة 1500م — بطل عالمي وأولمبي وصاحب أرقام قياسية خالدة' },
+        { t:'حسيبة بولمرقة 🏅', v:'ذهبية 1992 في 1500م — أشعلت المخيلة الجزائرية للعب القوى' },
+        { t:'علي بلقايد 🥊', v:'أسطورة الملاكمة الجزائرية — بطل أفريقيا وأولمبي 1996 في الوزن الخفيف' },
+      ]
+    }
+  };
+  const d = data[type];
+  if(!d) return;
+  const old = document.getElementById('_sportsDetailOverlay');
+  if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = '_sportsDetailOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:var(--dark);z-index:9100;display:flex;flex-direction:column;animation:fadeIn .15s ease;overflow:hidden;';
+  ov.innerHTML = `
+    <div style="background:${d.color};padding:20px 18px 18px;flex-shrink:0;">
+      <div onclick="this.closest('#_sportsDetailOverlay').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:white;font-weight:700;margin-bottom:10px;">‹</div>
+      <div style="font-size:22px;font-weight:900;color:white;">${d.title}</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;">
+      ${d.items.map(it=>`
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;">
+        <div style="font-size:13px;font-weight:800;color:var(--accent);margin-bottom:6px;">${it.t}</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.7;">${it.v}</div>
+      </div>`).join('')}
+    </div>`;
+  document.body.appendChild(ov);
+}
+
+/* ══════════════════════════════════════════════════════
+   ⚖️ قسم القانون الجزائري
+   ══════════════════════════════════════════════════════ */
+function openAlgerianLaw(){
+  const old = document.getElementById('_lawSectionOverlay');
+  if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = '_lawSectionOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:var(--dark);z-index:9000;display:flex;flex-direction:column;animation:fadeIn .2s ease;overflow:hidden;';
+  ov.innerHTML = `
+    <div style="background:linear-gradient(135deg,#0f9b0f,#1a1a2e);padding:20px 18px 16px;flex-shrink:0;position:relative;">
+      <div onclick="document.getElementById('_lawSectionOverlay').remove()" style="position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:white;font-weight:700;">✕</div>
+      <div onclick="document.getElementById('_lawSectionOverlay').remove()" style="position:absolute;top:16px;left:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;color:white;font-weight:700;">‹</div>
+      <div style="font-size:36px;margin-bottom:8px;">⚖️</div>
+      <div style="font-size:20px;font-weight:900;color:white;">القانون الجزائري</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px;">أبرز أحكام القانون للمواطن العادي</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;">
+      ${_buildLawContent()}
+    </div>`;
+  document.body.appendChild(ov);
+}
+
+function _buildLawContent(){
+  const chapters = [
+    {
+      icon:'🏛️', title:'الدستور الجزائري', color:'linear-gradient(135deg,#0f9b0f,#1e9e5e)',
+      items:[
+        { t:'المادة 1', v:'الجمهورية الجزائرية الديمقراطية الشعبية — الإسلام دين الدولة والعربية لغتها الرسمية' },
+        { t:'المادة 34', v:'المواطن بريء حتى تثبت إدانته — لا يحاكم أحد إلا بمحكمة مختصة' },
+        { t:'المادة 42', v:'حرية التجارة والصناعة مضمونة وتمارس في إطار القانون' },
+        { t:'المادة 49', v:'الحق في التعليم مضمون والتعليم المجاني في المؤسسات العمومية' },
+      ]
+    },
+    {
+      icon:'👨‍👩‍👧', title:'قانون الأسرة', color:'linear-gradient(135deg,#f5c518,#f97316)',
+      items:[
+        { t:'سن الزواج', v:'18 سنة للرجل و19 للمرأة — يجوز للقاضي منح استثناء بمقتضى تقرير طبي' },
+        { t:'المهر', v:'المهر واجب في عقد الزواج ويُسمى الصداق ويؤدّى فوراً أو مؤجلاً' },
+        { t:'الطلاق', v:'يثبت بحكم قضائي — المرأة تملك حق الخلع — النفقة واجبة خلال العدة' },
+        { t:'الحضانة', v:'الحضانة للأم بعد الطلاق حتى 10 سنوات للذكر و18 سنة للأنثى' },
+        { t:'الإرث', v:'يتبع أحكام الشريعة الإسلامية — للذكر مثل حظ الأنثيين في الأصل' },
+      ]
+    },
+    {
+      icon:'🏠', title:'قانون السكن والعقار', color:'linear-gradient(135deg,#4facfe,#00f2fe)',
+      items:[
+        { t:'الملكية العقارية', v:'الملكية الخاصة مضمونة — يُثبَت الملك بسند رسمي من المحافظة العقارية' },
+        { t:'عقد الإيجار', v:'عقد الإيجار يُحرَّر كتابياً — التشديد قانوني في حالة الإخلال بالالتزامات' },
+        { t:'البناء بدون رخصة', v:'البناء بدون رخصة مخالفة يعاقب عليها بالغرامة والهدم إن لزم الأمر' },
+        { t:'التحفيظ العقاري', v:'كل عقار يجب تحفيظه في السجل العقاري للإثبات الرسمي للملكية' },
+      ]
+    },
+    {
+      icon:'💼', title:'قانون العمل', color:'linear-gradient(135deg,#43e97b,#1e9e5e)',
+      items:[
+        { t:'عقد العمل', v:'عقد العمل كتابي أو شفهي — يُثبَت الحد الأدنى للأجر (SNMG) بمرسوم رئاسي' },
+        { t:'ساعات العمل', v:'40 ساعة في الأسبوع — ما يزيد عن ذلك يُعدّ ساعات إضافية مأجورة' },
+        { t:'الإجازة السنوية', v:'30 يوم راحة سنوية مدفوعة الأجر للعامل المقيّد بعقد دائم' },
+        { t:'الفصل التعسفي', v:'الفصل بدون مبرر مشروع يستوجب تعويضاً قانونياً وفق جدول محدد' },
+        { t:'التأمين الاجتماعي', v:'الاشتراك في CNAS إلزامي — يضمن التغطية الصحية والتقاعد والأمومة' },
+      ]
+    },
+    {
+      icon:'🚗', title:'قانون المرور', color:'linear-gradient(135deg,#f093fb,#f5576c)',
+      items:[
+        { t:'السرعة المسموح بها', v:'50 كم/ساعة داخل المدن — 80 كم/ساعة على الطرق الوطنية — 120 كم/ساعة الطريق السريع' },
+        { t:'السكر أثناء القيادة', v:'يُحظر القيادة بنسبة كحول — الغرامة من 2000 إلى 50000 دج + سحب الرخصة' },
+        { t:'حزام الأمان', v:'إلزامي للسائق والركاب جميعاً — الغرامة 3000 دج عند المخالفة' },
+        { t:'رخصة القيادة بالنقاط', v:'12 نقطة إجمالاً — تُخصم نقاط عند المخالفة وسحب الرخصة عند الصفر' },
+        { t:'الحوادث المادية', v:'تبادل وثيقة الحادث ومعاينة الشرطة إلزامية لتقديم المطالبة للتأمين' },
+      ]
+    },
+    {
+      icon:'💻', title:'قانون الجرائم الإلكترونية', color:'linear-gradient(135deg,#a855f7,#6d28d9)',
+      items:[
+        { t:'القانون 09-04', v:'أول قانون جزائري يتعلق بالوقاية من جرائم المعلوماتية ومكافحتها' },
+        { t:'الاختراق الإلكتروني', v:'العقوبة من 6 أشهر إلى 3 سنوات سجن وغرامة من 50000 إلى 300000 دج' },
+        { t:'التشهير الإلكتروني', v:'نشر صور أو معلومات بقصد الإضرار جريمة يعاقب عليها بالحبس والغرامة' },
+        { t:'الإرهاب الإلكتروني', v:'الهجوم على البنية التحتية الرقمية للدولة عقوبته 10 إلى 20 سنة سجن' },
+        { t:'حماية البيانات الشخصية', v:'معالجة البيانات الشخصية دون إذن جريمة — الهيئة الوطنية ANPDP رقيبة' },
+      ]
+    },
+  ];
+  return chapters.map(ch=>`
+    <div onclick="_showLawChapter(this)" data-chapter='${JSON.stringify(ch).replace(/'/g,"&#39;")}' style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:.15s;" onmouseover="this.style.borderColor='rgba(0,229,160,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="width:46px;height:46px;border-radius:13px;background:${ch.color};display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,0.3);">${ch.icon}</div>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:800;color:var(--text);">${ch.title}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${ch.items.length} مواد قانونية</div>
+      </div>
+      <div style="color:var(--muted);font-size:18px;">›</div>
+    </div>`).join('');
+}
+
+function _showLawChapter(el){
+  const ch = JSON.parse(el.getAttribute('data-chapter').replace(/&#39;/g,"'"));
+  const old = document.getElementById('_lawDetailOverlay');
+  if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = '_lawDetailOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:var(--dark);z-index:9100;display:flex;flex-direction:column;animation:fadeIn .15s ease;overflow:hidden;';
+  ov.innerHTML = `
+    <div style="background:${ch.color};padding:20px 18px 18px;flex-shrink:0;">
+      <div onclick="this.closest('#_lawDetailOverlay').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:white;font-weight:700;margin-bottom:10px;">‹</div>
+      <div style="font-size:22px;font-weight:900;color:white;">${ch.icon} ${ch.title}</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;">
+      ${ch.items.map(it=>`
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;">
+        <div style="font-size:13px;font-weight:800;color:var(--accent);margin-bottom:6px;">${it.t}</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.7;">${it.v}</div>
+      </div>`).join('')}
+      <div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.2);border-radius:12px;padding:12px 14px;font-size:11px;color:#f87171;text-align:center;font-weight:700;line-height:1.6;">
+        ⚠️ هذه المعلومات للتوعية العامة فقط — يُرجى استشارة محامٍ مختص للحالات القانونية الفردية
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+}
+
+/* ══════════════════════════════════════════════════════
+   🧩 قسم ألعاب الذكاء
+   ══════════════════════════════════════════════════════ */
+function openIQGames(){
+  const old = document.getElementById('_iqGamesSectionOverlay');
+  if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = '_iqGamesSectionOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:var(--dark);z-index:9000;display:flex;flex-direction:column;animation:fadeIn .2s ease;overflow:hidden;';
+  ov.innerHTML = `
+    <div style="background:linear-gradient(135deg,#a855f7,#6d28d9);padding:20px 18px 16px;flex-shrink:0;position:relative;">
+      <div onclick="document.getElementById('_iqGamesSectionOverlay').remove()" style="position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:white;font-weight:700;">✕</div>
+      <div onclick="document.getElementById('_iqGamesSectionOverlay').remove()" style="position:absolute;top:16px;left:16px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;color:white;font-weight:700;">‹</div>
+      <div style="font-size:36px;margin-bottom:8px;">🧩</div>
+      <div style="font-size:20px;font-weight:900;color:white;">ألعاب الذكاء</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px;">تحدّى عقلك وطوّر مهاراتك</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;" id="_iqGamesContent">
+      ${_buildIQGames()}
+    </div>`;
+  document.body.appendChild(ov);
+}
+
+function _buildIQGames(){
+  return `
+  <!-- لعبة الذاكرة -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 14px rgba(79,172,254,0.4);">🃏</div>
+      <div>
+        <div style="font-size:15px;font-weight:900;color:var(--text);">لعبة الذاكرة</div>
+        <div style="font-size:11px;color:var(--muted);">تذكّر موضع البطاقات المتطابقة</div>
+      </div>
+    </div>
+    <div id="_memGameGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div id="_memGameScore" style="font-size:13px;color:var(--accent);font-weight:700;">انقر لبدء اللعبة</div>
+      <button onclick="_initMemoryGame()" style="padding:8px 16px;background:linear-gradient(135deg,#4facfe,#00f2fe);border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">🔄 جديدة</button>
+    </div>
+  </div>
+
+  <!-- لعبة الأرقام -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 14px rgba(245,197,24,0.4);">🔢</div>
+      <div>
+        <div style="font-size:15px;font-weight:900;color:var(--text);">تحدي الأرقام</div>
+        <div style="font-size:11px;color:var(--muted);">احفظ التسلسل وأعد ترتيبه</div>
+      </div>
+    </div>
+    <div id="_numGameDisplay" style="font-size:28px;font-weight:900;color:var(--text);text-align:center;letter-spacing:8px;padding:14px;background:var(--surface2);border-radius:12px;margin-bottom:10px;min-height:60px;display:flex;align-items:center;justify-content:center;">?</div>
+    <div id="_numGameInput" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:10px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="_startNumberSequence()" style="flex:1;padding:10px;background:linear-gradient(135deg,#f5c518,#f97316);border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">▶ ابدأ</button>
+      <div id="_numGameResult" style="flex:2;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);"></div>
+    </div>
+  </div>
+
+  <!-- لعبة كلمة اليوم -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#43e97b,#38f9d7);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 14px rgba(67,233,123,0.4);">🔤</div>
+      <div>
+        <div style="font-size:15px;font-weight:900;color:var(--text);">خمّن الكلمة (Wordle عربي)</div>
+        <div style="font-size:11px;color:var(--muted);">خمّن كلمة من 5 حروف في 6 محاولات</div>
+      </div>
+    </div>
+    <div id="_wordleGrid" style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;"></div>
+    <div id="_wordleKeyboard" style="margin-bottom:10px;"></div>
+    <div id="_wordleMsg" style="text-align:center;font-size:12px;font-weight:700;color:var(--accent);"></div>
+  </div>`;
+}
+
+/* ── لعبة الذاكرة ── */
+let _memCards=[], _memFlipped=[], _memMatched=0, _memMoves=0, _memLocked=false;
+const _memEmojis=['🦁','🐯','🦊','🐺','🦝','🐸','🦋','🐙'];
+
+function _initMemoryGame(){
+  _memCards=[..._memEmojis,..._memEmojis].sort(()=>Math.random()-.5);
+  _memFlipped=[];_memMatched=0;_memMoves=0;_memLocked=false;
+  const grid=document.getElementById('_memGameGrid');
+  const score=document.getElementById('_memGameScore');
+  if(!grid||!score) return;
+  score.innerText='حركات: 0 | أزواج: 0/8';
+  grid.innerHTML=_memCards.map((e,i)=>`
+    <div onclick="_memFlipCard(${i})" id="_mc_${i}" style="width:100%;padding-top:100%;position:relative;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:.2s;" data-val="${e}" data-open="0">
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;" class="_mc_face">❓</div>
+    </div>`).join('');
+}
+
+function _memFlipCard(i){
+  if(_memLocked) return;
+  const card=document.getElementById('_mc_'+i);
+  if(!card||card.getAttribute('data-open')==='1') return;
+  card.setAttribute('data-open','1');
+  card.querySelector('._mc_face').innerText=_memCards[i];
+  card.style.background='rgba(0,229,160,0.15)';
+  card.style.borderColor='rgba(0,229,160,0.5)';
+  _memFlipped.push(i);
+  if(_memFlipped.length===2){
+    _memMoves++;
+    _memLocked=true;
+    const [a,b]=_memFlipped;
+    if(_memCards[a]===_memCards[b]){
+      _memMatched++;
+      document.getElementById('_memGameScore').innerText='حركات: '+_memMoves+' | أزواج: '+_memMatched+'/8';
+      _memFlipped=[];_memLocked=false;
+      if(_memMatched===8){ document.getElementById('_memGameScore').innerText='🎉 أحسنت! أتممت اللعبة في '+_memMoves+' حركة'; }
+    } else {
+      setTimeout(()=>{
+        [a,b].forEach(idx=>{
+          const c=document.getElementById('_mc_'+idx);
+          if(c){ c.setAttribute('data-open','0'); c.querySelector('._mc_face').innerText='❓'; c.style.background='var(--surface2)'; c.style.borderColor='var(--border)'; }
+        });
+        _memFlipped=[];_memLocked=false;
+        document.getElementById('_memGameScore').innerText='حركات: '+_memMoves+' | أزواج: '+_memMatched+'/8';
+      },900);
+    }
+  }
+}
+
+/* ── تحدي الأرقام ── */
+let _numSeq=[], _numUserSeq=[], _numShowing=false, _numLevel=3;
+
+function _startNumberSequence(){
+  _numLevel=3; _numSeq=[]; _numUserSeq=[]; _numShowing=true;
+  for(let i=0;i<_numLevel;i++) _numSeq.push(Math.floor(Math.random()*9)+1);
+  const disp=document.getElementById('_numGameDisplay');
+  const res=document.getElementById('_numGameResult');
+  if(res) res.innerText='';
+  if(!disp) return;
+  let idx=0;
+  disp.innerText='تحضير...';
+  setTimeout(()=>{
+    const interval=setInterval(()=>{
+      if(idx>=_numSeq.length){ clearInterval(interval); disp.innerText='?'; _numShowing=false; _buildNumInput(); return; }
+      disp.innerText=_numSeq[idx];
+      idx++;
+    },800);
+  },600);
+}
+
+function _buildNumInput(){
+  const wrap=document.getElementById('_numGameInput');
+  if(!wrap) return;
+  _numUserSeq=[];
+  wrap.innerHTML=[1,2,3,4,5,6,7,8,9,0].map(n=>`
+    <div onclick="_numPress(${n})" style="width:44px;height:44px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:var(--text);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(0,229,160,0.15)'" onmouseout="this.style.background='var(--surface2)'">${n}</div>`).join('');
+}
+
+function _numPress(n){
+  if(_numShowing) return;
+  _numUserSeq.push(n);
+  const disp=document.getElementById('_numGameDisplay');
+  const res=document.getElementById('_numGameResult');
+  if(disp) disp.innerText=_numUserSeq.join(' ');
+  if(_numUserSeq.length===_numSeq.length){
+    const correct=_numSeq.join('')===_numUserSeq.join('');
+    if(res) res.innerHTML=correct
+      ? '<span style="color:#22c55e;font-weight:900;">✅ ممتاز! اضغط ابدأ للمستوى التالي</span>'
+      : '<span style="color:#f87171;font-weight:700;">❌ خطأ! كانت: '+_numSeq.join(' ')+'</span>';
+    if(disp) disp.innerText=correct?'✅':'❌';
+    if(correct){ _numLevel++; }
+    document.getElementById('_numGameInput').innerHTML='';
+  }
+}
+
+/* ── Wordle عربي ── */
+const _wordleWords=['عقيدة','برامج','ذكاء','جزائر','شبكة','قيادة','ابداع','معرفة','تعلمي','نجاحك'];
+let _wordleTarget='', _wordleRow=0, _wordleGuesses=[], _wordleDone=false;
+
+(function _initWordle(){
+  setTimeout(()=>{
+    const grid=document.getElementById('_wordleGrid');
+    const kb=document.getElementById('_wordleKeyboard');
+    if(!grid||!kb) return;
+    _wordleTarget = _wordleWords[Math.floor(Math.random()*_wordleWords.length)];
+    _wordleRow=0; _wordleGuesses=[]; _wordleDone=false;
+    grid.innerHTML='';
+    for(let r=0;r<6;r++){
+      const row=document.createElement('div');
+      row.id='_wr_'+r;
+      row.style.cssText='display:flex;gap:4px;justify-content:center;';
+      for(let c=0;c<5;c++){
+        const cell=document.createElement('div');
+        cell.id='_wc_'+r+'_'+c;
+        cell.style.cssText='width:38px;height:38px;border-radius:8px;background:var(--surface2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--text);';
+        row.appendChild(cell);
+      }
+      grid.appendChild(row);
+    }
+    // لوحة المفاتيح العربية
+    const letters='ابتثجحخدذرزسشصضطظعغفقكلمنهوي';
+    kb.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;">'+
+      [...letters].map(l=>`<div onclick="_wordlePress('${l}')" class="_wlKey" style="width:32px;height:32px;border-radius:7px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text);cursor:pointer;">${l}</div>`).join('')+
+      `<div onclick="_wordleBackspace()" style="padding:0 10px;height:32px;border-radius:7px;background:rgba(229,45,39,0.2);border:1px solid rgba(229,45,39,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#f87171;cursor:pointer;">⌫</div>
+       <div onclick="_wordleSubmit()" style="padding:0 10px;height:32px;border-radius:7px;background:rgba(0,229,160,0.2);border:1px solid rgba(0,229,160,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;">تأكيد</div>
+      `+'</div>';
+  },300);
+})();
+
+let _wordleCurrent='';
+function _wordlePress(l){
+  if(_wordleDone||_wordleCurrent.length>=5) return;
+  _wordleCurrent+=l;
+  for(let c=0;c<_wordleCurrent.length;c++){
+    const cell=document.getElementById('_wc_'+_wordleRow+'_'+c);
+    if(cell) cell.innerText=_wordleCurrent[c];
+  }
+}
+function _wordleBackspace(){
+  if(!_wordleCurrent.length) return;
+  _wordleCurrent=_wordleCurrent.slice(0,-1);
+  const cell=document.getElementById('_wc_'+_wordleRow+'_'+_wordleCurrent.length);
+  if(cell) cell.innerText='';
+}
+function _wordleSubmit(){
+  if(_wordleDone||_wordleCurrent.length<5){ const msg=document.getElementById('_wordleMsg'); if(msg) msg.innerText='⚠️ أدخل 5 أحرف'; return; }
+  const guess=_wordleCurrent;
+  const target=[..._wordleTarget];
+  const result=[...'⬜⬜⬜⬜⬜'];
+  const used=[false,false,false,false,false];
+  // أصفر
+  [...guess].forEach((ch,i)=>{ if(ch===target[i]){ result[i]='🟩'; used[i]=true; } });
+  [...guess].forEach((ch,i)=>{ if(result[i]==='🟩') return; for(let j=0;j<5;j++){ if(!used[j]&&ch===target[j]){ result[i]='🟨'; used[j]=true; break; } } });
+  const colors={'🟩':'rgba(34,197,94,0.4)','🟨':'rgba(245,197,24,0.4)','⬜':'var(--surface2)'};
+  [...guess].forEach((ch,i)=>{
+    const cell=document.getElementById('_wc_'+_wordleRow+'_'+i);
+    if(cell){ cell.innerText=ch; cell.style.background=colors[result[i]]; cell.style.borderColor=result[i]==='🟩'?'#22c55e':result[i]==='🟨'?'#f5c518':'var(--border)'; }
+  });
+  const msg=document.getElementById('_wordleMsg');
+  if(guess===_wordleTarget){ _wordleDone=true; if(msg) msg.innerText='🎉 ممتاز! صحيح: '+_wordleTarget; }
+  else{ _wordleRow++; _wordleCurrent=''; if(_wordleRow>=6){ _wordleDone=true; if(msg) msg.innerText='❌ انتهت المحاولات! الكلمة: '+_wordleTarget; } }
+}
+
 function buildGrid(isReg){
   if(isReg !== undefined) _lastIsReg = isReg;
   else isReg = _lastIsReg;
@@ -4605,7 +5108,7 @@ function buildGrid(isReg){
   const labels = (langData[lang] && langData[lang].gridItems) ? [...(langData[lang].gridItems), 'من نحن', 'عالم المدينة', 'شاهد واربح'] :
     ['صفحتي','جدول الترتيب','المنخرطون','المحادثات','على بركة الله','المعرض','اجمع النقاط','النشاطات','فيسبوك','من نحن','عالم المدينة','شاهد واربح'];
   const items=[
-    ['👤', labels[0], 'bg-1',"showMyProfile()", true ],
+    [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 8px rgba(24,119,242,0.6));"><defs><linearGradient id="fpg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4facfe"/><stop offset="100%" stop-color="#1877F2"/></linearGradient><linearGradient id="fpg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#43e97b"/><stop offset="100%" stop-color="#38f9d7"/></linearGradient></defs><circle cx="26" cy="26" r="25" fill="url(#fpg1)"/><circle cx="26" cy="18" r="9" fill="white" opacity="0.95"/><path d="M8 46 C8 33 44 33 44 46" fill="white" opacity="0.92"/><circle cx="39" cy="39" r="7" fill="url(#fpg2)"/><text x="39" y="43" text-anchor="middle" font-size="9" font-weight="900" fill="white" font-family="Arial">✓</text></svg>`, labels[0], 'bg-1',"showMyProfile()", true ],
     [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30" style="filter:drop-shadow(0 0 6px rgba(255,255,255,0.6)) drop-shadow(0 2px 8px rgba(0,0,0,0.4));"><defs><linearGradient id="barG1" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#e52d27"/><stop offset="100%" stop-color="#ff6b6b"/></linearGradient><linearGradient id="barG2" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e0ffe8"/></linearGradient><linearGradient id="barG3" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#0f9b0f"/><stop offset="100%" stop-color="#00e564"/></linearGradient><linearGradient id="starG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fff7aa"/><stop offset="100%" stop-color="#ffd700"/></linearGradient></defs><rect x="4" y="24" width="11" height="16" rx="3" fill="url(#barG1)" opacity="0.95"/><text x="9.5" y="21" text-anchor="middle" font-size="7" font-weight="900" fill="rgba(255,255,255,0.9)" font-family="Arial">2</text><rect x="18.5" y="14" width="11" height="26" rx="3" fill="url(#barG2)" opacity="0.95"/><text x="24" y="11" text-anchor="middle" font-size="7" font-weight="900" fill="rgba(0,0,0,0.7)" font-family="Arial">1</text><rect x="33" y="29" width="11" height="11" rx="3" fill="url(#barG3)" opacity="0.95"/><text x="38.5" y="26" text-anchor="middle" font-size="7" font-weight="900" fill="rgba(255,255,255,0.9)" font-family="Arial">3</text><polygon points="24,5 25.5,9.5 30,9.5 26.5,12.2 27.8,17 24,14 20.2,17 21.5,12.2 18,9.5 22.5,9.5" fill="url(#starG)" opacity="0.98"/><rect x="2" y="40" width="44" height="3" rx="1.5" fill="rgba(255,255,255,0.3)"/></svg>`, labels[1], 'bg-2',"showModal('rankingCard')",  true ],
     [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,0.35)) drop-shadow(0 0 10px rgba(255,215,0,0.5));"><defs><linearGradient id="mg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f9b0f"/><stop offset="50%" stop-color="#f8fff8"/><stop offset="100%" stop-color="#e52d27"/></linearGradient><linearGradient id="mg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#16a34a"/></linearGradient><linearGradient id="mg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#b91c1c"/></linearGradient><radialGradient id="glow1" cx="50%" cy="30%" r="50%"><stop offset="0%" stop-color="rgba(255,255,255,0.9)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="26" cy="17" r="8.5" fill="url(#mg1)" opacity="0.97"/><circle cx="26" cy="17" r="8.5" fill="url(#glow1)" opacity="0.4"/><path d="M10 42 C10 31 42 31 42 42" fill="url(#mg1)" opacity="0.95"/><circle cx="13" cy="22" r="6" fill="url(#mg2)" opacity="0.88"/><path d="M2 38 C2 29.5 24 29.5 24 38" fill="url(#mg2)" opacity="0.75"/><circle cx="39" cy="22" r="6" fill="url(#mg3)" opacity="0.88"/><path d="M28 38 C28 29.5 50 29.5 50 38" fill="url(#mg3)" opacity="0.75"/><circle cx="26" cy="17" r="4" fill="rgba(255,255,255,0.3)"/></svg>`, labels[2], 'bg-3',"showModal('membersCard')",  true],
     ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="white"><path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z"/></svg>', labels[3], 'bg-4',"openMessages()", true],
@@ -4617,6 +5120,9 @@ function buildGrid(isReg){
     ['🏛️', 'من نحن', 'bg-who',"showWhoWeAreModal()", true],
     ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 8px rgba(240,147,251,0.6));"><defs><linearGradient id="mqg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f093fb"/><stop offset="100%" stop-color="#f5576c"/></linearGradient></defs><!-- القبة الرئيسية --><ellipse cx="26" cy="18" rx="9" ry="10" fill="url(#mqg1)" opacity="0.95"/><rect x="17" y="17" width="18" height="2" fill="url(#mqg1)"/><!-- الهلال --><text x="22.5" y="12" font-size="8" fill="white" opacity="0.9">☽</text><!-- المئذنة اليسار --><rect x="8" y="20" width="5" height="18" rx="2" fill="url(#mqg1)" opacity="0.9"/><ellipse cx="10.5" cy="20" rx="3" ry="4" fill="url(#mqg1)"/><rect x="9.5" y="14" width="2" height="6" fill="url(#mqg1)"/><!-- المئذنة اليمين --><rect x="39" y="20" width="5" height="18" rx="2" fill="url(#mqg1)" opacity="0.9"/><ellipse cx="41.5" cy="20" rx="3" ry="4" fill="url(#mqg1)"/><rect x="40.5" y="14" width="2" height="6" fill="url(#mqg1)"/><!-- البوابة --><rect x="13" y="19" width="26" height="19" rx="2" fill="url(#mqg1)" opacity="0.85"/><path d="M22 38 L22 28 Q26 23 30 28 L30 38 Z" fill="rgba(255,255,255,0.25)"/><!-- الأرضية --><rect x="6" y="38" width="40" height="3" rx="1.5" fill="white" opacity="0.4"/></svg>', 'عالم المدينة', 'bg-city',"ebPointsCity();showCityWorldModal()", true],
     ['🎬', 'شاهد واربح', 'bg-watch',"", false],
+    [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 8px rgba(34,197,94,0.6));"><defs><linearGradient id="spg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#43e97b"/><stop offset="100%" stop-color="#38f9d7"/></linearGradient></defs><circle cx="26" cy="26" r="25" fill="url(#spg1)"/><ellipse cx="26" cy="26" rx="14" ry="14" fill="white" opacity="0.95"/><path d="M26 12 L30 22 L42 22 L33 29 L37 40 L26 33 L15 40 L19 29 L10 22 L22 22 Z" fill="url(#spg1)" opacity="0.0"/><circle cx="26" cy="26" r="8" fill="white" stroke="rgba(34,197,94,0.8)" stroke-width="2"/><path d="M20 26 C20 22 32 22 32 26" fill="none" stroke="rgba(34,197,94,0.9)" stroke-width="2" stroke-linecap="round"/><line x1="26" y1="18" x2="26" y2="34" stroke="rgba(34,197,94,0.9)" stroke-width="2"/><line x1="18" y1="26" x2="34" y2="26" stroke="rgba(34,197,94,0.9)" stroke-width="2"/></svg>`, 'الرياضة', 'bg-sport',"openSportsSection()", true],
+    [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 8px rgba(229,45,39,0.5));"><defs><linearGradient id="lqg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f9b0f"/><stop offset="40%" stop-color="#f8fff8"/><stop offset="100%" stop-color="#e52d27"/></linearGradient></defs><circle cx="26" cy="26" r="25" fill="#1a1a2e"/><text x="26" y="18" text-anchor="middle" font-size="11" fill="#0f9b0f" font-weight="900" font-family="Arial">🇩🇿</text><rect x="16" y="20" width="20" height="3" rx="1.5" fill="#f5c518"/><rect x="16" y="25" width="20" height="3" rx="1.5" fill="white" opacity="0.85"/><rect x="16" y="30" width="20" height="3" rx="1.5" fill="#f5c518" opacity="0.7"/><rect x="20" y="34" width="12" height="2" rx="1" fill="rgba(255,255,255,0.5)"/></svg>`, 'القانون الجزائري', 'bg-law',"openAlgerianLaw()", true],
+    [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 8px rgba(168,85,247,0.6));"><defs><linearGradient id="iqg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#6d28d9"/></linearGradient><linearGradient id="iqg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f5c518"/><stop offset="100%" stop-color="#f97316"/></linearGradient></defs><circle cx="26" cy="26" r="25" fill="url(#iqg1)"/><circle cx="26" cy="20" r="10" fill="white" opacity="0.95"/><polygon points="26,12 28,18 34,18 29,22 31,28 26,24 21,28 23,22 18,18 24,18" fill="url(#iqg2)" opacity="0.9"/><rect x="23" y="30" width="6" height="3" rx="1.5" fill="white" opacity="0.8"/><rect x="22" y="33" width="8" height="3" rx="1.5" fill="white" opacity="0.6"/></svg>`, 'ألعاب الذكاء', 'bg-iq',"openIQGames()", true],
   ];
   grid.innerHTML=items.map(([icon,label,bg,action,open],idx)=>{
     // isReg=false و name=زائر: فتح صفحتي(0)، انظم إلينا(4) فقط
@@ -4786,7 +5292,9 @@ function updateProfilePageData(name){
   const LEVEL_PTS = 3000;
   const lv = Math.floor(pts/LEVEL_PTS)+1;
   const ptsInLv = pts % LEVEL_PTS;
-  const bal = ((Math.max(0,sheetPts)/50)*30).toFixed(2); // الرصيد من نقاط الجدول فقط
+  // الرصيد: أوائل 15 = 35 دج / 50 نقطة، ما بعد = 30 دج (يُحدَّث من loadRanking، قيمة مبدئية 30 دج)
+  const _savedRate = window._userBalanceRate || 30;
+  const bal = ((Math.max(0,sheetPts)/50)*_savedRate).toFixed(2);
 
   const setTxt = (id,v) => { const e=document.getElementById(id); if(e) e.innerText=v; };
   const displayName = getDisplayName(name);
@@ -4860,7 +5368,125 @@ function showBalanceModal(){
   startCoins(); playGoldSound();
   const bm = document.getElementById('balanceModal');
   if(bm) bm.style.display = 'flex';
+
+  // حساب الرصيد مباشرة من جدول الترتيب
+  _computeAndShowBalance();
 }
+
+async function _computeAndShowBalance(){
+  const name = getCurrentUser();
+  if(!name || name === 'زائر' || name === 'المدير') return;
+
+  const explainEl = document.getElementById('_balanceExplainText');
+  const rateEl    = document.getElementById('_balanceRateBadge');
+  const balEl     = document.getElementById('cardBalance');
+
+  if(explainEl) explainEl.innerText = 'جارٍ تحميل البيانات…';
+
+  try{
+    const norm = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+    const csvParse = line => {
+      const res=[]; let cur=''; let q=false;
+      for(let i=0;i<=line.length;i++){
+        const ch=line[i];
+        if(ch==='"'){q=!q;}
+        else if((ch===','||ch===undefined)&&!q){res.push(cur.replace(/^"|"$/g,'').trim());cur='';}
+        else{cur+=ch||'';}
+      }
+      return res;
+    };
+
+    // جلب جدول البيانات الرئيسي لترتيب الأعضاء
+    const [r1, r2] = await Promise.all([
+      fetch(dataUrl).then(r=>r.text()).catch(()=>''),
+      fetch(smartUrl).then(r=>r.text()).catch(()=>'')
+    ]);
+
+    // بناء قائمة الأعضاء مرتبة حسب النقاط (لتحديد الأوائل 15)
+    const _EXCLUDED = ['لؤي','ممتاز'];
+    const allRows = [];
+    const seen = new Set();
+
+    [r1,r2].forEach(txt=>{
+      txt.split('\n').slice(1).forEach(row=>{
+        if(!row.trim()) return;
+        const c = csvParse(row);
+        const n = (c[2]||'').trim();
+        if(!n || _EXCLUDED.includes(n)) return;
+        const key = norm(n);
+        if(seen.has(key)) return;
+        seen.add(key);
+        const pts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+        allRows.push({n, pts});
+      });
+    });
+
+    // ترتيب من الأعلى نقاطاً
+    allRows.sort((a,b)=>b.pts-a.pts);
+
+    // إيجاد ترتيب المستخدم الحالي
+    const myIdx = allRows.findIndex(x=>norm(x.n)===norm(name));
+    const myEntry = myIdx >= 0 ? allRows[myIdx] : null;
+    const mySheetPts = myEntry ? myEntry.pts : (window._sheetPtsCache || 0);
+
+    // تحديد السعر: أوائل 15 → 35 دج / 50 نقطة، باقي → 30 دج
+    const isTop15 = myIdx >= 0 && myIdx < 15;
+    const rate = isTop15 ? 35 : 30;
+    window._userBalanceRate = rate;
+
+    // حساب الرصيد من نقاط الجدول فقط (sheetPts)
+    const balance = ((mySheetPts / 50) * rate).toFixed(2);
+
+    // تحديث الواجهة
+    if(balEl) balEl.innerText = balance + ' دج';
+    ['cardBalance','ppStatBalance','ppInfoBalance'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.innerText = balance + ' دج';
+    });
+    const mgBal = document.getElementById('mgStatBalance');
+    if(mgBal) mgBal.innerText = balance + ' دج';
+
+    // شارة نوع السعر
+    if(rateEl){
+      rateEl.innerHTML = isTop15
+        ? `<span style="background:linear-gradient(135deg,#f5c518,#f97316);color:white;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:900;display:inline-block;">⭐ أنت من الأوائل الـ15 — سعر مميز</span>`
+        : `<span style="background:rgba(0,229,160,0.12);border:1px solid rgba(0,229,160,0.3);color:var(--accent);border-radius:20px;padding:4px 14px;font-size:11px;font-weight:700;display:inline-block;">50 نقطة = 30 دج</span>`;
+    }
+
+    // شرح التحويل
+    if(explainEl){
+      const rankTxt = myIdx >= 0 ? `ترتيبك الحالي: #${myIdx+1}` : 'غير مرتب بعد';
+      explainEl.innerHTML = `
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+          <span>📍 ${rankTxt}</span>
+          <span style="color:${isTop15?'#f5c518':'var(--accent)'};">${isTop15?'⭐ من الأوائل الـ15':'عضو عادي'}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+          <span>🏆 نقاط جدولك</span>
+          <span style="color:var(--text);font-weight:800;">${mySheetPts.toLocaleString()} نقطة</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+          <span>💱 سعر التحويل</span>
+          <span style="color:${isTop15?'#f5c518':'var(--accent)'};font-weight:800;">50 نقطة = ${rate} دج</span>
+        </div>
+        <div style="height:1px;background:var(--border);margin:8px 0;"></div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="font-weight:800;color:var(--text);">💎 رصيدك الإجمالي</span>
+          <span style="font-weight:900;color:#00e5a0;font-size:15px;">${balance} دج</span>
+        </div>
+      `;
+    }
+
+  } catch(e){
+    // fallback: استخدام القيم المحفوظة مسبقاً
+    const rate = (typeof window._userBalanceRate !== 'undefined') ? window._userBalanceRate : 30;
+    const sheetPts = window._sheetPtsCache || 0;
+    const balance = ((sheetPts / 50) * rate).toFixed(2);
+    if(balEl) balEl.innerText = balance + ' دج';
+    if(explainEl) explainEl.innerText = `نقاط جدولك: ${sheetPts} — ${balance} دج (${rate} دج / 50 نقطة)`;
+  }
+}
+
 function hideBalanceModal(){
   const bm = document.getElementById('balanceModal');
   if(bm) bm.style.display = 'none';
@@ -4881,19 +5507,10 @@ function handleCoverUpload(event){
 }
 
 function showProfileEditMenu(){
-  const name = getCurrentUser();
-  const displayName = localStorage.getItem('nld_display_name_'+name.replace(/\s+/g,'_')) || name;
   const n = document.createElement('div');
   n.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5000;display:flex;align-items:flex-end;justify-content:center;';
   n.innerHTML=`<div style="background:white;width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:20px;animation:slideUp .3s ease;">
     <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;text-align:center;">تعديل ملفك الشخصي</div>
-    <!-- تعديل اسم العرض -->
-    <div style="padding:12px;border-radius:12px;background:#F0F2F5;margin-bottom:12px;">
-      <div style="font-size:12px;font-weight:800;color:#1877F2;margin-bottom:8px;">✏️ اسم العرض (يظهر في صفحتي والمحادثات فقط)</div>
-      <input id="_editDisplayNameInput" type="text" value="${displayName}" placeholder="اكتب اسم العرض…" style="width:100%;padding:10px 14px;border:1.5px solid #E4E6EB;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:14px;color:#050505;outline:none;" oninput="this.style.borderColor='#1877F2'">
-      <div style="font-size:11px;color:#65676B;margin-top:6px;">⚠️ لن يؤثر على اسمك في جدول الترتيب أو قائمة المنخرطين</div>
-      <button onclick="_saveDisplayName('${name}')" style="margin-top:10px;width:100%;padding:10px;background:#1877F2;border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;">حفظ الاسم</button>
-    </div>
     <div onclick="document.getElementById('profilePhotoInput').click();this.closest('[style*=fixed]').remove();" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=''">📷 تغيير صورة الملف الشخصي</div>
     <div onclick="document.getElementById('coverPhotoInput').click();this.closest('[style*=fixed]').remove();" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=''">🖼️ تغيير صورة الغلاف</div>
     <div onclick="resetMemberFiles()" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#e53935;" onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background=''">🔄 إعادة تسجيل الملفات (تصفير)</div>
@@ -4910,23 +5527,23 @@ function _saveDisplayName(realName){
   if(!val){ showToast('⚠️ أدخل اسماً صالحاً'); return; }
   const key = 'nld_display_name_'+realName.replace(/\s+/g,'_');
   localStorage.setItem(key, val);
-  // تحديث صفحتي
+  // ✅ يتغير فقط في: أيقونة صفحتي + أيقونة المحادثات (القائمة الجانبية)
+  // ❌ لا يتغير في: اسم التطبيق (userNameTop) ولا في جدول الترتيب ولا المنخرطين
+  // تحديث اسم أيقونة صفحتي
   const ppName = document.getElementById('profilePageName');
   if(ppName) ppName.innerText = val;
-  // تحديث اسم القائمة الجانبية
-  const sideNameEl = document.getElementById('sideMenuName');
-  if(sideNameEl) sideNameEl.innerText = val;
-  // تحديث اسم في القائمة الرئيسية (user-name) - للعرض فقط بدون تغيير اسم النظام
-  const userNameEl = document.querySelector('.user-name');
-  if(userNameEl && !userNameEl.id) userNameEl.innerText = val;
-  // تحديث scpName في منشئ المنشورات
+  // تحديث أيقونة صفحتي في الشبكة الاجتماعية
   const scpN = document.getElementById('scpName');
   if(scpN) scpN.innerText = val;
-  // تحديث greeting
-  const mg = document.getElementById('memberGreetingName');
-  if(mg) mg.innerText = 'مرحباً، ' + val + '!';
+  // تحديث اسم في القائمة الجانبية (أيقونة المحادثات)
+  const sideNameEl = document.getElementById('sideMenuName');
+  if(sideNameEl) sideNameEl.innerText = val;
+  // تحديث اسم المرسل في مربع إنشاء المنشورات (يظهر فوق صندوق الكتابة)
+  const postAuthorEl = document.getElementById('socialPostAuthorName');
+  if(postAuthorEl) postAuthorEl.innerText = val;
+  // ⚠️ userNameTop و user-name و memberGreetingName لا تتغير — تبقى بالاسم الحقيقي
   document.querySelectorAll('[style*="position:fixed"][style*="z-index:5000"]').forEach(el=>el.remove());
-  showToast('✅ تم حفظ اسم العرض: ' + val);
+  showToast('✅ تم حفظ اسم العرض في صفحتي والمحادثات: ' + val);
 }
 
 // دالة مساعدة: جلب اسم العرض
@@ -5675,6 +6292,14 @@ function processEntry(val,type){
       if(matched){
         const name=(c[2]||'').trim();
         const pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+        // ── حفظ العمر من الجدول (البحث في الأعمدة عن قيمة رقمية بين 5-100) ──
+        for(let ci=3;ci<c.length-1;ci++){
+          const ageCand=parseInt((c[ci]||'').replace(/[^\d]/g,''));
+          if(ageCand>=5&&ageCand<=100){
+            localStorage.setItem('nld_age_'+name.replace(/\s+/g,'_'), String(ageCand));
+            break;
+          }
+        }
         localStorage.setItem("sklab_user_name",name);
         renderApp(name,pts,true, resolveEarned(name));
         return;
@@ -5696,14 +6321,31 @@ function processEntry(val,type){
         }
       }
       if(nameMatch||emailMatch){
-        // البحث عن النقاط في dataUrl بالاسم
+        // البحث عن النقاط والعمر في dataUrl بالاسم
         let pts=0;
         for(let k=1;k<rows1.length;k++){
           if(!rows1[k].trim()) continue;
           const c=csvParse(rows1[k]);
           if(norm(c[2]||'')===norm(nameCol)){
             pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+            for(let ci=3;ci<c.length-1;ci++){
+              const ageCand=parseInt((c[ci]||'').replace(/[^\d]/g,''));
+              if(ageCand>=5&&ageCand<=100){
+                localStorage.setItem('nld_age_'+nameCol.replace(/\s+/g,'_'), String(ageCand));
+                break;
+              }
+            }
             break;
+          }
+        }
+        // إذا لم يوجد في dataUrl، ابحث في smartUrl عن العمر
+        if(!localStorage.getItem('nld_age_'+nameCol.replace(/\s+/g,'_'))){
+          for(let ci=3;ci<cols.length-1;ci++){
+            const ageCand=parseInt((cols[ci]||'').replace(/[^\d]/g,''));
+            if(ageCand>=5&&ageCand<=100){
+              localStorage.setItem('nld_age_'+nameCol.replace(/\s+/g,'_'), String(ageCand));
+              break;
+            }
           }
         }
         localStorage.setItem("sklab_user_name",nameCol);
@@ -5803,7 +6445,14 @@ function renderApp(name,pts,isReg, externalEarned){
     window._sheetPtsCache = sheetPoints;
     const currentLevel = Math.floor(totalForLevel/LEVEL_PTS)+1;
     const ptsInLevel   = totalForLevel % LEVEL_PTS;
-    const balance      = ((rankingPoints/50)*30).toFixed(2);
+    // حساب الرصيد من إجمالي النقاط مباشرة
+    // أوائل 15 → 50 نقطة = 35 دج، بعد 15 → 50 نقطة = 30 دج
+    const _rate = (typeof window._userBalanceRate !== 'undefined') ? window._userBalanceRate : 30;
+    // الرصيد يُحسب فقط من نقاط جدول الترتيب (rankingPoints)
+    // إذا لم يوجد في جدول الترتيب بعد، يُستخدم nqaط جدول البيانات (sheetPoints)
+    // أوائل 15 → 50 نقطة = 35 دج، بعد 15 → 50 نقطة = 30 دج
+    const _rankForBalance = rankingPoints > 0 ? rankingPoints : sheetPoints;
+    const balance = ((_rankForBalance / 50) * _rate).toFixed(2);
 
     // لوحة القيادة: يُظهر الإجمالي (جدول + كويز)
     document.getElementById("mainPoints").innerHTML=`${totalForLevel.toLocaleString()} <span>نقطة</span>`;
@@ -5883,6 +6532,17 @@ function renderApp(name,pts,isReg, externalEarned){
         const localEarnedNow = parseInt(localStorage.getItem(_earnedKey(name))||'0');
         const finalEarned = Math.max(earned, localEarnedNow);
 
+        // تحديد السعر: أوائل 15 = 35 دج، بعد 15 = 30 دج
+        // نبحث عن ترتيب العضو في جدول البيانات
+        if(r1){
+          const allRows = r1.split('\n').slice(1).filter(x=>x.trim());
+          const validRows = allRows.filter(row=>{ const c=csvParse(row); return (c[2]||'').trim(); });
+          const myIdx = validRows.findIndex(row=>{ const c=csvParse(row); return normName(c[2]||'')===normName(name); });
+          const isEarly = myIdx >= 0 && myIdx < 15;
+          window._userBalanceRate = isEarly ? 35 : 30;
+          localStorage.setItem('nld_is_early_'+name.replace(/\s+/g,'_'), isEarly ? '1' : '0');
+        }
+
         // تحديث الواجهة بالبيانات الحقيقية
         _applyDashboardUI(dashPts, rankPts, finalEarned);
         // حفظ للاستخدام لاحقاً
@@ -5891,6 +6551,15 @@ function renderApp(name,pts,isReg, externalEarned){
 
       }catch(e){ console.warn('⚠️ تعذّر جلب نقاط الجداول:', e); }
     })();
+  }
+
+  // ─── حفظ نقاط الجدول الصافية للعضو الحالي (تُعرض لأصدقائه) ───
+  if(name && name !== 'زائر' && name !== 'المدير'){
+    localStorage.setItem('nld_sheet_pts_'+name.replace(/\s+/g,'_'), String(pts));
+    // حفظ حالة الأوائل الـ15 لتُعرض في ملف الصديق
+    isEarlyBirdUser().then(isEarly=>{
+      localStorage.setItem('nld_is_early_'+name.replace(/\s+/g,'_'), isEarly ? '1' : '0');
+    });
   }
 
   buildGrid(isReg);
@@ -6138,6 +6807,32 @@ async function loadRanking(){
       const qPts=getSharedQuizPts(x.n);
       return {n:x.n, p:x.p, sheetP:x.p, quizP:qPts, total:x.p+qPts};
     }).sort((a,b)=>b.total-a.total);
+
+    // ── حساب الرصيد الذكي حسب الترتيب ──
+    const currentUserNorm2=norm(currentUser);
+    const myRankInList = list.findIndex(x=>norm(x.n)===currentUserNorm2);
+    const isTop15 = myRankInList >= 0 && myRankInList < 15;
+    const ratePerUnit = isTop15 ? 35 : 30; // دج لكل 50 نقطة
+    window._userBalanceRate = ratePerUnit; // حفظ للاستخدام في updateProfilePageData
+    // تحديث الرصيد في الواجهة بالسعر الصحيح
+    (function(){
+      const myEntry = list[myRankInList];
+      if(!myEntry) return;
+      const smartBalance = ((myEntry.sheetP / 50) * ratePerUnit).toFixed(2);
+      setTimeout(()=>{
+        ['cardBalance','ppStatBalance','ppInfoBalance'].forEach(id=>{
+          const el=document.getElementById(id);
+          if(el) el.innerText = smartBalance+' دج';
+        });
+        const mgBal=document.getElementById('mgStatBalance');
+        if(mgBal) mgBal.innerText = smartBalance+' دج';
+        // شارة نوع السعر
+        const rateEl = document.getElementById('_balanceRateBadge');
+        if(rateEl) rateEl.innerHTML = isTop15
+          ? '<span style="background:linear-gradient(135deg,#f5c518,#f97316);color:white;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:900;">⭐ سعر الأوائل: 50 نقطة = 35 دج</span>'
+          : '<span style="background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.3);color:#00e5a0;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700;">50 نقطة = 30 دج</span>';
+      }, 200);
+    })();
 
     const m=['gold','silver','bronze'];
     const currentUserNorm=norm(currentUser);
@@ -10774,13 +11469,22 @@ function viewMemberProfile(memberName){
     const myFriends = getFriends(myName);
     const isFriend = myFriends.includes(memberName);
     if(isFriend){
-      // جلب نقاط وترتيب العضو
-      const memberPts = parseInt(localStorage.getItem('nld_earned_'+memberName.replace(/\s+/g,'_'))||'0');
+      // جلب نقاط الكويز المكتسبة
+      const memberQuizPts = parseInt(localStorage.getItem('nld_earned_'+memberName.replace(/\s+/g,'_'))||'0');
+      // جلب نقاط الجدول الحقيقية من localStorage (مخزّنة عند آخر تحديث)
+      const memberSheetPts = parseInt(localStorage.getItem('nld_sheet_pts_'+memberName.replace(/\s+/g,'_'))||'0');
+      const memberTotalPts = memberSheetPts + memberQuizPts;
       const LEVEL_PTS = 3000;
-      const memberLevel = Math.floor(memberPts/LEVEL_PTS)+1;
+      const memberLevel = Math.floor(memberTotalPts/LEVEL_PTS)+1;
       const memberPosts = getSocialPosts().filter(p=>p.author===memberName).length;
       const memberFriends = getFriends(memberName).length;
-      // حساب الترتيب التقريبي
+      // العمر من localStorage
+      const memberAge = localStorage.getItem('nld_age_'+memberName.replace(/\s+/g,'_'))||'';
+      // حساب الرصيد: يعتمد على ترتيب العضو في الجدول
+      const memberIsEarly = localStorage.getItem('nld_is_early_'+memberName.replace(/\s+/g,'_'))==='1';
+      const memberRate = memberIsEarly ? 35 : 30;
+      const memberBalance = ((memberSheetPts/50)*memberRate).toFixed(0);
+      // حساب الترتيب التقريبي من localStorage
       let rank = '—';
       try{
         const allPts = [];
@@ -10788,18 +11492,19 @@ function viewMemberProfile(memberName){
           const k=localStorage.key(i);
           if(k&&k.startsWith('nld_earned_')&&k!=='nld_earned_'+memberName.replace(/\s+/g,'_')){
             const p=parseInt(localStorage.getItem(k)||'0');
-            if(p>memberPts) allPts.push(p);
+            if(p>memberTotalPts) allPts.push(p);
           }
         }
         rank = (allPts.length+1).toString();
       }catch(e){}
       extInfo.innerHTML = `
         <div style="background:white;padding:14px 16px;border-bottom:8px solid #F0F2F5;">
-          <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:10px;">📊 إحصائيات ${getDisplayName(memberName)}</div>
+          <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:10px;">📊 ملف ${getDisplayName(memberName)}</div>
+          ${memberAge ? `<div style="display:flex;align-items:center;gap:8px;background:#F0F2F5;border-radius:10px;padding:10px 12px;margin-bottom:10px;"><span style="font-size:18px;">🎂</span><span style="font-size:13px;font-weight:700;color:#050505;">العمر: <strong>${memberAge} سنة</strong></span></div>` : ''}
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;">
             <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
               <div style="font-size:20px;margin-bottom:3px;">🏆</div>
-              <div style="font-size:15px;font-weight:900;color:#050505;">${memberPts.toLocaleString()}</div>
+              <div style="font-size:15px;font-weight:900;color:#050505;">${memberTotalPts.toLocaleString()}</div>
               <div style="font-size:10px;color:#65676B;">النقاط</div>
             </div>
             <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
@@ -10813,7 +11518,7 @@ function viewMemberProfile(memberName){
               <div style="font-size:10px;color:#65676B;">الترتيب</div>
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
             <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
               <div style="font-size:20px;margin-bottom:3px;">📝</div>
               <div style="font-size:15px;font-weight:900;color:#050505;">${memberPosts}</div>
@@ -10823,6 +11528,11 @@ function viewMemberProfile(memberName){
               <div style="font-size:20px;margin-bottom:3px;">👥</div>
               <div style="font-size:15px;font-weight:900;color:#050505;">${memberFriends}</div>
               <div style="font-size:10px;color:#65676B;">الأصدقاء</div>
+            </div>
+            <div style="background:linear-gradient(135deg,rgba(0,200,100,0.12),rgba(0,150,80,0.08));border:1px solid rgba(0,200,100,0.3);border-radius:10px;padding:10px;text-align:center;">
+              <div style="font-size:20px;margin-bottom:3px;">💰</div>
+              <div style="font-size:13px;font-weight:900;color:#16a34a;">${memberBalance} <span style="font-size:9px;">دج</span></div>
+              <div style="font-size:10px;color:#65676B;">الرصيد</div>
             </div>
           </div>
         </div>`;
@@ -14109,7 +14819,10 @@ function _fbErrorHTML(msg){
 <div class="modal" id="whoWeAreModal">
   <div class="modal-content" style="max-width:480px;">
     <div class="modal-handle"></div>
-    <div class="modal-title" style="background:linear-gradient(135deg,#00e5a0,#0099ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:18px;">🚀 Smart Kids Lab 2026</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+      <div onclick="hideModal('whoWeAreModal')" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--text);font-weight:700;flex-shrink:0;">‹</div>
+      <div class="modal-title" style="background:linear-gradient(135deg,#00e5a0,#0099ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:18px;margin-bottom:0;">🚀 Smart Kids Lab 2026</div>
+    </div>
     <div style="max-height:72vh;overflow-y:auto;padding:0 2px;scrollbar-width:thin;">
 
       <!-- Hero Banner -->
@@ -14281,7 +14994,10 @@ function _fbErrorHTML(msg){
 <div class="modal" id="cityWorldModal">
   <div class="modal-content">
     <div class="modal-handle"></div>
-    <div class="modal-title">🕌 عالم المدينة</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+      <div onclick="hideModal('cityWorldModal')" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--text);font-weight:700;flex-shrink:0;">‹</div>
+      <div class="modal-title" style="margin-bottom:0;">🕌 عالم المدينة</div>
+    </div>
     <div style="max-height:400px;overflow-y:auto;padding:0 2px;">
       <div style="background:linear-gradient(135deg,#f093fb,#f5576c);border-radius:20px;padding:24px;color:white;text-align:center;margin-bottom:16px;">
         <div style="font-size:52px;margin-bottom:10px;">🕌</div>
@@ -14337,7 +15053,10 @@ function _fbErrorHTML(msg){
 <div class="modal" id="watchEarnModal">
   <div class="modal-content">
     <div class="modal-handle"></div>
-    <div class="modal-title">🎬 شاهد واربح</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+      <div onclick="hideModal('watchEarnModal')" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--text);font-weight:700;flex-shrink:0;">‹</div>
+      <div class="modal-title" style="margin-bottom:0;">🎬 شاهد واربح</div>
+    </div>
     <div style="max-height:400px;overflow-y:auto;padding:0 2px;">
       <div style="background:linear-gradient(135deg,#4facfe,#00f2fe);border-radius:20px;padding:24px;color:white;text-align:center;margin-bottom:16px;">
         <div style="font-size:52px;margin-bottom:10px;">🎬</div>
@@ -14374,7 +15093,10 @@ function _fbErrorHTML(msg){
 <div class="modal" id="cityFeatureModal" style="z-index:6000;">
   <div class="modal-content" style="max-height:90vh;">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="cityFeatureTitle">📖 المحتوى</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+      <div onclick="hideModal('cityFeatureModal')" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--text);font-weight:700;flex-shrink:0;">‹</div>
+      <div class="modal-title" id="cityFeatureTitle" style="margin-bottom:0;">📖 المحتوى</div>
+    </div>
     <div id="cityFeatureBody" style="max-height:calc(90vh - 140px);overflow-y:auto;padding:0 4px;">
       <div style="text-align:center;padding:40px;">
         <div style="font-size:36px;animation:spinLoad 1s linear infinite;display:inline-block;">✨</div>
