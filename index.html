@@ -2893,6 +2893,8 @@ body.member-mode #onlineBar{
 
         <!-- جرس التنبيهات من المدير -->
         <div class="notif-btn" id="notifBell" onclick="openNotifications()" title="التنبيهات" style="position:relative;background:linear-gradient(135deg,rgba(255,160,0,0.15),rgba(255,80,0,0.15));border-color:rgba(255,160,0,0.3);font-size:20px;">🔔<span id="notifBadge" style="display:none;position:absolute;top:-5px;left:-5px;min-width:18px;height:18px;border-radius:9px;background:#e52d27;border:2px solid var(--dark);font-size:10px;font-weight:900;color:white;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;"></span></div>
+        <!-- زر برمجة التطبيق - للمدير فقط: يفتح نافذة إرسال الرسائل -->
+        <div class="notif-btn" id="adminBroadcastBtn" onclick="openAdminBroadcastPanel()" title="برمجة التطبيق" style="display:none;position:relative;background:linear-gradient(135deg,rgba(0,150,255,0.2),rgba(168,85,247,0.2));border-color:rgba(0,150,255,0.4);font-size:18px;">💻</div>
         <!-- زر الإدارة في الأعلى - للأدمن فقط -->
         <div class="notif-btn" id="adminNavBtn" onclick="showModal('adminModal')" title="لوحة الإدارة" style="display:none;position:relative;background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(245,158,11,0.2));border-color:rgba(220,38,38,0.4);font-size:18px;">⚙️</div>
         <button class="logout-btn" onclick="doLogout()" title="العودة للواجهة">
@@ -3992,9 +3994,8 @@ body.member-mode #onlineBar{
       </div>
       <!-- زر الاتصال -->
       <div id="callBtn" onclick="startVoiceCall()" title="اتصال صوتي" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,200,100,0.12);border:1px solid rgba(0,200,100,0.3);cursor:pointer;font-size:17px;flex-shrink:0;transition:.2s;" onmouseover="this.style.background='rgba(0,200,100,0.25)'" onmouseout="this.style.background='rgba(0,200,100,0.12)'">📞</div>
-      <!-- زر ثلاث نقاط -->
+      <!-- زر ثلاث نقاط - يُخفى للمدير -->
       <div id="chatDotsBtn" onclick="toggleChatDotsMenu()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.08);cursor:pointer;flex-shrink:0;transition:.2s;font-size:18px;letter-spacing:1px;color:#555;" onmouseover="this.style.background='rgba(0,0,0,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.06)'">⋮</div>
-      <!-- blockBtn محذوف — الحظر انتقل لداخل قائمة ثلاث شرطات -->
     </div>
 
     <!-- قائمة ثلاث نقاط -->
@@ -4172,6 +4173,61 @@ body.member-mode #onlineBar{
 
 <!-- زر تبديل لوحة الإدارة (يظهر فقط للمدير) -->
 <div class="admin-toggle-btn" id="adminToggleBtn" onclick="showModal('adminModal')" title="لوحة الإدارة">⚙️</div>
+
+<!-- ══════════════════════════════════════════════════════
+     💻 نافذة برمجة التطبيق — إرسال رسائل للمنخرطين
+     ══════════════════════════════════════════════════════ -->
+<div id="adminBroadcastModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:9800;align-items:flex-end;justify-content:center;">
+  <div style="background:var(--surface);width:100%;max-width:480px;margin:0 auto;border-radius:28px 28px 0 0;padding:24px 20px 36px;border:1px solid var(--border);border-bottom:none;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;max-height:90vh;overflow-y:auto;">
+    <div style="width:38px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 18px;"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 6px 18px rgba(0,120,255,0.3);">💻</div>
+      <div>
+        <div style="font-size:17px;font-weight:900;color:var(--text);">برمجة التطبيق</div>
+        <div style="font-size:12px;color:var(--muted);">إرسال رسائل للمنخرطين</div>
+      </div>
+      <div onclick="closeAdminBroadcastPanel()" style="margin-right:auto;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--muted);">✕</div>
+    </div>
+
+    <!-- اختيار العضو -->
+    <div style="margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;letter-spacing:.5px;">المستلم</div>
+      <div style="position:relative;">
+        <select id="broadcastMsgTarget" style="width:100%;padding:12px 16px;background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;">
+          <option value="all">📢 إرسال لجميع المنخرطين</option>
+        </select>
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);pointer-events:none;">▾</span>
+      </div>
+    </div>
+
+    <!-- حقل الرسالة -->
+    <div style="margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;letter-spacing:.5px;">الرسالة</div>
+      <textarea id="broadcastMsgText" placeholder="اكتب رسالتك هنا…" style="width:100%;min-height:100px;padding:12px 16px;background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:14px;font-weight:600;outline:none;resize:none;line-height:1.6;text-align:right;"></textarea>
+    </div>
+
+    <!-- مرفقات -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+      <label style="cursor:pointer;padding:8px 12px;background:rgba(0,150,255,0.08);border:1.5px solid rgba(0,150,255,0.22);border-radius:10px;font-size:12px;font-weight:700;color:#60b3ff;display:flex;align-items:center;gap:5px;">
+        🖼️ صورة <input type="file" accept="image/*" style="display:none;" onchange="broadcastHandleMedia(event,'image')">
+      </label>
+      <label style="cursor:pointer;padding:8px 12px;background:rgba(168,85,247,0.08);border:1.5px solid rgba(168,85,247,0.22);border-radius:10px;font-size:12px;font-weight:700;color:#a855f7;display:flex;align-items:center;gap:5px;">
+        🎬 فيديو <input type="file" accept="video/*" style="display:none;" onchange="broadcastHandleMedia(event,'video')">
+      </label>
+      <label style="cursor:pointer;padding:8px 12px;background:rgba(245,158,11,0.08);border:1.5px solid rgba(245,158,11,0.22);border-radius:10px;font-size:12px;font-weight:700;color:#f59e0b;display:flex;align-items:center;gap:5px;">
+        🎵 صوت <input type="file" accept="audio/*" style="display:none;" onchange="broadcastHandleMedia(event,'audio')">
+      </label>
+    </div>
+    <div id="broadcastMediaPreview" style="display:none;padding:9px 12px;background:rgba(0,229,160,0.08);border:1.5px solid rgba(0,229,160,0.2);border-radius:10px;margin-bottom:12px;font-size:12px;color:var(--accent);font-weight:700;">📎 تم تحديد الملف</div>
+
+    <!-- أزرار الإرسال -->
+    <div style="display:flex;gap:10px;">
+      <button onclick="sendBroadcastMsg()" style="flex:1;padding:14px;background:linear-gradient(135deg,#0099ff,#a855f7);border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;color:white;cursor:pointer;box-shadow:0 6px 20px rgba(0,120,255,0.35);transition:.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">💬 إرسال الرسالة</button>
+      <button onclick="broadcastLoadMembers()" style="padding:14px 16px;background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:.2s;">🔄</button>
+    </div>
+    <div id="broadcastSendStatus" style="display:none;margin-top:10px;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:700;text-align:center;"></div>
+  </div>
+</div>
 
 <!-- MODAL: لوحة الإدارة – Executive Office Design -->
 <div class="modal" id="adminModal">
@@ -6115,30 +6171,49 @@ function _notifyAdminQuizWinner(memberName, ptsEarned, level){
   const dateStr = now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
   const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
 
-  // بناء محتوى الرسالة
-  const msgText = `🏆 نتيجة الكويز!\n👤 العضو: ${memberName}\n📚 المستوى: ${level}\n⭐ النقاط المكسوبة: ${ptsEarned} نقطة\n📅 ${dateStr} — ${timeStr}\n\n✅ تم إضافة النقاط تلقائياً لرصيد العضو`;
+  // بناء محتوى الرسالة للمدير
+  const msgTextAdmin = `🏆 نتيجة الكويز!\n👤 العضو: ${memberName}\n📚 المستوى: ${level}\n⭐ النقاط المكسوبة: ${ptsEarned} نقطة\n📅 ${dateStr} — ${timeStr}\n\n✅ تم إضافة النقاط تلقائياً لرصيد العضو`;
 
-  // إرسال للمدير عبر نظام المحادثات
+  // بناء محتوى الرسالة للعضو
+  const msgTextMember = `🏆 نتائج الكويز\n\n📚 المستوى: ${level}\n⭐ نقاطك المكسوبة: ${ptsEarned} نقطة\n📅 ${dateStr} — ${timeStr}\n\n✅ تم تسجيل نقاطك بنجاح ← سيضيفها المدير للجدول قريباً`;
+
   const chatKey = _getChatKey('المدير', memberName);
   const msgs = JSON.parse(localStorage.getItem(chatKey) || '[]');
+
+  // إشعار للمدير (from النظام to المدير)
   msgs.push({
-    id: 'quiz_result_'+Date.now(),
+    id: 'quiz_result_admin_'+Date.now(),
     from: 'النظام',
     to: 'المدير',
-    message: msgText,
-    timestamp: new Date().toISOString(),
-    isSystem: true
+    message: msgTextAdmin,
+    timestamp: now.toISOString(),
+    isSystem: true,
+    read: false
   });
+
+  // إشعار للعضو (from المدير to العضو) — يظهر في محادثة العضو مع المدير
+  msgs.push({
+    id: 'quiz_result_member_'+Date.now(),
+    from: 'المدير',
+    to: memberName,
+    message: msgTextMember,
+    timestamp: new Date(Date.now()+1).toISOString(),
+    isSystem: true,
+    read: false
+  });
+
   localStorage.setItem(chatKey, JSON.stringify(msgs));
 
-  // إشعار Push للمدير إن أمكن
+  // مزامنة مع Supabase
+  try{
+    sbSendMessage({ id:'quiz_result_member_'+Date.now(), from:'المدير', to:memberName, message:msgTextMember, timestamp:new Date().toISOString(), isSystem:true, read:false }).catch(()=>{});
+  }catch(e){}
+
+  // إشعار Push للعضو
   if(typeof window.sendOneSignalNotif === 'function'){
-    window.sendOneSignalNotif(
-      '🏆 نقاط كويز جديدة — '+memberName,
-      `العضو ${memberName} أكمل المستوى ${level} وكسب ${ptsEarned} نقطة`
-    );
+    window.sendOneSignalNotif('🏆 نقاط كويز جديدة', `أكملت المستوى ${level} وكسبت ${ptsEarned} نقطة`, memberName);
   }
-  console.log('📤 تم إرسال نتيجة الكويز للمدير:', memberName, ptsEarned, 'نقطة');
+  console.log('📤 تم إرسال نتيجة الكويز للمدير والعضو:', memberName, ptsEarned, 'نقطة');
 }
 
 /* مساعدة: الحصول على مفتاح المحادثة بين شخصين */
@@ -6453,6 +6528,8 @@ function enterAsAdmin(){
   if(tb) tb.style.display="flex";
   const nb=document.getElementById("adminNavBtn");
   if(nb) nb.style.display="flex";
+  const broadcastBtn=document.getElementById("adminBroadcastBtn");
+  if(broadcastBtn) broadcastBtn.style.display="flex";
 
   // ── تفعيل وضع مكتب المدير ──
   document.body.classList.add("admin-mode");
@@ -6598,6 +6675,27 @@ function adminEditPoints(){
     msg.className="admin-msg ok";
     msg.innerText='✅ تم تعيين نقاط "'+name+'" إلى '+pts+' نقطة';
     msg.style.display="block";
+
+    // ── إشعار العضو في محادثة المدير ──
+    try{
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
+      const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+      const sorted = ['المدير', name].sort();
+      const p2pKey = 'nld_p2p_' + sorted[0].replace(/\s+/g,'_') + '__' + sorted[1].replace(/\s+/g,'_');
+      const p2pMsgs = JSON.parse(localStorage.getItem(p2pKey)||'[]');
+      const notifMsg = {
+        id: 'pts_edit_'+Date.now(),
+        from: 'المدير', to: name,
+        message: `🏅 تحديث نقاطك\n\n👤 العضو: ${name}\n⭐ النقاط الجديدة: ${pts.toLocaleString()} نقطة\n📅 ${dateStr} — ${timeStr}\n\n✅ تم تحديث نقاطك من قِبَل المدير`,
+        timestamp: now.toISOString(), read: false
+      };
+      p2pMsgs.push(notifMsg);
+      localStorage.setItem(p2pKey, JSON.stringify(p2pMsgs));
+      sbSendMessage(notifMsg).catch(()=>{});
+      if(typeof sendOneSignalNotif==='function') sendOneSignalNotif('🏅 تحديث النقاط', `تم تحديث نقاطك إلى ${pts} نقطة`, name);
+    }catch(e){}
+
     document.getElementById("adminEditName").value="";
     document.getElementById("adminEditPts").value="";
   });
@@ -8609,10 +8707,10 @@ function renderInboxList(){
       const lastText = last ? (last.message||(last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت')) : '';
       const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
       const unreadBadge = unread>0 ? `<span style="min-width:20px;height:20px;border-radius:10px;background:linear-gradient(135deg,#0099ff,#a855f7);color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;">${unread}</span>` : '';
-      return `<div onclick="openP2PChat('${other.replace(/'/g,"\'")}',false)" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(0,120,255,0.05)'" onmouseout="this.style.background='transparent'">
+      return `<div onclick="${other==='المدير' ? '_openMemberAdminChat(\'المدير\')' : 'openP2PChat(\''+other.replace(/'/g,"\\'")+'\',false)'}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(0,120,255,0.05)'" onmouseout="this.style.background='transparent'">
         <div style="position:relative;flex-shrink:0;">${getMemberAvatarHtml(other, 48, 15)}<span style="position:absolute;bottom:1px;right:1px;width:12px;height:12px;border-radius:50%;background:${_getOnlineStatus(other)==='online'?'#22c55e':_getOnlineStatus(other)==='recent'?'#ef4444':'#374151'};border:2.5px solid var(--dark);box-shadow:0 0 6px ${_getOnlineStatus(other)==='online'?'rgba(34,197,94,0.7)':_getOnlineStatus(other)==='recent'?'rgba(239,68,68,0.5)':'none'};"></span></div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:800;color:#1C1E21;margin-bottom:3px;">${other}</div>
+          <div style="font-size:14px;font-weight:800;color:#1C1E21;margin-bottom:3px;">${other==='المدير'?'🛡️ رسائل المدير':other}</div>
           <div style="font-size:12px;color:#65676B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lastText}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">
@@ -8698,6 +8796,17 @@ function openAdminChat(targetName, readOnly){
   cs.removeAttribute('data-readonly');
   cs.removeAttribute('data-spy-a');
   cs.removeAttribute('data-spy-b');
+
+  // إخفاء زر الثلاث نقاط وميزات المحادثة للمدير
+  const dotsBtn = document.getElementById('chatDotsBtn');
+  if(dotsBtn) dotsBtn.style.display = 'none';
+  const callBtn2 = document.getElementById('callBtn');
+  // إخفاء منطقة الإدخال للمدير (الإرسال يتم من أيقونة برمجة التطبيق)
+  const inputArea = document.getElementById('chatInputArea');
+  if(inputArea) inputArea.style.display = 'none';
+  const voiceBar2 = document.getElementById('voiceRecordBar');
+  if(voiceBar2) voiceBar2.style.display = 'none';
+
   // تطبيق السمة المحفوظة (ثابتة لا تتغير)
   if(typeof _applySavedChatTheme==='function') _applySavedChatTheme();
 
@@ -8718,8 +8827,7 @@ function openAdminChat(targetName, readOnly){
     chatAv.style.background = 'linear-gradient(135deg,#e52d27,#fbbf24)';
   }
 
-  const inputArea = document.getElementById('chatInputArea');
-  if(inputArea) inputArea.style.display = 'flex';
+  // منطقة الإدخال مخفية للمدير (تم إخفاؤها أعلاه)
 
   const adminMsgDiv = document.getElementById('messagesContent');
   adminMsgDiv.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><div class="spinner"></div></div>';
@@ -8893,9 +9001,17 @@ function closeChatScreen(){
   cs.removeAttribute('data-readonly');
   cs.removeAttribute('data-spy-a');
   cs.removeAttribute('data-spy-b');
+  cs.removeAttribute('data-admin-readonly');
   _currentChatTarget = null;
+  // إعادة الأزرار لحالتها الطبيعية
   const inputArea = document.getElementById('chatInputArea');
   if(inputArea) inputArea.style.display='flex';
+  const dotsBtn2 = document.getElementById('chatDotsBtn');
+  if(dotsBtn2) dotsBtn2.style.display = 'flex';
+  const callBtnEl2 = document.getElementById('callBtn');
+  if(callBtnEl2) callBtnEl2.style.display = 'flex';
+  const voiceBarEl = document.getElementById('voiceRecordBar');
+  if(voiceBarEl) voiceBarEl.style.display = 'none';
   // العودة دائماً لقائمة الرسائل (messagesModal)
   const mm = document.getElementById('messagesModal');
   if(mm){
@@ -9599,7 +9715,144 @@ async function adminSendMessages(){
   setTimeout(()=>st.style.display='none',3000);
 }
 
-/* ===== سجل الرسائل المرسلة (المدير) ===== */
+/* ===================================================================
+   💻 برمجة التطبيق — إرسال رسائل للمنخرطين من الأيقونة
+   =================================================================== */
+let _broadcastMediaToSend = null;
+
+function openAdminBroadcastPanel(){
+  const modal = document.getElementById('adminBroadcastModal');
+  if(modal){
+    modal.style.display = 'flex';
+    broadcastLoadMembers();
+  }
+}
+
+function closeAdminBroadcastPanel(){
+  const modal = document.getElementById('adminBroadcastModal');
+  if(modal) modal.style.display = 'none';
+  _broadcastMediaToSend = null;
+  const prev = document.getElementById('broadcastMediaPreview');
+  if(prev) prev.style.display = 'none';
+}
+
+async function broadcastLoadMembers(){
+  const sel = document.getElementById('broadcastMsgTarget');
+  if(!sel) return;
+  try{
+    const names = await _fetchAllMembers();
+    sel.innerHTML = '<option value="all">📢 إرسال لجميع المنخرطين ('+names.length+')</option>';
+    names.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.innerText='👤 '+n; sel.appendChild(o); });
+  }catch(e){ console.warn('broadcastLoadMembers error', e); }
+}
+
+function broadcastHandleMedia(event, type){
+  const file = event.target.files[0];
+  if(!file) return;
+  if(type==='video' && file.size > 20*1024*1024){ showToast('⚠️ حجم الفيديو كبير جداً (أقصى 20MB)'); return; }
+  const reader = new FileReader();
+  reader.onload = e=>{
+    _broadcastMediaToSend = { type, data: e.target.result };
+    const prev = document.getElementById('broadcastMediaPreview');
+    if(prev){ prev.style.display='block'; prev.innerText='📎 تم تحديد الملف: '+(type==='image'?'صورة':type==='video'?'فيديو':'صوت'); }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function sendBroadcastMsg(){
+  const target = document.getElementById('broadcastMsgTarget').value.trim();
+  const msgText = document.getElementById('broadcastMsgText').value.trim();
+  const st = document.getElementById('broadcastSendStatus');
+  if(!msgText && !_broadcastMediaToSend){
+    st.style.display='block'; st.style.background='rgba(229,45,39,0.1)'; st.style.color='#f87171';
+    st.style.border='1px solid rgba(229,45,39,0.2)'; st.innerText='⚠️ اكتب نص الرسالة أو أضف ملفاً';
+    return;
+  }
+
+  st.style.display='block'; st.style.background='rgba(0,229,160,0.08)'; st.style.color='var(--accent)';
+  st.style.border='1px solid rgba(0,229,160,0.2)'; st.innerText='⏳ جاري الإرسال…';
+
+  const ts = new Date().toISOString();
+  const baseMsg = {
+    id:'msg_'+Date.now(), from:'المدير', timestamp:ts, read:false, isMine:false,
+    message:msgText, mediaType:_broadcastMediaToSend?.type||null, mediaData:_broadcastMediaToSend?.data||null
+  };
+
+  const names = target==='all' ? await _fetchAllMembers() : [target];
+  const sendPromises = names.map(n=>{
+    const m = {...baseMsg, to:n};
+    const localMsgs = _getP2PMsgs('المدير', n);
+    localMsgs.push(m);
+    _saveP2PMsgs('المدير', n, localMsgs);
+    return sbSendMessage(m);
+  });
+  await Promise.all(sendPromises);
+
+  // إشعار OneSignal للأعضاء
+  if(typeof sendOneSignalNotif === 'function'){
+    if(target === 'all'){
+      sendOneSignalNotif('💻 رسالة من المدير', msgText||'رسالة جديدة', 'all');
+    } else {
+      sendOneSignalNotif('💻 رسالة من المدير', msgText||'رسالة جديدة', target);
+    }
+  }
+
+  _broadcastMediaToSend = null;
+  const prev = document.getElementById('broadcastMediaPreview');
+  if(prev) prev.style.display='none';
+  document.getElementById('broadcastMsgText').value = '';
+  st.innerText = '✅ تم الإرسال إلى '+names.length+' عضو';
+  setTimeout(()=>{ st.style.display='none'; }, 3000);
+}
+
+/* ===================================================================
+   عند فتح العضو لمحادثته مع المدير: عرض القراءة فقط (بدون إرسال/رد)
+   الرسائل الواردة من المدير تُعرض كمحادثة عادية بدون زر إرسال
+   =================================================================== */
+function _openMemberAdminChat(targetName){
+  // فتح شاشة المحادثة بوضع القراءة فقط (no input)
+  _currentChatTarget = targetName;
+  _lastPolledMsgId = null;
+  const myName = getCurrentUser();
+  const cs = document.getElementById('chatScreen');
+  cs.style.display = 'flex';
+  cs.style.flexDirection = 'column';
+  cs.setAttribute('data-admin-readonly','1');
+
+  // إخفاء منطقة الإدخال
+  const inputArea = document.getElementById('chatInputArea');
+  if(inputArea) inputArea.style.display = 'none';
+  const voiceBar = document.getElementById('voiceRecordBar');
+  if(voiceBar) voiceBar.style.display = 'none';
+
+  // إخفاء ميزات قائمة الثلاث نقاط
+  const dotsBtn = document.getElementById('chatDotsBtn');
+  if(dotsBtn) dotsBtn.style.display = 'none';
+  const callBtnEl = document.getElementById('callBtn');
+  if(callBtnEl) callBtnEl.style.display = 'none';
+
+  if(typeof _applySavedChatTheme==='function') _applySavedChatTheme();
+
+  document.getElementById('chatTitle').innerText = 'رسائل المدير';
+  const chatAv2 = document.getElementById('chatAvatar');
+  if(chatAv2){ chatAv2.innerHTML='🛡️'; chatAv2.style.background='linear-gradient(135deg,#e52d27,#fbbf24)'; }
+  const sdot = document.getElementById('chatStatusDot');
+  if(sdot){ sdot.style.color='var(--accent)'; sdot.innerHTML='💬 رسائل وإشعارات'; }
+
+  const msgDiv = document.getElementById('messagesContent');
+  if(msgDiv) msgDiv.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><div class="spinner"></div></div>';
+
+  _syncAndGetMsgs(myName, targetName).then(msgs => {
+    let changed = false;
+    msgs.forEach(m=>{ if(m.to===myName && !m.read){ m.read=true; changed=true; } });
+    if(changed){
+      _saveP2PMsgs(myName, targetName, msgs);
+      sbMarkRead(myName, targetName, myName);
+    }
+    if(msgDiv) renderChatBubbles(msgs, msgDiv, myName, true);
+  });
+}
+/* =================================================================== */
 function adminRenderSentLog(){
   const div = document.getElementById('adminSentLog');
   if(!div) return;
@@ -14806,6 +15059,7 @@ function doLogout(){
   login.style.animation='';
   document.getElementById('adminToggleBtn').style.display='none';
   const nb2=document.getElementById('adminNavBtn'); if(nb2) nb2.style.display='none';
+  const broadcastBtn2=document.getElementById('adminBroadcastBtn'); if(broadcastBtn2) broadcastBtn2.style.display='none';
   document.getElementById('authFields').innerHTML=`
     <div class="input-wrap">
       <span class="input-icon">📧</span>
