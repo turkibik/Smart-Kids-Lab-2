@@ -112,11 +112,11 @@
   /* ── مفاتيح يتم تجاهلها (خاصة بالجهاز) ── */
   const SKIP_KEYS = new Set([
     '__deviceId','pwa_banner_dismissed','selectedLang',
-    'lang','currentLang','__fb_loaded'
+    'lang','currentLang','__fb_loaded','nld_saved_accounts','nld_member_msgs'
   ]);
 
   function shouldSkip(key){
-    return !key || SKIP_KEYS.has(key) || key.startsWith('__');
+    return !key || SKIP_KEYS.has(key) || key.startsWith('__') || key.startsWith('nld_saved_accounts') || key.startsWith('nld_member_msgs');
   }
 
   /* ── رفع مفتاح واحد إلى Firebase ── */
@@ -2930,11 +2930,6 @@ body.member-mode #onlineBar{
             <span class="gs-num" id="mgStatActivities">أنشطة</span>
             <span class="gs-label">أنشطة</span>
           </div>
-          <div class="member-greeting-stat">
-            <span class="gs-icon">🥇</span>
-            <span class="gs-num" id="mgStatRank">—</span>
-            <span class="gs-label">ترتيبي</span>
-          </div>
         </div>
       </div>
     </div>
@@ -5204,7 +5199,7 @@ function buildGrid(isReg){
     [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30" style="filter:drop-shadow(0 0 6px rgba(255,255,255,0.6)) drop-shadow(0 2px 8px rgba(0,0,0,0.4));"><defs><linearGradient id="barG1" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#e52d27"/><stop offset="100%" stop-color="#ff6b6b"/></linearGradient><linearGradient id="barG2" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e0ffe8"/></linearGradient><linearGradient id="barG3" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#0f9b0f"/><stop offset="100%" stop-color="#00e564"/></linearGradient><linearGradient id="starG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fff7aa"/><stop offset="100%" stop-color="#ffd700"/></linearGradient></defs><rect x="4" y="24" width="11" height="16" rx="3" fill="url(#barG1)" opacity="0.95"/><text x="9.5" y="21" text-anchor="middle" font-size="7" font-weight="900" fill="rgba(255,255,255,0.9)" font-family="Arial">2</text><rect x="18.5" y="14" width="11" height="26" rx="3" fill="url(#barG2)" opacity="0.95"/><text x="24" y="11" text-anchor="middle" font-size="7" font-weight="900" fill="rgba(0,0,0,0.7)" font-family="Arial">1</text><rect x="33" y="29" width="11" height="11" rx="3" fill="url(#barG3)" opacity="0.95"/><text x="38.5" y="26" text-anchor="middle" font-size="7" font-weight="900" fill="rgba(255,255,255,0.9)" font-family="Arial">3</text><polygon points="24,5 25.5,9.5 30,9.5 26.5,12.2 27.8,17 24,14 20.2,17 21.5,12.2 18,9.5 22.5,9.5" fill="url(#starG)" opacity="0.98"/><rect x="2" y="40" width="44" height="3" rx="1.5" fill="rgba(255,255,255,0.3)"/></svg>`, labels[1], 'bg-2',"showModal('rankingCard')",  true ],
     [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,0.35)) drop-shadow(0 0 10px rgba(255,215,0,0.5));"><defs><linearGradient id="mg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0f9b0f"/><stop offset="50%" stop-color="#f8fff8"/><stop offset="100%" stop-color="#e52d27"/></linearGradient><linearGradient id="mg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#16a34a"/></linearGradient><linearGradient id="mg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#b91c1c"/></linearGradient><radialGradient id="glow1" cx="50%" cy="30%" r="50%"><stop offset="0%" stop-color="rgba(255,255,255,0.9)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="26" cy="17" r="8.5" fill="url(#mg1)" opacity="0.97"/><circle cx="26" cy="17" r="8.5" fill="url(#glow1)" opacity="0.4"/><path d="M10 42 C10 31 42 31 42 42" fill="url(#mg1)" opacity="0.95"/><circle cx="13" cy="22" r="6" fill="url(#mg2)" opacity="0.88"/><path d="M2 38 C2 29.5 24 29.5 24 38" fill="url(#mg2)" opacity="0.75"/><circle cx="39" cy="22" r="6" fill="url(#mg3)" opacity="0.88"/><path d="M28 38 C28 29.5 50 29.5 50 38" fill="url(#mg3)" opacity="0.75"/><circle cx="26" cy="17" r="4" fill="rgba(255,255,255,0.3)"/></svg>`, labels[2], 'bg-3',"showModal('membersCard')",  true],
     ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="white"><path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z"/></svg>', labels[3], 'bg-4',"openMessages()", true],
-    ['🌟', labels[4], 'bg-5',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform')", true],
+    ['🤝', 'انظم الآن', 'bg-5',"window.open('https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/viewform')", true],
     ['🖼️',labels[5], 'bg-6',"_iconEnter('gallery_open');window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3')", false],
     [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" width="30" height="30" style="filter:drop-shadow(0 2px 10px rgba(245,197,24,0.7)) drop-shadow(0 0 6px rgba(255,140,0,0.5));"><defs><radialGradient id="qg1" cx="50%" cy="30%" r="60%"><stop offset="0%" stop-color="#fff7aa"/><stop offset="60%" stop-color="#f5c518"/><stop offset="100%" stop-color="#f97316"/></radialGradient><radialGradient id="qg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(255,255,255,0.9)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient><filter id="qglow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><circle cx="26" cy="26" r="24" fill="url(#qg1)" filter="url(#qglow)"/><circle cx="26" cy="26" r="24" fill="url(#qg2)" opacity="0.5"/><polygon points="26,7 29,17 39.5,17 31,23.5 34,34 26,27.5 18,34 21,23.5 12.5,17 23,17" fill="white" opacity="0.95" filter="url(#qglow)"/><text x="26" y="45" text-anchor="middle" font-size="8" font-weight="900" fill="rgba(120,50,0,0.85)" font-family="Arial,sans-serif" letter-spacing="0.5">نقاط</text></svg>`, labels[6], 'bg-7',"showModal('quizCard')",    false],
     ['🏅', labels[7], 'bg-8',"showModal('activitiesCard')", false],
@@ -5226,6 +5221,104 @@ function buildGrid(isReg){
     const oc=can&&action?`onclick="${action}"`:'';
     const isHtml = icon.startsWith('<'); return `<div class="glass-item${cls}" ${oc}>${lock}<div class="icon-box ${bg}" style="display:flex;align-items:center;justify-content:center;">${icon}</div><div class="item-label">${label}</div></div>`;
   }).join('');
+}
+
+/* ===== نموذج التسجيل والانخراط ===== */
+function openJoinRegistrationForm(){
+  const old = document.getElementById('_joinRegOverlay');
+  if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = '_joinRegOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(10px);z-index:99995;display:flex;align-items:center;justify-content:center;animation:fadeIn .25s ease;';
+  ov.innerHTML = `
+    <div style="background:linear-gradient(160deg,#0d1117,#161b22);border:1px solid rgba(0,229,160,0.3);border-radius:26px;padding:28px 22px;width:92%;max-width:380px;box-shadow:0 30px 80px rgba(0,0,0,0.6);animation:fadeUp .3s ease;position:relative;max-height:90vh;overflow-y:auto;">
+      <div style="text-align:center;margin-bottom:22px;">
+        <div style="font-size:46px;margin-bottom:10px;">🤝</div>
+        <div style="font-size:19px;font-weight:900;color:#fff;margin-bottom:6px;">تسجيل وانخراط</div>
+        <div style="font-size:12px;color:#8b949e;line-height:1.6;">أكمل البيانات التالية للانضمام إلى Next Leaders DZ</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">الاسم الكامل *</div>
+          <input id="_regName" type="text" placeholder="أدخل اسمك الكامل" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">البريد الإلكتروني *</div>
+          <input id="_regEmail" type="email" placeholder="example@email.com" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">رقم الهاتف *</div>
+          <input id="_regPhone" type="tel" placeholder="0XXXXXXXXX" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">العمر</div>
+          <input id="_regAge" type="number" placeholder="السن" min="5" max="100" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">الولاية / المدينة</div>
+          <input id="_regCity" type="text" placeholder="مثال: تلمسان" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'">
+        </div>
+        <div id="_regMsg" style="display:none;padding:10px 14px;border-radius:11px;font-size:13px;font-weight:700;text-align:center;"></div>
+        <button onclick="_submitJoinRegistration()" style="width:100%;padding:14px;background:linear-gradient(135deg,#00e5a0,#00b894);border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;color:#050a0e;cursor:pointer;box-shadow:0 6px 20px rgba(0,229,160,0.35);margin-top:4px;transition:.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">📤 إرسال التسجيل</button>
+        <button onclick="document.getElementById('_joinRegOverlay').remove()" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#8b949e;cursor:pointer;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'">إلغاء</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+}
+
+async function _submitJoinRegistration(){
+  const name  = (document.getElementById('_regName')?.value||'').trim();
+  const email = (document.getElementById('_regEmail')?.value||'').trim();
+  const phone = (document.getElementById('_regPhone')?.value||'').trim();
+  const age   = (document.getElementById('_regAge')?.value||'').trim();
+  const city  = (document.getElementById('_regCity')?.value||'').trim();
+  const msgEl = document.getElementById('_regMsg');
+
+  if(!name || !email || !phone){
+    if(msgEl){ msgEl.style.display='block'; msgEl.style.background='rgba(229,45,39,0.15)'; msgEl.style.border='1px solid rgba(229,45,39,0.3)'; msgEl.style.color='#f87171'; msgEl.innerText='⚠️ يرجى ملء الاسم والبريد الإلكتروني والهاتف'; }
+    return;
+  }
+
+  const btn = document.querySelector('#_joinRegOverlay button');
+  if(btn){ btn.disabled=true; btn.innerText='⏳ جاري الإرسال...'; }
+
+  try{
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
+    const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+
+    // حفظ طلب الانضمام محلياً
+    const requests = JSON.parse(localStorage.getItem(_JOIN_REQUESTS_KEY)||'[]');
+    requests.push({ id:'jr_'+Date.now(), name, email, phone, age, city, date:dateStr, time:timeStr, ts:Date.now() });
+    localStorage.setItem(_JOIN_REQUESTS_KEY, JSON.stringify(requests));
+
+    // إرسال رسالة P2P للمدير مع بيانات المنخرط
+    const regMsg = `🤝 طلب تسجيل وانخراط جديد!\n👤 الاسم: ${name}\n📧 البريد: ${email}\n📱 الهاتف: ${phone}${age?'\n🎂 العمر: '+age+' سنة':''}${city?'\n📍 المدينة: '+city:''}\n📅 ${dateStr} — ${timeStr}\n\n✅ يُرجى مراجعة البيانات وإضافتها لجدول المنخرطين`;
+
+    // إضافة للصندوق الداخلي للمدير
+    const adminMsgs = JSON.parse(localStorage.getItem('nld_member_msgs')||'[]');
+    adminMsgs.push({ from: name, email, phone, age, city, text: regMsg, ts: Date.now(), isRegistration: true });
+    localStorage.setItem('nld_member_msgs', JSON.stringify(adminMsgs));
+
+    // إرسال عبر P2P مع المدير
+    const sorted = ['المدير', name].sort();
+    const p2pKey = 'nld_p2p_' + sorted[0].replace(/\s+/g,'_') + '__' + sorted[1].replace(/\s+/g,'_');
+    const p2pMsgs = JSON.parse(localStorage.getItem(p2pKey)||'[]');
+    p2pMsgs.push({ id:'reg_'+Date.now(), from:name, to:'المدير', message:regMsg, timestamp:new Date().toISOString(), read:false });
+    localStorage.setItem(p2pKey, JSON.stringify(p2pMsgs));
+
+    // إشعار Push للمدير
+    if(typeof window.sendAdminPushNotif==='function'){
+      window.sendAdminPushNotif('🤝 تسجيل جديد — Connect DZ', `👤 ${name} | 📱 ${phone}`);
+    }
+
+    if(msgEl){ msgEl.style.display='block'; msgEl.style.background='rgba(0,229,160,0.12)'; msgEl.style.border='1px solid rgba(0,229,160,0.3)'; msgEl.style.color='#00e5a0'; msgEl.innerText='✅ تم إرسال طلبك بنجاح! سيتواصل معك المدير قريباً 🎉'; }
+    setTimeout(()=>{ document.getElementById('_joinRegOverlay')?.remove(); }, 2500);
+  } catch(e){
+    if(msgEl){ msgEl.style.display='block'; msgEl.style.background='rgba(229,45,39,0.15)'; msgEl.style.border='1px solid rgba(229,45,39,0.3)'; msgEl.style.color='#f87171'; msgEl.innerText='⚠️ حدث خطأ، حاول مجدداً'; }
+    if(btn){ btn.disabled=false; btn.innerText='📤 إرسال التسجيل'; }
+  }
 }
 
 /* ===== عملات ذهبية ===== */
@@ -6108,8 +6201,19 @@ function getSavedAccounts(){
   try{
     const deviceId = getDeviceId();
     const key = _SAVED_ACCS_KEY + '_' + deviceId;
-    // قراءة محلية فقط (لا مزامنة مع Firebase)
-    const raw = localStorage.getItem(key) || localStorage.getItem(_SAVED_ACCS_KEY) || '[]';
+    // قراءة محلية فقط — تجاوز المزامنة مع Firebase (الحسابات خاصة بالجهاز)
+    // نستخدم Object.getOwnPropertyDescriptor لقراءة localStorage الأصلي
+    let raw = null;
+    try {
+      // محاولة الوصول لـ localStorage الأصلي مباشرة (بدون override)
+      const proto = Object.getPrototypeOf(localStorage);
+      const originalGetItem = Object.getOwnPropertyDescriptor(proto, 'getItem')?.value;
+      if(originalGetItem){
+        raw = originalGetItem.call(localStorage, key);
+      }
+    } catch(e2){}
+    if(!raw) raw = localStorage.getItem(key);
+    if(!raw) return [];
     return JSON.parse(raw);
   }
   catch(e){ return []; }
@@ -9525,22 +9629,40 @@ function adminRenderSentLog(){
 function adminRenderInbox(){
   const div = document.getElementById('adminInboxLog');
   if(!div) return;
-  const allReceived = [];
+  // جمع كل المحادثات مع المدير من P2P فقط
+  const convMap = {};
   for(let i=0;i<localStorage.length;i++){
     const k=localStorage.key(i);
     if(k&&k.startsWith('nld_p2p_')){
       const msgs=JSON.parse(localStorage.getItem(k)||'[]');
-      msgs.filter(m=>m.to==='المدير').forEach(m=>allReceived.push(m));
+      // البحث عن رسائل موجهة للمدير أو من المدير
+      const relevant = msgs.filter(m=>m.to==='المدير'||m.from==='المدير');
+      if(relevant.length===0) continue;
+      const other = relevant.find(m=>m.from!=='المدير')?.from || relevant.find(m=>m.to!=='المدير')?.to;
+      if(!other) continue;
+      if(!convMap[other] || (relevant[relevant.length-1]?.timestamp||'') > (convMap[other].last?.timestamp||'')){
+        const unread = msgs.filter(m=>m.to==='المدير'&&!m.read).length;
+        convMap[other] = { other, msgs:relevant, last:relevant[relevant.length-1], unread, key:k };
+      }
     }
   }
-  allReceived.sort((a,b)=>b.timestamp.localeCompare(a.timestamp));
-  if(allReceived.length===0){ div.innerHTML='<p style="color:var(--muted);font-size:12px;text-align:center;padding:8px;">لا توجد رسائل واردة</p>'; return; }
-  div.innerHTML=allReceived.slice(0,20).map(m=>{
-    const dt=new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-    return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 11px;font-size:12px;">
-      <div style="color:#c084fc;font-weight:700;margin-bottom:3px;">📩 من: ${m.from}</div>
-      <div style="color:var(--text);">${m.message||'[ملف]'}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:3px;">⏰ ${dt}</div>
+  const convs = Object.values(convMap).sort((a,b)=>(b.last?.timestamp||'').localeCompare(a.last?.timestamp||''));
+  if(convs.length===0){ div.innerHTML='<p style="color:var(--muted);font-size:12px;text-align:center;padding:8px;">لا توجد رسائل واردة بعد</p>'; return; }
+  div.innerHTML=convs.slice(0,20).map(c=>{
+    const dt=c.last ? new Date(c.last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    const lastTxt=c.last ? (c.last.message||(c.last.mediaType==='image'?'🖼️ صورة':c.last.mediaType==='video'?'🎬 فيديو':'🎙️ رسالة صوتية')) : '';
+    const unreadBadge = c.unread>0 ? `<span style="min-width:18px;height:18px;border-radius:9px;background:#e53935;color:white;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;margin-right:4px;">${c.unread}</span>` : '';
+    const safeName = c.other.replace(/'/g,"\\'");
+    return `<div onclick="openAdminChat('${safeName}',false)" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:11px 13px;font-size:12px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:10px;" onmouseover="this.style.background='rgba(0,120,255,0.08)'" onmouseout="this.style.background='var(--surface2)'">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#00B2FF,#0078FF);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:white;flex-shrink:0;">${c.other.charAt(0)}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="color:var(--accent);font-weight:800;margin-bottom:3px;display:flex;align-items:center;">${unreadBadge}${c.other}</div>
+        <div style="color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lastTxt}</div>
+      </div>
+      <div style="flex-shrink:0;text-align:left;">
+        <div style="font-size:10px;color:var(--muted);">${dt}</div>
+        <div style="font-size:10px;color:var(--accent);margin-top:2px;">محادثة ›</div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -15439,11 +15561,10 @@ function _fbErrorHTML(msg){
 
         if (!Array.isArray(msgs) || msgs.length === 0) return;
 
-        /* رسائل أحدث من آخر وقت فحص */
+        /* رسائل أحدث من آخر وقت فحص — موجّهة للمستخدم الحالي فقط */
         const newMsgs = msgs.filter(m =>
-          m && m.ts && m.ts > _lastMsgTs
-          /* فلتر اختياري: استقبل فقط الرسائل الموجّهة لك
-             m.to === userName || !m.to */
+          m && m.ts && m.ts > _lastMsgTs &&
+          (m.to === userName || m.to === 'all' || !m.to)
         );
         if (newMsgs.length === 0) return;
 
