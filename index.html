@@ -5329,11 +5329,6 @@ body.member-mode #onlineBar{
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════════════════
-   📊 وحدة البيانات الرئيسية — DataModule
-   ══════════════════════════════════════════════════════════════ */
-(function(){
-'use strict';
 /* ▼ جدول البيانات الرئيسي - المصدر الوحيد للنقاط والمنخرطين ▼ */
 const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
 
@@ -16679,38 +16674,6 @@ function _fbErrorHTML(msg){
     <div onclick="loadFbFeed()" style="margin-top:18px;background:#1877F2;color:white;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:800;cursor:pointer;">إعادة المحاولة</div>
   </div>`;
 }
-
-/* ✅ تصدير الدوال والمتغيرات المطلوبة عالمياً */
-window._dataUrls = { dataUrl, membersUrl, smartUrl, quizUrl, rankingUrl, quizPtsApiUrl };
-window.getLeaderIcon      = getLeaderIcon;
-window.getMemberCode      = getMemberCode;
-window.fetchAllQuizPts    = fetchAllQuizPts;
-window.syncQuizPts        = syncQuizPts;
-window.openMembersIfAdmin = openMembersIfAdmin;
-window.showWhoWeAreModal  = showWhoWeAreModal;
-window.showCityWorldModal = showCityWorldModal;
-window.showWatchEarnModal = showWatchEarnModal;
-window.openSportsSection  = openSportsSection;
-window.openAlgerianLaw    = openAlgerianLaw;
-window.openIQGames        = openIQGames;
-window._initMemoryGame    = _initMemoryGame;
-window._memFlipCard       = _memFlipCard;
-window._startNumberSequence = _startNumberSequence;
-window._numPress          = _numPress;
-window._wordlePress       = _wordlePress;
-window._wordleBackspace   = _wordleBackspace;
-window._wordleSubmit      = _wordleSubmit;
-window._showSportsCard    = _showSportsCard;
-window._showLawChapter    = _showLawChapter;
-window._lastIsReg         = _lastIsReg;
-/* ── اختصار مباشر للـ URLs الأكثر استخداماً ── */
-window._dataUrl    = dataUrl;
-window._membersUrl = membersUrl;
-window._smartUrl   = smartUrl;
-window._quizUrl    = quizUrl;
-window._rankingUrl = rankingUrl;
-window._quizPtsApiUrl = quizPtsApiUrl;
-})();
 </script>
 
 <!-- ══════════════════════════════════════════════════════
@@ -17447,11 +17410,6 @@ window._quizPtsApiUrl = quizPtsApiUrl;
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════════════════
-   🕌 وحدة عالم المدينة — CityModule
-   ══════════════════════════════════════════════════════════════ */
-(function(){
-'use strict';
 /* ███████████████████████████████████████████████████████████████████
    🕌  وحدة عالم المدينة — البيانات والعرض  (CityModule Data)
    ███████████████████████████████████████████████████████████████████
@@ -17832,11 +17790,6 @@ function openCityFeature(key){
   body.innerHTML = gradHeader + sectionsHtml;
   showModal('cityFeatureModal');
 }
-
-/* ✅ تصدير دوال CityModule عالمياً */
-window._cityData        = _cityData;
-window.openCityFeature  = openCityFeature;
-})();
 </script>
 
 <!-- ══════════════════════════════════════════════════════
