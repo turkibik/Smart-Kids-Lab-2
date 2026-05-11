@@ -5815,21 +5815,35 @@ let _postFeelingMode = false;
 let _postImageData = null;
 let _postVideoData = null;
 
-function handlePostVideo(event){
+async function handlePostVideo(event){
   const file = event.target.files[0];
   if(!file) return;
-  if(file.size > 50 * 1024 * 1024){ alert('الفيديو كبير جداً! الحد الأقصى 50MB'); return; }
-  const reader = new FileReader();
-  reader.onload = e=>{
-    _postVideoData = e.target.result;
+  if(file.size > 200 * 1024 * 1024){
+    if(typeof showToast==='function') showToast('❌ الفيديو كبير جداً! الحد الأقصى 200MB');
+    event.target.value = '';
+    return;
+  }
+  /* رفع الفيديو إلى Cloudinary مع شريط تقدم */
+  window._showStorageProgress('🎬 جارٍ رفع الفيديو...');
+  try {
+    const result = await window.uploadToCloudinary(file, 'video', (pct) => {
+      window._updateStorageProgress(pct);
+    });
+    window._hideStorageProgress();
+    _postVideoData = result.url;
     _postImageData = null;
     const imgPrev = document.getElementById('postImagePreview');
     if(imgPrev) imgPrev.style.display='none';
     const vidPrev = document.getElementById('postVideoPreview');
     const vidEl = document.getElementById('postVideoPreviewEl');
     if(vidPrev && vidEl){ vidEl.src=_postVideoData; vidPrev.style.display='block'; }
-  };
-  reader.readAsDataURL(file);
+    if(typeof showToast==='function') showToast('✅ تم رفع الفيديو بنجاح!');
+  } catch(err) {
+    window._hideStorageProgress();
+    console.error('❌ خطأ في رفع الفيديو:', err);
+    if(typeof showToast==='function') showToast('❌ فشل رفع الفيديو: ' + (err.message || 'خطأ غير معروف'));
+  }
+  event.target.value = '';
 }
 
 function clearPostMedia(){
@@ -6110,34 +6124,33 @@ function hideBalanceModal(){
   if(bm) bm.style.display = 'none';
 }
 
-function handleCoverUpload(event){
+async function handleCoverUpload(event){
   const file = event.target.files[0];
   if(!file) return;
-  if(file.size > 5 * 1024 * 1024){ 
-    if(typeof showToast==='function') showToast('⚠️ الصورة كبيرة جداً! الحد الأقصى 5MB');
-    return; 
+  if(file.size > 15 * 1024 * 1024){
+    if(typeof showToast==='function') showToast('⚠️ الصورة كبيرة جداً! الحد الأقصى 15MB');
+    event.target.value = '';
+    return;
   }
-  const reader = new FileReader();
-  reader.onload = e=>{
-    // ضغط الصورة قبل الحفظ
-    const img = new Image();
-    img.onload = function(){
-      const canvas = document.createElement('canvas');
-      const MAX = 1200;
-      let w = img.width, h = img.height;
-      if(w > MAX){ h = Math.round(h * MAX / w); w = MAX; }
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const compressed = canvas.toDataURL('image/jpeg', 0.82);
-      const name = getCurrentUser();
-      if(name) localStorage.setItem('nld_cover_'+name.replace(/\s+/g,'_'), compressed);
-      const coverDiv = document.getElementById('profileCoverImg');
-      if(coverDiv){ coverDiv.style.backgroundImage='url('+compressed+')'; }
-      if(typeof showToast==='function') showToast('✅ تم تحديث صورة الغلاف بنجاح!');
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+  /* رفع صورة الغلاف إلى Cloudinary مع ضغط */
+  window._showStorageProgress('🖼️ جارٍ رفع صورة الغلاف...');
+  try {
+    const result = await window.uploadImageCompressed(file, 'covers', 1200, 0.82, (pct) => {
+      window._updateStorageProgress(pct);
+    });
+    window._hideStorageProgress();
+    const url = result.url;
+    const name = getCurrentUser();
+    if(name) localStorage.setItem('nld_cover_'+name.replace(/\s+/g,'_'), url);
+    const coverDiv = document.getElementById('profileCoverImg');
+    if(coverDiv){ coverDiv.style.backgroundImage='url('+url+')'; }
+    if(typeof showToast==='function') showToast('✅ تم تحديث صورة الغلاف بنجاح!');
+  } catch(err) {
+    window._hideStorageProgress();
+    console.error('❌ خطأ في رفع صورة الغلاف:', err);
+    if(typeof showToast==='function') showToast('❌ فشل رفع صورة الغلاف: ' + (err.message || 'خطأ غير معروف'));
+  }
+  event.target.value = '';
 }
 
 function showProfileEditMenu(){
@@ -6341,34 +6354,37 @@ function togglePostFeeling(){
   }
 }
 
-function handlePostImage(event){
+async function handlePostImage(event){
   const file = event.target.files[0];
   if(!file) return;
-  if(file.size > 10 * 1024 * 1024){ 
-    if(typeof showToast==='function') showToast('⚠️ الصورة كبيرة! الحد الأقصى 10MB');
-    return; 
+  if(file.size > 25 * 1024 * 1024){
+    if(typeof showToast==='function') showToast('⚠️ الصورة كبيرة! الحد الأقصى 25MB');
+    event.target.value = '';
+    return;
   }
-  const reader = new FileReader();
-  reader.onload = e=>{
-    const img2 = new Image();
-    img2.onload = function(){
-      const canvas = document.createElement('canvas');
-      const MAX = 1080;
-      let w = img2.width, h = img2.height;
-      if(w > MAX){ h = Math.round(h * MAX / w); w = MAX; }
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img2, 0, 0, w, h);
-      _postImageData = canvas.toDataURL('image/jpeg', 0.85);
-      _postVideoData = null;
-      const vidPrev = document.getElementById('postVideoPreview');
-      if(vidPrev) vidPrev.style.display='none';
-      const prev = document.getElementById('postImagePreview');
-      const imgEl = document.getElementById('postImagePreviewImg');
-      if(prev && imgEl){ imgEl.src=_postImageData; prev.style.display='block'; }
-    };
-    img2.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+  /* رفع صورة المنشور إلى Cloudinary مع ضغط */
+  window._showStorageProgress('🖼️ جارٍ رفع صورة المنشور...');
+  try {
+    const fileMB = file.size / (1024 * 1024);
+    const quality = fileMB > 3 ? 0.75 : 0.85;
+    const result = await window.uploadImageCompressed(file, 'social-posts', 1080, quality, (pct) => {
+      window._updateStorageProgress(pct);
+    });
+    window._hideStorageProgress();
+    _postImageData = result.url;
+    _postVideoData = null;
+    const vidPrev = document.getElementById('postVideoPreview');
+    if(vidPrev) vidPrev.style.display='none';
+    const prev = document.getElementById('postImagePreview');
+    const imgEl = document.getElementById('postImagePreviewImg');
+    if(prev && imgEl){ imgEl.src=_postImageData; prev.style.display='block'; }
+    if(typeof showToast==='function') showToast('✅ تم رفع الصورة بنجاح!');
+  } catch(err) {
+    window._hideStorageProgress();
+    console.error('❌ خطأ في رفع الصورة:', err);
+    if(typeof showToast==='function') showToast('❌ فشل رفع الصورة: ' + (err.message || 'خطأ غير معروف'));
+  }
+  event.target.value = '';
 }
 
 function openCreatePost(type){
