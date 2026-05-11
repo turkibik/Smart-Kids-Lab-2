@@ -12,6 +12,371 @@
      🔔 OneSignal — إشعارات فورية حتى لو التطبيق مغلق
      ══════════════════════════════════════════════ -->
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     🗄️ Firebase Storage — رفع الصور والفيديوهات والموسيقى للسحابة
+     ══════════════════════════════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+  import {
+    getStorage,
+    ref,
+    uploadBytesResumable,
+    getDownloadURL,
+    deleteObject
+  } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+
+  /* ── إعدادات Firebase ── */
+  const firebaseConfig = {
+    apiKey: "AIzaSyDummyKeyReplaceWithYours",
+    authDomain: "connectdz-49fab.firebaseapp.com",
+    databaseURL: "https://connectdz-49fab-default-rtdb.firebaseio.com",
+    projectId: "connectdz-49fab",
+    storageBucket: "connectdz-49fab.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abcdef"
+  };
+
+  /* ── تهيئة Firebase ── */
+  const _fbApp     = initializeApp(firebaseConfig, 'connectdz-storage');
+  const _fbStorage = getStorage(_fbApp);
+
+  /* ══════════════════════════════════════════════════════════════
+     📤 الدالة الرئيسية: رفع ملف إلى Firebase Storage
+     ──────────────────────────────────────────────────────────────
+     الاستخدام:
+       uploadToFirebaseStorage(file, folder, onProgress)
+         → Promise<{ url, path }>
+
+     المعاملات:
+       file       : File   — الملف المراد رفعه
+       folder     : string — المجلد (images / videos / audio / stories / covers)
+       onProgress : fn(pct) — دالة تقدم اختيارية (0–100)
+
+     القيمة المُرجعة:
+       { url: string, path: string }  — رابط التنزيل ومسار التخزين
+  ══════════════════════════════════════════════════════════════ */
+  window.uploadToFirebaseStorage = async function(file, folder = 'media', onProgress = null) {
+    if (!file) throw new Error('لم يتم تحديد ملف');
+
+    /* حد الأحجام (MB) */
+    const LIMITS = { video: 200, image: 25, audio: 50, stories: 50, covers: 10, media: 50 };
+    const fileMB = file.size / (1024 * 1024);
+    const limit  = LIMITS[folder] || 50;
+    if (fileMB > limit) {
+      throw new Error(`❌ حجم الملف ${fileMB.toFixed(1)}MB يتجاوز الحد المسموح ${limit}MB`);
+    }
+
+    /* توليد مسار فريد */
+    const ext       = file.name.split('.').pop() || 'bin';
+    const timestamp = Date.now();
+    const rand      = Math.random().toString(36).slice(2, 7);
+    const fileName  = `${timestamp}_${rand}.${ext}`;
+    const storagePath = `connectdz/${folder}/${fileName}`;
+    const storageRef  = ref(_fbStorage, storagePath);
+
+    return new Promise((resolve, reject) => {
+      const uploadTask = uploadBytesResumable(storageRef, file, {
+        contentType: file.type || 'application/octet-stream'
+      });
+
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+          if (typeof onProgress === 'function') onProgress(pct);
+        },
+        (error) => {
+          console.error('❌ Firebase Storage خطأ:', error);
+          reject(new Error('فشل رفع الملف: ' + error.message));
+        },
+        async () => {
+          try {
+            const url = await getDownloadURL(uploadTask.snapshot.ref);
+            console.log(`✅ Firebase Storage: تم رفع ${folder}/${fileName}`);
+            resolve({ url, path: storagePath });
+          } catch (err) {
+            reject(err);
+          }
+        }
+      );
+    });
+  };
+
+  /* ══════════════════════════════════════════════════════════════
+     🗑️ حذف ملف من Firebase Storage
+  ══════════════════════════════════════════════════════════════ */
+  window.deleteFromFirebaseStorage = async function(storagePath) {
+    if (!storagePath) return;
+    try {
+      const storageRef = ref(_fbStorage, storagePath);
+      await deleteObject(storageRef);
+      console.log('🗑️ Firebase Storage: تم حذف', storagePath);
+    } catch (err) {
+      console.warn('⚠️ تعذّر حذف الملف من Storage:', err);
+    }
+  };
+
+  /* ══════════════════════════════════════════════════════════════
+     🖼️ رفع صورة مع ضغط تلقائي — للمنشورات وصور الملف الشخصي
+  ══════════════════════════════════════════════════════════════ */
+  window.uploadImageCompressed = async function(file, folder = 'images', maxWidth = 1400, quality = 0.82, onProgress = null) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if (w > maxWidth || h > maxWidth) {
+            if (w > h) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+            else       { w = Math.round(w * maxWidth / h); h = maxWidth; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          canvas.toBlob(async (blob) => {
+            if (!blob) { reject(new Error('فشل ضغط الصورة')); return; }
+            const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+            try {
+              const result = await window.uploadToFirebaseStorage(compressedFile, folder, onProgress);
+              resolve(result);
+            } catch (err) {
+              reject(err);
+            }
+          }, 'image/jpeg', quality);
+        };
+        img.onerror = () => reject(new Error('تعذّر قراءة الصورة'));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error('تعذّر قراءة الملف'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  console.log('🗄️ Firebase Storage: جاهز للرفع ✅');
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     🛠️ Firebase Storage — واجهة تقدم الرفع (Progress UI)
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+/* ── شريط تقدم رفع Firebase Storage ── */
+window._showStorageProgress = function(label) {
+  let overlay = document.getElementById('__fbStorageOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = '__fbStorageOverlay';
+    overlay.style.cssText = `
+      position:fixed;inset:0;z-index:999998;
+      background:rgba(5,10,14,0.75);
+      display:flex;align-items:center;justify-content:center;
+    `;
+    overlay.innerHTML = `
+      <div style="
+        background:#0d1117;border:1px solid rgba(255,255,255,0.1);
+        border-radius:20px;padding:28px 32px;width:88%;max-width:340px;
+        text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.7);
+      ">
+        <div style="font-size:32px;margin-bottom:12px;">☁️</div>
+        <div id="__fbStorageLabel" style="font-size:14px;font-weight:800;color:#e8eaed;margin-bottom:16px;font-family:'Tajawal',sans-serif;">
+          جارٍ الرفع...
+        </div>
+        <div style="width:100%;height:6px;background:rgba(255,255,255,0.1);border-radius:99px;overflow:hidden;">
+          <div id="__fbStorageBar" style="height:100%;width:0%;background:linear-gradient(90deg,#00e5a0,#0099ff);border-radius:99px;transition:width .25s ease;"></div>
+        </div>
+        <div id="__fbStoragePct" style="font-size:13px;color:#8b949e;margin-top:10px;font-family:'Tajawal',sans-serif;">0%</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+  overlay.style.display = 'flex';
+  const labelEl = document.getElementById('__fbStorageLabel');
+  if (labelEl) labelEl.innerText = label || 'جارٍ رفع الملف...';
+  const bar = document.getElementById('__fbStorageBar');
+  if (bar) bar.style.width = '0%';
+  const pct = document.getElementById('__fbStoragePct');
+  if (pct) pct.innerText = '0%';
+};
+
+window._updateStorageProgress = function(percent) {
+  const bar = document.getElementById('__fbStorageBar');
+  const pct = document.getElementById('__fbStoragePct');
+  if (bar) bar.style.width = percent + '%';
+  if (pct) pct.innerText = percent + '%';
+};
+
+window._hideStorageProgress = function() {
+  const overlay = document.getElementById('__fbStorageOverlay');
+  if (overlay) {
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity .3s ease';
+    setTimeout(() => { overlay.style.display = 'none'; overlay.style.opacity = '1'; }, 300);
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════
+   🔄 وظيفة رفع الوسائط للمحادثة مع Firebase Storage
+   تُستدعى كبديل من handleMediaUpload
+══════════════════════════════════════════════════════════════ */
+window.handleMediaUploadCloud = async function(event, type) {
+  const file = event.target.files[0];
+  if (!file) return;
+  document.getElementById('attachMenu')?.style && (document.getElementById('attachMenu').style.display = 'none');
+
+  /* تحديد المجلد حسب نوع الملف */
+  const folderMap = { image: 'images', video: 'videos', audio: 'audio', document: 'documents' };
+  const folder    = folderMap[type] || 'media';
+
+  /* حدود الحجم */
+  const limitsMB = { video: 200, image: 25, audio: 50, document: 20 };
+  const fileMB   = file.size / (1024 * 1024);
+  if (fileMB > (limitsMB[type] || 50)) {
+    if (typeof showToast === 'function') showToast(`❌ الحد الأقصى ${limitsMB[type]}MB — حجم ملفك ${fileMB.toFixed(1)}MB`);
+    event.target.value = '';
+    return;
+  }
+
+  /* رفع مع شريط تقدم */
+  const typeLabels = { image: '🖼️ جارٍ رفع الصورة...', video: '🎬 جارٍ رفع الفيديو...', audio: '🎵 جارٍ رفع الصوت...' };
+  window._showStorageProgress(typeLabels[type] || '☁️ جارٍ الرفع...');
+
+  try {
+    let result;
+    if (type === 'image') {
+      /* الصور: ضغط قبل الرفع */
+      const quality = fileMB > 4 ? 0.7 : 0.85;
+      result = await window.uploadImageCompressed(file, 'images', 1400, quality, (pct) => {
+        window._updateStorageProgress(pct);
+      });
+    } else {
+      result = await window.uploadToFirebaseStorage(file, folder, (pct) => {
+        window._updateStorageProgress(pct);
+      });
+    }
+
+    window._hideStorageProgress();
+
+    /* إرسال الرسالة برابط Firebase */
+    window._mediaToSend = {
+      type,
+      data: result.url,       // رابط Firebase بدلاً من base64
+      storagePath: result.path,
+      name: file.name,
+      fileName: file.name,
+      mime: file.type,
+      isCloudUrl: true        // علامة للتمييز
+    };
+    if (typeof sendChatMessage === 'function') sendChatMessage();
+
+  } catch (err) {
+    window._hideStorageProgress();
+    console.error('❌ خطأ في الرفع:', err);
+    if (typeof showToast === 'function') showToast('❌ فشل رفع الملف: ' + (err.message || 'خطأ غير معروف'));
+    /* fallback: الطريقة القديمة */
+    if (typeof handleMediaUpload === 'function') handleMediaUpload(event, type);
+  }
+
+  event.target.value = '';
+};
+
+/* ══════════════════════════════════════════════════════════════
+   📸 رفع صورة المنشور الاجتماعي إلى Firebase Storage
+══════════════════════════════════════════════════════════════ */
+window.uploadSocialPostImage = async function(file) {
+  window._showStorageProgress('🖼️ جارٍ رفع صورة المنشور...');
+  try {
+    const fileMB = file.size / (1024 * 1024);
+    const quality = fileMB > 3 ? 0.75 : 0.88;
+    const result = await window.uploadImageCompressed(file, 'social-posts', 1200, quality, (pct) => {
+      window._updateStorageProgress(pct);
+    });
+    window._hideStorageProgress();
+    return result.url;
+  } catch (err) {
+    window._hideStorageProgress();
+    if (typeof showToast === 'function') showToast('⚠️ فشل رفع الصورة، جرّب مرة أخرى');
+    return null;
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════
+   📖 رفع صورة/فيديو القصة إلى Firebase Storage
+══════════════════════════════════════════════════════════════ */
+window.uploadStoryMedia = async function(file) {
+  const isVideo = file.type.startsWith('video/');
+  window._showStorageProgress(isVideo ? '🎬 جارٍ رفع فيديو القصة...' : '📸 جارٍ رفع صورة القصة...');
+  try {
+    let result;
+    if (isVideo) {
+      result = await window.uploadToFirebaseStorage(file, 'stories', (pct) => {
+        window._updateStorageProgress(pct);
+      });
+    } else {
+      result = await window.uploadImageCompressed(file, 'stories', 1080, 0.85, (pct) => {
+        window._updateStorageProgress(pct);
+      });
+    }
+    window._hideStorageProgress();
+    return { url: result.url, path: result.path };
+  } catch (err) {
+    window._hideStorageProgress();
+    if (typeof showToast === 'function') showToast('⚠️ فشل رفع وسائط القصة');
+    return null;
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════
+   👤 رفع صورة الملف الشخصي / صورة الغلاف
+══════════════════════════════════════════════════════════════ */
+window.uploadProfilePhoto = async function(file, userName) {
+  window._showStorageProgress('👤 جارٍ رفع صورة الملف الشخصي...');
+  try {
+    const result = await window.uploadImageCompressed(file, 'profiles', 600, 0.88, (pct) => {
+      window._updateStorageProgress(pct);
+    });
+    window._hideStorageProgress();
+    return result.url;
+  } catch (err) {
+    window._hideStorageProgress();
+    if (typeof showToast === 'function') showToast('⚠️ فشل رفع صورة الملف الشخصي');
+    return null;
+  }
+};
+
+window.uploadCoverPhoto = async function(file, userName) {
+  window._showStorageProgress('🖼️ جارٍ رفع صورة الغلاف...');
+  try {
+    const result = await window.uploadImageCompressed(file, 'covers', 1200, 0.82, (pct) => {
+      window._updateStorageProgress(pct);
+    });
+    window._hideStorageProgress();
+    return result.url;
+  } catch (err) {
+    window._hideStorageProgress();
+    if (typeof showToast === 'function') showToast('⚠️ فشل رفع صورة الغلاف');
+    return null;
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════
+   🎵 رفع الموسيقى للقصة
+══════════════════════════════════════════════════════════════ */
+window.uploadStoryMusic = async function(file) {
+  window._showStorageProgress('🎵 جارٍ رفع الموسيقى...');
+  try {
+    const result = await window.uploadToFirebaseStorage(file, 'audio', (pct) => {
+      window._updateStorageProgress(pct);
+    });
+    window._hideStorageProgress();
+    return { url: result.url, name: file.name.replace(/\.[^/.]+$/, '') };
+  } catch (err) {
+    window._hideStorageProgress();
+    if (typeof showToast === 'function') showToast('⚠️ فشل رفع الموسيقى');
+    return null;
+  }
+};
+
+console.log('☁️ Firebase Storage UI: جاهز ✅');
+</script>
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
@@ -10030,16 +10395,22 @@ function toggleAttachMenu(){
   }
 }
 
-/* ===== رفع وسائط العضو ===== */
+/* ===== رفع وسائط العضو (مع Firebase Storage) ===== */
 function handleMediaUpload(event, type){
   const file = event.target.files[0];
   if(!file) return;
-  document.getElementById('attachMenu').style.display='none';
+  document.getElementById('attachMenu')?.style && (document.getElementById('attachMenu').style.display='none');
 
-  // حدود الحجم المرفوعة
+  /* ── إذا كان Firebase Storage متاحاً نستخدمه مباشرة ── */
+  if(typeof window.uploadToFirebaseStorage === 'function'){
+    window.handleMediaUploadCloud(event, type);
+    return;
+  }
+
+  /* ── fallback: الطريقة القديمة (base64 / ObjectURL) ── */
   const limitsMB = {video:50, image:15, audio:5};
   const fileMB = file.size/(1024*1024);
-  if(fileMB > limitsMB[type]){
+  if(fileMB > (limitsMB[type]||15)){
     showToast(`❌ الحد الأقصى ${limitsMB[type]}MB — حجم ملفك ${fileMB.toFixed(1)}MB`);
     event.target.value=''; return;
   }
@@ -10050,21 +10421,17 @@ function handleMediaUpload(event, type){
   if(bar)  bar.style.width='0%';
 
   if(type==='video'){
-    // ✅ الفيديو: ObjectURL مباشرة — لا base64 ولا localStorage
     const blobUrl = URL.createObjectURL(file);
     const msgId   = 'msg_'+Date.now();
     _videoBlobCache[msgId] = blobUrl;
-
     if(bar) bar.style.width='100%';
     setTimeout(()=>{ if(prog) prog.style.display='none'; if(bar) bar.style.width='0%'; },300);
-
     _mediaToSend = { type:'video', data:null, blobUrl, msgId, name:file.name, mime:file.type||'video/mp4' };
     sendChatMessage();
     event.target.value=''; return;
   }
 
   if(type==='image'){
-    // الصور: ضغط خفيف
     let pct=0;
     const iv = setInterval(()=>{ pct=Math.min(pct+20,90); if(bar) bar.style.width=pct+'%'; },80);
     const reader = new FileReader();
@@ -10088,7 +10455,6 @@ function handleMediaUpload(event, type){
     event.target.value=''; return;
   }
 
-  // صوت أو مستند: base64
   let pct=0;
   const iv = setInterval(()=>{ pct=Math.min(pct+15,90); if(bar) bar.style.width=pct+'%'; },80);
   const reader = new FileReader();
@@ -14539,25 +14905,56 @@ function _openVideoStoryPreview(name, file, blobUrl, duration){
   window._pendingVideoStory = { name, file, blobUrl, duration };
 }
 
-window._publishVideoStory = function(name){
+window._publishVideoStory = async function(name){
   const d = window._pendingVideoStory;
   if(!d) return;
+
+  /* ── Firebase Storage للفيديو ── */
+  if(typeof window.uploadToFirebaseStorage === 'function'){
+    const btn = document.querySelector('#_videoStoryPreview button');
+    if(btn){ btn.disabled=true; btn.innerText='جارٍ الرفع...'; }
+    window._showStorageProgress('🎬 جارٍ رفع فيديو القصة...');
+    try{
+      const result = await window.uploadToFirebaseStorage(d.file, 'stories', (pct)=>{
+        window._updateStorageProgress(pct);
+      });
+      window._hideStorageProgress();
+      const stories = getMyStories(name);
+      const story = {
+        id: 'sv'+Date.now(), type:'video',
+        data: result.url,          // رابط Firebase
+        storagePath: result.path,
+        ts: Date.now(),
+        expires: Date.now() + 100*365*24*60*60*1000,
+        text:null, filter:null, music:null, musicData:null, stickers:[],
+        duration: d.duration, reactions:{}
+      };
+      stories.push(story);
+      saveMyStories(name, stories);
+      _refreshMyStoryAvatar(name);
+      document.getElementById('_videoStoryPreview')?.remove();
+      URL.revokeObjectURL(d.blobUrl);
+      delete window._pendingVideoStory;
+      showToast('✅ تمت إضافة الفيديو لقصتك! ☁️');
+      setTimeout(()=>renderStoriesBar(name), 100);
+      return;
+    }catch(err){
+      window._hideStorageProgress();
+      showToast('⚠️ فشل رفع الفيديو، جاري الحفظ محلياً...');
+    }
+  }
+
+  /* ── fallback: base64 ── */
   const reader = new FileReader();
   reader.onload = ev=>{
     const stories = getMyStories(name);
     const story = {
-      id: 'sv'+Date.now(),
-      type: 'video',
+      id: 'sv'+Date.now(), type:'video',
       data: ev.target.result,
       ts: Date.now(),
       expires: Date.now() + 100*365*24*60*60*1000,
-      text: null,
-      filter: null,
-      music: null,
-      musicData: null,
-      stickers: [],
-      duration: d.duration,
-      reactions: {}
+      text:null, filter:null, music:null, musicData:null, stickers:[],
+      duration: d.duration, reactions:{}
     };
     stories.push(story);
     saveMyStories(name, stories);
@@ -14747,8 +15144,26 @@ function _openStoryEditorWithImage(name, imageData){
     showToast('🎵 تمت إزالة الموسيقى');
   };
 
-  window._pickStoryMusicFile = (e)=>{
+  window._pickStoryMusicFile = async (e)=>{
     const file = e.target.files[0]; if(!file) return;
+    /* ── Firebase Storage للموسيقى ── */
+    if(typeof window.uploadStoryMusic === 'function'){
+      const result = await window.uploadStoryMusic(file);
+      if(result){
+        window._storyEditorState.music = result.url;
+        window._storyEditorState.musicName = result.name;
+        window._storyEditorState.musicData = result.url;
+        const lbl = document.getElementById('storyMusicLabelNew');
+        if(lbl){ lbl.style.color='#4ade80'; lbl.innerText='✅ '+result.name; }
+        const prev = document.getElementById('storyMusicPreview');
+        const nm = document.getElementById('storyMusicNameDisp');
+        if(prev){ prev.style.display='flex'; }
+        if(nm) nm.innerText = result.name;
+        showToast('🎵 تم رفع الموسيقى إلى السحابة ✅');
+      }
+      return;
+    }
+    /* ── fallback: base64 ── */
     const reader = new FileReader();
     reader.onload = ev=>{
       window._storyEditorState.music = ev.target.result;
@@ -14777,16 +15192,44 @@ function _openStoryEditorWithImage(name, imageData){
     showToast(emoji+' تمت الإضافة');
   };
 
-  window.publishStory = ()=>{
+  window.publishStory = async ()=>{
     const d = window._storyEditorState;
     if(!d.imageData){ showToast('⚠️ لا توجد صورة'); return; }
+
+    /* ── محاولة رفع صورة القصة إلى Firebase Storage ── */
+    let storyImageData = d.imageData;
+    let storagePath = null;
+    if(typeof window.uploadToFirebaseStorage === 'function' && d.imageData.startsWith('data:')){
+      try{
+        window._showStorageProgress('📸 جارٍ رفع صورة القصة...');
+        /* تحويل dataURL إلى File */
+        const arr = d.imageData.split(',');
+        const mime = (arr[0].match(/:(.*?);/)||['','image/jpeg'])[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length; const u8 = new Uint8Array(n);
+        while(n--){ u8[n] = bstr.charCodeAt(n); }
+        const imgFile = new File([u8], 'story.jpg', {type:mime});
+        const result = await window.uploadImageCompressed(imgFile, 'stories', 1080, 0.85, (pct)=>{
+          window._updateStorageProgress(pct);
+        });
+        window._hideStorageProgress();
+        storyImageData = result.url;
+        storagePath = result.path;
+      }catch(e){
+        window._hideStorageProgress();
+        console.warn('⚠️ Firebase Story upload fallback to base64:', e);
+      }
+    }
+
+    /* ── حفظ القصة ── */
     const stories = getMyStories(name);
     const story = {
       id: 's'+Date.now(),
       type: 'image',
-      data: d.imageData,
+      data: storyImageData,
+      storagePath,
       ts: Date.now(),
-      expires: Date.now() + 100*365*24*60*60*1000, // دائمة - لا تنتهي
+      expires: Date.now() + 100*365*24*60*60*1000,
       text: d.text || null,
       textColor: d.textColor || '#ffffff',
       textSize: d.textSize || 'medium',
