@@ -20,19 +20,61 @@
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 
 <!-- ══════════════════════════════════════════════════════════════
+     🛡️ نظام معالجة الأخطاء الموحّد — ConnectDZ Error System
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  'use strict';
+  window.ErrorType = Object.freeze({
+    UPLOAD:'UPLOAD', AUTH:'AUTH', NETWORK:'NETWORK',
+    FILE:'FILE', ADMIN:'ADMIN', GENERIC:'GENERIC'
+  });
+
+  /**
+   * handleError(type, message, originalError?)
+   * استخدام موحّد في كل الكود:
+   *   throw handleError(ErrorType.UPLOAD, 'فشل رفع الصورة', err)
+   */
+  window.handleError = function(type, message, originalError){
+    const label = '[ConnectDZ:' + type + ']';
+    if(originalError) console.error(label, message, originalError);
+    else              console.error(label, message);
+
+    const icons = { UPLOAD:'☁️', AUTH:'🔒', NETWORK:'📡', FILE:'📁', ADMIN:'🛡️', GENERIC:'⚠️' };
+    const userMsg = (icons[type]||'⚠️') + ' ' + message;
+
+    if(typeof window.showToast === 'function'){
+      window.showToast(userMsg);
+    } else {
+      window.addEventListener('load', function(){
+        if(typeof window.showToast === 'function') window.showToast(userMsg);
+      }, { once:true });
+    }
+
+    return new Error('[' + type + '] ' + message);
+  };
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
      ☁️ Cloudinary — رفع الصور والفيديوهات والموسيقى مجاناً
      ══════════════════════════════════════════════════════════════ -->
 <script>
 (function(){
   'use strict';
 
-  /* ✅ اسم المدير مُشفَّر — لا يظهر كنص واضح في DevTools */
-  window.__ADMIN_ID = (function(){
-    const h='79616869615f6e65785f736d617274';
-    let r='';
-    for(let i=0;i<h.length;i+=2) r+=String.fromCharCode(parseInt(h.slice(i,i+2),16));
-    return r;
-  })();
+  /* 🔒 النظام الجديد: لا نخزن اسم المدير أبداً — نخزن فقط HASH المشتق منه
+     حتى لو فتح المهاجم DevTools لن يجد الاسم الحقيقي، فقط hash لا يُعكس */
+  const _ADMIN_HASH = '7fb5b388af2b5211f7bfa88575eb1a6b89337cee6e3cf0eb1a47505d92324505'; // SHA-256 آمن — لا يُعكس
+
+  /* دالة hash داخلية باستخدام SubtleCrypto */
+  async function _hashString(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  /* 🔒 لا نُعرّف __ADMIN_ID عالمياً أبداً — الاسم لا يُخزَّن في أي متغير */
+  window.__ADMIN_ID = null; // مقصود: لا قيمة حقيقية هنا
 
   /* ── إعدادات Cloudinary ── */
   const CLOUD_NAME  = 'dzjutgs7s';
@@ -64,22 +106,52 @@
   /* ✅ تصدير HARD_LIMITS عالمياً لاستخدامه في كامل الكود */
   window._UPLOAD_HARD_LIMITS = HARD_LIMITS;
 
-  /* 🔒 حد رفع لكل مستخدم: 20 عملية في الساعة */
-  const _uploadCounts = {};
-  const _uploadResets = {};
+  /* 🔒 حد رفع لكل مستخدم: 20 عملية في الساعة
+     ✅ إصلاح: يُخزَّن في localStorage بدلاً من الذاكرة
+        الذاكرة تُصفَّر عند إعادة تحميل الصفحة — localStorage لا تُصفَّر */
+  const _UPLOAD_LIMIT_LS_KEY = '__cdz_ul';
+  const _UPLOAD_MAX = 20;
+  const _UPLOAD_WINDOW = 3600000; // ساعة واحدة بالمللي ثانية
+
+  function _getUploadRecord(user){
+    try {
+      const raw = localStorage.getItem(_UPLOAD_LIMIT_LS_KEY + '_' + user);
+      if(!raw) return { count:0, resetAt: Date.now() + _UPLOAD_WINDOW };
+      return JSON.parse(raw);
+    } catch { return { count:0, resetAt: Date.now() + _UPLOAD_WINDOW }; }
+  }
+
+  function _saveUploadRecord(user, rec){
+    try { localStorage.setItem(_UPLOAD_LIMIT_LS_KEY + '_' + user, JSON.stringify(rec)); }
+    catch { /* localStorage ممتلئ — نتجاهل */ }
+  }
 
   function _checkUploadLimit(){
     const user = localStorage.getItem(ALLOWED_USERS_KEY) || 'unknown';
-    const now = Date.now();
-    if(!_uploadResets[user] || now - _uploadResets[user] > 3600000){
-      _uploadCounts[user] = 0;
-      _uploadResets[user] = now;
+    const now  = Date.now();
+    let rec = _getUploadRecord(user);
+
+    /* إعادة تصفير إذا انقضت الساعة */
+    if(now >= rec.resetAt){
+      rec = { count:0, resetAt: now + _UPLOAD_WINDOW };
     }
-    if(_uploadCounts[user] >= 20){
-      throw new Error('🔒 تجاوزت حد الرفع (20 ملف/ساعة). حاول لاحقاً.');
+
+    if(rec.count >= _UPLOAD_MAX){
+      const mins = Math.ceil((rec.resetAt - now) / 60000);
+      throw new Error(`🔒 تجاوزت حد الرفع (${_UPLOAD_MAX} ملف/ساعة). حاول بعد ${mins} دقيقة.`);
     }
-    _uploadCounts[user]++;
+
+    rec.count++;
+    _saveUploadRecord(user, rec);
   }
+
+  /* دالة مساعدة عامة — تُظهر كم رفعاً تبقى للمستخدم */
+  window.getRemainingUploads = function(){
+    const user = localStorage.getItem(ALLOWED_USERS_KEY) || 'unknown';
+    const rec  = _getUploadRecord(user);
+    if(Date.now() >= rec.resetAt) return _UPLOAD_MAX;
+    return Math.max(0, _UPLOAD_MAX - rec.count);
+  };
 
   function _checkFileType(file){
     /* فحص MIME Type */
@@ -162,22 +234,30 @@
   }
 
   window.uploadToCloudinary = async function(file, folder, onProgress) {
-    if (!file) throw new Error('لم يتم تحديد ملف');
+    /* ✅ كل الأخطاء تمر من handleError الموحّد */
+    const _err = window.handleError || function(t,m){ throw new Error(m); };
+
+    if (!file) throw _err(ErrorType?.FILE || 'FILE', 'لم يتم تحديد ملف');
 
     /* 🔒 فحص صلاحية المستخدم */
-    _checkUserAllowed();
+    try { _checkUserAllowed(); }
+    catch(e){ throw _err(ErrorType?.AUTH || 'AUTH', e.message); }
 
     /* 🔒 فحص نوع الملف + الامتداد */
-    _checkFileType(file);
+    try { _checkFileType(file); }
+    catch(e){ throw _err(ErrorType?.FILE || 'FILE', e.message); }
 
     /* 🔒 فحص Magic Bytes — التحقق من المحتوى الحقيقي */
-    await _checkMagicBytes(file);
+    try { await _checkMagicBytes(file); }
+    catch(e){ throw _err(ErrorType?.FILE || 'FILE', e.message); }
 
     /* 🔒 فحص حد الرفع */
-    _checkUploadLimit();
+    try { _checkUploadLimit(); }
+    catch(e){ throw _err(ErrorType?.UPLOAD || 'UPLOAD', e.message); }
 
     /* 🔒 فحص الحجم الصارم حسب المجلد */
-    _applyHardSizeLimit(file, folder || 'media');
+    try { _applyHardSizeLimit(file, folder || 'media'); }
+    catch(e){ throw _err(ErrorType?.FILE || 'FILE', e.message); }
 
     /* ✅ تم توحيد حدود الحجم — تُستخدم HARD_LIMITS فقط (أُزيلت LIMITS المكررة) */
 
@@ -212,14 +292,19 @@
           if (xhr.status === 200 && data.secure_url) {
             resolve({ url: data.secure_url, publicId: data.public_id, path: data.public_id });
           } else {
-            reject(new Error(data.error?.message || 'فشل رفع الملف'));
+            const msg = data.error?.message || 'فشل رفع الملف إلى الخادم';
+            reject(window.handleError ? window.handleError('UPLOAD', msg) : new Error(msg));
           }
         } catch(e) {
-          reject(new Error('خطأ في معالجة الاستجابة'));
+          const msg = 'خطأ في معالجة استجابة الخادم';
+          reject(window.handleError ? window.handleError('NETWORK', msg, e) : new Error(msg));
         }
       };
 
-      xhr.onerror = () => reject(new Error('فشل الاتصال بـ Cloudinary'));
+      xhr.onerror = () => {
+        const msg = 'فشل الاتصال بـ Cloudinary — تحقق من الإنترنت';
+        reject(window.handleError ? window.handleError('NETWORK', msg) : new Error(msg));
+      };
       xhr.send(formData);
     });
   };
@@ -5244,6 +5329,11 @@ body.member-mode #onlineBar{
 </div>
 
 <script>
+/* ══════════════════════════════════════════════════════════════
+   📊 وحدة البيانات الرئيسية — DataModule
+   ══════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
 /* ▼ جدول البيانات الرئيسي - المصدر الوحيد للنقاط والمنخرطين ▼ */
 const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
 
@@ -5377,7 +5467,19 @@ function openMembersIfAdmin(){
 }
 
 /* ===== نوافذ الأيقونات الجديدة ===== */
+/* ███████████████████████████████████████████████████████████████████
+   🏛️  وحدة من نحن  —  WhoWeAreModule
+   ███████████████████████████████████████████████████████████████████
+   📋 هذه الوحدة بسيطة — دالة واحدة فقط + محتوى HTML ثابت:
+   ┌─────────────────────────────────────────────────────────────────┐
+   │  الفتح             : showWhoWeAreModal()  ← هنا               │
+   │  المحتوى (HTML)    : ابحث عن  🏛️ نافذة من نحن  في الملف      │
+   └─────────────────────────────────────────────────────────────────┘
+   💡 لتعديل النصوص أو الأقسام: ابحث عن  whoWeAreModal  في HTML
+   💡 لتغيير الألوان أو الأيقونات: عدّل مباشرة في الـ HTML
+   ███████████████████████████████████████████████████████████████████ */
 function showWhoWeAreModal(){ showModal('whoWeAreModal'); }
+/* ─── نهاية وحدة من نحن (WhoWeAreModule) ────────────────────────── */
 function showCityWorldModal(){ showModal('cityWorldModal'); }
 function showWatchEarnModal(){ showModal('watchEarnModal'); }
 
@@ -6101,9 +6203,24 @@ function hideModal(id){
   if(typeof _iconLeave === 'function') _iconLeave(id);
 }
 
-/* ===================================================================
-   👤 صفحتي – Facebook Style Profile
-   =================================================================== */
+/* ███████████████████████████████████████████████████████████████████
+   👤  وحدة صفحتي  —  ProfileModule
+   ███████████████████████████████████████████████████████████████████
+   📋 فهرس الدوال (ابحث بالاسم للوصول السريع):
+   ┌─────────────────────────────────────────────────────────────────┐
+   │  العرض والإخفاء   : showMyProfile · openMyFullProfile           │
+   │                     hideMyProfile                               │
+   │  البيانات          : updateProfilePageData · syncProfilePageAvatar│
+   │                     renderProfileBadges · getProfilePostsKey    │
+   │  التبويبات         : switchProfileTab                           │
+   │  التعديل           : showProfileEditMenu                        │
+   │  المنشورات         : renderProfilePosts · addProfilePostReaction │
+   │                     submitProfileComment · shareProfilePost      │
+   │                     togglePostLike · deletePost · togglePostFeeling│
+   │  الوسائط           : handlePostImage · handlePostVideo          │
+   └─────────────────────────────────────────────────────────────────┘
+   💡 لتعديل أي دالة: ابحث عن اسمها مباشرةً بـ Ctrl+F
+   ███████████████████████████████████████████████████████████████████ */
 
 let _postFeelingMode = false;
 let _postImageData = null;
@@ -6622,6 +6739,8 @@ function shareProfilePost(ownerName, idx){
   else { navigator.clipboard.writeText(text).then(()=>showToast('تم النسخ 📋')).catch(()=>showToast('تمت المشاركة ↗️')); }
 }
 
+/* ─── نهاية وحدة صفحتي (ProfileModule) ─────────────────────────── */
+
 function togglePostLike(btn){
   const liked = btn.dataset.liked === '1';
   btn.dataset.liked = liked ? '0' : '1';
@@ -6973,6 +7092,26 @@ function _notifyAdminQuizWinner(memberName, ptsEarned, level){
     window.sendOneSignalNotif('🏆 نقاط كويز جديدة', `أكملت المستوى ${level} وكسبت ${ptsEarned} نقطة`, memberName);
   }
 }
+
+/* ███████████████████████████████████████████████████████████████████
+   💬  وحدة المحادثات  —  ChatModule
+   ███████████████████████████████████████████████████████████████████
+   📋 فهرس الدوال (ابحث بالاسم للوصول السريع):
+   ┌─────────────────────────────────────────────────────────────────┐
+   │  القائمة           : renderInboxList · adminRenderInbox         │
+   │  فتح/إغلاق         : openP2PChat · openAdminChat · closeChatScreen│
+   │                     openAdminBroadcastPanel · adminSpyChat      │
+   │  الرسائل           : renderChatBubbles · sendChatMessage        │
+   │  التحديث           : startChatPolling · stopChatPolling         │
+   │  الأفاتار          : getChatAvatarHtml                          │
+   │  النقاط            : ebPointsChatText · ebPointsChatImage       │
+   │                     ebPointsChatVideo                           │
+   │  الإعدادات         : openChatTheme · toggleChatDotsMenu         │
+   │                     toggleSecretChat · _applySavedChatTheme     │
+   │  المساعدة          : _getChatKey · _getChatMsgCount             │
+   └─────────────────────────────────────────────────────────────────┘
+   💡 لتعديل أي دالة: ابحث عن اسمها مباشرةً بـ Ctrl+F
+   ███████████████████████████████████████████████████████████████████ */
 
 /* مساعدة: الحصول على مفتاح المحادثة بين شخصين */
 function _getChatKey(a, b){
@@ -7881,7 +8020,21 @@ function _getStatusDot(name){
   return '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#374151;flex-shrink:0;margin-left:5px;" title="غير متصل"></span>';
 }
 
-/* ===== المنخرطون ===== */
+/* ███████████████████████████████████████████████████████████████████
+   👥  وحدة المنخرطون  —  MembersModule
+   ███████████████████████████████████████████████████████████████████
+   📋 فهرس الدوال (ابحث بالاسم للوصول السريع):
+   ┌─────────────────────────────────────────────────────────────────┐
+   │  التحميل والعرض   : loadMembers                                │
+   │  الأفاتار          : getMemberAvatarHtml  (السطر ~9321)        │
+   │  الفلترة           : filterMemberList                          │
+   │  قائمة الاختيار   : renderMemberPickList                       │
+   │  الحالة (أونلاين) : _getOnlineStatus · _getStatusDot           │
+   │  الكود التسلسلي   : getMemberCode  (السطر ~5405)              │
+   └─────────────────────────────────────────────────────────────────┘
+   💡 لتعديل بطاقة العضو: عدّل داخل loadMembers (قسم HTML البطاقة)
+   💡 لإضافة فلتر جديد: عدّل filterMemberList
+   ███████████████████████████████████████████████████████████████████ */
 async function loadMembers(){
   const div=document.getElementById("membersInfo");
   div.innerHTML='<div class="spinner"></div>';
@@ -7972,7 +8125,21 @@ async function loadMembers(){
   }catch(e){div.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">تعذر التحميل</p>';}
 }
 
-/* ===== النشاطات ===== */
+/* ███████████████████████████████████████████████████████████████████
+   🏅  وحدة النشاطات  —  ActivitiesModule
+   ███████████████████████████████████████████████████████████████████
+   📋 فهرس الدوال (ابحث بالاسم للوصول السريع):
+   ┌─────────────────────────────────────────────────────────────────┐
+   │  التحميل والعرض   : loadActivities                             │
+   │  النقاط المبكرة   : grantEarlyBirdPoints  (السطر ~8322)       │
+   │                     isEarlyBirdUser                            │
+   │  إنشاء نشاط       : _activityId · _buildActivityPostText       │
+   │                     _autoPostActivity                           │
+   │  إدارة المدير     : adminRenderActivity  (السطر ~11545)        │
+   └─────────────────────────────────────────────────────────────────┘
+   💡 لتعديل بطاقة النشاط: عدّل داخل loadActivities (قسم HTML)
+   💡 لإضافة نشاط جديد يدوياً: استخدم _autoPostActivity
+   ███████████████████████████████████████████████████████████████████ */
 async function loadActivities(){
   const div=document.getElementById("activitiesInfo");
   div.innerHTML='<div class="spinner"></div>';
@@ -8006,7 +8173,19 @@ async function loadActivities(){
   }catch(e){div.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">تعذر التحميل</p>';}
 }
 
-/* ===== التصنيف ===== */
+/* ███████████████████████████████████████████████████████████████████
+   🏆  وحدة جدول الترتيب  —  RankingModule
+   ███████████████████████████████████████████████████████████████████
+   📋 فهرس الدوال (ابحث بالاسم للوصول السريع):
+   ┌─────────────────────────────────────────────────────────────────┐
+   │  التحميل والعرض   : loadRanking                                │
+   │  الأيقونات         : getLeaderIcon  (السطر ~5398)              │
+   │  النقاط المشتركة  : fetchAllQuizPts · syncQuizPts (السطر ~5423)│
+   │  مصادر البيانات   : dataUrl · smartUrl · rankingUrl            │
+   └─────────────────────────────────────────────────────────────────┘
+   💡 لتعديل طريقة الترتيب: عدّل داخل loadRanking
+   💡 لتغيير أيقونة العضو: عدّل داخل getLeaderIcon
+   ███████████████████████████████████████████████████████████████████ */
 async function loadRanking(){
   const div=document.getElementById("rankingInfo");
   div.innerHTML='<div class="spinner"></div>';
@@ -8137,7 +8316,25 @@ async function loadRanking(){
   }catch(e){div.innerHTML='<p style="color:var(--muted);text-align:center;padding:18px">تعذر التحميل</p>';}
 }
 
-/* ===== كويز: اجمع النقاط ===== */
+/* ███████████████████████████████████████████████████████████████████
+   🎯  وحدة اجمع النقاط  —  QuizModule
+   ███████████████████████████████████████████████████████████████████
+   📋 فهرس الدوال والمتغيرات (ابحث بالاسم للوصول السريع):
+   ┌─────────────────────────────────────────────────────────────────┐
+   │  المتغيرات         : quizData · quizIdx · quizScore            │
+   │                     currentQuizLevel · allQuizQuestions         │
+   │  التحميل والعرض   : loadQuiz                                   │
+   │  الإجابة           : answerQuiz                                 │
+   │  النقاط            : _earnedKey · _updateMainPointsDisplay      │
+   │                     _updateQuizPtsDisplay · syncQuizPts         │
+   │  التتبع            : getDoneKey · getDoneList · markDone        │
+   │  الصوت             : playQuizSound                              │
+   │  المصدر            : quizCsvUrl  ← رابط Google Sheets          │
+   └─────────────────────────────────────────────────────────────────┘
+   💡 لتعديل الأسئلة: عدّل في Google Sheets مباشرةً (quizCsvUrl)
+   💡 لتعديل نقاط المستوى: عدّل داخل answerQuiz
+   💡 لتعديل تصميم الكويز: ابحث عن loadQuiz
+   ███████████████████████████████████████████████████████████████████ */
 let quizData=[], quizIdx=0, quizScore=0, quizLevelData=[], currentQuizLevel=1, allQuizQuestions=[];
 
 /* مجموعة لتتبع الأسئلة التي أُخطئ فيها في الجلسة الحالية (مقيّد بنص السؤال) */
@@ -8329,14 +8526,27 @@ function ebPointsGalleryAudio(audioKey){ _galleryOnce('aud', audioKey||('aud_'+D
 /* دالة قديمة للتوافق — فتح المعرض يمنح نقاط الزيارة فقط */
 function ebPointsGallery(){ _iconLeave('gallery_open'); }
 
-/* ══════════════════════════════════════════════════════════════════
-   🕌 نقاط عالم المدينة
-   ══════════════════════════════════════════════════════════════════ */
+/* ███████████████████████████████████████████████████████████████████
+   🕌  وحدة عالم المدينة  —  CityModule
+   ███████████████████████████████████████████████████████████████████
+   📋 فهرس الدوال والبيانات (ابحث بالاسم للوصول السريع):
+   ┌─────────────────────────────────────────────────────────────────┐
+   │  الفتح والعرض     : showCityWorldModal (السطر ~5466)           │
+   │                     openCityFeature    (آخر الملف)             │
+   │  النقاط            : ebPointsCity · ebPointsCityFeature        │
+   │  البيانات          : _cityData  ← كل المحتوى هنا (آخر الملف)  │
+   │                      quran · hadith · prophets · dua · history  │
+   └─────────────────────────────────────────────────────────────────┘
+   💡 لإضافة قسم جديد: أضفه في _cityData بنفس البنية
+   💡 لتعديل محتوى: ابحث عن _cityData في آخر الملف
+   ███████████████████████████████████████████████████████████████████ */
+
 function ebPointsCity(){ _iconEnter('cityWorldModal'); grantEarlyBirdPoints('city_visit', 5, true, 'زيارة عالم المدينة'); }
 function ebPointsCityFeature(k,n){
   grantEarlyBirdPoints('city_feat_'+k, 5, true, n||'ميزة عالم المدينة');
 }
-/* ══════════════════════════════════════════════════════════════════ */
+
+/* ─── نهاية وحدة عالم المدينة (CityModule) — البيانات في آخر الملف ─ */
 
 /* مفتاح الأسئلة المجابة في localStorage */
 function getDoneKey(level){const u=getCurrentUser().replace(/\s+/g,'_');return `quiz_done_${u}_lvl${level}`;}
@@ -16469,6 +16679,38 @@ function _fbErrorHTML(msg){
     <div onclick="loadFbFeed()" style="margin-top:18px;background:#1877F2;color:white;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:800;cursor:pointer;">إعادة المحاولة</div>
   </div>`;
 }
+
+/* ✅ تصدير الدوال والمتغيرات المطلوبة عالمياً */
+window._dataUrls = { dataUrl, membersUrl, smartUrl, quizUrl, rankingUrl, quizPtsApiUrl };
+window.getLeaderIcon      = getLeaderIcon;
+window.getMemberCode      = getMemberCode;
+window.fetchAllQuizPts    = fetchAllQuizPts;
+window.syncQuizPts        = syncQuizPts;
+window.openMembersIfAdmin = openMembersIfAdmin;
+window.showWhoWeAreModal  = showWhoWeAreModal;
+window.showCityWorldModal = showCityWorldModal;
+window.showWatchEarnModal = showWatchEarnModal;
+window.openSportsSection  = openSportsSection;
+window.openAlgerianLaw    = openAlgerianLaw;
+window.openIQGames        = openIQGames;
+window._initMemoryGame    = _initMemoryGame;
+window._memFlipCard       = _memFlipCard;
+window._startNumberSequence = _startNumberSequence;
+window._numPress          = _numPress;
+window._wordlePress       = _wordlePress;
+window._wordleBackspace   = _wordleBackspace;
+window._wordleSubmit      = _wordleSubmit;
+window._showSportsCard    = _showSportsCard;
+window._showLawChapter    = _showLawChapter;
+window._lastIsReg         = _lastIsReg;
+/* ── اختصار مباشر للـ URLs الأكثر استخداماً ── */
+window._dataUrl    = dataUrl;
+window._membersUrl = membersUrl;
+window._smartUrl   = smartUrl;
+window._quizUrl    = quizUrl;
+window._rankingUrl = rankingUrl;
+window._quizPtsApiUrl = quizPtsApiUrl;
+})();
 </script>
 
 <!-- ══════════════════════════════════════════════════════
@@ -16907,9 +17149,12 @@ function _fbErrorHTML(msg){
 })();
 </script>
 
-<!-- ══════════════════════════════════════════════════════
-     🏛️ نافذة من نحن
-     ══════════════════════════════════════════════════════ -->
+<!-- ███████████████████████████████████████████████████████████████████
+     🏛️  وحدة من نحن — المحتوى (WhoWeAreModule HTML)
+     ███████████████████████████████████████████████████████████████████
+     💡 لتعديل أي قسم: ابحث عن عنوانه مثل "الجوهر الاستراتيجي"
+     💡 لإضافة قسم جديد: انسخ أي div من الأقسام وعدّل محتواه
+     ███████████████████████████████████████████████████████████████████ -->
 <div class="modal" id="whoWeAreModal">
   <div class="modal-content" style="max-width:480px;">
     <div class="modal-handle"></div>
@@ -17202,9 +17447,27 @@ function _fbErrorHTML(msg){
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════════
-   🕌 بيانات عالم المدينة — محتوى ثابت ومنسّق
-   ══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   🕌 وحدة عالم المدينة — CityModule
+   ══════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+/* ███████████████████████████████████████████████████████████████████
+   🕌  وحدة عالم المدينة — البيانات والعرض  (CityModule Data)
+   ███████████████████████████████████████████████████████████████████
+   📋 لإضافة قسم جديد في عالم المدينة:
+      1. أضف مفتاحاً جديداً في _cityData بهذا الشكل:
+         myKey: {
+           title: '🌟 عنوان القسم',
+           color: 'linear-gradient(135deg,#color1,#color2)',
+           sections: [
+             { label: 'عنوان فرعي', items: [
+               { title: 'العنصر', text: 'النص', sub: 'التفاصيل' }
+             ]}
+           ]
+         }
+      2. أضف زر في HTML يستدعي: openCityFeature('myKey')
+   ███████████████████████████████████████████████████████████████████ */
 const _cityData = {
   quran: {
     title: '📖 القرآن الكريم',
@@ -17541,6 +17804,7 @@ const _cityData = {
   // فحص دوري كل دقيقتين
   setInterval(_triggerAutoPost, 2 * 60 * 1000);
 })();
+/* ── openCityFeature(key): يفتح نافذة التفاصيل لأي قسم في _cityData ── */
 function openCityFeature(key){
   ebPointsCityFeature(key, _cityData[key]?.title || key);
   const data = _cityData[key];
@@ -17568,6 +17832,11 @@ function openCityFeature(key){
   body.innerHTML = gradHeader + sectionsHtml;
   showModal('cityFeatureModal');
 }
+
+/* ✅ تصدير دوال CityModule عالمياً */
+window._cityData        = _cityData;
+window.openCityFeature  = openCityFeature;
+})();
 </script>
 
 <!-- ══════════════════════════════════════════════════════
@@ -17598,28 +17867,59 @@ function openCityFeature(key){
     }
   }
 
-  /* 🔒 دالة التحقق من صلاحيات المدير — نسخة مُصلَحة */
-  /* ✅ إصلاح: navigator.userAgent.length قيمة يمكن تخمينها بسهولة
-     الحل: token عشوائي يُولَّد لكل جلسة ولا يُخزَّن في localStorage */
+  /* 🔒 دالة التحقق من صلاحيات المدير — نظام HASH آمن
+     ✅ الاسم الحقيقي لا يُخزَّن في الكود أبداً — فقط SHA-256 hash
+     ✅ Brute-force مقيّد بـ rate limiting + lockout
+     ✅ Token عشوائي لكل جلسة مع توقيت انتهاء */
+
+  /* 🔒 عداد محاولات تسجيل الدخول — حماية من Brute-force */
+  const _loginAttempts = { count: 0, lockedUntil: 0 };
+
   window.isAdminUser = function(username) {
     if(!username) return false;
-    const isCorrectName = username === window.__ADMIN_ID;
-    if(!isCorrectName) return false;
-    /* التحقق من token الجلسة العشوائي */
+    /* التحقق من token الجلسة أولاً */
     const sessionToken = sessionStorage.getItem('__adm_tok');
     const expectedToken = sessionStorage.getItem('__adm_ref');
+    const tokenExpiry = parseInt(sessionStorage.getItem('__adm_exp') || '0');
     if(!sessionToken || !expectedToken) return false;
-    return sessionToken === expectedToken;
+    if(sessionToken !== expectedToken) return false;
+    if(Date.now() > tokenExpiry) {
+      /* انتهت صلاحية الجلسة */
+      sessionStorage.removeItem('__adm_tok');
+      sessionStorage.removeItem('__adm_ref');
+      sessionStorage.removeItem('__adm_exp');
+      return false;
+    }
+    return true;
   };
 
-  /* 🔒 تعيين جلسة المدير عند تسجيل الدخول فقط */
-  window.setAdminSession = function(username) {
-    if(username !== window.__ADMIN_ID) return;
-    /* ✅ إصلاح: نولّد token عشوائي (32 حرف hex) بدلاً من userAgent.length */
-    const token = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+  /* 🔒 تعيين جلسة المدير — يتحقق من HASH فقط، لا يقارن النص الصريح */
+  window.setAdminSession = async function(username) {
+    /* 🔒 فحص Lockout */
+    if(Date.now() < _loginAttempts.lockedUntil){
+      const remaining = Math.ceil((_loginAttempts.lockedUntil - Date.now()) / 1000);
+      throw new Error(`🔒 تم تجميد الدخول. حاول بعد ${remaining} ثانية.`);
+    }
+    /* 🔒 حساب hash للاسم المُدخَل ومقارنته بالـ hash المخزَّن */
+    const inputHash = await _hashString(username);
+    if(inputHash !== _ADMIN_HASH){
+      _loginAttempts.count++;
+      /* 🔒 بعد 5 محاولات: تجميد 5 دقائق */
+      if(_loginAttempts.count >= 5){
+        _loginAttempts.lockedUntil = Date.now() + 5 * 60 * 1000;
+        _loginAttempts.count = 0;
+        throw new Error('🔒 تم تجميد الدخول لمدة 5 دقائق بسبب المحاولات المتكررة.');
+      }
+      return false;
+    }
+    /* ✅ الاسم صحيح — نولّد token عشوائي قوي مع انتهاء صلاحية بعد ساعتين */
+    _loginAttempts.count = 0;
+    const token = Array.from(crypto.getRandomValues(new Uint8Array(32)))
                        .map(b => b.toString(16).padStart(2,'0')).join('');
     sessionStorage.setItem('__adm_tok', token);
     sessionStorage.setItem('__adm_ref', token);
+    sessionStorage.setItem('__adm_exp', (Date.now() + 2 * 60 * 60 * 1000).toString());
+    return true;
   };
 
   /* ── لا نحذف المدير من الحسابات المحفوظة — نتجاهل التنظيف ── */
