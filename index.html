@@ -18669,20 +18669,24 @@ function getRegUsers(){
   try{ return JSON.parse(localStorage.getItem(REG_USERS_KEY)||'[]'); }catch{ return []; }
 }
 function saveRegUser(userData){
-  const users = getRegUsers();
-  const idx = users.findIndex(u=>u.email===userData.email);
-  if(idx>=0) users[idx]=userData; else users.unshift(userData);
-  localStorage.setItem(REG_USERS_KEY, JSON.stringify(users));
+  try {
+    const users = getRegUsers();
+    const idx = users.findIndex(u=>u.email===userData.email);
+    if(idx>=0) users[idx]=userData; else users.unshift(userData);
+    localStorage.setItem(REG_USERS_KEY, JSON.stringify(users));
+  } catch(e) { console.warn('saveRegUser error:', e); }
 }
 function getSavedLoginAccounts(){
   try{ return JSON.parse(localStorage.getItem(REG_SAVED_KEY)||'[]'); }catch{ return []; }
 }
 function addSavedLoginAccount(userData){
-  const accs = getSavedLoginAccounts();
-  const idx = accs.findIndex(a=>a.email===userData.email);
-  const entry = { name: userData.firstName+' '+userData.lastName, email: userData.email, photo: userData.photoUrl||'', ts: Date.now() };
-  if(idx>=0) accs[idx]=entry; else accs.unshift(entry);
-  localStorage.setItem(REG_SAVED_KEY, JSON.stringify(accs.slice(0,5)));
+  try {
+    const accs = getSavedLoginAccounts();
+    const idx = accs.findIndex(a=>a.email===userData.email);
+    const entry = { name: userData.firstName+' '+userData.lastName, email: userData.email, photo: userData.photoUrl||'', ts: Date.now() };
+    if(idx>=0) accs[idx]=entry; else accs.unshift(entry);
+    localStorage.setItem(REG_SAVED_KEY, JSON.stringify(accs.slice(0,5)));
+  } catch(e) { console.warn('addSavedLoginAccount error:', e); }
 }
 
 /* ═══════════ رسم بطاقات الحسابات المحفوظة ═══════════ */
@@ -19038,21 +19042,38 @@ window.completeRegistration = async function(){
   if(!_verifyCodeSent){ toast('⚠️ أرسل رمز التحقق أولاً'); return; }
   if(code!==_verifyCodeSent){ toast('❌ رمز التحقق غير صحيح'); return; }
 
-  const userData = {
-    ..._regData,
-    email, phone: _regData.phone||email,
-    password: btoa(pass),
-    registeredAt: new Date().toISOString(),
-    id: Date.now().toString(36)
-  };
-
   const btn = document.getElementById('regFinalBtn');
   if(btn){ btn.disabled=true; btn.textContent='⏳ جارٍ إنشاء الحساب...'; }
 
+  let userData;
+  try {
+    userData = {
+      ..._regData,
+      email, phone: _regData.phone||email,
+      password: btoa(unescape(encodeURIComponent(pass))),
+      registeredAt: new Date().toISOString(),
+      id: Date.now().toString(36)
+    };
+  } catch(e) {
+    if(btn){ btn.disabled=false; btn.textContent='✅ إنشاء الحساب'; }
+    toast('⚠️ حدث خطأ، حاول مرة أخرى');
+    return;
+  }
+
   // حفظ المستخدم محلياً أولاً
-  saveRegUser(userData);
-  addSavedLoginAccount(userData);
-  localStorage.setItem(REG_CURR_KEY, JSON.stringify(userData));
+  try {
+    // حذف photoPreview من userData قبل الحفظ لتجنب QuotaExceededError
+    const userDataToSave = {...userData};
+    delete userDataToSave.photoPreview;
+    saveRegUser(userDataToSave);
+    addSavedLoginAccount(userDataToSave);
+    localStorage.setItem(REG_CURR_KEY, JSON.stringify(userDataToSave));
+    // تحديث userData بدون photoPreview
+    Object.assign(userData, userDataToSave);
+  } catch(storageErr) {
+    console.warn('⚠️ localStorage full or error:', storageErr);
+    // نكمل رغم الخطأ
+  }
 
   // ═══ إرسال البيانات مباشرة إلى Firebase Realtime Database ═══
   try {
