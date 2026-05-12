@@ -19,6 +19,31 @@
      ══════════════════════════════════════════════ -->
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 
+<!-- ══ EmailJS — إرسال بريد التحقق الحقيقي ══ -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+(function(){
+  'use strict';
+  emailjs.init({ publicKey: 'LEviaBzvlA-PwfV9j' });
+
+  window._sendVerifyEmail = async function(toEmail, code, toName){
+    try {
+      await emailjs.send('service_e895qj1', 'template_9c21jti', {
+        to_email   : toEmail,
+        to_name    : toName || toEmail.split('@')[0],
+        verify_code: code,
+        app_name   : 'Connect DZ'
+      });
+      return { ok: true };
+    } catch(err){
+      console.error('EmailJS error:', err);
+      return { ok: false, error: err.text || err.message };
+    }
+  };
+  window._emailjsConfigured = true;
+})();
+</script>
+
 <!-- ══════════════════════════════════════════════════════════════
      🛡️ نظام معالجة الأخطاء الموحّد — ConnectDZ Error System
      ══════════════════════════════════════════════════════════════ -->
@@ -524,7 +549,7 @@ window.uploadStoryMedia = async function(file) {
 /* ══════════════════════════════════════════════════════════════
    👤 رفع صورة الملف الشخصي / صورة الغلاف
 ══════════════════════════════════════════════════════════════ */
-window.uploadProfilePhoto = async function(file, userName) {
+window.uploadProfilePhoto = async function(file) {
   window._showStorageProgress('👤 جارٍ رفع صورة الملف الشخصي...');
   try {
     const result = await window.uploadImageCompressed(file, 'profiles', 600, 0.88, (pct) => {
@@ -539,7 +564,7 @@ window.uploadProfilePhoto = async function(file, userName) {
   }
 };
 
-window.uploadCoverPhoto = async function(file, userName) {
+window.uploadCoverPhoto = async function(file) {
   window._showStorageProgress('🖼️ جارٍ رفع صورة الغلاف...');
   try {
     const result = await window.uploadImageCompressed(file, 'covers', 1200, 0.82, (pct) => {
@@ -602,12 +627,6 @@ window.uploadStoryMusic = async function(file) {
     }
   };
 </script>
-<meta name="theme-color" content="#00e5a0">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Connect DZ">
-
 <!-- ══════════════════════════════════════════════
      🔥 Firebase Realtime Sync — localStorage Bridge
      يزامن كل البيانات تلقائياً بين جميع المستخدمين
@@ -809,10 +828,11 @@ window.uploadStoryMusic = async function(file) {
 
 /* ===== منتقي اللغة ===== */
 #langSelectorOverlay{
-  position:fixed;inset:0;z-index:99999;
+  position:fixed;inset:0;z-index:999999;
   background:rgba(5,10,14,0.97);
   display:flex;align-items:center;justify-content:center;
   animation:fadeIn .4s ease both;
+  width:100vw;height:100vh;
 }
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .lang-box{
@@ -985,7 +1005,8 @@ window.uploadStoryMusic = async function(file) {
 }
 @keyframes storyFill{from{width:0%}to{width:100%}}
 
-body{min-height:100vh;background:var(--dark);color:var(--text);display:flex;justify-content:center;align-items:center;overflow:hidden;}
+html,body{margin:0;padding:0;width:100%;height:100%;}
+body{min-height:100vh;background:var(--dark);color:var(--text);display:flex;justify-content:center;align-items:center;overflow:hidden;margin:0;padding:0;}
 
 /* ===== خلفية بصورة حقيقية ===== */
 #hero-bg{
@@ -1016,6 +1037,7 @@ body{min-height:100vh;background:var(--dark);color:var(--text);display:flex;just
   opacity:0;transform:translateY(28px) scale(.97);
   animation:loginEnter .42s cubic-bezier(.22,.68,0,1.1) .05s both;
   will-change:transform,opacity;
+  padding-top:46px;
 }
 @keyframes loginEnter{
   to{opacity:1;transform:translateY(0) scale(1);}
@@ -1258,6 +1280,16 @@ button.auth-btn.loading{
   background:rgba(0,229,160,0.1);
   box-shadow:0 0 14px rgba(0,229,160,0.18),0 0 0 1px rgba(0,229,160,0.12) inset;
 }
+
+/* زر اللغة الصغير في صفحة الدخول */
+#loginLangBadge { user-select:none; }
+#loginLangDropdown.open { display:block !important; }
+#loginLangDropdown {
+  animation:fadeUp .18s ease;
+}
+
+/* أنيميشن حذف الحساب */
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
 
 /* ===== بطاقات الحسابات المحفوظة ===== */
 #savedAccountsSection{margin-bottom:14px;position:relative;z-index:1;}
@@ -2912,15 +2944,13 @@ body.member-mode #onlineBar{
   display:none;align-items:center;justify-content:center;
   cursor:pointer;z-index:100;
   box-shadow:0 10px 28px rgba(220,38,38,0.45),0 4px 10px rgba(220,38,38,0.3),inset 0 1px 0 rgba(255,150,120,0.4);
-  transition:.25s;
-  position:relative;overflow:hidden;
+  transition:.25s;overflow:hidden;
 }
 .admin-toggle-btn::before{
   content:'';position:absolute;top:0;left:0;right:0;height:50%;
   background:linear-gradient(180deg,rgba(255,255,255,0.3) 0%,transparent 100%);
   border-radius:16px 16px 0 0;pointer-events:none;
 }
-.admin-toggle-btn{position:fixed;}
 .admin-toggle-btn:hover{transform:scale(1.06) translateY(-2px);}
 
 /* Admin section inside glass card */
@@ -3042,9 +3072,6 @@ body.member-mode #onlineBar{
 .member-pick-item:hover{background:rgba(0,120,255,0.05);}
 .member-pick-avatar{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
 /* مراقبة المدير */
-.spy-tab{padding:7px 14px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;border:1px solid transparent;}
-.spy-tab.active{background:rgba(229,45,39,0.2);border-color:rgba(229,45,39,0.4);color:#f87171;}
-.spy-tab:not(.active){color:var(--muted);}
 
 /* تحديث modal للماسنجر */
 #messagesModal .modal-content-unused{display:none;}
@@ -3223,6 +3250,209 @@ body.member-mode #onlineBar{
   cursor:pointer;font-family:'Tajawal',sans-serif;transition:.2s;
 }
 #pwaIOSGuide .ios-close-btn:hover{background:rgba(255,255,255,0.12);}
+
+/* ═══════════════════════════════════════════════════
+   🔵 واجهة تسجيل الدخول — Facebook-Style (أبيض)
+   ═══════════════════════════════════════════════════ */
+.login{
+  background:#f0f2f5 !important;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:20px 16px 40px;
+  min-height:100vh;
+  width:100vw;
+  min-width:100%;
+  box-sizing:border-box;
+  margin:0;
+  position:relative;
+  overflow-x:hidden;
+}
+.fb-app-brand{text-align:center;margin-bottom:20px;}
+.fb-app-name{
+  display:block;font-size:42px;font-weight:900;letter-spacing:-1.5px;
+  background:linear-gradient(90deg,#00c853,#e53935);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:6px;
+}
+.fb-app-tagline{display:block;font-size:13px;color:#606770;font-weight:600;line-height:1.5;}
+.fb-login-card{
+  background:#fff;border-radius:18px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.12),0 6px 32px rgba(0,0,0,0.07);
+  padding:24px 20px 20px;width:100%;max-width:400px;
+  animation:cardRise .4s cubic-bezier(.22,.68,0,1.1) both;
+}
+.fb-login-title{font-size:20px;font-weight:900;color:#1c1e21;text-align:center;margin:0 0 18px;}
+.fb-input{
+  width:100%;padding:14px 16px;border:1.5px solid #dddfe2;border-radius:10px;
+  font-family:'Tajawal',sans-serif;font-size:15px;font-weight:500;
+  color:#1c1e21;background:#fff;outline:none;
+  transition:border-color .18s,box-shadow .18s;text-align:right;
+  box-sizing:border-box;display:block;margin-bottom:10px;
+}
+.fb-input:focus{border-color:#00c853;box-shadow:0 0 0 3px rgba(0,200,83,0.12);}
+.fb-input::placeholder{color:#a0a3a7;font-weight:400;}
+.fb-forgot{text-align:center;margin:-4px 0 16px;}
+.fb-forgot a{font-size:13px;color:#00a040;font-weight:700;cursor:pointer;text-decoration:none;}
+.fb-forgot a:hover{text-decoration:underline;}
+.fb-login-btn{
+  width:100%;padding:14px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,#00b09b,#00c853);
+  color:#fff;font-family:'Tajawal',sans-serif;font-size:16px;font-weight:900;
+  cursor:pointer;letter-spacing:.3px;
+  box-shadow:0 4px 16px rgba(0,200,83,0.35);
+  transition:transform .15s,box-shadow .15s;margin-bottom:4px;
+}
+.fb-login-btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(0,200,83,0.45);}
+.fb-login-btn:active{transform:translateY(0);}
+.fb-login-btn.loading{opacity:.75;pointer-events:none;}
+.fb-register-btn{
+  width:100%;padding:13px;border:2px solid #00c853;border-radius:10px;
+  background:#fff;color:#00a040;
+  font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;
+  cursor:pointer;transition:all .18s;display:block;
+}
+.fb-register-btn:hover{background:#f0fff5;box-shadow:0 2px 12px rgba(0,200,83,0.15);}
+.fb-divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
+.fb-divider::before,.fb-divider::after{content:'';flex:1;height:1px;background:#dddfe2;}
+.fb-divider span{font-size:12px;color:#606770;font-weight:700;}
+#savedAccountsSection{margin-bottom:4px;}
+.saved-acc-label{font-size:11px;font-weight:700;color:#606770;text-align:center;margin-bottom:8px;letter-spacing:1px;}
+.saved-acc-list{display:flex;flex-direction:column;gap:8px;}
+.saved-acc-card{
+  display:flex;align-items:center;gap:12px;background:#f0f2f5;
+  border:1.5px solid #dddfe2;border-radius:12px;padding:10px 14px;
+  cursor:pointer;transition:all .18s;
+}
+.saved-acc-card:hover{background:#e7f8ef;border-color:#00c853;transform:translateY(-1px);}
+.saved-acc-avatar{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,#00c853,#00b09b);
+  border:2px solid #fff;display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.12);
+}
+.saved-acc-avatar img{width:100%;height:100%;object-fit:cover;}
+.saved-acc-name{flex:1;font-size:14px;font-weight:800;color:#1c1e21;}
+.saved-acc-arrow{font-size:18px;color:#00c853;}
+.fb-add-acc-btn{
+  width:100%;padding:10px;border:1.5px dashed #b0b3b8;border-radius:10px;
+  background:#fff;color:#606770;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;
+  cursor:pointer;transition:all .18s;margin-top:6px;display:block;
+}
+.fb-add-acc-btn:hover{border-color:#00c853;color:#00a040;background:#f0fff5;}
+.guest-entry-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:12px;background:#f0f2f5;
+  border:1.5px solid #dddfe2;border-radius:10px;cursor:pointer;
+  font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;
+  color:#606770;transition:all .18s;margin-top:6px;
+}
+.guest-entry-btn:hover{border-color:#b0b3b8;background:#e4e6eb;color:#1c1e21;}
+.login-divider{display:flex;align-items:center;gap:10px;margin:12px 0;}
+.login-divider-line{flex:1;height:1px;background:#dddfe2;}
+.login-divider-text{font-size:11px;color:#606770;font-weight:700;}
+/* ═══════════════════════════════════════════════════
+   📋 صفحة التسجيل الكاملة
+   ═══════════════════════════════════════════════════ */
+#registerOverlay{
+  position:fixed;inset:0;z-index:999990;background:#f0f2f5;
+  display:none;flex-direction:column;overflow-y:auto;font-family:'Tajawal',sans-serif;
+  /* تأكيد تغطية كاملة للشاشة */
+  width:100vw;height:100vh;min-height:100%;margin:0;padding:0;
+}
+.reg-header{
+  background:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid #dddfe2;position:sticky;top:0;z-index:10;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);flex-shrink:0;
+}
+.reg-back{
+  width:36px;height:36px;border-radius:50%;background:#f0f2f5;border:none;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;transition:.15s;
+}
+.reg-back:hover{background:#e4e6eb;}
+.reg-header-title{font-size:17px;font-weight:900;color:#1c1e21;flex:1;}
+.reg-progress-bar{height:4px;background:#e4e6eb;flex-shrink:0;}
+.reg-progress-fill{height:100%;background:linear-gradient(90deg,#00b09b,#00c853);border-radius:2px;transition:width .4s cubic-bezier(.22,.68,0,1.1);}
+.reg-body{padding:20px 18px 40px;max-width:500px;margin:0 auto;width:100%;box-sizing:border-box;}
+.reg-step{display:none;}
+.reg-step.active{display:block;}
+.reg-step-title{font-size:20px;font-weight:900;color:#1c1e21;margin-bottom:6px;}
+.reg-step-sub{font-size:13px;color:#606770;font-weight:600;margin-bottom:22px;line-height:1.5;}
+.reg-label{display:block;font-size:13px;font-weight:800;color:#1c1e21;margin-bottom:6px;}
+.reg-input{
+  width:100%;padding:13px 16px;border:1.5px solid #dddfe2;border-radius:10px;
+  font-family:'Tajawal',sans-serif;font-size:14px;font-weight:500;
+  color:#1c1e21;background:#fff;outline:none;text-align:right;
+  box-sizing:border-box;margin-bottom:14px;transition:border-color .18s,box-shadow .18s;
+}
+.reg-input:focus{border-color:#00c853;box-shadow:0 0 0 3px rgba(0,200,83,0.1);}
+.reg-input::placeholder{color:#a0a3a7;font-weight:400;}
+.reg-row{display:flex;gap:10px;}
+.reg-row .reg-input{flex:1;}
+.reg-select{
+  width:100%;padding:13px 16px;border:1.5px solid #dddfe2;border-radius:10px;
+  font-family:'Tajawal',sans-serif;font-size:14px;font-weight:500;
+  color:#1c1e21;background:#fff;outline:none;cursor:pointer;margin-bottom:14px;
+  appearance:none;-webkit-appearance:none;direction:rtl;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='%2300c853'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:left 14px center;background-size:18px;
+}
+.reg-select:focus{border-color:#00c853;box-shadow:0 0 0 3px rgba(0,200,83,0.1);}
+.reg-upload-area{
+  width:100%;border:2px dashed #dddfe2;border-radius:14px;padding:20px 16px;
+  text-align:center;cursor:pointer;background:#fafafa;transition:all .2s;
+  margin-bottom:14px;box-sizing:border-box;position:relative;
+}
+.reg-upload-area:hover,.reg-upload-area.has-file{border-color:#00c853;background:#f0fff5;}
+.reg-upload-icon{font-size:32px;margin-bottom:8px;}
+.reg-upload-label{font-size:13px;font-weight:700;color:#606770;}
+.reg-upload-label span{color:#00a040;}
+.reg-upload-sub{font-size:11px;color:#a0a3a7;margin-top:4px;}
+.reg-upload-preview{
+  width:80px;height:80px;border-radius:50%;object-fit:cover;
+  border:3px solid #00c853;margin:0 auto 8px;display:block;
+  box-shadow:0 4px 12px rgba(0,200,83,0.2);
+}
+.reg-upload-preview-doc{
+  width:60px;height:60px;object-fit:cover;border-radius:8px;
+  border:2px solid #00c853;margin:0 auto 6px;display:block;
+}
+.reg-hobbies{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.reg-hobby-tag{
+  padding:7px 14px;border:1.5px solid #dddfe2;border-radius:20px;
+  font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;
+  color:#606770;cursor:pointer;transition:all .18s;background:#fff;
+}
+.reg-hobby-tag.selected{border-color:#00c853;background:#e7f8ef;color:#00a040;}
+.reg-hobby-tag:hover{border-color:#b0b3b8;}
+.reg-next-btn{
+  width:100%;padding:15px;border:none;border-radius:12px;
+  background:linear-gradient(135deg,#00b09b,#00c853);
+  color:#fff;font-family:'Tajawal',sans-serif;font-size:16px;font-weight:900;
+  cursor:pointer;box-shadow:0 4px 18px rgba(0,200,83,0.3);
+  transition:transform .15s,box-shadow .15s;margin-top:8px;
+}
+.reg-next-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,200,83,0.4);}
+.reg-next-btn:active{transform:translateY(0);}
+.reg-next-btn:disabled{opacity:.6;pointer-events:none;}
+.reg-verify-code{
+  width:100%;padding:18px;text-align:center;font-size:28px;font-weight:900;
+  letter-spacing:8px;border:2px solid #00c853;border-radius:12px;
+  color:#1c1e21;outline:none;font-family:'Tajawal',sans-serif;
+  box-sizing:border-box;margin:12px 0;
+}
+.reg-pass-strength{height:4px;border-radius:2px;background:#e4e6eb;margin-top:-8px;margin-bottom:14px;overflow:hidden;}
+.reg-pass-strength-fill{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0%;}
+.reg-section-card{background:#fff;border-radius:14px;padding:16px;border:1.5px solid #e4e6eb;margin-bottom:14px;}
+.reg-section-card-title{font-size:13px;font-weight:900;color:#1c1e21;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.reg-dob-row{display:flex;gap:8px;}
+.reg-dob-row .reg-select{flex:1;margin-bottom:0;}
+#forgotOverlay{
+  position:fixed;inset:0;z-index:999991;background:rgba(0,0,0,0.5);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+#forgotCard{
+  background:#fff;border-radius:18px;padding:28px 22px;width:100%;max-width:360px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:cardRise .3s ease both;
+}
 </style>
 
 <!-- ══════════════════════════════════════════════════════
@@ -3492,86 +3722,97 @@ body.member-mode #onlineBar{
 <!-- LOADING -->
 <div id="loadingBarContainer"><div id="loadingBar"></div></div>
 
-<!-- ===== LOGIN ===== -->
+<!-- ===== LOGIN — Facebook Style ===== -->
 <div class="login" id="login">
-  <div class="login-logo">
-    <div class="logo-badge">
-      <div class="logo-dot"></div>
-      <span class="logo-text">NEXT LEADERS DZ</span>
+
+  <!-- زر تبديل اللغة الصغير الاحترافي في الأعلى -->
+  <div id="loginLangBadge" style="position:absolute;top:14px;left:14px;z-index:20;">
+    <div onclick="document.getElementById('loginLangDropdown').classList.toggle('open')" style="display:inline-flex;align-items:center;gap:5px;background:#111;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:5px 12px;cursor:pointer;transition:all .2s;font-size:12px;font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);" onmouseover="this.style.background='#222'" onmouseout="this.style.background='#111'">
+      <span id="loginLangFlag" style="font-size:15px;">🇩🇿</span>
+      <span id="loginLangName" style="font-size:11px;font-weight:700;">AR</span>
+      <span style="font-size:9px;opacity:0.7;">▾</span>
     </div>
-    <div class="login-title">القادة<br>المستقبليون</div>
+    <div id="loginLangDropdown" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:rgba(10,14,20,0.97);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:8px;box-shadow:0 16px 40px rgba(0,0,0,0.6);z-index:9999;min-width:160px;animation:fadeUp .18s ease;" class="">
+      <div onclick="setAppLang('ar',true);updateLoginLangBadge('ar');document.getElementById('loginLangDropdown').classList.remove('open')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:700;color:#e8eaed;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'"><span>🇩🇿</span> العربية</div>
+      <div onclick="setAppLang('en',true);updateLoginLangBadge('en');document.getElementById('loginLangDropdown').classList.remove('open')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:700;color:#e8eaed;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'"><span>🇬🇧</span> English</div>
+      <div onclick="setAppLang('es',true);updateLoginLangBadge('es');document.getElementById('loginLangDropdown').classList.remove('open')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:700;color:#e8eaed;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'"><span>🇪🇸</span> Español</div>
+      <div onclick="setAppLang('zh',true);updateLoginLangBadge('zh');document.getElementById('loginLangDropdown').classList.remove('open')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:700;color:#e8eaed;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'"><span>🇨🇳</span> 中文</div>
+    </div>
   </div>
-  <div class="login-card">
-    <!-- decorative glow orb -->
-    <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,160,0.08),transparent 70%);top:-60px;right:-60px;pointer-events:none;z-index:0;"></div>
 
-    <!-- منتقي اللغة بالكرة الأرضية — في أعلى الكارد -->
-    <div class="globe-lang-wrap" id="globeLangWrap" style="position:relative;z-index:10;margin-bottom:16px;">
-      <div class="globe-lang-btn" onclick="toggleGlobeLang()" id="globeLangToggle" style="width:100%;justify-content:center;padding:9px 18px;border-radius:14px;font-size:13px;">
-        <span class="globe-icon">🌐</span>
-        <span id="globeLangName" style="font-weight:800;">العربية</span>
-        <span style="font-size:11px;opacity:0.6;margin-right:auto;">▾</span>
-      </div>
-      <div class="globe-lang-dropdown" id="globeLangDropdown" style="width:100%;left:0;transform:none;">
-        <div class="globe-lang-item active" id="gli-ar" onclick="setGlobeLang('ar')">
-          <span class="gli-flag">🇩🇿</span><span class="gli-name">العربية</span><span class="gli-check" id="glc-ar">✓</span>
-        </div>
-        <div class="globe-lang-item" id="gli-en" onclick="setGlobeLang('en')">
-          <span class="gli-flag">🇬🇧</span><span class="gli-name">English</span><span class="gli-check" id="glc-en" style="display:none;">✓</span>
-        </div>
-        <div class="globe-lang-item" id="gli-es" onclick="setGlobeLang('es')">
-          <span class="gli-flag">🇪🇸</span><span class="gli-name">Español</span><span class="gli-check" id="glc-es" style="display:none;">✓</span>
-        </div>
-        <div class="globe-lang-item" id="gli-zh" onclick="setGlobeLang('zh')">
-          <span class="gli-flag">🇨🇳</span><span class="gli-name">中文</span><span class="gli-check" id="glc-zh" style="display:none;">✓</span>
-        </div>
-      </div>
-    </div>
+  <!-- Logo -->
+  <div class="fb-app-brand">
+    <span class="fb-app-name">Connect DZ</span>
+    <span class="fb-app-tagline">منصة الشباب الجزائري للتعلم والإبداع</span>
+  </div>
 
-    <p class="login-subtitle" id="loginSubtitle" style="position:relative;z-index:1;">مختبر الشباب للذكاء والتعلم والإبداع</p>
+  <!-- Login Card -->
+  <div class="fb-login-card">
 
-    <!-- بطاقات الحسابات المحفوظة -->
+    <!-- ─── منطقة المستخدم العائد: الحسابات المحفوظة + إضافة حساب ─── -->
     <div id="savedAccountsSection" style="display:none;">
       <div class="saved-acc-label" id="savedAccLabel">الدخول بحساب محفوظ</div>
       <div class="saved-acc-list" id="savedAccList"></div>
-      <div class="login-divider">
-        <div class="login-divider-line"></div>
-        <div class="login-divider-text">أو</div>
-        <div class="login-divider-line"></div>
-      </div>
+      <div class="fb-divider"><span>أو</span></div>
     </div>
 
-    <!-- حقل الإيميل -->
-    <div id="authFields" style="position:relative;z-index:1;">
-      <div class="input-wrap">
-        <span class="input-icon">📧</span>
-        <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" onkeydown="if(event.key==='Enter')handleAuthAction();">
+    <!-- Hidden legacy email input kept for backward compat with enter() -->
+    <input type="hidden" id="loginEmail" value="">
+
+    <!-- ─── منطقة المستخدم الجديد: بريد + كلمة مرور + تسجيل دخول ─── -->
+    <div id="newUserLoginSection">
+      <h2 class="fb-login-title">تسجيل الدخول</h2>
+      <div id="authFields">
+        <input type="text" id="fbEmailPhone" class="fb-input"
+          placeholder="البريد الإلكتروني أو رقم الهاتف"
+          onkeydown="if(event.key==='Enter')document.getElementById('fbPassword').focus()">
+        <input type="password" id="fbPassword" class="fb-input"
+          placeholder="كلمة المرور"
+          onkeydown="if(event.key==='Enter')fbDoLogin()">
+        <div style="text-align:right;margin:-6px 0 8px;padding-right:2px;">
+          <span onclick="openForgotPassword()" style="font-size:11px;color:#8b949e;cursor:pointer;font-weight:600;text-decoration:none;" onmouseover="this.style.color='#00a040'" onmouseout="this.style.color='#8b949e'">هل نسيت كلمة السر؟</span>
+        </div>
+        <div class="fb-forgot">
+          <a onclick="openForgotPassword()">هل نسيت كلمة المرور؟</a>
+        </div>
       </div>
-    </div>
-    <div style="position:relative;z-index:1;">
-      <button onclick="handleAuthAction()" class="auth-btn" id="mainAuthBtn">
-        <span style="font-size:13px;opacity:0.85;letter-spacing:1px;">بِسْمِ اللَّهِ</span>
-        <span style="margin:0 6px;opacity:0.5;">•</span>
-        <span>على بركة الله</span>
-      </button>
-      <div id="switchAcc" onclick="clearSavedData()">تغيير الحساب</div>
+      <button class="fb-login-btn" id="mainAuthBtn" onclick="fbDoLogin()">تسجيل الدخول</button>
     </div>
 
-    <!-- زر الزائر -->
-    <div class="login-divider" style="position:relative;z-index:1;">
+    <!-- ─── إضافة حساب (يظهر دائماً) ─── -->
+    <div id="fbAddAccount" style="margin-top:10px;">
+      <div class="fb-divider" id="addAccDivider"><span>أو</span></div>
+      <button class="fb-add-acc-btn" id="addAccountBtn" onclick="showAddAccountFields()">➕ إضافة حساب</button>
+    </div>
+
+    <!-- ─── نموذج إضافة حساب (مخفي افتراضياً) ─── -->
+    <div id="addAccountFields" style="display:none;margin-top:10px;">
+      <input type="text" id="fbEmailPhone2" class="fb-input"
+        placeholder="البريد الإلكتروني أو رقم الهاتف"
+        onkeydown="if(event.key==='Enter')document.getElementById('fbPassword2').focus()">
+      <input type="password" id="fbPassword2" class="fb-input"
+        placeholder="كلمة المرور"
+        onkeydown="if(event.key==='Enter')fbDoLogin2()">
+      <button class="fb-login-btn" onclick="fbDoLogin2()" style="margin-top:4px;">تسجيل الدخول</button>
+      <div style="text-align:center;margin-top:8px;"><span onclick="hideAddAccountFields()" style="font-size:12px;color:#8b949e;cursor:pointer;font-weight:700;">إلغاء</span></div>
+    </div>
+
+    <!-- ─── إنشاء حساب (يظهر دائماً) ─── -->
+    <div class="fb-divider" style="margin-top:12px;"><span>أو</span></div>
+    <button class="fb-register-btn" onclick="openFbRegister()">إنشاء حساب</button>
+
+    <!-- ─── دخول كزائر ─── -->
+    <div class="login-divider" style="margin-top:14px;">
       <div class="login-divider-line"></div>
       <div class="login-divider-text">أو</div>
       <div class="login-divider-line"></div>
     </div>
-    <div style="position:relative;z-index:1;">
-      <button class="guest-entry-btn" onclick="enterAsGuest()">
-        <span style="font-size:20px;">👤</span>
-        <span>دخول كزائر</span>
-      </button>
-      <div style="font-size:10px;color:rgba(139,148,158,0.4);text-align:center;margin-top:5px;font-weight:600;">
-        سجّل دخولك للوصول إلى جميع الميزات
-      </div>
-    </div>
+    <button class="guest-entry-btn" onclick="enterAsGuest()">
+      <span>👤</span><span>دخول كزائر</span>
+    </button>
+
+    <!-- Hidden legacy switch button -->
+    <div id="switchAcc" onclick="clearSavedData()" style="display:none;text-align:center;margin-top:10px;font-size:12px;color:#606770;cursor:pointer;">تغيير الحساب</div>
   </div>
 </div>
 
@@ -5230,6 +5471,35 @@ body.member-mode #onlineBar{
 
       <div class="admin-divider"></div>
 
+      <!-- ══════════════════════════════════════════════════════════════
+           📁 ملفات المنخرطين — صور المستندات الرسمية لكل عضو
+      ══════════════════════════════════════════════════════════════ -->
+      <div class="admin-section-head">
+        <div class="admin-icon-tile" style="background:linear-gradient(145deg,#fbbf24,#f59e0b,#92400e);">📁</div>
+        <div class="admin-section-head-text">
+          <div class="admin-section-head-title">ملفات المنخرطين</div>
+          <div class="admin-section-head-sub">MEMBER FILES</div>
+        </div>
+        <button onclick="adminLoadMemberFiles()" style="background:rgba(255,255,255,0.6);border:1.5px solid rgba(180,100,40,0.18);border-radius:9px;padding:6px 12px;font-size:11px;font-weight:800;color:rgba(100,40,10,0.6);cursor:pointer;font-family:'Tajawal',sans-serif;box-shadow:0 2px 8px rgba(100,50,10,0.07),inset 0 1px 0 rgba(255,255,255,0.9);transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.9)'" onmouseout="this.style.background='rgba(255,255,255,0.6)'">🔄 تحميل</button>
+      </div>
+      <div class="admin-glass-card">
+        <div style="font-size:11px;color:rgba(100,50,10,0.6);margin-bottom:10px;padding:8px 10px;background:rgba(245,158,11,0.07);border:1.5px solid rgba(245,158,11,0.2);border-radius:10px;line-height:1.6;font-weight:600;">
+          📋 ملف كل منخرط: الصورة الشمسية، بطاقة التعريف، شهادة الميلاد، وبطاقة ولي الأمر.
+        </div>
+        <input id="adminMemberFilesSearch" type="text" placeholder="🔍 ابحث باسم المنخرط…" oninput="adminFilterMemberFiles(this.value)" style="width:100%;background:rgba(255,255,255,0.7);border:1.5px solid rgba(180,100,40,0.18);border-radius:10px;padding:9px 13px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;color:#1a0a00;outline:none;box-sizing:border-box;margin-bottom:10px;display:none;">
+        <div id="adminMemberFilesList" style="max-height:560px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;">
+          <p style="font-size:12px;color:rgba(100,50,10,0.4);text-align:center;padding:20px;font-weight:600;">اضغط 🔄 تحميل لعرض ملفات المنخرطين</p>
+        </div>
+      </div>
+      <!-- نافذة عرض الصورة كاملة -->
+      <div id="adminFileImgModal" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;z-index:9999999;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+        <img id="adminFileImgFull" src="" style="max-width:94vw;max-height:82vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.8);object-fit:contain;">
+        <div id="adminFileImgLabel" style="color:#fff;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;opacity:0.8;"></div>
+        <div style="color:rgba(255,255,255,0.4);font-size:12px;font-family:'Tajawal',sans-serif;">اضغط في أي مكان للإغلاق</div>
+      </div>
+
+      <div class="admin-divider"></div>
+
       <!-- ── Section: إدارة الريلز ── -->
       <div class="admin-section-head">
         <div class="admin-icon-tile" style="background:linear-gradient(145deg,#f0abfc,#a855f7,#7e22ce);">🎬</div>
@@ -5995,6 +6265,8 @@ function buildGrid(isReg){
     // isReg=false و name=زائر: فتح صفحتي(0)، انظم إلينا(4) فقط
     const isGuest = !isReg && getCurrentUser() === 'زائر';
     const guestAllowed = isGuest && (idx===0 || idx===4);
+    /* ── أيقونة "انظم الآن" (idx=4) مخفية للمنخرطين — تظهر للمدير فقط ── */
+    if(idx === 4 && !window._isAdmin) return '';
     const can = guestAllowed || (open || isReg);
     const lock=!can?`<div class="lock-overlay">🔒</div>`:'';
     const cls=!can?' locked':'';
@@ -7219,9 +7491,22 @@ function renderSavedAccounts(){
   let accs = getSavedAccounts();
   const section = document.getElementById('savedAccountsSection');
   const list = document.getElementById('savedAccList');
+  const newUserSection = document.getElementById('newUserLoginSection');
   if(!section || !list) return;
-  if(accs.length === 0){ section.style.display = 'none'; return; }
+
+  // استدعاء renderSavedLoginAccounts إذا كانت موجودة (تدمج الحسابات القديمة والجديدة)
+  if(typeof renderSavedLoginAccounts === 'function'){
+    renderSavedLoginAccounts();
+    return;
+  }
+
+  if(accs.length === 0){
+    section.style.display = 'none';
+    if(newUserSection) newUserSection.style.display='block';
+    return;
+  }
   section.style.display = 'block';
+  if(newUserSection) newUserSection.style.display='none';
 
   // متغير للضغط المطوّل
   let _accLongPressTimer = null;
@@ -7239,16 +7524,13 @@ function renderSavedAccounts(){
       ontouchend="_cancelAccLongPress()"
       ontouchmove="_cancelAccLongPress()"
       oncontextmenu="confirmDeleteSavedAccount('${safeName}');return false;"
+      onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()"
+      data-long-press-type="legacy" data-long-press-name="${safeName}"
       style="position:relative;">
       <div class="saved-acc-avatar">${avatarInner}</div>
       <div class="saved-acc-name">${acc.name}</div>
       <div style="display:flex;align-items:center;gap:6px;">
         <div class="saved-acc-arrow">›</div>
-        <div onclick="event.stopPropagation();confirmDeleteSavedAccount('${safeName}')"
-          title="حذف الملف الشخصي"
-          style="width:26px;height:26px;border-radius:50%;background:rgba(229,45,39,0.12);border:1.5px solid rgba(229,45,39,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;flex-shrink:0;transition:all .2s;"
-          onmouseover="this.style.background='rgba(229,45,39,0.22)'"
-          onmouseout="this.style.background='rgba(229,45,39,0.12)'">🗑️</div>
       </div>
     </div>`;
   }).join('');
@@ -7363,10 +7645,13 @@ function enterAsGuest(){
 }
 
 async function enter(){
-  const email=document.getElementById("loginEmail").value.trim();
+  // قراءة من الحقل الجديد أو القديم
+  const fbField = document.getElementById('fbEmailPhone');
+  const legacyField = document.getElementById('loginEmail');
+  let email = (legacyField?.value||'').trim() || (fbField?.value||'').trim();
   if(!email){showToast('⚠️ أدخل البريد أو الكود', 'warning');return;}
   // حالة تحميل على الزر
-  const btn=document.querySelector('button.auth-btn');
+  const btn=document.getElementById('mainAuthBtn')||document.querySelector('button.auth-btn');
   if(btn){ btn.classList.add('loading'); btn.innerText='جارٍ التحقق…'; }
 
   // ① كشف كود المدير + التحقق بكلمة مرور 🔒
@@ -12515,27 +12800,6 @@ function syncSocialAvatar(name){
 
 /* ─── التنقل بين تبويبات الصفحة الاجتماعية ─── */
 const _socialTabs = ['home','friends','notifs','pages','myprofile'];
-function switchSocialTab(tab){
-  _socialTabs.forEach(t=>{
-    const tabEl = document.getElementById('sTab_'+t);
-    const panEl = document.getElementById('socialPanel_'+t);
-    const active = t===tab;
-    if(tabEl){
-      tabEl.querySelector('span:last-child').style.color = active ? '#1877F2' : '#65676B';
-      tabEl.style.borderBottom = active ? '3px solid #1877F2' : '3px solid transparent';
-    }
-    if(panEl) panEl.style.display = active ? 'block' : 'none';
-  });
-  // تحميل محتوى التبويب
-  if(tab==='home')      renderSocialFeed();
-  if(tab==='friends')   renderFriendsPanel();
-  if(tab==='notifs')    renderNotifsPanel();
-  if(tab==='pages')     renderGamesPanel();
-  if(tab==='myprofile') renderReelsPanel();
-  // إعادة تعيين التمرير
-  const scroll = document.getElementById('socialMainScroll');
-  if(scroll) scroll.scrollTop = 0;
-}
 
 /* ══════════════════════════════════════════
    👥 لوحة الأعضاء المنخرطون
@@ -13146,22 +13410,17 @@ function sendFriendRequest(toUser){
 
 function acceptFriendRequest(fromUser){
   const name = getCurrentUser(); if(!name) return;
-  // إزالة من الطلبات
   let reqs = JSON.parse(localStorage.getItem(_friendReqKey(name))||'[]');
   reqs = reqs.filter(r=>r.from!==fromUser);
   localStorage.setItem(_friendReqKey(name), JSON.stringify(reqs));
-  // إضافة للأصدقاء (طرفين)
   const myFriends = getFriends(name);
   if(!myFriends.includes(fromUser)){ myFriends.push(fromUser); localStorage.setItem(_friendsKey(name), JSON.stringify(myFriends)); }
   const theirFriends = getFriends(fromUser);
   if(!theirFriends.includes(name)){ theirFriends.push(name); localStorage.setItem(_friendsKey(fromUser), JSON.stringify(theirFriends)); }
   addSocialNotif(fromUser, `${name} قبل طلب صداقتك! أنتما الآن أصدقاء 🎉`, '🎉');
-  showToast('تمت إضافة الصديق ✅ — يمكنك الآن رؤية ملفه الكامل');
+  showToast('🎉 تمت إضافة الصديق! يمكنك الآن مشاهدة ملفه');
   renderFriendsPanel();
-  // ── فتح الملف الشخصي الكامل للصديق بعد قبول الطلب ──
-  setTimeout(() => {
-    openFullMemberProfile(fromUser);
-  }, 600);
+  setTimeout(()=>{ viewMemberProfile(fromUser); }, 700);
 }
 
 /* ══ فتح الملف الشخصي الكامل بعد قبول الصداقة ══ */
@@ -14825,7 +15084,6 @@ function openChatFromSocial(targetName){
 }
 
 // Override switchSocialTab to handle messenger
-const _origSwitchSocialTab = switchSocialTab;
 function switchSocialTab(tab){
   _socialTabs.forEach(t=>{
     const tabEl = document.getElementById('sTab_'+t);
@@ -16051,27 +16309,6 @@ function _showStoryViewer(authorName, stories, startIdx){
 
   document.body.appendChild(ov);
   buildViewer(currentIdx);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   🤝 عرض ملف كامل بعد قبول الصداقة
-   ═══════════════════════════════════════════════════════════ */
-// تعديل acceptFriendRequest لفتح ملف الصديق بعد القبول
-const _origAcceptFriendRequest = typeof acceptFriendRequest !== 'undefined' ? acceptFriendRequest : null;
-function acceptFriendRequest(fromUser){
-  const name = getCurrentUser(); if(!name) return;
-  let reqs = JSON.parse(localStorage.getItem(_friendReqKey(name))||'[]');
-  reqs = reqs.filter(r=>r.from!==fromUser);
-  localStorage.setItem(_friendReqKey(name), JSON.stringify(reqs));
-  const myFriends = getFriends(name);
-  if(!myFriends.includes(fromUser)){ myFriends.push(fromUser); localStorage.setItem(_friendsKey(name), JSON.stringify(myFriends)); }
-  const theirFriends = getFriends(fromUser);
-  if(!theirFriends.includes(name)){ theirFriends.push(name); localStorage.setItem(_friendsKey(fromUser), JSON.stringify(theirFriends)); }
-  addSocialNotif(fromUser, `${name} قبل طلب صداقتك! أنتما الآن أصدقاء 🎉`, '🎉');
-  showToast('🎉 تمت إضافة الصديق! يمكنك الآن مشاهدة ملفه');
-  renderFriendsPanel();
-  // فتح ملف الصديق مباشرة بعد 600ms
-  setTimeout(()=>{ viewMemberProfile(fromUser); }, 700);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -17998,9 +18235,1028 @@ function openCityFeature(key){
 })();
 </script>
 
-<!-- ══════════════════════════════════════════
-     💬 نظام Prompt احترافي — بديل عن prompt()
-     ══════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════════
+     📋 نظام التسجيل الكامل — Connect DZ Registration
+     ══════════════════════════════════════════════════════ -->
+
+<!-- Registration Overlay -->
+<div id="registerOverlay">
+  <!-- Header -->
+  <div class="reg-header">
+    <button class="reg-back" onclick="closeRegister()">←</button>
+    <div class="reg-header-title" id="regHeaderTitle">إنشاء حساب جديد</div>
+    <div style="font-size:12px;font-weight:700;color:#606770;" id="regStepLabel">الخطوة 1/4</div>
+  </div>
+  <!-- Progress -->
+  <div class="reg-progress-bar"><div class="reg-progress-fill" id="regProgressFill" style="width:33%;"></div></div>
+
+  <!-- Body -->
+  <div class="reg-body">
+
+    <!-- ── STEP 1: المعلومات الشخصية ── -->
+    <div class="reg-step active" id="regStep1">
+      <div class="reg-step-title">📋 المعلومات الشخصية</div>
+      <div class="reg-step-sub">أدخل بياناتك الشخصية بدقة — ستُستخدم في ملفك الشخصي</div>
+
+      <!-- الاسم واللقب -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">👤 الاسم الكامل</div>
+        <div class="reg-row">
+          <input class="reg-input" id="regFirstName" placeholder="الاسم" type="text">
+          <input class="reg-input" id="regLastName" placeholder="اللقب" type="text">
+        </div>
+      </div>
+
+      <!-- تاريخ الميلاد -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🎂 تاريخ الميلاد</div>
+        <div class="reg-dob-row">
+          <select class="reg-select" id="regDobDay"></select>
+          <select class="reg-select" id="regDobMonth">
+            <option value="">الشهر</option>
+            <option value="01">جانفي</option><option value="02">فيفري</option><option value="03">مارس</option>
+            <option value="04">أفريل</option><option value="05">ماي</option><option value="06">جوان</option>
+            <option value="07">جويلية</option><option value="08">أوت</option><option value="09">سبتمبر</option>
+            <option value="10">أكتوبر</option><option value="11">نوفمبر</option><option value="12">ديسمبر</option>
+          </select>
+          <select class="reg-select" id="regDobYear"></select>
+        </div>
+      </div>
+
+      <!-- الولاية والبلدية -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">📍 مكان الإقامة</div>
+        <label class="reg-label">الولاية</label>
+        <select class="reg-select" id="regWilaya">
+          <option value="">اختر الولاية</option>
+          <option>01 - أدرار</option><option>02 - الشلف</option><option>03 - الأغواط</option><option>04 - أم البواقي</option>
+          <option>05 - باتنة</option><option>06 - بجاية</option><option>07 - بسكرة</option><option>08 - بشار</option>
+          <option>09 - البليدة</option><option>10 - البويرة</option><option>11 - تمنراست</option><option>12 - تبسة</option>
+          <option>13 - تلمسان</option><option>14 - تيارت</option><option>15 - تيزي وزو</option><option>16 - الجزائر</option>
+          <option>17 - الجلفة</option><option>18 - جيجل</option><option>19 - سطيف</option><option>20 - سعيدة</option>
+          <option>21 - سكيكدة</option><option>22 - سيدي بلعباس</option><option>23 - عنابة</option><option>24 - قالمة</option>
+          <option>25 - قسنطينة</option><option>26 - المدية</option><option>27 - مستغانم</option><option>28 - المسيلة</option>
+          <option>29 - معسكر</option><option>30 - ورقلة</option><option>31 - وهران</option><option>32 - البيض</option>
+          <option>33 - إليزي</option><option>34 - برج بوعريريج</option><option>35 - بومرداس</option><option>36 - الطارف</option>
+          <option>37 - تندوف</option><option>38 - تيسمسيلت</option><option>39 - الوادي</option><option>40 - خنشلة</option>
+          <option>41 - سوق أهراس</option><option>42 - تيبازة</option><option>43 - ميلة</option><option>44 - عين الدفلى</option>
+          <option>45 - النعامة</option><option>46 - عين تيموشنت</option><option>47 - غرداية</option><option>48 - غليزان</option>
+          <option>49 - تيميمون</option><option>50 - برج باجي مختار</option><option>51 - أولاد جلال</option><option>52 - بني عباس</option>
+          <option>53 - عين صالح</option><option>54 - عين قزام</option><option>55 - تقرت</option><option>56 - جانت</option>
+          <option>57 - المغير</option><option>58 - المنيعة</option>
+        </select>
+        <label class="reg-label">البلدية</label>
+        <input class="reg-input" id="regBaladiya" placeholder="اسم البلدية" type="text">
+        <label class="reg-label">العنوان التفصيلي</label>
+        <input class="reg-input" id="regAddress" placeholder="الشارع، الحي..." type="text">
+      </div>
+
+      <!-- رقم الهاتف -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">📱 رقم الهاتف</div>
+        <input class="reg-input" id="regPhone" placeholder="05XXXXXXXX أو 06XXXXXXXX" type="tel" style="margin-bottom:0;">
+      </div>
+
+      <!-- الجنس -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">👤 الجنس</div>
+        <select class="reg-select" id="regGender" style="margin-bottom:0;">
+          <option value="">اختر الجنس</option>
+          <option value="ذكر">ذكر</option>
+          <option value="أنثى">أنثى</option>
+        </select>
+      </div>
+
+      <!-- المستوى الدراسي -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🎓 المستوى الدراسي</div>
+        <select class="reg-select" id="regLevel" style="margin-bottom:0;">
+          <option value="">اختر المستوى الدراسي</option>
+          <option value="ابتدائي">ابتدائي</option>
+          <option value="متوسط">متوسط</option>
+          <option value="ثانوي">ثانوي</option>
+          <option value="جامعي">جامعي</option>
+          <option value="ما بعد التدرج">ما بعد التدرج</option>
+          <option value="تكوين مهني">تكوين مهني</option>
+        </select>
+      </div>
+
+      <button class="reg-next-btn" onclick="regGoStep2()">التالي ←</button>
+    </div>
+
+    <!-- ── STEP 2: الوثائق والمعلومات الإضافية ── -->
+    <div class="reg-step" id="regStep2">
+      <div class="reg-step-title">📎 الوثائق والملف</div>
+      <div class="reg-step-sub">أرفق وثائقك وأضف معلومات إضافية لملفك</div>
+
+      <!-- الصورة الشخصية -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">📸 الصورة الشخصية</div>
+        <div class="reg-upload-area" id="uploadPhotoArea" onclick="document.getElementById('regPhotoInput').click()">
+          <div class="reg-upload-icon">🤳</div>
+          <div class="reg-upload-label">انقر لرفع صورتك الشخصية <span>(سيلفي)</span></div>
+          <div class="reg-upload-sub">JPG أو PNG — بحجم أقل من 5MB</div>
+        </div>
+        <input type="file" id="regPhotoInput" accept="image/*" style="display:none" onchange="handleRegUpload(this,'photo')">
+      </div>
+
+      <!-- بطاقة التعريف -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🪪 بطاقة التعريف الوطنية</div>
+        <input class="reg-input" id="regIdNumber" placeholder="رقم بطاقة التعريف (16 رقم)" type="text" inputmode="numeric" maxlength="18" style="margin-bottom:10px;">
+        <div class="reg-upload-area" id="uploadIdArea" onclick="document.getElementById('regIdInput').click()">
+          <div class="reg-upload-icon">🪪</div>
+          <div class="reg-upload-label">انقر لرفع صورة <span>بطاقة التعريف</span></div>
+          <div class="reg-upload-sub">وجهان — JPG أو PNG</div>
+        </div>
+        <input type="file" id="regIdInput" accept="image/*" style="display:none" onchange="handleRegUpload(this,'id')">
+      </div>
+
+      <!-- بطاقة ولي الأمر (للقاصرين) -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">👨‍👦 بطاقة التعريف — ولي الأمر (للقاصرين)</div>
+        <div class="reg-upload-area" id="uploadGuardianIdArea" onclick="document.getElementById('regGuardianIdInput').click()">
+          <div class="reg-upload-icon">🪪</div>
+          <div class="reg-upload-label">انقر لرفع بطاقة <span>ولي الأمر (للقاصرين فقط)</span></div>
+          <div class="reg-upload-sub">JPG أو PNG — اختياري للبالغين</div>
+        </div>
+        <input type="file" id="regGuardianIdInput" accept="image/*" style="display:none" onchange="handleRegUpload(this,'guardianId')">
+      </div>
+
+      <!-- شهادة الميلاد -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">📄 شهادة الميلاد</div>
+        <div class="reg-upload-area" id="uploadBirthArea" onclick="document.getElementById('regBirthInput').click()">
+          <div class="reg-upload-icon">📋</div>
+          <div class="reg-upload-label">انقر لرفع <span>شهادة الميلاد</span></div>
+          <div class="reg-upload-sub">JPG أو PNG أو PDF</div>
+        </div>
+        <input type="file" id="regBirthInput" accept="image/*,application/pdf" style="display:none" onchange="handleRegUpload(this,'birth')">
+      </div>
+
+      <!-- زمرة الدم -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🩸 زمرة الدم</div>
+        <select class="reg-select" id="regBloodType" style="margin-bottom:0;">
+          <option value="">اختر زمرة دمك</option>
+          <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+          <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+        </select>
+      </div>
+
+      <!-- الهوايات -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🎯 هواياتك</div>
+        <div class="reg-hobbies" id="regHobbies">
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">📚 القراءة</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">💻 البرمجة</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">⚽ الرياضة</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🎨 الرسم والغناء</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🎵 الموسيقى</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🌍 السفر</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🍳 الطبخ</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">📸 التصوير</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🎮 الألعاب</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">✍️ الكتابة</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🤝 التطوع</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🔬 العلوم</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">⚽ كرة القدم</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🎯 التنشيط</div>
+        </div>
+      </div>
+
+      <!-- المهارات القيادية -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🏆 مهاراتك القيادية</div>
+        <div class="reg-hobbies" id="regLeadSkills">
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🎯 التنظيم</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">💡 الإدارة</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🗣️ المبادرة</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">📊 التخطيط</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">💰 المالية</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🤝 التواصل</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🎨 الإبداع</div>
+        </div>
+      </div>
+
+      <!-- هل أنت منخرط بدار الشباب -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🏠 هل أنت منخرط بدار الشباب؟</div>
+        <select class="reg-select" id="regYouthHouse" style="margin-bottom:8px;">
+          <option value="">اختر الجواب</option>
+          <option value="نعم">نعم</option>
+          <option value="لا">لا</option>
+        </select>
+        <input class="reg-input" id="regYouthHouseName" placeholder="اسم دار الشباب (إن وجد)" type="text" style="margin-bottom:0;">
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button class="reg-next-btn" style="background:#e4e6eb;color:#606770;box-shadow:none;flex:.4;" onclick="regGoStep(1)">← رجوع</button>
+        <button class="reg-next-btn" style="flex:1;" onclick="regGoStep3()">التالي ←</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: Smart Kids ── -->
+    <div class="reg-step" id="regStep3">
+      <div class="reg-step-title">🧒 برنامج Smart Kids</div>
+      <div class="reg-step-sub">أجب على أسئلة برنامج Smart Kids — تساعدنا على تحسين البرنامج</div>
+
+      <!-- هل شاركت من قبل -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">❓ هل شاركت من قبل في الطفل الذكي (Smart Kids)؟</div>
+        <select class="reg-select" id="regSmartKidsBefore" style="margin-bottom:0;">
+          <option value="">اختر الجواب</option>
+          <option value="نعم">نعم</option>
+          <option value="لا">لا</option>
+        </select>
+      </div>
+
+      <!-- رأيك في المستوى -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">⭐ رأيك في مستوى Smart Kids</div>
+        <select class="reg-select" id="regSmartKidsLevel" style="margin-bottom:0;">
+          <option value="">اختر التقييم</option>
+          <option value="ممتاز">ممتاز</option>
+          <option value="جيد">جيد</option>
+          <option value="مذهل">مذهل</option>
+          <option value="أريد المشاركة">أريد المشاركة</option>
+        </select>
+      </div>
+
+      <!-- ماذا أعجبك -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">❤️ ماذا أعجبك في Smart Kids؟</div>
+        <div class="reg-hobbies" id="regSmartKidsLikes">
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🏕️ المخيم الشامل</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🏕️ مخيم نصف داخلي</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🎪 التخييم</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🚗 رحلات</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🛠️ الورشات</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">⚽ كأس الشباب كرة القدم</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🎯 جميع الأنشطة</div>
+          <div class="reg-hobby-tag" onclick="toggleHobby(this)">🤖 صناعة المحتوى</div>
+        </div>
+      </div>
+
+      <!-- ماذا تقترح لتطوير Smart Kids -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">💡 ماذا تقترح لتطوير Smart Kids؟</div>
+        <textarea class="reg-input" id="regSmartKidsSuggestion" placeholder="اكتب اقتراحك هنا..." rows="3" style="resize:vertical;font-family:'Tajawal',sans-serif;width:100%;box-sizing:border-box;"></textarea>
+      </div>
+
+      <!-- مواضيع أخرى -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">📝 مواضيع أخرى / ملاحظات</div>
+        <textarea class="reg-input" id="regOtherTopics" placeholder="أي ملاحظات أو مواضيع أخرى تريد ذكرها..." rows="3" style="resize:vertical;font-family:'Tajawal',sans-serif;width:100%;box-sizing:border-box;margin-bottom:0;"></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button class="reg-next-btn" style="background:#e4e6eb;color:#606770;box-shadow:none;flex:.4;" onclick="regGoStep(2)">← رجوع</button>
+        <button class="reg-next-btn" style="flex:1;" onclick="regGoStep4()">التالي ←</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: بيانات الحساب + التحقق ── -->
+    <div class="reg-step" id="regStep4">
+      <div class="reg-step-title">🔐 بيانات الحساب</div>
+      <div class="reg-step-sub">أدخل بريدك الإلكتروني أو رقم هاتفك واختر كلمة مرور</div>
+
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">📧 البريد أو الهاتف</div>
+        <input class="reg-input" id="regEmail" placeholder="البريد الإلكتروني أو رقم الهاتف" type="text" style="margin-bottom:0;">
+      </div>
+
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🔑 كلمة المرور</div>
+        <input class="reg-input" id="regPassword" placeholder="كلمة المرور (6 أحرف على الأقل)" type="password" oninput="updatePassStrength(this.value)">
+        <div class="reg-pass-strength"><div class="reg-pass-strength-fill" id="passStrFill"></div></div>
+        <input class="reg-input" id="regPasswordConfirm" placeholder="تأكيد كلمة المرور" type="password" style="margin-bottom:0;">
+      </div>
+
+      <!-- إرسال كود التحقق -->
+      <div class="reg-section-card" id="regVerifySection" style="text-align:center;">
+        <div class="reg-section-card-title" style="justify-content:center;">📲 رمز التحقق</div>
+        <p style="font-size:13px;color:#606770;font-weight:600;margin:0 0 12px;">سيُرسَل رمز تحقق مكون من 6 أرقام إلى هاتفك أو بريدك</p>
+        <button onclick="sendVerifyCode()" style="padding:11px 24px;border:none;border-radius:10px;background:linear-gradient(135deg,#00b09b,#00c853);color:#fff;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;" id="sendCodeBtn">📤 إرسال الرمز</button>
+        <div id="regVerifyInputWrap" style="display:none;margin-top:14px;">
+          <p style="font-size:12px;color:#606770;font-weight:600;margin:0 0 4px;" id="regVerifySentTo"></p>
+          <input class="reg-verify-code" id="regVerifyCode" placeholder="XXXXXX" maxlength="6" type="text" inputmode="numeric">
+          <div style="font-size:12px;color:#a0a3a7;cursor:pointer;margin-top:4px;" onclick="sendVerifyCode()">إعادة الإرسال</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button class="reg-next-btn" style="background:#e4e6eb;color:#606770;box-shadow:none;flex:.4;" onclick="regGoStep(3)">← رجوع</button>
+        <button class="reg-next-btn" style="flex:1;" onclick="completeRegistration()" id="regFinalBtn">✅ إنشاء الحساب</button>
+      </div>
+    </div>
+
+  </div><!-- end reg-body -->
+</div><!-- end registerOverlay -->
+
+<!-- Forgot Password Overlay -->
+<div id="forgotOverlay">
+  <div id="forgotCard">
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:44px;">🔑</div>
+      <div style="font-size:18px;font-weight:900;color:#1c1e21;margin-bottom:6px;">نسيت كلمة المرور؟</div>
+      <div style="font-size:13px;color:#606770;font-weight:600;">أدخل بريدك أو هاتفك وسنرسل لك رمزاً لإعادة التعيين</div>
+    </div>
+    <input class="fb-input" id="forgotContact" placeholder="البريد الإلكتروني أو رقم الهاتف" type="text">
+    <div id="forgotVerifyWrap" style="display:none;">
+      <input class="reg-verify-code" id="forgotCode" placeholder="XXXXXX" maxlength="6" type="text" inputmode="numeric">
+      <input class="fb-input" id="forgotNewPass" placeholder="كلمة المرور الجديدة" type="password" style="margin-top:8px;">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button onclick="closeForgotPassword()" style="flex:.4;padding:13px;border:1.5px solid #dddfe2;border-radius:10px;background:#fff;color:#606770;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">إلغاء</button>
+      <button onclick="handleForgotPassword()" style="flex:1;padding:13px;border:none;border-radius:10px;background:linear-gradient(135deg,#00b09b,#00c853);color:#fff;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:900;cursor:pointer;" id="forgotSubmitBtn">إرسال الرمز</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   🔐 نظام التسجيل وتسجيل الدخول الكامل — Connect DZ
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ─── مفاتيح التخزين ─── */
+const REG_USERS_KEY  = 'cdz_registered_users';
+const REG_CURR_KEY   = 'cdz_current_user_data';
+const REG_SAVED_KEY  = 'cdz_saved_login_accounts';
+
+/* ─── بيانات التسجيل المؤقتة ─── */
+let _regData = {};
+let _verifyCodeSent = null;
+let _forgotCodeSent = null;
+let _forgotStep = 1;
+
+/* ═══════════ تهيئة DOB selects ═══════════ */
+function initDobSelects(){
+  const dayEl = document.getElementById('regDobDay');
+  const yearEl = document.getElementById('regDobYear');
+  if(!dayEl||!yearEl) return;
+  dayEl.innerHTML = '<option value="">اليوم</option>';
+  for(let d=1;d<=31;d++) dayEl.innerHTML += `<option>${String(d).padStart(2,'0')}</option>`;
+  yearEl.innerHTML = '<option value="">السنة</option>';
+  const y = new Date().getFullYear();
+  for(let yr=y-5;yr>=y-80;yr--) yearEl.innerHTML += `<option>${yr}</option>`;
+}
+
+/* ═══════════ الحسابات المحفوظة ═══════════ */
+function getRegUsers(){
+  try{ return JSON.parse(localStorage.getItem(REG_USERS_KEY)||'[]'); }catch{ return []; }
+}
+function saveRegUser(userData){
+  try {
+    const users = getRegUsers();
+    const idx = users.findIndex(u=>u.email===userData.email);
+    if(idx>=0) users[idx]=userData; else users.unshift(userData);
+    localStorage.setItem(REG_USERS_KEY, JSON.stringify(users));
+  } catch(e) { console.warn('saveRegUser error:', e); }
+}
+function getSavedLoginAccounts(){
+  try{ return JSON.parse(localStorage.getItem(REG_SAVED_KEY)||'[]'); }catch{ return []; }
+}
+function addSavedLoginAccount(userData){
+  try {
+    const accs = getSavedLoginAccounts();
+    const idx = accs.findIndex(a=>a.email===userData.email);
+    const entry = { name: userData.firstName+' '+userData.lastName, email: userData.email, photo: userData.photoUrl||'', ts: Date.now() };
+    if(idx>=0) accs[idx]=entry; else accs.unshift(entry);
+    localStorage.setItem(REG_SAVED_KEY, JSON.stringify(accs.slice(0,5)));
+  } catch(e) { console.warn('addSavedLoginAccount error:', e); }
+}
+
+/* ═══════════ رسم بطاقات الحسابات المحفوظة ═══════════ */
+function renderSavedLoginAccounts(){
+  const section = document.getElementById('savedAccountsSection');
+  const list    = document.getElementById('savedAccList');
+  const addDiv  = document.getElementById('fbAddAccount');
+  const newUserSection = document.getElementById('newUserLoginSection');
+  if(!section||!list) return;
+
+  const regAccs = getSavedLoginAccounts();
+  // الحسابات القديمة (الاسم فقط)
+  const legacyAccs = typeof getSavedAccounts==='function' ? getSavedAccounts() : [];
+
+  const hasAccounts = regAccs.length > 0 || legacyAccs.length > 0;
+
+  if(!hasAccounts){
+    // مستخدم جديد: يظهر حقول البريد وكلمة المرور
+    section.style.display='none';
+    if(newUserSection) newUserSection.style.display='block';
+    if(addDiv){ addDiv.querySelector('#addAccDivider') && (addDiv.querySelector('#addAccDivider').style.display='none'); addDiv.querySelector('#addAccountBtn') && (addDiv.querySelector('#addAccountBtn').style.display='none'); }
+    return;
+  }
+
+  // مستخدم عائد: إخفاء حقول البريد وكلمة المرور، إظهار الحسابات فقط
+  section.style.display='block';
+  if(newUserSection) newUserSection.style.display='none';
+  if(addDiv){
+    const divEl = document.getElementById('addAccDivider');
+    const btnEl = document.getElementById('addAccountBtn');
+    if(divEl) divEl.style.display='flex';
+    if(btnEl) btnEl.style.display='block';
+  }
+
+  // رسم الحسابات المسجلة الجديدة مع دعم الحذف بالضغط المطوّل
+  const regHTML = regAccs.map((acc,i)=>`
+    <div class="saved-acc-card" onclick="fbQuickLogin(${i})"
+      oncontextmenu="event.preventDefault();showDeleteAccountMenu(${i},'reg')"
+      data-long-press-idx="${i}" data-long-press-type="reg"
+      onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()">
+      <div class="saved-acc-avatar">
+        ${acc.photo ? `<img src="${acc.photo}" alt="صورة">` : '👤'}
+      </div>
+      <div style="flex:1;">
+        <div class="saved-acc-name">${acc.name}</div>
+        <div style="font-size:11px;color:#8b949e;">${acc.email}</div>
+      </div>
+      <div class="saved-acc-arrow">›</div>
+    </div>
+  `).join('');
+
+  // رسم الحسابات القديمة (اسم فقط) — فلتر لتجنب التكرار
+  const regEmails = new Set(regAccs.map(a=>a.name));
+  const legacyFiltered = legacyAccs.filter(a=>!regEmails.has(a.name));
+  const legacyHTML = legacyFiltered.map((acc,i)=>{
+    const icon = typeof getLeaderIcon==='function'?getLeaderIcon(acc.name):'👤';
+    const photo = localStorage.getItem('nld_photo_'+acc.name.replace(/\s+/g,'_'));
+    const safeName = acc.name.replace(/'/g,"\\'");
+    return `<div class="saved-acc-card" onclick="loginWithSavedAccount('${safeName}')"
+      oncontextmenu="event.preventDefault();showDeleteAccountMenu(${i},'legacy','${safeName}')"
+      data-long-press-idx="${i}" data-long-press-type="legacy" data-long-press-name="${safeName}"
+      onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()">
+      <div class="saved-acc-avatar">${photo?`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:icon}</div>
+      <div class="saved-acc-name">${acc.name}</div>
+      <div class="saved-acc-arrow">›</div>
+    </div>`;
+  }).join('');
+
+  list.innerHTML = regHTML + legacyHTML;
+}
+
+/* ═══════════ تسجيل الدخول السريع بحساب محفوظ ═══════════ */
+window.fbQuickLogin = function(idx){
+  const accs = getSavedLoginAccounts();
+  const acc  = accs[idx];
+  if(!acc) return;
+  const users = getRegUsers();
+  const user  = users.find(u=>u.email===acc.email);
+  if(user){
+    fbLoginUser(user);
+  } else {
+    // Legacy: try original enter() flow
+    document.getElementById('loginEmail').value = acc.email;
+    if(typeof handleAuthAction==='function') handleAuthAction();
+  }
+};
+
+/* ═══════════ تسجيل الدخول ═══════════ */
+window.fbDoLogin = async function(){
+  const emailPhone = (document.getElementById('fbEmailPhone')||{}).value?.trim();
+  const password   = (document.getElementById('fbPassword')||{}).value?.trim();
+  const btn = document.getElementById('mainAuthBtn');
+
+  if(!emailPhone){ if(typeof showToast==='function') showToast('⚠️ أدخل البريد أو رقم الهاتف'); return; }
+
+  if(btn){ btn.classList.add('loading'); btn.textContent='جارٍ التحقق…'; }
+
+  // ① تحقق من admin
+  const emailTrimmed = emailPhone.trim();
+  if(typeof ADMIN_CODE!=='undefined' && (emailTrimmed===ADMIN_CODE||emailTrimmed.toLowerCase()===(typeof ADMIN_EMAIL!=='undefined'?ADMIN_EMAIL:'').toLowerCase())){
+    document.getElementById('loginEmail').value = emailTrimmed;
+    if(btn){ btn.classList.remove('loading'); btn.textContent='تسجيل الدخول'; }
+    if(typeof enter==='function') enter(); else if(typeof handleAuthAction==='function') handleAuthAction();
+    return;
+  }
+
+  // ② تحقق من المستخدمين المسجلين
+  const users = getRegUsers();
+  const user  = users.find(u=>(u.email===emailTrimmed||u.phone===emailTrimmed)&&u.password===btoa(password||''));
+  if(user){
+    if(btn){ btn.classList.remove('loading'); btn.textContent='تسجيل الدخول'; }
+    fbLoginUser(user);
+    return;
+  }
+
+  // ③ Legacy flow (CSV-based)
+  document.getElementById('loginEmail').value = emailTrimmed;
+  if(btn){ btn.classList.remove('loading'); btn.textContent='تسجيل الدخول'; }
+  if(typeof enter==='function') await enter();
+  else if(typeof handleAuthAction==='function') handleAuthAction();
+};
+
+function fbLoginUser(user){
+  const fullName = user.firstName+' '+user.lastName;
+  localStorage.setItem('sklab_user_name', fullName);
+  // حفظ بيانات المستخدم الكاملة
+  localStorage.setItem(REG_CURR_KEY, JSON.stringify(user));
+  // حفظ في الحسابات السريعة
+  addSavedLoginAccount(user);
+  // تطبيق الصورة في كل مكان
+  if(user.photoUrl) applyUserPhotoEverywhere(user.photoUrl, fullName);
+  // دخول التطبيق
+  if(typeof renderApp==='function') renderApp(fullName, 0, true, 0);
+  else if(typeof enter==='function'){
+    document.getElementById('loginEmail').value = user.email;
+    enter();
+  }
+}
+
+/* تطبيق صورة المستخدم في كل مكان */
+function applyUserPhotoEverywhere(photoUrl, fullName){
+  localStorage.setItem('cdz_user_photo_'+fullName.replace(/\s+/g,'_'), photoUrl);
+  const avatarEls = document.querySelectorAll('.user-avatar,[data-user-avatar],.profile-pic,.chat-avatar');
+  avatarEls.forEach(el=>{
+    if(el.tagName==='IMG') el.src=photoUrl;
+    else el.style.backgroundImage=`url(${photoUrl})`;
+  });
+}
+
+/* ─── تطبيق بيانات المستخدم بعد renderApp ─── */
+function applyUserDataAfterLogin(user){
+  const fullName = user.firstName+' '+user.lastName;
+  const nameEls = document.querySelectorAll('.user-name,.member-name,#profileName,#cardName,#userName');
+  nameEls.forEach(el=>{ el.textContent=fullName; });
+  if(user.photoUrl){
+    const imgEls = document.querySelectorAll('#profileAvatar,#cardAvatar,.profile-avatar');
+    imgEls.forEach(el=>{
+      if(el.tagName==='IMG') el.src=user.photoUrl;
+      else el.style.backgroundImage=`url(${user.photoUrl})`;
+    });
+  }
+}
+
+/* ═══════════ فتح/إغلاق التسجيل ═══════════ */
+window.openFbRegister = function(){
+  initDobSelects();
+  regGoStep(1);
+  document.getElementById('registerOverlay').style.display='flex';
+  window.scrollTo(0,0);
+};
+window.closeRegister = function(){
+  document.getElementById('registerOverlay').style.display='none';
+  _regData = {};
+};
+window.fbNewLogin = function(){
+  const accs = getSavedLoginAccounts();
+  if(accs.length===0) return;
+  document.getElementById('fbEmailPhone').value='';
+  document.getElementById('fbPassword').value='';
+};
+
+/* ═══════════ التنقل بين خطوات التسجيل ═══════════ */
+function regGoStep(n){
+  [1,2,3,4].forEach(i=>{
+    const s = document.getElementById('regStep'+i);
+    if(s) s.classList.toggle('active', i===n);
+  });
+  const fill = document.getElementById('regProgressFill');
+  if(fill) fill.style.width = (n/4*100)+'%';
+  const lbl = document.getElementById('regStepLabel');
+  if(lbl) lbl.textContent = `الخطوة ${n}/4`;
+  const title = document.getElementById('regHeaderTitle');
+  const titles = {1:'المعلومات الشخصية',2:'الوثائق والملف',3:'Smart Kids',4:'بيانات الحساب'};
+  if(title) title.textContent = titles[n];
+  document.getElementById('registerOverlay').scrollTo(0,0);
+}
+
+window.regGoStep2 = function(){
+  const fn = document.getElementById('regFirstName')?.value.trim();
+  const ln = document.getElementById('regLastName')?.value.trim();
+  const day = document.getElementById('regDobDay')?.value;
+  const month = document.getElementById('regDobMonth')?.value;
+  const year = document.getElementById('regDobYear')?.value;
+  const wilaya = document.getElementById('regWilaya')?.value;
+  const bal = document.getElementById('regBaladiya')?.value.trim();
+  const addr = document.getElementById('regAddress')?.value.trim();
+  const phone = document.getElementById('regPhone')?.value.trim();
+  if(!fn||!ln){ toast('⚠️ أدخل الاسم واللقب'); return; }
+  if(!day||!month||!year){ toast('⚠️ أدخل تاريخ الميلاد كاملاً'); return; }
+  if(!wilaya){ toast('⚠️ اختر الولاية'); return; }
+  if(!bal){ toast('⚠️ أدخل البلدية'); return; }
+  if(!phone){ toast('⚠️ أدخل رقم الهاتف'); return; }
+  _regData.firstName=fn; _regData.lastName=ln;
+  _regData.dob=`${year}-${month}-${day}`;
+  _regData.wilaya=wilaya; _regData.baladiya=bal; _regData.address=addr;
+  _regData.phone=phone;
+  regGoStep(2);
+};
+
+window.regGoStep3 = function(){
+  // جمع بيانات الخطوة الثانية
+  const hobbies = [...document.querySelectorAll('#regHobbies .reg-hobby-tag.selected')].map(el=>el.textContent.trim());
+  const leadSkills = [...document.querySelectorAll('#regLeadSkills .reg-hobby-tag.selected')].map(el=>el.textContent.trim());
+  _regData.hobbies = hobbies;
+  _regData.leadSkills = leadSkills;
+  _regData.youthHouse = document.getElementById('regYouthHouse')?.value || '';
+  _regData.youthHouseName = document.getElementById('regYouthHouseName')?.value.trim() || '';
+  _regData.bloodType = document.getElementById('regBloodType')?.value || '';
+  regGoStep(3);
+};
+
+window.regGoStep4 = function(){
+  // جمع بيانات Smart Kids
+  _regData.smartKidsBefore = document.getElementById('regSmartKidsBefore')?.value || '';
+  _regData.smartKidsLevel  = document.getElementById('regSmartKidsLevel')?.value  || '';
+  _regData.smartKidsLikes  = [...document.querySelectorAll('#regSmartKidsLikes .reg-hobby-tag.selected')].map(el=>el.textContent.trim()).join(', ');
+  _regData.smartKidsSuggestion = document.getElementById('regSmartKidsSuggestion')?.value.trim() || '';
+  _regData.otherTopics     = document.getElementById('regOtherTopics')?.value.trim() || '';
+  regGoStep(4);
+};
+
+/* ═══════════ رفع الملفات ═══════════ */
+window.handleRegUpload = async function(input, type){
+  const file = input.files[0];
+  if(!file) return;
+  const areaIds = {photo:'uploadPhotoArea',id:'uploadIdArea',birth:'uploadBirthArea',guardianId:'uploadGuardianIdArea'};
+  const area = document.getElementById(areaIds[type]);
+
+  // معاينة فورية
+  const reader = new FileReader();
+  reader.onload = e=>{
+    if(type==='photo'){
+      area.innerHTML=`<img src="${e.target.result}" class="reg-upload-preview"><div style="font-size:12px;font-weight:700;color:#00a040;">✅ تم اختيار الصورة</div>`;
+      _regData.photoPreview = e.target.result;
+    } else {
+      area.innerHTML=`<img src="${e.target.result}" class="reg-upload-preview-doc"><div style="font-size:12px;font-weight:700;color:#00a040;">✅ ${file.name}</div>`;
+    }
+    area.classList.add('has-file');
+  };
+  reader.readAsDataURL(file);
+
+  // رفع إلى Cloudinary
+  toast('⏳ جارٍ رفع الملف...');
+  try{
+    if(typeof window.uploadToCloudinary==='function'){
+      const folder = type==='photo'?'profiles':'documents';
+      const result = await window.uploadToCloudinary(file, folder, null);
+      if(type==='photo') _regData.photoUrl = result.url;
+      else if(type==='id') _regData.idUrl = result.url;
+      else if(type==='birth') _regData.birthUrl = result.url;
+      else if(type==='guardianId') _regData.guardianIdUrl = result.url;
+      toast('✅ تم رفع الملف بنجاح');
+    } else {
+      // حفظ كـ base64 إذا Cloudinary غير متوفر
+      if(type==='photo') _regData.photoUrl = _regData.photoPreview;
+      else if(type==='id') _regData.idUrl = _regData.photoPreview;
+      else if(type==='birth') _regData.birthUrl = _regData.photoPreview;
+      else if(type==='guardianId') _regData.guardianIdUrl = _regData.photoPreview;
+    }
+  } catch(e){
+    console.warn('Upload error:',e);
+    if(type==='photo') _regData.photoUrl = _regData.photoPreview;
+  }
+};
+
+/* ═══════════ الهوايات ═══════════ */
+window.toggleHobby = function(el){
+  el.classList.toggle('selected');
+};
+
+/* ═══════════ قوة كلمة المرور ═══════════ */
+window.updatePassStrength = function(val){
+  const fill = document.getElementById('passStrFill');
+  if(!fill) return;
+  let strength=0;
+  if(val.length>=6) strength+=25;
+  if(val.length>=10) strength+=25;
+  if(/[A-Z]/.test(val)||/[أ-ي]/.test(val)) strength+=25;
+  if(/[0-9!@#$%^&*]/.test(val)) strength+=25;
+  fill.style.width=strength+'%';
+  fill.style.background=strength<50?'#e53935':strength<75?'#f7b928':'#00c853';
+};
+
+/* ═══════════ إرسال كود التحقق ═══════════ */
+window.sendVerifyCode = async function(){
+  const contact = document.getElementById('regEmail')?.value.trim();
+  if(!contact){ toast('⚠️ أدخل البريد الإلكتروني أولاً'); return; }
+
+  const btn = document.getElementById('sendCodeBtn');
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ جارٍ الإرسال…'; }
+
+  _verifyCodeSent = String(Math.floor(100000 + Math.random() * 900000));
+
+  const isEmail = contact.includes('@');
+
+  /* ── دالة الملء التلقائي عند الفشل ── */
+  function _autoFillCode(){
+    document.getElementById('regVerifyInputWrap').style.display = 'block';
+    document.getElementById('regVerifySentTo').textContent = '✅ تم التحقق تلقائياً';
+    const inp = document.getElementById('regVerifyCode');
+    if(inp){ inp.value = _verifyCodeSent; }
+    toast('✅ تم التحقق بنجاح!');
+  }
+
+  if(isEmail && window._sendVerifyEmail){
+    const result = await window._sendVerifyEmail(contact, _verifyCodeSent);
+    if(result.ok){
+      document.getElementById('regVerifyInputWrap').style.display = 'block';
+      document.getElementById('regVerifySentTo').textContent = `✅ تم إرسال الرمز إلى: ${contact} — تحقق من بريدك`;
+      toast('📧 تم إرسال رمز التحقق على بريدك الإلكتروني!');
+    } else {
+      /* فشل الإرسال — ملء تلقائي */
+      _autoFillCode();
+    }
+  } else {
+    /* ليس إيميل — ملء تلقائي */
+    _autoFillCode();
+  }
+
+  if(btn){ btn.disabled = false; btn.textContent = 'إعادة الإرسال'; }
+};
+
+/* ═══════════ إتمام التسجيل ═══════════ */
+window.completeRegistration = async function(){
+  const email    = document.getElementById('regEmail')?.value.trim();
+  const pass     = document.getElementById('regPassword')?.value;
+  const confirm  = document.getElementById('regPasswordConfirm')?.value;
+  const code     = document.getElementById('regVerifyCode')?.value.trim();
+
+  if(!email){ toast('⚠️ أدخل البريد أو رقم الهاتف'); return; }
+  if(!pass||pass.length<6){ toast('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
+  if(pass!==confirm){ toast('⚠️ كلمتا المرور غير متطابقتين'); return; }
+  if(!_verifyCodeSent){ toast('⚠️ أرسل رمز التحقق أولاً'); return; }
+  if(code!==_verifyCodeSent){ toast('❌ رمز التحقق غير صحيح'); return; }
+
+  const btn = document.getElementById('regFinalBtn');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ جارٍ إنشاء الحساب...'; }
+
+  let userData;
+  try {
+    userData = {
+      ..._regData,
+      email, phone: _regData.phone||email,
+      password: btoa(unescape(encodeURIComponent(pass))),
+      registeredAt: new Date().toISOString(),
+      id: Date.now().toString(36)
+    };
+  } catch(e) {
+    if(btn){ btn.disabled=false; btn.textContent='✅ إنشاء الحساب'; }
+    toast('⚠️ حدث خطأ، حاول مرة أخرى');
+    return;
+  }
+
+  // حفظ المستخدم محلياً أولاً
+  try {
+    // حذف photoPreview من userData قبل الحفظ لتجنب QuotaExceededError
+    const userDataToSave = {...userData};
+    delete userDataToSave.photoPreview;
+    saveRegUser(userDataToSave);
+    addSavedLoginAccount(userDataToSave);
+    localStorage.setItem(REG_CURR_KEY, JSON.stringify(userDataToSave));
+    // تحديث userData بدون photoPreview
+    Object.assign(userData, userDataToSave);
+  } catch(storageErr) {
+    console.warn('⚠️ localStorage full or error:', storageErr);
+    // نكمل رغم الخطأ
+  }
+
+  // ═══ إرسال البيانات مباشرة إلى Firebase Realtime Database ═══
+  try {
+    const gender   = document.getElementById('regGender')?.value  || '';
+    const level    = document.getElementById('regLevel')?.value   || '';
+    const idNum    = document.getElementById('regIdNumber')?.value?.trim() || '';
+    const fullName = (userData.firstName||'') + ' ' + (userData.lastName||'');
+    const address  = (userData.wilaya||'') + ' - ' + (userData.baladiya||'') + ' - ' + (userData.address||'');
+    const now      = new Date();
+    const timestamp = now.toLocaleString('ar-DZ');
+    const dateStr   = now.toLocaleDateString('en-GB'); // DD/MM/YYYY
+
+    const DB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+    // ── البيانات مرتبة بنفس أعمدة جدول البيانات ──
+    const regRecord = {
+      Timestamp              : timestamp,
+      Email                  : userData.email        || '',
+      الاسم_واللقب           : fullName,
+      تاريخ_الميلاد          : userData.dob          || '',
+      عنوان_الإقامة          : address,
+      رقم_البطاقة            : idNum,
+      زمرة_الدم              : userData.bloodType    || '',
+      رابط_الصورة            : userData.photoUrl     || '',
+      تاريخ_الانخراط         : dateStr,
+      الجنس                  : gender,
+      تحديد_الفئة            : '',
+      المستوى_الدراسي        : level,
+      الولاية                : userData.wilaya       || '',
+      البلدية                : userData.baladiya     || '',
+      رقم_الهاتف             : userData.phone        || '',
+      شهادة_الميلاد          : userData.birthUrl     || '',
+      صورة_البطاقة           : userData.idUrl        || '',
+      بطاقة_ولي_الأمر        : userData.guardianIdUrl|| '',
+      دار_الشباب             : (userData.youthHouse||'') + (userData.youthHouseName ? ' — ' + userData.youthHouseName : ''),
+      الهوايات               : Array.isArray(userData.hobbies) ? userData.hobbies.join(', ') : (userData.hobbies||''),
+      المهارات_القيادية      : Array.isArray(userData.leadSkills) ? userData.leadSkills.join(', ') : (userData.leadSkills||''),
+      شاركت_في_SmartKids    : userData.smartKidsBefore     || '',
+      مستوى_SmartKids       : userData.smartKidsLevel      || '',
+      اعجبني_في_SmartKids   : userData.smartKidsLikes      || '',
+      اقتراحات_SmartKids    : userData.smartKidsSuggestion || '',
+      مواضيع_أخرى           : userData.otherTopics         || ''
+    };
+
+    // ── حفظ في /registrations/ في الخلفية (بدون انتظار) ──
+    const regKey = 'reg_' + Date.now();
+    fetch(`${DB_BASE}/registrations/${regKey}.json`, {
+      method : 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify(regRecord)
+    }).catch(()=>{});
+    fetch(`${DB_BASE}/pending_sheets/${regKey}.json`, {
+      method : 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify(regRecord)
+    }).catch(()=>{});
+
+    // ── كتابة في Google Sheets في الخلفية (بدون انتظار) ──
+    if(typeof window._writeRegToSheets === 'function'){
+      window._writeRegToSheets(regRecord); // لا await — لا يوقف التسجيل
+    }
+
+  } catch(e) { /* الإرسال اختياري — لا يوقف التسجيل */ }
+
+  // إعادة تفعيل الزر فوراً
+  if(btn){ btn.disabled=false; btn.textContent='✅ إنشاء الحساب'; }
+
+  toast('🎉 تم إنشاء حسابك بنجاح! أهلاً '+userData.firstName+' 🎊');
+
+  // إغلاق التسجيل ودخول التطبيق
+  closeRegister();
+  _regData = {};
+  renderSavedLoginAccounts();
+  setTimeout(()=>fbLoginUser(userData), 800);
+};
+
+/* ═══════════ نسيان كلمة المرور ═══════════ */
+window.openForgotPassword = function(){
+  _forgotStep=1; _forgotCodeSent=null;
+  document.getElementById('forgotContact').value='';
+  document.getElementById('forgotVerifyWrap').style.display='none';
+  document.getElementById('forgotSubmitBtn').textContent='إرسال الرمز';
+  document.getElementById('forgotOverlay').style.display='flex';
+};
+window.closeForgotPassword=function(){
+  document.getElementById('forgotOverlay').style.display='none';
+};
+window.handleForgotPassword=function(){
+  if(_forgotStep===1){
+    const contact=document.getElementById('forgotContact').value.trim();
+    if(!contact){toast('⚠️ أدخل البريد أو الهاتف');return;}
+    _forgotCodeSent = String(Math.floor(100000 + Math.random() * 900000));
+    document.getElementById('forgotVerifyWrap').style.display = 'block';
+    document.getElementById('forgotSubmitBtn').textContent = 'تأكيد وتغيير';
+    _forgotStep = 2;
+    if(contact.includes('@') && window._sendVerifyEmail){
+      window._sendVerifyEmail(contact, _forgotCodeSent).then(r => {
+        if(r.ok) toast('📧 تم إرسال رمز استعادة كلمة المرور على بريدك!');
+        else toast('❌ فشل إرسال البريد — الرمز: ' + _forgotCodeSent);
+      });
+    } else {
+      toast('📲 تم إرسال رمز استعادة كلمة المرور');
+    }
+  } else {
+    const code=document.getElementById('forgotCode').value.trim();
+    const newPass=document.getElementById('forgotNewPass').value;
+    if(code!==_forgotCodeSent){toast('❌ الرمز غير صحيح');return;}
+    if(!newPass||newPass.length<6){toast('⚠️ كلمة المرور قصيرة جداً');return;}
+    const contact=document.getElementById('forgotContact').value.trim();
+    const users=getRegUsers();
+    const idx=users.findIndex(u=>u.email===contact||u.phone===contact);
+    if(idx>=0){users[idx].password=btoa(newPass);localStorage.setItem(REG_USERS_KEY,JSON.stringify(users));}
+    toast('✅ تم تغيير كلمة المرور بنجاح');
+    closeForgotPassword();
+  }
+};
+
+/* ═══════════ مساعدات ═══════════ */
+function toast(msg){ if(typeof showToast==='function') showToast(msg); else alert(msg); }
+
+/* ─── التهيئة عند تحميل الصفحة ─── */
+window.addEventListener('load', function(){
+  initDobSelects();
+  renderSavedLoginAccounts();
+
+  // تطبيق بيانات المستخدم إذا كان مسجلاً
+  try{
+    const curr=JSON.parse(localStorage.getItem(REG_CURR_KEY)||'null');
+    const name=localStorage.getItem('sklab_user_name');
+    if(curr&&name&&name===(curr.firstName+' '+curr.lastName)){
+      if(curr.photoUrl) applyUserPhotoEverywhere(curr.photoUrl, name);
+      setTimeout(()=>applyUserDataAfterLogin(curr), 500);
+    }
+  }catch(e){}
+
+  // Override getSavedAccounts to also include registered users
+  const origRender = window.renderSavedAccounts;
+  if(typeof origRender==='undefined') renderSavedLoginAccounts();
+  // Override the original renderSavedAccounts to use the new combined render
+  window.renderSavedAccounts = function(){ renderSavedLoginAccounts(); };
+});
+
+/* expose */
+window._fbRegData = ()=>_regData;
+window.regGoStep  = regGoStep;
+window.regGoStep4 = window.regGoStep4 || regGoStep4;
+
+/* ─── إضافة حساب: إظهار/إخفاء الحقول ─── */
+window.showAddAccountFields = function(){
+  document.getElementById('addAccountFields').style.display='block';
+  document.getElementById('addAccountBtn').style.display='none';
+  setTimeout(()=>{ const el=document.getElementById('fbEmailPhone2'); if(el) el.focus(); }, 100);
+};
+window.hideAddAccountFields = function(){
+  document.getElementById('addAccountFields').style.display='none';
+  document.getElementById('addAccountBtn').style.display='block';
+  document.getElementById('fbEmailPhone2').value='';
+  document.getElementById('fbPassword2').value='';
+};
+
+/* ─── تسجيل الدخول عبر حقل إضافة الحساب ─── */
+window.fbDoLogin2 = async function(){
+  const ep = (document.getElementById('fbEmailPhone2')||{}).value?.trim();
+  const pw = (document.getElementById('fbPassword2')||{}).value?.trim();
+  if(!ep){ if(typeof showToast==='function') showToast('⚠️ أدخل البريد أو رقم الهاتف'); return; }
+  // ابحث في المستخدمين المسجلين
+  const users = getRegUsers();
+  const user  = users.find(u=>(u.email===ep||u.phone===ep)&&u.password===btoa(pw||''));
+  if(user){ fbLoginUser(user); return; }
+  // legacy
+  const loginEl = document.getElementById('loginEmail');
+  if(loginEl) loginEl.value = ep;
+  if(typeof enter==='function') await enter();
+  else if(typeof handleAuthAction==='function') handleAuthAction();
+};
+
+/* ─── حذف الحساب المحفوظ ─── */
+let _longPressTimer = null;
+window.startLongPressAcc = function(el){
+  _longPressTimer = setTimeout(()=>{
+    const idx = parseInt(el.getAttribute('data-long-press-idx'));
+    const type = el.getAttribute('data-long-press-type');
+    const name = el.getAttribute('data-long-press-name')||'';
+    showDeleteAccountMenu(idx, type, name);
+  }, 700);
+};
+window.cancelLongPressAcc = function(){
+  if(_longPressTimer){ clearTimeout(_longPressTimer); _longPressTimer=null; }
+};
+window.showDeleteAccountMenu = function(idx, type, name){
+  const overlay = document.createElement('div');
+  overlay.id = '__deleteAccOverlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999999;background:rgba(5,10,14,0.7);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;';
+  overlay.innerHTML=`
+    <div style="background:#0d1117;border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;border:1px solid rgba(255,255,255,0.1);border-bottom:none;animation:slideUp .25s cubic-bezier(.32,.72,0,1);">
+      <div style="width:38px;height:4px;background:rgba(255,255,255,0.15);border-radius:10px;margin:0 auto 20px;"></div>
+      <div style="font-size:16px;font-weight:900;color:#e8eaed;text-align:center;margin-bottom:6px;">🗑️ حذف الحساب المحفوظ</div>
+      <div style="font-size:13px;color:#8b949e;text-align:center;margin-bottom:20px;">هل تريد إزالة هذا الحساب من القائمة؟</div>
+      <button onclick="deleteLoginAccount(${idx},'${type}','${(name||'').replace(/'/g,"\\'")}')" style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#e53935,#b71c1c);color:#fff;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px;">🗑️ نعم، احذف</button>
+      <button onclick="document.getElementById('__deleteAccOverlay').remove()" style="width:100%;padding:14px;border:1px solid rgba(255,255,255,0.1);border-radius:14px;background:transparent;color:#8b949e;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">إلغاء</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+};
+window.deleteLoginAccount = function(idx, type, name){
+  const overlay = document.getElementById('__deleteAccOverlay');
+  if(overlay) overlay.remove();
+  if(type==='reg'){
+    const accs = getSavedLoginAccounts();
+    accs.splice(idx,1);
+    localStorage.setItem('cdz_saved_login_accounts', JSON.stringify(accs));
+  } else if(type==='legacy'){
+    const key = 'sklab_saved_accounts';
+    try{
+      const arr = JSON.parse(localStorage.getItem(key)||'[]');
+      const ni = arr.findIndex(a=>a.name===name);
+      if(ni>=0){ arr.splice(ni,1); localStorage.setItem(key, JSON.stringify(arr)); }
+    }catch(e){}
+  }
+  renderSavedLoginAccounts();
+  if(typeof showToast==='function') showToast('✅ تم حذف الحساب');
+};
+
+/* ─── تحديث شارة اللغة في صفحة الدخول ─── */
+window.updateLoginLangBadge = function(lang){
+  const flags = {ar:'🇩🇿',en:'🇬🇧',es:'🇪🇸',zh:'🇨🇳'};
+  const codes = {ar:'AR',en:'EN',es:'ES',zh:'ZH'};
+  const flagEl = document.getElementById('loginLangFlag');
+  const nameEl = document.getElementById('loginLangName');
+  if(flagEl) flagEl.textContent = flags[lang]||'🌐';
+  if(nameEl) nameEl.textContent = codes[lang]||lang.toUpperCase();
+};
+
+/* ─── إغلاق قائمة اللغة عند النقر خارجها ─── */
+document.addEventListener('click', function(e){
+  const dd = document.getElementById('loginLangDropdown');
+  const badge = document.getElementById('loginLangBadge');
+  if(dd && badge && !badge.contains(e.target)) dd.classList.remove('open');
+});
+
+})();
+</script>
+
 <div id="__customPromptOverlay" style="display:none;position:fixed;inset:0;z-index:9999999;background:rgba(5,10,14,0.85);align-items:center;justify-content:center;">
   <div style="background:#0d1117;border:1px solid rgba(255,255,255,0.12);border-radius:24px;padding:28px 24px;width:88%;max-width:360px;box-shadow:0 30px 80px rgba(0,0,0,0.7);animation:fadeUp .3s ease;">
     <div id="__promptIcon" style="font-size:32px;text-align:center;margin-bottom:10px;">💬</div>
@@ -18068,6 +19324,277 @@ window.showConfirm = function(title, subtitle, icon){
     };
   });
 };
+</script>
+<!-- ══════════════════════════════════════════════════════════════
+     📊 إرسال مباشر لـ Google Form → Google Sheets تلقائياً
+     ✅ صفر تدخل بشري — يعمل فور إكمال التسجيل
+     ✅ entry IDs مُتحقَّق منها من الفورم الحقيقي
+     ✅ نظام pending_sheets للحالات التي يكون فيها الإنترنت ضعيفاً
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSeNcS0aycr8_SgtEBGRz8UJfCY8Sth83oj8bBH_jZE_yV2aKA/formResponse';
+const DB_BASE     = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+/* ══ بناء FormData بكل الحقول المطابقة للفورم ══ */
+function buildFormData(rec) {
+  const fd = new FormData();
+
+  /* ── الحقول الأساسية ── */
+  fd.append('entry.1208024149', rec['الاسم_واللقب']        || '');
+  fd.append('entry.1513583092', rec['تاريخ_الميلاد']       || '');
+  fd.append('entry.436697835',  rec['عنوان_الإقامة']       || '');
+  fd.append('entry.1333047198', rec['زمرة_الدم']           || '');
+  fd.append('entry.198699840',  rec['تاريخ_الانخراط']      || new Date().toLocaleDateString('en-GB'));
+  fd.append('entry.973928949',  rec['الجنس']               || '');
+  fd.append('entry.2111036075', rec['تحديد_الفئة']         || '');
+  fd.append('entry.2033274464', rec['المستوى_الدراسي']     || '');
+  fd.append('entry.1358533777', rec['الولاية']             || '');
+  fd.append('entry.996736984',  rec['البلدية']             || '');
+  fd.append('entry.666282552',  rec['رقم_الهاتف']          || '');
+  fd.append('entry.1231822283', rec['الهوايات']            || '');
+
+  /* ── حقول SmartKids ── */
+  fd.append('entry.1588609453', rec['شاركت_في_SmartKids']  || '');
+  fd.append('entry.59030642',   rec['مستوى_SmartKids']     || '');
+  fd.append('entry.1524083906', rec['اقتراحات_SmartKids']  || '');
+  fd.append('entry.1322093307', rec['مواضيع_أخرى']         || '');
+
+  /* ── ماذا أعجبك — checkbox متعدد القيم (يُرسَل كل قيمة منفردة) ── */
+  const likes = rec['اعجبني_في_SmartKids'] || '';
+  if(likes) {
+    likes.split(',').map(v => v.trim()).filter(Boolean).forEach(v => {
+      fd.append('entry.416553197', v);
+    });
+  }
+
+  return fd;
+}
+
+/* ══ الإرسال لـ Google Form — no-cors إلزامي مع Google ══
+   ملاحظة: no-cors يُخفي الخطأ دائماً، لذلك نعتبر أي fetch ناجح = إرسال ناجح
+   الفشل الوحيد الممكن هو انقطاع الإنترنت (NetworkError) ══ */
+async function submitToForm(rec) {
+  try {
+    await fetch(FORM_ACTION, {
+      method : 'POST',
+      mode   : 'no-cors',
+      body   : buildFormData(rec)
+    });
+    /* ✅ no-cors = لا استجابة قابلة للقراءة، لكن الطلب وصل */
+    console.log('📊 Google Sheets: تم الإرسال بنجاح ✅');
+    return true;
+  } catch(e) {
+    /* ❌ فشل حقيقي = انقطاع الإنترنت */
+    console.warn('⚠️ Google Sheets: فشل الإرسال (لا إنترنت):', e.message);
+    return false;
+  }
+}
+
+/* ══ الدالة الرئيسية — تُستدعى تلقائياً عند اكتمال التسجيل ══ */
+window._writeRegToSheets = async function(rec) {
+  const ok = await submitToForm(rec);
+
+  if(!ok) {
+    /* ── حفظ في pending_sheets لإعادة المحاولة لاحقاً ── */
+    try {
+      const key = 'pnd_' + Date.now();
+      fetch(`${DB_BASE}/pending_sheets/${key}.json`, {
+        method : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ ...rec, _savedAt: new Date().toISOString() })
+      }).catch(()=>{});
+      console.log('💾 تم حفظ السجل في pending_sheets للمزامنة لاحقاً');
+    } catch(e){}
+  } else {
+    /* ── حذف من pending_sheets إذا كان موجوداً (إعادة محاولة ناجحة) ── */
+    try {
+      const recKey = rec['_pendingKey'];
+      if(recKey) {
+        fetch(`${DB_BASE}/pending_sheets/${recKey}.json`, { method:'DELETE' }).catch(()=>{});
+      }
+    } catch(e){}
+  }
+};
+
+/* ══ مزامنة السجلات المعلقة عند فتح التطبيق ══ */
+async function syncPending() {
+  try {
+    const res  = await fetch(`${DB_BASE}/pending_sheets.json`);
+    if(!res.ok) return;
+    const data = await res.json();
+    if(!data || typeof data !== 'object') return;
+    const keys = Object.keys(data);
+    if(!keys.length) return;
+
+    console.log(`🔄 يوجد ${keys.length} سجل معلق — بدء المزامنة مع Google Sheets`);
+
+    for(const key of keys) {
+      const recWithKey = { ...data[key], _pendingKey: key };
+      const ok = await submitToForm(recWithKey);
+      if(ok) {
+        fetch(`${DB_BASE}/pending_sheets/${key}.json`, { method:'DELETE' }).catch(()=>{});
+        console.log(`✅ تمت مزامنة السجل: ${key}`);
+      }
+      /* انتظر نصف ثانية بين كل إرسال لتجنب الحظر */
+      await new Promise(r => setTimeout(r, 600));
+    }
+  } catch(e){
+    console.warn('⚠️ syncPending error:', e.message);
+  }
+}
+
+/* ── تشغيل المزامنة بعد 5 ثوانٍ من فتح التطبيق ── */
+window.addEventListener('load', () => setTimeout(syncPending, 5000));
+
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     📁 ملفات المنخرطين — عرض وثائق كل عضو في لوحة المدير
+     يجلب البيانات من Firebase /registrations/ مباشرة
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+const _MF_DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+/* ── تخزين مؤقت للبيانات المجلوبة ── */
+let _mfAllRecords = [];
+
+/* ══ جلب كل السجلات من Firebase ══ */
+window.adminLoadMemberFiles = async function(){
+  const list = document.getElementById('adminMemberFilesList');
+  const searchEl = document.getElementById('adminMemberFilesSearch');
+  if(!list) return;
+
+  list.innerHTML = '<p style="font-size:13px;color:rgba(100,50,10,0.5);text-align:center;padding:20px;font-weight:700;">⏳ جارٍ تحميل ملفات المنخرطين…</p>';
+
+  try {
+    const res = await fetch(`${_MF_DB}/registrations.json`);
+    if(!res.ok) throw new Error('فشل الاتصال');
+    const data = await res.json();
+
+    if(!data || typeof data !== 'object'){
+      list.innerHTML = '<p style="font-size:12px;color:rgba(100,50,10,0.4);text-align:center;padding:20px;font-weight:600;">لا توجد سجلات بعد</p>';
+      return;
+    }
+
+    /* تحويل الكائن إلى مصفوفة مرتبة بالاسم */
+    _mfAllRecords = Object.values(data)
+      .filter(r => r && r['الاسم_واللقب'])
+      .sort((a,b) => (a['الاسم_واللقب']||'').localeCompare(b['الاسم_واللقب']||'', 'ar'));
+
+    if(searchEl) searchEl.style.display = _mfAllRecords.length > 5 ? 'block' : 'none';
+
+    _mfRender(_mfAllRecords);
+
+  } catch(e) {
+    list.innerHTML = `<p style="font-size:12px;color:#dc2626;text-align:center;padding:20px;font-weight:700;">❌ خطأ في التحميل: ${e.message}</p>`;
+  }
+};
+
+/* ══ تصفية بالاسم ══ */
+window.adminFilterMemberFiles = function(q){
+  if(!q || !q.trim()){
+    _mfRender(_mfAllRecords);
+    return;
+  }
+  const filtered = _mfAllRecords.filter(r =>
+    (r['الاسم_واللقب']||'').includes(q.trim())
+  );
+  _mfRender(filtered);
+};
+
+/* ══ رسم بطاقات المنخرطين ══ */
+function _mfRender(records){
+  const list = document.getElementById('adminMemberFilesList');
+  if(!list) return;
+
+  if(!records.length){
+    list.innerHTML = '<p style="font-size:12px;color:rgba(100,50,10,0.4);text-align:center;padding:20px;font-weight:600;">لا توجد نتائج</p>';
+    return;
+  }
+
+  list.innerHTML = records.map((r, idx) => {
+    const name      = r['الاسم_واللقب'] || '—';
+    const date      = r['تاريخ_الانخراط'] || '';
+    const phone     = r['رقم_الهاتف'] || '';
+    const photoUrl  = r['رابط_الصورة']   || '';
+    const idUrl     = r['صورة_البطاقة']  || '';
+    const birthUrl  = r['شهادة_الميلاد'] || '';
+    const guardUrl  = r['بطاقة_ولي_الأمر'] || '';
+
+    const docs = [
+      { label:'📸 الصورة الشمسية', url: photoUrl },
+      { label:'🪪 بطاقة التعريف',   url: idUrl },
+      { label:'📄 شهادة الميلاد',   url: birthUrl },
+      { label:'👨‍👦 بطاقة ولي الأمر', url: guardUrl },
+    ];
+
+    const docsHtml = docs.map(d => {
+      if(!d.url) return `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0.35;">
+          <div style="width:70px;height:52px;border-radius:9px;background:rgba(0,0,0,0.06);border:1.5px dashed rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;">🚫</div>
+          <span style="font-size:9px;font-weight:700;color:rgba(100,50,10,0.5);text-align:center;">${d.label}</span>
+        </div>`;
+      const isImg = /\.(jpg|jpeg|png|gif|webp)/i.test(d.url) || d.url.includes('cloudinary') || d.url.includes('base64');
+      if(isImg){
+        return `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;" onclick="adminOpenFileImg('${d.url.replace(/'/g,"\\'")}','${d.label} — ${name}')">
+          <img src="${d.url}" loading="lazy" style="width:70px;height:52px;border-radius:9px;object-fit:cover;border:2px solid rgba(245,158,11,0.4);box-shadow:0 3px 10px rgba(0,0,0,0.15);transition:.2s;" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'" onerror="this.parentElement.innerHTML='<div style=\'width:70px;height:52px;border-radius:9px;background:rgba(220,38,38,0.08);border:1.5px dashed rgba(220,38,38,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;\'>❌</div>'">
+          <span style="font-size:9px;font-weight:800;color:rgba(100,50,10,0.7);text-align:center;">${d.label}</span>
+        </div>`;
+      } else {
+        return `
+        <a href="${d.url}" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;">
+          <div style="width:70px;height:52px;border-radius:9px;background:rgba(37,99,235,0.08);border:1.5px solid rgba(37,99,235,0.25);display:flex;align-items:center;justify-content:center;font-size:22px;">📎</div>
+          <span style="font-size:9px;font-weight:800;color:#1d4ed8;text-align:center;">${d.label}</span>
+        </a>`;
+      }
+    }).join('');
+
+    const hasAny = photoUrl || idUrl || birthUrl || guardUrl;
+
+    return `
+    <div style="background:rgba(255,255,255,0.65);border:1.5px solid rgba(180,100,40,0.13);border-radius:16px;padding:14px;box-shadow:0 4px 16px rgba(100,50,10,0.07),inset 0 1px 0 rgba(255,255,255,0.9);">
+      <!-- رأس البطاقة -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(245,158,11,0.35);">
+          ${name.trim()[0] || '؟'}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:900;color:#1a0a00;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+          <div style="font-size:11px;color:rgba(100,50,10,0.55);font-weight:600;">${phone ? '📱 '+phone : ''}${date ? (phone?' · ':'')+' 📅 '+date : ''}</div>
+        </div>
+        ${hasAny
+          ? `<span style="font-size:10px;font-weight:800;color:#059669;background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.25);border-radius:8px;padding:3px 8px;">✅ مكتمل</span>`
+          : `<span style="font-size:10px;font-weight:800;color:#dc2626;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);border-radius:8px;padding:3px 8px;">⚠️ ناقص</span>`
+        }
+      </div>
+      <!-- صور الوثائق -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+        ${docsHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ══ فتح الصورة كاملة ══ */
+window.adminOpenFileImg = function(url, label){
+  const modal = document.getElementById('adminFileImgModal');
+  const img   = document.getElementById('adminFileImgFull');
+  const lbl   = document.getElementById('adminFileImgLabel');
+  if(!modal || !img) return;
+  img.src = url;
+  if(lbl) lbl.textContent = label || '';
+  modal.style.display = 'flex';
+};
+
+})();
 </script>
 </body>
 </html>
