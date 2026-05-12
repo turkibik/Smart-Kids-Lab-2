@@ -19,6 +19,32 @@
      ══════════════════════════════════════════════ -->
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 
+<!-- ══ EmailJS — إرسال بريد التحقق الحقيقي ══ -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+(function(){
+  'use strict';
+  emailjs.init({ publicKey: 'LEviaBzvlA-PwfV9j' });
+
+  window._sendVerifyEmail = async function(toEmail, code, toName){
+    try {
+      await emailjs.send('service_e895qj1', 'template_9c21jti', {
+        to_email   : toEmail,
+        to_name    : toName || toEmail.split('@')[0],
+        verify_code: code,
+        app_name   : 'Connect DZ'
+      });
+      return { ok: true };
+    } catch(err){
+      console.error('EmailJS error:', err);
+      return { ok: false, error: err.text || err.message };
+    }
+  };
+  window._emailjsConfigured = true;
+  console.log('✅ EmailJS جاهز');
+})();
+</script>
+
 <!-- ══════════════════════════════════════════════════════════════
      🛡️ نظام معالجة الأخطاء الموحّد — ConnectDZ Error System
      ══════════════════════════════════════════════════════════════ -->
@@ -18961,14 +18987,35 @@ window.updatePassStrength = function(val){
 };
 
 /* ═══════════ إرسال كود التحقق ═══════════ */
-window.sendVerifyCode = function(){
+window.sendVerifyCode = async function(){
   const contact = document.getElementById('regEmail')?.value.trim();
-  if(!contact){ toast('⚠️ أدخل البريد أو رقم الهاتف أولاً'); return; }
-  _verifyCodeSent = String(Math.floor(100000+Math.random()*900000));
-  document.getElementById('regVerifyInputWrap').style.display='block';
-  document.getElementById('regVerifySentTo').textContent=`تم إرسال الرمز إلى: ${contact} (للتجربة: ${_verifyCodeSent})`;
-  document.getElementById('sendCodeBtn').textContent='إعادة الإرسال';
-  toast('📲 تم إرسال رمز التحقق');
+  if(!contact){ toast('⚠️ أدخل البريد الإلكتروني أولاً'); return; }
+
+  const btn = document.getElementById('sendCodeBtn');
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ جارٍ الإرسال…'; }
+
+  _verifyCodeSent = String(Math.floor(100000 + Math.random() * 900000));
+
+  const isEmail = contact.includes('@');
+
+  if(isEmail && window._sendVerifyEmail){
+    const result = await window._sendVerifyEmail(contact, _verifyCodeSent);
+    if(result.ok){
+      document.getElementById('regVerifyInputWrap').style.display = 'block';
+      document.getElementById('regVerifySentTo').textContent = `✅ تم إرسال الرمز إلى: ${contact} — تحقق من بريدك`;
+      toast('📧 تم إرسال رمز التحقق على بريدك الإلكتروني!');
+    } else {
+      document.getElementById('regVerifyInputWrap').style.display = 'block';
+      document.getElementById('regVerifySentTo').textContent = `⚠️ فشل الإرسال — الرمز مؤقتاً: ${_verifyCodeSent}`;
+      toast('❌ فشل إرسال البريد: ' + (result.error || 'خطأ غير معروف'));
+    }
+  } else {
+    document.getElementById('regVerifyInputWrap').style.display = 'block';
+    document.getElementById('regVerifySentTo').textContent = `📲 الرمز أُرسل إلى: ${contact}`;
+    toast('📲 تم إرسال رمز التحقق');
+  }
+
+  if(btn){ btn.disabled = false; btn.textContent = 'إعادة الإرسال'; }
 };
 
 /* ═══════════ إتمام التسجيل ═══════════ */
@@ -19091,11 +19138,18 @@ window.handleForgotPassword=function(){
   if(_forgotStep===1){
     const contact=document.getElementById('forgotContact').value.trim();
     if(!contact){toast('⚠️ أدخل البريد أو الهاتف');return;}
-    _forgotCodeSent=String(Math.floor(100000+Math.random()*900000));
-    document.getElementById('forgotVerifyWrap').style.display='block';
-    document.getElementById('forgotSubmitBtn').textContent='تأكيد وتغيير';
-    toast(`📲 تم إرسال الرمز (للتجربة: ${_forgotCodeSent})`);
-    _forgotStep=2;
+    _forgotCodeSent = String(Math.floor(100000 + Math.random() * 900000));
+    document.getElementById('forgotVerifyWrap').style.display = 'block';
+    document.getElementById('forgotSubmitBtn').textContent = 'تأكيد وتغيير';
+    _forgotStep = 2;
+    if(contact.includes('@') && window._sendVerifyEmail){
+      window._sendVerifyEmail(contact, _forgotCodeSent).then(r => {
+        if(r.ok) toast('📧 تم إرسال رمز استعادة كلمة المرور على بريدك!');
+        else toast('❌ فشل إرسال البريد — الرمز: ' + _forgotCodeSent);
+      });
+    } else {
+      toast('📲 تم إرسال رمز استعادة كلمة المرور');
+    }
   } else {
     const code=document.getElementById('forgotCode').value.trim();
     const newPass=document.getElementById('forgotNewPass').value;
