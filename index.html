@@ -19049,12 +19049,10 @@ window.completeRegistration = async function(){
   const btn = document.getElementById('regFinalBtn');
   if(btn){ btn.disabled=true; btn.textContent='⏳ جارٍ إنشاء الحساب...'; }
 
-  // حفظ المستخدم
+  // حفظ المستخدم محلياً أولاً
   saveRegUser(userData);
   addSavedLoginAccount(userData);
   localStorage.setItem(REG_CURR_KEY, JSON.stringify(userData));
-
-  if(btn){ btn.disabled=false; btn.textContent='✅ إنشاء الحساب'; }
 
   // ═══ إرسال البيانات مباشرة إلى Firebase Realtime Database ═══
   try {
@@ -19099,27 +19097,30 @@ window.completeRegistration = async function(){
       مواضيع_أخرى           : userData.otherTopics         || ''
     };
 
-    // ── حفظ في /registrations/ بـ ID فريد ──
+    // ── حفظ في /registrations/ بـ ID فريد — ننتظر الاستجابة ──
     const regKey = 'reg_' + Date.now();
-    fetch(`${DB_BASE}/registrations/${regKey}.json`, {
-      method : 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify(regRecord)
-    }).catch(()=>{});
-
-    // ── أيضاً حفظ في /pending_sheets/ لاستخدامه مع أي أداة ربط مستقبلاً ──
-    fetch(`${DB_BASE}/pending_sheets/${regKey}.json`, {
-      method : 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify(regRecord)
-    }).catch(()=>{});
+    await Promise.all([
+      fetch(`${DB_BASE}/registrations/${regKey}.json`, {
+        method : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify(regRecord)
+      }).catch(()=>{}),
+      fetch(`${DB_BASE}/pending_sheets/${regKey}.json`, {
+        method : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify(regRecord)
+      }).catch(()=>{})
+    ]);
 
     // ── كتابة مباشرة في Google Sheets فوراً ──
     if(typeof window._writeRegToSheets === 'function'){
-      window._writeRegToSheets(regRecord);
+      await window._writeRegToSheets(regRecord).catch(()=>{});
     }
 
   } catch(e) { /* الإرسال اختياري — لا يوقف التسجيل */ }
+
+  // إعادة تفعيل الزر بعد اكتمال جميع العمليات
+  if(btn){ btn.disabled=false; btn.textContent='✅ إنشاء الحساب'; }
 
   toast('🎉 تم إنشاء حسابك بنجاح! أهلاً '+userData.firstName+' 🎊');
 
