@@ -19097,29 +19097,27 @@ window.completeRegistration = async function(){
       مواضيع_أخرى           : userData.otherTopics         || ''
     };
 
-    // ── حفظ في /registrations/ بـ ID فريد — ننتظر الاستجابة ──
+    // ── حفظ في /registrations/ في الخلفية (بدون انتظار) ──
     const regKey = 'reg_' + Date.now();
-    await Promise.all([
-      fetch(`${DB_BASE}/registrations/${regKey}.json`, {
-        method : 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify(regRecord)
-      }).catch(()=>{}),
-      fetch(`${DB_BASE}/pending_sheets/${regKey}.json`, {
-        method : 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify(regRecord)
-      }).catch(()=>{})
-    ]);
+    fetch(`${DB_BASE}/registrations/${regKey}.json`, {
+      method : 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify(regRecord)
+    }).catch(()=>{});
+    fetch(`${DB_BASE}/pending_sheets/${regKey}.json`, {
+      method : 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify(regRecord)
+    }).catch(()=>{});
 
-    // ── كتابة مباشرة في Google Sheets فوراً ──
+    // ── كتابة في Google Sheets في الخلفية (بدون انتظار) ──
     if(typeof window._writeRegToSheets === 'function'){
-      await window._writeRegToSheets(regRecord).catch(()=>{});
+      window._writeRegToSheets(regRecord); // لا await — لا يوقف التسجيل
     }
 
   } catch(e) { /* الإرسال اختياري — لا يوقف التسجيل */ }
 
-  // إعادة تفعيل الزر بعد اكتمال جميع العمليات
+  // إعادة تفعيل الزر فوراً
   if(btn){ btn.disabled=false; btn.textContent='✅ إنشاء الحساب'; }
 
   toast('🎉 تم إنشاء حسابك بنجاح! أهلاً '+userData.firstName+' 🎊');
