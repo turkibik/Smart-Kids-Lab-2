@@ -892,6 +892,50 @@ window.uploadStoryMusic = async function(file) {
   box-shadow:0 0 12px rgba(0,229,160,0.2);
 }
 
+/* ══ زر انضم إلينا المشع ══ */
+#joinUsBtnMain, #joinUsBtnSocial {
+  display:inline-flex;align-items:center;gap:5px;
+  padding:6px 13px;border-radius:20px;
+  background:linear-gradient(135deg,#00e5a0,#0099ff,#a855f7);
+  background-size:200% 200%;
+  animation:joinGlow 2.5s ease infinite, joinBgShift 3s ease infinite;
+  border:none;cursor:pointer;
+  font-family:'Tajawal',sans-serif;font-size:12px;font-weight:900;
+  color:#050a0e;white-space:nowrap;
+  box-shadow:0 0 12px rgba(0,229,160,0.5),0 0 24px rgba(0,153,255,0.3),0 0 40px rgba(168,85,247,0.2);
+  transition:transform .2s,box-shadow .2s;
+  position:relative;overflow:hidden;
+}
+#joinUsBtnMain::before, #joinUsBtnSocial::before {
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.35) 50%,transparent 100%);
+  animation:joinShine 2s linear infinite;
+  border-radius:20px;
+}
+#joinUsBtnMain:hover, #joinUsBtnSocial:hover {
+  transform:scale(1.07) translateY(-2px);
+  box-shadow:0 0 20px rgba(0,229,160,0.7),0 0 40px rgba(0,153,255,0.5),0 0 60px rgba(168,85,247,0.3);
+}
+@keyframes joinGlow {
+  0%,100%{box-shadow:0 0 12px rgba(0,229,160,0.5),0 0 24px rgba(0,153,255,0.3);}
+  50%{box-shadow:0 0 20px rgba(0,229,160,0.9),0 0 40px rgba(0,153,255,0.6),0 0 60px rgba(168,85,247,0.5);}
+}
+@keyframes joinBgShift {
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+@keyframes joinShine {
+  0%{transform:translateX(-150%);}
+  100%{transform:translateX(250%);}
+}
+/* النسخة الداكنة للشبكة الاجتماعية */
+#joinUsBtnSocial {
+  font-size:11px;padding:5px 11px;
+  color:white;
+  text-shadow:0 1px 3px rgba(0,0,0,0.4);
+}
+
 /* زر اللغة في شريط التطبيق */
 .lang-switch-btn{
   width:30px;height:30px;border-radius:9px;
@@ -3102,12 +3146,18 @@ body.member-mode #onlineBar{
 }
 .avatar-upload-btn {
   position: absolute; bottom: -4px; right: -4px;
-  width: 20px; height: 20px;
+  width: 22px; height: 22px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--green), var(--accent));
+  background: linear-gradient(135deg, #1877F2, #00c853);
   border: 2px solid var(--dark);
   display: flex; align-items: center; justify-content: center;
-  font-size: 10px; cursor: pointer; z-index: 5;
+  font-size: 11px; cursor: pointer; z-index: 5;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  transition: transform .15s, box-shadow .15s;
+}
+.avatar-upload-btn:hover {
+  transform: scale(1.18);
+  box-shadow: 0 3px 10px rgba(24,119,242,0.5);
 }
 .member-avatar-photo {
   width: 44px; height: 44px; border-radius: 13px;
@@ -3815,8 +3865,15 @@ body.member-mode #onlineBar{
       <div class="user-info-box">
         <!-- الأفاتار يعرض صورة أو رمز قيادة -->
         <div style="position:relative;display:inline-block;">
-          <div class="avatar" id="userInitial" onclick="openMyProfileFromAvatar()" title="ملفك الشخصي" style="overflow:hidden;">👑
-            <div class="avatar-upload-btn">📷</div>
+          <div class="avatar" id="userInitial"
+            onclick="openMyProfileFromAvatar()"
+            oncontextmenu="event.preventDefault();document.getElementById('profilePhotoInput').click()"
+            ontouchstart="_startAvatarLongPress(event)"
+            ontouchend="_cancelAvatarLongPress()"
+            ontouchmove="_cancelAvatarLongPress()"
+            title="اضغط للملف الشخصي • اضغط مطولاً لتغيير الصورة"
+            style="overflow:hidden;">👑
+            <div class="avatar-upload-btn" onclick="event.stopPropagation();document.getElementById('profilePhotoInput').click()" title="تغيير الصورة">📷</div>
             <div class="online-dot" id="onlineDot" style="display:none;"></div>
           </div>
 
@@ -3828,6 +3885,11 @@ body.member-mode #onlineBar{
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
+
+        <!-- ✨ زر انضم إلينا المشع — يختفي بعد التسجيل -->
+        <button id="joinUsBtnMain" onclick="openJoinUsForm()" title="انضم إلى Connect DZ">
+          ✨ انضم إلينا
+        </button>
 
         <!-- جرس التنبيهات من المدير -->
         <div class="notif-btn" id="notifBell" onclick="openNotifications()" title="التنبيهات" style="position:relative;background:linear-gradient(135deg,rgba(255,160,0,0.15),rgba(255,80,0,0.15));border-color:rgba(255,160,0,0.3);font-size:20px;">🔔<span id="notifBadge" style="display:none;position:absolute;top:-5px;left:-5px;min-width:18px;height:18px;border-radius:9px;background:#e52d27;border:2px solid var(--dark);font-size:10px;font-weight:900;color:white;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;"></span></div>
@@ -3944,14 +4006,13 @@ body.member-mode #onlineBar{
       <div style="font-size:22px;font-weight:900;background:linear-gradient(90deg,#00c853,#e53935);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;flex:1;font-family:'Tajawal',sans-serif;">Connect DZ</div>
       <!-- Action buttons row (Facebook-like circles) -->
       <div style="display:flex;gap:7px;align-items:center;">
+        <!-- ✨ زر انضم إلينا في الشبكة الاجتماعية -->
+        <button id="joinUsBtnSocial" onclick="openJoinUsForm()" title="انضم إلى Connect DZ">
+          ✨ انضم
+        </button>
         <!-- Search -->
         <div onclick="toggleSocialSearch()" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;" title="بحث" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c853" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        </div>
-        <!-- Messenger -->
-        <div onclick="switchSocialTab('pages')" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;position:relative;" title="مسنجر" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">
-          <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='#0084FF'><path d='M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z'/></svg>
-          <span id="socialTopMsgBadge" style="display:none;position:absolute;top:0;right:0;min-width:16px;height:16px;border-radius:8px;background:#e53935;border:2px solid white;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;padding:0 3px;font-family:'Tajawal',sans-serif;"></span>
         </div>
         <!-- Hamburger Menu (3 lines) -->
         <div onclick="toggleSocialSideMenu()" id="socialMenuBtn" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:.15s;flex-shrink:0;" title="القائمة" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">
@@ -3989,12 +4050,97 @@ body.member-mode #onlineBar{
         <span style="font-size:9px;font-weight:700;color:#0084FF;">مسنجر</span>
         <span id="socialMsgBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;"></span>
       </div>
-      <div id="sTab_myprofile" onclick="switchSocialTab('myprofile')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="#65676B"><path d="M4 6l2.5 2.5L12 3l5.5 5.5L20 6l-8-8-8 8zm8 15l-5.5-5.5L4 18l8 8 8-8-2.5-2.5L12 21z"/></svg>
-        <span style="font-size:9px;font-weight:700;color:#65676B;">ريلز</span>
+      <div id="sTab_myprofile" onclick="toggleProfileDropdown()" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
+        <span style="display:block;width:18px;height:2px;background:#050505;border-radius:2px;"></span>
+        <span style="display:block;width:18px;height:2px;background:#050505;border-radius:2px;"></span>
+        <span style="display:block;width:18px;height:2px;background:#050505;border-radius:2px;"></span>
       </div>
     </div>
   </div>
+
+  <!-- ══ القائمة المنسدلة للملف الشخصي ══ -->
+  <div id="profileDropdownMenu" style="display:none;position:fixed;bottom:70px;left:0;right:0;z-index:9500;animation:fadeUp .2s ease;">
+    <div style="background:white;border-radius:20px 20px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,0.18);max-height:85vh;overflow-y:auto;">
+      <!-- المقبض -->
+      <div style="width:40px;height:4px;background:#E4E6EB;border-radius:2px;margin:10px auto 6px;"></div>
+
+      <!-- الحسابات المسجلة -->
+      <div style="padding:10px 16px 6px;">
+        <div style="font-size:11px;font-weight:900;color:#65676B;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase;">الحسابات المسجلة</div>
+        <div id="pdSavedAccounts" style="display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+
+      <div style="height:1px;background:#E4E6EB;margin:8px 0;"></div>
+
+      <!-- لوحة التحكم -->
+      <div onclick="closeProfileDropdown();setTimeout(()=>{hideSocialHomeForDashboard();},200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#f5a623,#e8870a);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📊</div>
+        <div><div style="font-size:14px;font-weight:900;color:#050505;">لوحة التحكم</div><div style="font-size:11px;color:#65676B;">ميزات التطبيق الكاملة</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      </div>
+
+      <!-- لوحة البيانات والتفاعل -->
+      <div onclick="closeProfileDropdown();setTimeout(()=>openDataInteractionPanel(),200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📈</div>
+        <div><div style="font-size:14px;font-weight:900;color:#050505;">لوحة البيانات والتفاعل</div><div style="font-size:11px;color:#65676B;">إحصائياتك ونقاطك ومستواك</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      </div>
+
+      <!-- النشاطات -->
+      <div onclick="closeProfileDropdown();setTimeout(()=>{showModal('activitiesCard');},200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🏅</div>
+        <div><div style="font-size:14px;font-weight:900;color:#050505;">النشاطات</div><div style="font-size:11px;color:#65676B;">سجل نشاطاتك وإنجازاتك</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      </div>
+
+      <!-- الجمهورية DZ -->
+      <div onclick="closeProfileDropdown();setTimeout(()=>openAlgeriaDZ(),200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00c853,#e53935);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🇩🇿</div>
+        <div><div style="font-size:14px;font-weight:900;color:#050505;">الجمهورية DZ</div><div style="font-size:11px;color:#65676B;">مؤسسات وشخصيات وأبطال الجزائر</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      </div>
+
+      <div style="height:1px;background:#E4E6EB;margin:4px 0;"></div>
+
+      <!-- الإعدادات والخصوصية -->
+      <div onclick="closeProfileDropdown();openSideMenuItem('settings');" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">⚙️</div>
+        <div><div style="font-size:14px;font-weight:900;color:#050505;">الإعدادات والخصوصية</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      </div>
+
+      <!-- اللغة -->
+      <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🌐</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#050505;">اللغة</div><div id="pdCurrentLang" style="font-size:11px;color:#65676B;">العربية 🇩🇿</div></div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span onclick="setAppLang('ar',true);closeProfileDropdown();" style="font-size:18px;cursor:pointer;border-radius:6px;padding:2px;" title="العربية">🇩🇿</span>
+          <span onclick="setAppLang('en',true);closeProfileDropdown();" style="font-size:18px;cursor:pointer;border-radius:6px;padding:2px;" title="English">🇬🇧</span>
+          <span onclick="setAppLang('fr',true);closeProfileDropdown();" style="font-size:18px;cursor:pointer;border-radius:6px;padding:2px;" title="Français">🇫🇷</span>
+        </div>
+      </div>
+
+      <!-- خصوصية الظهور -->
+      <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#fc4a1a,#f7b733);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👁️</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#050505;">خصوصية الظهور</div><div style="font-size:11px;color:#65676B;">تحكم من يراك</div></div>
+        <div id="pdVisibilityToggle" onclick="toggleProfileVisibility()" style="width:44px;height:24px;border-radius:12px;background:#1877F2;cursor:pointer;position:relative;transition:.3s;flex-shrink:0;">
+          <div style="position:absolute;top:2px;right:2px;width:20px;height:20px;background:white;border-radius:50%;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,0.3);"></div>
+        </div>
+      </div>
+
+      <div style="height:1px;background:#E4E6EB;margin:4px 0;"></div>
+
+      <!-- تسجيل الخروج -->
+      <div onclick="closeProfileDropdown();doLogout();" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;margin-bottom:8px;" onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#e53935,#b71c1c);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🚪</div>
+        <div><div style="font-size:14px;font-weight:900;color:#e53935;">تسجيل الخروج</div></div>
+      </div>
+    </div>
+    <!-- طبقة الإغلاق خلف القائمة -->
+    <div onclick="closeProfileDropdown()" style="position:fixed;inset:0;z-index:-1;"></div>
+  </div>
+
 
   <!-- ── Side Menu Overlay ── -->
   <div id="socialSideMenuOverlay" onclick="closeSocialSideMenu()" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:50;"></div>
@@ -4358,16 +4504,82 @@ body.member-mode #onlineBar{
     </div>
 
     <!-- ── REELS PANEL (ريلز) ── -->
-    <div id="socialPanel_myprofile" style="display:none;">
-      <div style="padding:14px 14px 6px;background:white;border-bottom:1px solid #E4E6EB;">
-        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:2px;">🎬 ريلز</div>
-        <div style="font-size:12px;color:#65676B;">فيديوهات المدير</div>
+    <div id="socialPanel_myprofile" style="display:none;background:#F0F2F5;min-height:100%;">
+      <!-- غلاف الملف الشخصي -->
+      <div style="position:relative;height:180px;background:linear-gradient(135deg,#1877F2,#00c853);overflow:hidden;" id="profileCoverFB">
+        <div style="position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"60\" height=\"60\"><circle cx=\"30\" cy=\"30\" r=\"1\" fill=\"rgba(255,255,255,0.15)\"/></svg>') repeat;"></div>
+        <!-- زر تغيير الغلاف -->
+        <label style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.5);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;gap:4px;">
+          📷 تغيير الغلاف
+          <input type="file" accept="image/*" style="display:none;" onchange="handleFBCoverChange(event)">
+        </label>
       </div>
-      <div id="reelsFeed" style="display:flex;flex-direction:column;gap:0;"></div>
-      <div id="reelsEmptyMsg" style="display:none;text-align:center;padding:50px 20px;">
-        <div style="font-size:50px;margin-bottom:12px;">🎬</div>
-        <div style="font-size:15px;font-weight:800;color:#050505;margin-bottom:6px;">لا توجد ريلز بعد</div>
-        <div style="font-size:13px;color:#65676B;">سيضيف المدير فيديوهات قريباً</div>
+
+      <!-- صورة الملف الشخصي + الاسم -->
+      <div style="background:white;padding:0 16px 16px;position:relative;">
+        <!-- صورة الملف (قابلة للنقر للتغيير — بدون أيقونة كاميرا فوقها) -->
+        <div style="position:relative;display:inline-block;margin-top:-50px;margin-bottom:10px;">
+          <label style="display:block;cursor:pointer;">
+            <div id="fbProfilePicWrapper" style="width:100px;height:100px;border-radius:50%;border:4px solid white;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 4px 14px rgba(0,0,0,0.18);">👑</div>
+            <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
+          </label>
+        </div>
+
+        <!-- الاسم والتوثيق -->
+        <div style="margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div id="fbProfileName" style="font-size:22px;font-weight:900;color:#050505;"></div>
+            <div id="fbVerifiedBadge" style="display:none;font-size:18px;" title="موثّق">✅</div>
+          </div>
+          <div id="fbProfileRole" style="font-size:13px;color:#65676B;margin-top:2px;font-weight:600;"></div>
+        </div>
+
+        <!-- بيانات التسجيل -->
+        <div id="fbRegInfo" style="background:#F0F2F5;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#65676B;line-height:1.9;"></div>
+
+        <!-- شريط التقدم والمستوى -->
+        <div style="background:#F0F2F5;border-radius:14px;padding:14px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-size:13px;font-weight:900;color:#050505;">المستوى</div>
+            <div id="fbLevelBadge" style="background:linear-gradient(135deg,#1877F2,#00c853);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:900;color:white;">🚀 1</div>
+          </div>
+          <div style="height:8px;background:#E4E6EB;border-radius:4px;overflow:hidden;margin-bottom:6px;">
+            <div id="fbLevelBar" style="height:100%;background:linear-gradient(90deg,#1877F2,#00c853);border-radius:4px;transition:width .6s ease;width:0%;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#65676B;font-weight:700;">
+            <span id="fbLevelPts">0 نقطة</span>
+            <span>3000 نقطة للمستوى التالي</span>
+          </div>
+        </div>
+
+        <!-- النقاط والرصيد -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <div style="background:#F0F2F5;border-radius:12px;padding:14px;text-align:center;">
+            <div id="fbTotalPts" style="font-size:22px;font-weight:900;color:#1877F2;">0</div>
+            <div style="font-size:11px;color:#65676B;font-weight:700;">نقطة إجمالية</div>
+          </div>
+          <div style="background:#F0F2F5;border-radius:12px;padding:14px;text-align:center;">
+            <div id="fbBalance" style="font-size:22px;font-weight:900;color:#00c853;">0 دج</div>
+            <div style="font-size:11px;color:#65676B;font-weight:700;">الرصيد</div>
+          </div>
+        </div>
+
+        <!-- 7 نجوم التقييم -->
+        <div style="background:#F0F2F5;border-radius:14px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:10px;">⭐ تقييمك (7 معايير × 3000 نجم = توثيق)</div>
+          <div id="fbStarsRating" style="display:flex;flex-direction:column;gap:8px;"></div>
+          <div id="fbTotalStars" style="margin-top:10px;text-align:center;font-size:12px;color:#65676B;font-weight:700;"></div>
+        </div>
+
+        <!-- أزرار الإجراءات -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <button onclick="openMyFullProfile()" style="flex:1;padding:9px;background:#1877F2;border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;">✏️ تعديل الملف</button>
+          <button onclick="openFBFriendsFromProfile()" style="flex:1;padding:9px;background:#F0F2F5;border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#050505;cursor:pointer;">👥 الأصدقاء</button>
+        </div>
+
+        <!-- منشورات الملف الشخصي -->
+        <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #E4E6EB;">📝 منشوراتي</div>
+        <div id="fbProfilePostsContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
       </div>
     </div>
 
@@ -7523,6 +7735,11 @@ function renderSavedAccounts(){
       <div class="saved-acc-name">${acc.name}</div>
       <div style="display:flex;align-items:center;gap:6px;">
         <div class="saved-acc-arrow">›</div>
+        <button onclick="event.stopPropagation();confirmDeleteSavedAccount('${safeName}')"
+          style="width:28px;height:28px;border-radius:8px;border:none;background:rgba(220,38,38,0.12);color:#ef4444;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0;"
+          title="حذف"
+          onmouseover="this.style.background='rgba(220,38,38,0.25)'"
+          onmouseout="this.style.background='rgba(220,38,38,0.12)'">🗑️</button>
       </div>
     </div>`;
   }).join('');
@@ -9609,20 +9826,16 @@ function handleProfilePhotoUpload(event){
   const file = event.target.files[0];
   if(!file) return;
 
-  // 🔔 إشعار تفعيل العضوية لكل المستخدمين غير المدير
-  const currentName = getCurrentUser();
-  const isAdmin = window._isAdmin || false;
-  if(!isAdmin && currentName && currentName !== 'زائر'){
-    // تحقق إذا كان المستخدم مسجلاً في القديم (Google Sheet) أو الجديد (Firebase)
-    const regUsers = JSON.parse(localStorage.getItem('cdz_registered_users')||'[]');
-    const isNewReg = regUsers.some(u => (u.firstName+' '+u.lastName).trim() === currentName.trim() || u.email === localStorage.getItem('sklab_user_name'));
-    // نظهر الإشعار دائماً لأن التحقق من Google Sheet يحتاج شبكة
-    setTimeout(()=>{
-      _showMembershipActivationNotice();
-    }, 800);
+  /* ✅ مفتوح للجميع — لا حاجة لتسجيل دخول بـ Cloudinary */
+  const name = getCurrentUser();
+  if(!name){ event.target.value=''; return; }
+
+  /* 🔔 إشعار تفعيل العضوية لغير المدير */
+  if(!window._isAdmin && name !== 'زائر'){
+    setTimeout(_showMembershipActivationNotice, 900);
   }
 
-  // ضغط الصورة قبل الحفظ
+  /* ── ضغط وقص الصورة محلياً (لا رفع شبكي) ── */
   const reader = new FileReader();
   reader.onload = e => {
     const img = new Image();
@@ -9631,22 +9844,24 @@ function handleProfilePhotoUpload(event){
       const size = 200;
       canvas.width = size; canvas.height = size;
       const ctx = canvas.getContext('2d');
-      // قص دائري
       const min = Math.min(img.width, img.height);
       const sx = (img.width - min) / 2, sy = (img.height - min) / 2;
       ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
-      const data = canvas.toDataURL('image/jpeg', 0.75);
-      const name = getCurrentUser();
+      const data = canvas.toDataURL('image/jpeg', 0.78);
       localStorage.setItem(_photoKey(name), data);
-      // تحديث الأفاتار في الهيدر
       updateTopNavAvatar(name);
-      // تحديث الأفاتار في صفحتي
       if(typeof syncProfilePageAvatar === 'function') syncProfilePageAvatar(name);
+      /* تحديث أفاتار صفحتي (profilePageAvatar) */
+      const ppa = document.getElementById('profilePageAvatar');
+      if(ppa){ ppa.innerHTML = `<img src="${data}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"><div style="position:absolute;bottom:0;right:0;background:rgba(0,0,0,0.55);border-radius:50%;padding:5px;font-size:14px;cursor:pointer;">📷</div>`; }
       showToast('✅ تم حفظ صورتك الشخصية!');
     };
+    img.onerror = () => showToast('❌ تعذّر قراءة الصورة');
     img.src = e.target.result;
   };
+  reader.onerror = () => showToast('❌ تعذّر قراءة الملف');
   reader.readAsDataURL(file);
+  event.target.value = '';
 }
 
 /* ══ إشعار تفعيل العضوية ══ */
@@ -9674,12 +9889,26 @@ function _showMembershipActivationNotice(){
   overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
 }
 
+/* ══ ضغط مطوّل على الأفاتار في الهيدر → فتح رفع الصورة مباشرة ══ */
+window._avatarLPTimer = null;
+window._startAvatarLongPress = function(e){
+  clearTimeout(window._avatarLPTimer);
+  window._avatarLPTimer = setTimeout(()=>{
+    e.preventDefault();
+    document.getElementById('profilePhotoInput')?.click();
+  }, 600);
+};
+window._cancelAvatarLongPress = function(){
+  clearTimeout(window._avatarLPTimer);
+  window._avatarLPTimer = null;
+};
+
 function updateTopNavAvatar(name){
   const av = document.getElementById('userInitial');
   if(!av) return;
   const photo = getProfilePhoto(name);
   if(photo){
-    av.innerHTML = `<img loading="lazy" src="${photo}" class="profile-photo" alt="${name}"><div class="avatar-upload-btn">📷</div>`;
+    av.innerHTML = `<img loading="lazy" src="${photo}" class="profile-photo" alt="${name}"><div class="avatar-upload-btn" onclick="event.stopPropagation();document.getElementById('profilePhotoInput').click()" title="تغيير الصورة">📷</div>`;
   } else {
     av.innerHTML = getLeaderIcon(name) + '<div class="avatar-upload-btn">📷</div>';
   }
@@ -18536,12 +18765,13 @@ function renderSavedLoginAccounts(){
     if(btnEl) btnEl.style.display='block';
   }
 
-  // رسم الحسابات المسجلة الجديدة مع دعم الحذف بالضغط المطوّل
+  // رسم الحسابات المسجلة الجديدة مع سلة الحذف الظاهرة + الضغط المطوّل
   const regHTML = regAccs.map((acc,i)=>`
     <div class="saved-acc-card" onclick="fbQuickLogin(${i})"
       oncontextmenu="event.preventDefault();showDeleteAccountMenu(${i},'reg')"
       data-long-press-idx="${i}" data-long-press-type="reg"
-      onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()">
+      onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()"
+      style="position:relative;">
       <div class="saved-acc-avatar">
         ${acc.photo ? `<img src="${acc.photo}" alt="صورة">` : '👤'}
       </div>
@@ -18549,7 +18779,14 @@ function renderSavedLoginAccounts(){
         <div class="saved-acc-name">${acc.name}</div>
         <div style="font-size:11px;color:#8b949e;">${acc.email}</div>
       </div>
-      <div class="saved-acc-arrow">›</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="saved-acc-arrow">›</div>
+        <button onclick="event.stopPropagation();showDeleteAccountMenu(${i},'reg')"
+          style="width:28px;height:28px;border-radius:8px;border:none;background:rgba(220,38,38,0.12);color:#ef4444;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0;"
+          title="حذف الحساب"
+          onmouseover="this.style.background='rgba(220,38,38,0.25)'"
+          onmouseout="this.style.background='rgba(220,38,38,0.12)'">🗑️</button>
+      </div>
     </div>
   `).join('');
 
@@ -18563,10 +18800,18 @@ function renderSavedLoginAccounts(){
     return `<div class="saved-acc-card" onclick="loginWithSavedAccount('${safeName}')"
       oncontextmenu="event.preventDefault();showDeleteAccountMenu(${i},'legacy','${safeName}')"
       data-long-press-idx="${i}" data-long-press-type="legacy" data-long-press-name="${safeName}"
-      onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()">
+      onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()"
+      style="position:relative;">
       <div class="saved-acc-avatar">${photo?`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:icon}</div>
       <div class="saved-acc-name">${acc.name}</div>
-      <div class="saved-acc-arrow">›</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="saved-acc-arrow">›</div>
+        <button onclick="event.stopPropagation();showDeleteAccountMenu(${i},'legacy','${safeName}')"
+          style="width:28px;height:28px;border-radius:8px;border:none;background:rgba(220,38,38,0.12);color:#ef4444;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0;"
+          title="حذف الحساب"
+          onmouseover="this.style.background='rgba(220,38,38,0.25)'"
+          onmouseout="this.style.background='rgba(220,38,38,0.12)'">🗑️</button>
+      </div>
     </div>`;
   }).join('');
 
@@ -19462,6 +19707,798 @@ window.adminOpenFileImg = function(url, label){
   if(lbl) lbl.textContent = label || '';
   modal.style.display = 'flex';
 };
+
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+     📊 لوحة البيانات والتفاعل
+     ══════════════════════════════════════════════════════════ -->
+<div id="dataInteractionPanel" style="display:none;position:fixed;inset:0;z-index:9600;background:#F0F2F5;flex-direction:column;animation:fadeIn .25s ease;font-family:'Tajawal',sans-serif;">
+  <div style="background:white;padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #E4E6EB;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+    <div onclick="closeDataInteractionPanel()" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:#1877F2;font-weight:700;">‹</div>
+    <div style="font-size:18px;font-weight:900;color:#050505;">📈 لوحة البيانات والتفاعل</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;">
+    <!-- التفاعل مع المنشورات -->
+    <div style="background:white;border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:12px;">💬 تفاعل مع المنشورات</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="background:#F0F8FF;border-radius:12px;padding:12px;text-align:center;">
+          <div id="dipComments" style="font-size:24px;font-weight:900;color:#1877F2;">0</div>
+          <div style="font-size:11px;color:#65676B;font-weight:700;">عدد التعليقات</div>
+        </div>
+        <div style="background:#FFF0F8;border-radius:12px;padding:12px;text-align:center;">
+          <div id="dipLikes" style="font-size:24px;font-weight:900;color:#e53935;">0</div>
+          <div style="font-size:11px;color:#65676B;font-weight:700;">الإعجابات</div>
+        </div>
+        <div style="background:#F0FFF4;border-radius:12px;padding:12px;text-align:center;">
+          <div id="dipReach" style="font-size:24px;font-weight:900;color:#00c853;">—</div>
+          <div style="font-size:11px;color:#65676B;font-weight:700;">نسبة الوصول</div>
+        </div>
+        <div style="background:#FFFDF0;border-radius:12px;padding:12px;text-align:center;">
+          <div id="dipViews" style="font-size:24px;font-weight:900;color:#f5c518;">—</div>
+          <div style="font-size:11px;color:#65676B;font-weight:700;">نسبة المشاهدة</div>
+        </div>
+      </div>
+    </div>
+    <!-- الرصيد والنقاط -->
+    <div style="background:white;border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:12px;">💰 رصيدك</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="background:linear-gradient(135deg,#1877F2,#0d5bda);border-radius:12px;padding:14px;text-align:center;">
+          <div id="dipBalancePerOp" style="font-size:20px;font-weight:900;color:white;">0 دج</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.8);font-weight:700;">لكل عملية</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#00c853,#00a040);border-radius:12px;padding:14px;text-align:center;">
+          <div id="dipBalancePerFeature" style="font-size:20px;font-weight:900;color:white;">0 دج</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.8);font-weight:700;">لكل ميزة</div>
+        </div>
+      </div>
+    </div>
+    <!-- التقييم والمستوى -->
+    <div style="background:white;border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:12px;">⭐ التقييم والتقدم</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#F0F2F5;border-radius:10px;">
+          <span style="font-size:13px;font-weight:700;color:#050505;">تقييم النجوم</span>
+          <div id="dipStarsDisplay" style="display:flex;gap:3px;font-size:18px;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#F0F2F5;border-radius:10px;">
+          <span style="font-size:13px;font-weight:700;color:#050505;">تقدمك اليومي</span>
+          <div id="dipDailyProgress" style="font-size:13px;font-weight:900;color:#1877F2;">0%</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#F0F2F5;border-radius:10px;">
+          <span style="font-size:13px;font-weight:700;color:#050505;">تقييم التطبيق لك</span>
+          <div id="dipAppRating" style="font-size:13px;font-weight:900;color:#00c853;">جيد</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#F0F2F5;border-radius:10px;">
+          <span style="font-size:13px;font-weight:700;color:#050505;">مستواك</span>
+          <div id="dipLevel" style="background:linear-gradient(135deg,#1877F2,#00c853);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:900;color:white;">🚀 1</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#F0F2F5;border-radius:10px;">
+          <span style="font-size:13px;font-weight:700;color:#050505;">ترتيبك</span>
+          <div id="dipRank" style="font-size:18px;font-weight:900;color:#f5c518;">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     🇩🇿 الجمهورية DZ
+     ══════════════════════════════════════════════════════════ -->
+<div id="algeriaDZPanel" style="display:none;position:fixed;inset:0;z-index:9600;background:#F0F2F5;flex-direction:column;animation:fadeIn .25s ease;font-family:'Tajawal',sans-serif;">
+  <div style="background:white;padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #E4E6EB;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+    <div onclick="closeAlgeriaDZ()" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:#1877F2;font-weight:700;">‹</div>
+    <div style="font-size:18px;font-weight:900;color:#050505;">🇩🇿 الجمهورية الجزائرية</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px;">
+    <!-- البحث -->
+    <div style="background:white;border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <span style="font-size:16px;">🔍</span>
+      <input type="text" id="algeriaSearchInput" placeholder="ابحث عن وزارة أو مؤسسة أو شخصية..." oninput="filterAlgeria(this.value)" style="border:none;outline:none;flex:1;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:600;color:#050505;background:transparent;text-align:right;">
+    </div>
+
+    <!-- أقسام الجزائر -->
+    <div id="algeriaContent" style="display:flex;flex-direction:column;gap:10px;">
+
+      <!-- الوزارات -->
+      <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div onclick="toggleAlgeriaSection('ministries')" style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:linear-gradient(135deg,#006233,#002080);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:22px;">🏛️</span>
+            <div>
+              <div style="font-size:14px;font-weight:900;color:white;">الوزارات الجزائرية</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.75);">34 وزارة</div>
+            </div>
+          </div>
+          <span id="algeriaArrow_ministries" style="color:white;font-size:20px;transition:.3s;">›</span>
+        </div>
+        <div id="algeriaSection_ministries" style="display:none;padding:10px;">
+          <div id="ministriesList" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+      </div>
+
+      <!-- المؤسسات الوطنية -->
+      <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div onclick="toggleAlgeriaSection('institutions')" style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:linear-gradient(135deg,#D21034,#880011);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:22px;">🏢</span>
+            <div>
+              <div style="font-size:14px;font-weight:900;color:white;">مؤسسات الدولة</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.75);">المنشآت والهيئات الوطنية</div>
+            </div>
+          </div>
+          <span id="algeriaArrow_institutions" style="color:white;font-size:20px;transition:.3s;">›</span>
+        </div>
+        <div id="algeriaSection_institutions" style="display:none;padding:10px;">
+          <div id="institutionsList" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+      </div>
+
+      <!-- الشخصيات والأبطال -->
+      <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div onclick="toggleAlgeriaSection('heroes')" style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:linear-gradient(135deg,#f5a623,#e05c00);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:22px;">🦸</span>
+            <div>
+              <div style="font-size:14px;font-weight:900;color:white;">شخصيات وأبطال الجزائر</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.75);">رموز الأمة الجزائرية</div>
+            </div>
+          </div>
+          <span id="algeriaArrow_heroes" style="color:white;font-size:20px;transition:.3s;">›</span>
+        </div>
+        <div id="algeriaSection_heroes" style="display:none;padding:10px;">
+          <div id="heroesList" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+      </div>
+
+      <!-- المنشآت -->
+      <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div onclick="toggleAlgeriaSection('infra')" style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:linear-gradient(135deg,#0072bc,#003a7a);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:22px;">🏗️</span>
+            <div>
+              <div style="font-size:14px;font-weight:900;color:white;">منشآت الجزائر</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.75);">البنية التحتية والمشاريع الكبرى</div>
+            </div>
+          </div>
+          <span id="algeriaArrow_infra" style="color:white;font-size:20px;transition:.3s;">›</span>
+        </div>
+        <div id="algeriaSection_infra" style="display:none;padding:10px;">
+          <div id="infraList" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     📝 سكريبت الوظائف الجديدة كاملاً
+     ══════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ══ تعديل renderApp لإظهار صفحة الفيسبوك مباشرة ══ */
+const _origRenderApp = window.renderApp;
+window.renderApp = function(name, pts, isReg, externalEarned){
+  // استدعاء الدالة الأصلية أولاً
+  if(typeof _origRenderApp === 'function') _origRenderApp(name, pts, isReg, externalEarned);
+  // بعد 300ms (لإتمام الانتقال) نُظهر صفحة الفيسبوك تلقائياً
+  setTimeout(function(){
+    if(typeof showSocialHome === 'function') showSocialHome();
+    // تحديث بيانات الملف الشخصي
+    _updateFBProfile();
+  }, 350);
+};
+
+/* ══ تحديث بيانات الملف الشخصي الجديدة ══ */
+function _updateFBProfile(){
+  const name = typeof getCurrentUser === 'function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
+  if(!name) return;
+
+  // الاسم
+  const nameEl = document.getElementById('fbProfileName');
+  if(nameEl) nameEl.innerText = name;
+
+  // الوظيفة/الدور
+  const roleEl = document.getElementById('fbProfileRole');
+  if(roleEl) roleEl.innerText = typeof getLeaderIcon==='function' ? getLeaderIcon(name)+' عضو في Connect DZ' : 'عضو في Connect DZ';
+
+  // صورة الملف الشخصي
+  const picWrapper = document.getElementById('fbProfilePicWrapper');
+  if(picWrapper){
+    const photo = typeof getProfilePhoto === 'function' ? getProfilePhoto(name) : null;
+    if(photo){
+      picWrapper.innerHTML = `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    } else {
+      picWrapper.innerText = typeof getLeaderIcon==='function' ? getLeaderIcon(name) : '👑';
+    }
+  }
+
+  // بيانات التسجيل من Firebase
+  _loadRegDataForProfile(name);
+
+  // النقاط والمستوى
+  const totalPts = parseInt(document.getElementById('mainPoints')?.innerText)||0;
+  const lvl = Math.floor(totalPts/3000)+1;
+  const ptsInLvl = totalPts % 3000;
+  const pct = Math.min(100, (ptsInLvl/3000)*100);
+
+  const levelBarEl = document.getElementById('fbLevelBar');
+  if(levelBarEl) levelBarEl.style.width = pct+'%';
+  const levelBadgeEl = document.getElementById('fbLevelBadge');
+  if(levelBadgeEl) levelBadgeEl.innerText = '🚀 '+lvl;
+  const levelPtsEl = document.getElementById('fbLevelPts');
+  if(levelPtsEl) levelPtsEl.innerText = ptsInLvl.toLocaleString()+' نقطة';
+
+  // إجمالي النقاط
+  const totalPtsEl = document.getElementById('fbTotalPts');
+  if(totalPtsEl) totalPtsEl.innerText = totalPts.toLocaleString();
+
+  // الرصيد
+  const balEl = document.getElementById('fbBalance');
+  const balSrc = document.getElementById('mgStatBalance');
+  if(balEl && balSrc) balEl.innerText = balSrc.innerText || '0 دج';
+
+  // التوثيق (3000 نجم = توثيق)
+  _updateStarsRating(name);
+
+  // منشورات الملف الشخصي
+  _loadFBProfilePosts(name);
+}
+
+/* بيانات التسجيل للملف الشخصي */
+async function _loadRegDataForProfile(name){
+  const el = document.getElementById('fbRegInfo');
+  if(!el) return;
+  try{
+    const res = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/registrations.json');
+    const data = await res.json();
+    if(!data) return;
+    const records = Object.values(data);
+    const rec = records.find(r => r && (r['الاسم_واللقب']||'').trim().toLowerCase() === name.trim().toLowerCase());
+    if(!rec){ el.innerHTML='<span style="color:#65676B;font-size:12px;">لا توجد بيانات تسجيل مرتبطة بهذا الحساب</span>'; return; }
+    const fields = [
+      {k:'الاسم_واللقب', icon:'👤', label:'الاسم'},
+      {k:'رقم_الهاتف', icon:'📱', label:'الهاتف'},
+      {k:'تاريخ_الميلاد', icon:'🎂', label:'تاريخ الميلاد'},
+      {k:'البلدية', icon:'📍', label:'البلدية'},
+      {k:'تاريخ_الانخراط', icon:'📅', label:'تاريخ الانخراط'},
+      {k:'التخصص', icon:'🎓', label:'التخصص'},
+    ];
+    el.innerHTML = fields
+      .filter(f=>rec[f.k])
+      .map(f=>`<div style="display:flex;align-items:center;gap:8px;"><span>${f.icon}</span><span style="font-weight:700;color:#050505;font-size:12px;">${f.label}:</span><span style="color:#65676B;font-size:12px;">${rec[f.k]}</span></div>`)
+      .join('');
+  }catch(e){
+    el.innerHTML='<span style="color:#65676B;font-size:12px;">تعذّر تحميل البيانات</span>';
+  }
+}
+
+/* تحديث النجوم السبعة */
+function _updateStarsRating(name){
+  const container = document.getElementById('fbStarsRating');
+  const totalEl = document.getElementById('fbTotalStars');
+  if(!container) return;
+
+  const starCategories = [
+    {label:'التفاعل مع المنشورات', key:'stars_interaction'},
+    {label:'حضور النشاطات', key:'stars_activities'},
+    {label:'التعليقات والمشاركة', key:'stars_comments'},
+    {label:'الاختبارات والمسابقات', key:'stars_quizzes'},
+    {label:'الإبداع والمحتوى', key:'stars_content'},
+    {label:'المساعدة والتعاون', key:'stars_help'},
+    {label:'الالتزام والانضباط', key:'stars_discipline'},
+  ];
+
+  const normName = (name||'').replace(/\s+/g,'_');
+  let totalStars = 0;
+  let html = '';
+
+  starCategories.forEach(cat=>{
+    const val = parseInt(localStorage.getItem('nld_'+cat.key+'_'+normName)||'0');
+    totalStars += val;
+    const pct = Math.min(100,(val/3000)*100);
+    html += `
+    <div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+        <span style="font-size:11px;font-weight:700;color:#050505;">${cat.label}</span>
+        <span style="font-size:11px;color:#65676B;">${val}/3000 ⭐</span>
+      </div>
+      <div style="height:5px;background:#E4E6EB;border-radius:3px;overflow:hidden;">
+        <div style="height:100%;background:linear-gradient(90deg,#f5c518,#f97316);width:${pct}%;border-radius:3px;"></div>
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+
+  // التوثيق: 7 × 3000 = 21000 نجم إجمالي للتوثيق الكامل. نقلل: 3000 نجم = توثيق واحد
+  const verified = totalStars >= 3000;
+  const verBadge = document.getElementById('fbVerifiedBadge');
+  if(verBadge) verBadge.style.display = verified ? 'inline' : 'none';
+
+  if(totalEl){
+    const pctTotal = Math.min(100,(totalStars/(7*3000))*100);
+    totalEl.innerHTML = `
+      إجمالي النجوم: <strong style="color:#f5c518;">${totalStars.toLocaleString()}</strong> / 21,000
+      ${verified ? ' — <span style="color:#1877F2;font-weight:900;">✅ موثّق</span>' : ` — تحتاج ${(3000-Math.min(3000,totalStars)).toLocaleString()} نجمة للتوثيق`}`;
+  }
+}
+
+/* منشورات الملف الشخصي */
+function _loadFBProfilePosts(name){
+  const container = document.getElementById('fbProfilePostsContainer');
+  if(!container) return;
+  try{
+    const key = 'nld_social_posts';
+    const all = JSON.parse(localStorage.getItem(key)||'[]');
+    const mine = all.filter(p=>p.author===name).slice().reverse().slice(0,10);
+    if(!mine.length){
+      container.innerHTML='<div style="text-align:center;padding:30px 20px;color:#65676B;font-size:13px;font-weight:700;">لا توجد منشورات بعد</div>';
+      return;
+    }
+    container.innerHTML = mine.map(p=>`
+      <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div style="font-size:13px;color:#050505;line-height:1.6;margin-bottom:8px;">${p.text||''}</div>
+        ${p.imageUrl?`<img src="${p.imageUrl}" style="width:100%;border-radius:10px;margin-bottom:8px;max-height:200px;object-fit:cover;">`:''}
+        <div style="font-size:11px;color:#65676B;">❤️ ${(p.reactions||[]).length} تفاعل &nbsp;|&nbsp; 💬 ${(p.comments||[]).length} تعليق</div>
+      </div>`).join('');
+  }catch(e){container.innerHTML='';}
+}
+
+/* ══ تغيير صورة الملف الشخصي ══ */
+window.handleFBProfilePicChange = async function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  if(typeof window._showStorageProgress==='function') window._showStorageProgress('رفع الصورة...');
+  try{
+    const result = await window.uploadImageCompressed(file,'profiles',800,0.85);
+    const name = typeof getCurrentUser==='function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
+    if(result && result.url){
+      localStorage.setItem('nld_profile_photo_'+name.replace(/\s+/g,'_'), result.url);
+      const wrapper = document.getElementById('fbProfilePicWrapper');
+      if(wrapper) wrapper.innerHTML=`<img src="${result.url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      if(typeof syncSocialAvatar==='function') syncSocialAvatar(name);
+      if(typeof updateTopNavAvatar==='function') updateTopNavAvatar(name);
+      if(typeof showToast==='function') showToast('✅ تم تغيير صورة الملف بنجاح');
+    }
+  }catch(err){
+    if(typeof showToast==='function') showToast('❌ فشل رفع الصورة');
+  }finally{
+    if(typeof window._hideStorageProgress==='function') window._hideStorageProgress();
+  }
+};
+
+/* تغيير صورة الغلاف */
+window.handleFBCoverChange = async function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  if(typeof window._showStorageProgress==='function') window._showStorageProgress('رفع صورة الغلاف...');
+  try{
+    const result = await window.uploadImageCompressed(file,'covers',1200,0.85);
+    const name = typeof getCurrentUser==='function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
+    if(result && result.url){
+      localStorage.setItem('nld_fb_cover_'+name.replace(/\s+/g,'_'), result.url);
+      const cover = document.getElementById('profileCoverFB');
+      if(cover) cover.style.backgroundImage=`url(${result.url})`;
+      if(typeof showToast==='function') showToast('✅ تم تغيير صورة الغلاف');
+    }
+  }catch(err){
+    if(typeof showToast==='function') showToast('❌ فشل رفع صورة الغلاف');
+  }finally{
+    if(typeof window._hideStorageProgress==='function') window._hideStorageProgress();
+  }
+};
+
+/* ══ تبويب الملف الشخصي الجديد ══ */
+/* تجاوز renderReelsPanel إذا وجد */
+if(typeof window.switchSocialTab === 'function'){
+  const _origSwitch = window.switchSocialTab;
+  window.switchSocialTab = function(tab){
+    _origSwitch(tab);
+    if(tab === 'myprofile'){
+      _updateFBProfile();
+      _loadFBCover();
+    }
+  };
+}
+
+/* تحميل غلاف المستخدم */
+function _loadFBCover(){
+  const name = typeof getCurrentUser==='function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
+  const cover = document.getElementById('profileCoverFB');
+  if(!cover || !name) return;
+  const stored = localStorage.getItem('nld_fb_cover_'+name.replace(/\s+/g,'_'));
+  if(stored) cover.style.backgroundImage = `url(${stored})`;
+  else cover.style.backgroundImage = '';
+}
+
+/* ══ القائمة المنسدلة للملف الشخصي ══ */
+window.toggleProfileDropdown = function(){
+  const menu = document.getElementById('profileDropdownMenu');
+  if(!menu) return;
+  const isOpen = menu.style.display === 'flex';
+  if(isOpen){ closeProfileDropdown(); return; }
+  menu.style.display = 'flex';
+  menu.style.flexDirection = 'column';
+  // تحميل الحسابات المحفوظة
+  _loadSavedAccountsInDropdown();
+};
+
+window.closeProfileDropdown = function(){
+  const menu = document.getElementById('profileDropdownMenu');
+  if(menu) menu.style.display = 'none';
+};
+
+function _loadSavedAccountsInDropdown(){
+  const container = document.getElementById('pdSavedAccounts');
+  if(!container) return;
+  try{
+    const saved = JSON.parse(localStorage.getItem('nld_saved_accounts')||'[]');
+    const current = localStorage.getItem('sklab_user_name')||'';
+    if(!saved.length){ container.innerHTML='<div style="font-size:12px;color:#65676B;padding:6px 0;">لا توجد حسابات محفوظة</div>'; return; }
+    container.innerHTML = saved.map(acc=>`
+      <div onclick="loginWithSavedAccount('${acc.replace(/'/g,"\\'")}');closeProfileDropdown();"
+        style="display:flex;align-items:center;gap:10px;background:${acc===current?'#E7F3FF':'#F0F2F5'};border:${acc===current?'1.5px solid #1877F2':'1.5px solid transparent'};border-radius:12px;padding:10px 12px;cursor:pointer;transition:.15s;"
+        onmouseover="this.style.background='#E7F3FF'" onmouseout="this.style.background='${acc===current?'#E7F3FF':'#F0F2F5'}'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden;">
+          ${(typeof getProfilePhoto==='function'&&getProfilePhoto(acc)) ? `<img src="${getProfilePhoto(acc)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (typeof getLeaderIcon==='function'?getLeaderIcon(acc):'👤')}
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:900;color:#050505;">${acc}</div>
+          ${acc===current?'<div style="font-size:10px;color:#1877F2;font-weight:700;">الحساب الحالي ✓</div>':''}
+        </div>
+      </div>`).join('');
+  }catch(e){container.innerHTML='';}
+}
+
+/* إخفاء صفحة الفيسبوك للذهاب للوحة التحكم */
+window.hideSocialHomeForDashboard = function(){
+  const el = document.getElementById('socialHomeCard');
+  if(el) el.style.display = 'none';
+};
+
+/* تبديل خصوصية الظهور */
+window.toggleProfileVisibility = function(){
+  const toggle = document.getElementById('pdVisibilityToggle');
+  if(!toggle) return;
+  const isOn = toggle.dataset.on !== 'false';
+  toggle.dataset.on = isOn ? 'false' : 'true';
+  toggle.style.background = isOn ? '#E4E6EB' : '#1877F2';
+  const dot = toggle.querySelector('div');
+  if(dot) dot.style.right = isOn ? 'auto' : '2px', dot.style.left = isOn ? '2px' : 'auto';
+  if(typeof showToast==='function') showToast(isOn ? '🔒 ملفك الشخصي مخفي' : '👁️ ملفك الشخصي ظاهر للجميع');
+};
+
+/* ══ لوحة البيانات والتفاعل ══ */
+window.openDataInteractionPanel = function(){
+  const el = document.getElementById('dataInteractionPanel');
+  if(el){ el.style.display = 'flex'; }
+  _fillDataInteractionPanel();
+};
+
+window.closeDataInteractionPanel = function(){
+  const el = document.getElementById('dataInteractionPanel');
+  if(el) el.style.display = 'none';
+};
+
+function _fillDataInteractionPanel(){
+  const name = typeof getCurrentUser==='function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
+  if(!name) return;
+
+  // تعليقات ولايكات من المنشورات
+  try{
+    const posts = JSON.parse(localStorage.getItem('nld_social_posts')||'[]');
+    const mine = posts.filter(p=>p.author===name);
+    const totalComments = mine.reduce((s,p)=>s+(p.comments||[]).length,0);
+    const totalLikes = mine.reduce((s,p)=>s+(p.reactions||[]).length,0);
+    const dc = document.getElementById('dipComments'); if(dc) dc.innerText = totalComments;
+    const dl = document.getElementById('dipLikes'); if(dl) dl.innerText = totalLikes;
+  }catch(e){}
+
+  // النقاط والرصيد
+  const ptsEl = document.getElementById('mainPoints');
+  const totalPts = parseInt(ptsEl?.innerText)||0;
+  const rate = window._userBalanceRate || 30;
+  const balance = ((totalPts/50)*rate).toFixed(2);
+  const bop = document.getElementById('dipBalancePerOp'); if(bop) bop.innerText = (rate/50).toFixed(2)+' دج';
+  const bpf = document.getElementById('dipBalancePerFeature'); if(bpf) bpf.innerText = balance+' دج';
+
+  // النجوم
+  const starsEl = document.getElementById('dipStarsDisplay');
+  if(starsEl){
+    const normName = name.replace(/\s+/g,'_');
+    const categories = ['stars_interaction','stars_activities','stars_comments','stars_quizzes','stars_content','stars_help','stars_discipline'];
+    const totalStars = categories.reduce((s,k)=>s+parseInt(localStorage.getItem('nld_'+k+'_'+normName)||'0'),0);
+    const starCount = Math.min(7, Math.floor(totalStars/300));
+    starsEl.innerHTML = Array(7).fill(0).map((_,i)=>`<span style="opacity:${i<starCount?1:0.2};">⭐</span>`).join('');
+  }
+
+  // المستوى والتقدم
+  const lvl = Math.floor(totalPts/3000)+1;
+  const dipLvl = document.getElementById('dipLevel'); if(dipLvl) dipLvl.innerText = '🚀 '+lvl;
+  const dipDP = document.getElementById('dipDailyProgress');
+  if(dipDP){
+    const normName = name.replace(/\s+/g,'_');
+    const todayPts = parseInt(localStorage.getItem('nld_today_pts_'+normName)||'0');
+    dipDP.innerText = Math.min(100,todayPts)+'%';
+  }
+
+  // التقييم العام
+  const dipAR = document.getElementById('dipAppRating');
+  if(dipAR){
+    const ratings=['ضعيف','مقبول','جيد','جيد جداً','ممتاز'];
+    dipAR.innerText = ratings[Math.min(4,Math.floor(lvl/2))] || 'جيد';
+  }
+
+  // الترتيب
+  const rankEl = document.getElementById('dipRank');
+  if(rankEl){
+    const rankBadge = document.getElementById('memberRankDisplay');
+    rankEl.innerText = rankBadge?.innerText || '—';
+  }
+}
+
+/* ══ الجمهورية DZ ══ */
+window.openAlgeriaDZ = function(){
+  const el = document.getElementById('algeriaDZPanel');
+  if(el){ el.style.display='flex'; el.style.flexDirection='column'; }
+  _fillAlgeriaData();
+};
+
+window.closeAlgeriaDZ = function(){
+  const el = document.getElementById('algeriaDZPanel');
+  if(el) el.style.display = 'none';
+};
+
+window.toggleAlgeriaSection = function(section){
+  const content = document.getElementById('algeriaSection_'+section);
+  const arrow = document.getElementById('algeriaArrow_'+section);
+  if(!content) return;
+  const open = content.style.display === 'block';
+  content.style.display = open ? 'none' : 'block';
+  if(arrow) arrow.style.transform = open ? '' : 'rotate(90deg)';
+};
+
+window.filterAlgeria = function(q){
+  document.querySelectorAll('.algeria-item').forEach(el=>{
+    el.style.display = (!q || el.innerText.includes(q)) ? 'flex' : 'none';
+  });
+};
+
+function _algeriaItem(emoji, name, desc){
+  return `<div class="algeria-item" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#F0F2F5;border-radius:10px;">
+    <span style="font-size:20px;flex-shrink:0;">${emoji}</span>
+    <div><div style="font-size:13px;font-weight:900;color:#050505;">${name}</div>${desc?`<div style="font-size:11px;color:#65676B;">${desc}</div>`:''}</div>
+  </div>`;
+}
+
+function _fillAlgeriaData(){
+  const ministries = document.getElementById('ministriesList');
+  if(ministries && !ministries.dataset.filled){
+    ministries.dataset.filled='1';
+    const list=[
+      ['🏛️','وزارة الداخلية والجماعات المحلية والهجرة','الأمن الوطني والجماعات المحلية'],
+      ['⚖️','وزارة العدل','القضاء والشؤون القانونية'],
+      ['🛡️','وزارة الدفاع الوطني','الجيش الوطني الشعبي'],
+      ['🏫','وزارة التربية الوطنية','التعليم الأساسي والثانوي'],
+      ['🎓','وزارة التعليم العالي والبحث العلمي','الجامعات والبحث'],
+      ['🏥','وزارة الصحة','الرعاية الصحية والمستشفيات'],
+      ['💼','وزارة المالية','الميزانية والاقتصاد'],
+      ['⛽','وزارة الطاقة والمناجم','النفط والغاز والثروات الطبيعية'],
+      ['🌾','وزارة الفلاحة والتنمية الريفية','الزراعة وتنمية الأرياف'],
+      ['🏗️','وزارة الأشغال العمومية والبنية التحتية','الطرق والموانئ والجسور'],
+      ['🏘️','وزارة السكن والعمران والمدينة','السكن والإسكان'],
+      ['🤝','وزارة التضامن الوطني والأسرة وقضايا المرأة','الرعاية الاجتماعية'],
+      ['💻','وزارة الرقمنة والإحصاء','التحول الرقمي'],
+      ['📡','وزارة البريد والمواصلات السلكية واللاسلكية','الاتصالات'],
+      ['🏭','وزارة الصناعة','قطاع الصناعة والتصنيع'],
+      ['🌊','وزارة الموارد المائية','المياه والسدود'],
+      ['🌿','وزارة البيئة والطاقات المتجددة','البيئة والطاقة النظيفة'],
+      ['⚽','وزارة الشباب والرياضة','الرياضة والنشاط الشبابي'],
+      ['🎨','وزارة الثقافة والفنون','التراث والإبداع الثقافي'],
+      ['🕌','وزارة الشؤون الدينية والأوقاف','الشؤون الإسلامية'],
+      ['📰','وزارة الاتصال','الإعلام والصحافة'],
+      ['🤰','وزارة العمل والتشغيل والضمان الاجتماعي','التشغيل والتأمين'],
+      ['🚢','وزارة النقل','المواصلات والنقل'],
+      ['🌍','وزارة الشؤون الخارجية','الدبلوماسية والعلاقات الخارجية'],
+      ['🏪','وزارة التجارة','التجارة الداخلية والخارجية'],
+      ['🔬','وزارة الصناعة الصيدلانية','الأدوية والصحة'],
+      ['🏕️','وزارة السياحة والصناعة التقليدية','السياحة والحرف'],
+      ['⚓','وزارة الصيد البحري والمنتجات الصيدية','الصيد والثروة البحرية'],
+      ['📚','وزارة التكوين والتعليم المهنيين','التكوين المهني'],
+      ['🏞️','وزارة إعداد الإقليم','تهيئة الأقاليم'],
+      ['👶','وزارة السكان والأسرة','قضايا السكان'],
+      ['🏛️','وزارة العلاقات مع البرلمان','الشؤون التشريعية'],
+      ['🔑','الوزارة الأولى / رئاسة الحكومة','التنسيق الحكومي'],
+    ];
+    ministries.innerHTML = list.map(([e,n,d])=>_algeriaItem(e,n,d)).join('');
+  }
+
+  const institutions = document.getElementById('institutionsList');
+  if(institutions && !institutions.dataset.filled){
+    institutions.dataset.filled='1';
+    const list=[
+      ['🏦','بنك الجزائر','البنك المركزي'],
+      ['⛽','سوناطراك','شركة النفط والغاز الوطنية'],
+      ['✈️','الجوية الجزائرية (Air Algérie)','شركة الطيران الوطنية'],
+      ['🏥','المستشفى الجامعي مصطفى باشا','أكبر مستشفى في الجزائر'],
+      ['🎓','جامعة الجزائر 1','أعرق الجامعات الجزائرية'],
+      ['📺','التلفزيون الجزائري (ENTV)','الإعلام الوطني الرسمي'],
+      ['📡','الإذاعة الجزائرية','إذاعة الدولة'],
+      ['🚂','الشركة الوطنية للنقل بالسكك الحديدية (SNTF)','القطار الوطني'],
+      ['🚌','الشركة الوطنية للنقل بالحافلات (SNTP)','الحافلات الوطنية'],
+      ['💡','شركة سونلغاز','الكهرباء والغاز'],
+      ['💧','الديوان الجزائري للمياه','توزيع المياه'],
+      ['📮','بريد الجزائر','خدمات البريد والبنك'],
+      ['🔬','المركز الجزائري لمراقبة الجودة','معايير الجودة'],
+      ['📊','الديوان الوطني للإحصاء (ONS)','الإحصاء الوطني'],
+      ['🌾','المكتب الجزائري المهني للحبوب','تسويق الحبوب'],
+      ['🏡','صندوق الوطني للسكن (CNL)','تمويل السكن'],
+      ['🎓','الديوان الوطني للامتحانات والمسابقات (ONEC)','الامتحانات الوطنية'],
+      ['🌊','الجزائرية للمياه','مياه الشرب'],
+      ['🔧','شركة ENIE','الإلكترونيات الوطنية'],
+      ['🏭','شركة SNVI','الصناعة الميكانيكية'],
+    ];
+    institutions.innerHTML = list.map(([e,n,d])=>_algeriaItem(e,n,d)).join('');
+  }
+
+  const heroes = document.getElementById('heroesList');
+  if(heroes && !heroes.dataset.filled){
+    heroes.dataset.filled='1';
+    const list=[
+      ['🌟','الأمير عبد القادر الجزائري','قائد المقاومة الجزائرية (1808-1883)'],
+      ['🦁','الشهيد مصطفى بن بولعيد','أحد مفجري ثورة نوفمبر 1954'],
+      ['⚔️','الشهيد العربي بن مهيدي','رمز الشجاعة والبطولة'],
+      ['🎖️','الشهيد ديدوش مراد','قائد المنطقة الثانية'],
+      ['🏆','الشهيد محمد العربي بن عبدة','رائد المقاومة'],
+      ['✊','الشهيدة جميلة بوحيرد','رمز المرأة الجزائرية المناضلة'],
+      ['🌹','الشهيدة جميلة بوباشا','مناضلة البطولة'],
+      ['📖','مالك بن نبي','مفكر جزائري إسلامي'],
+      ['🖊️','كاتب ياسين','روائي وشاعر جزائري'],
+      ['🎭','محمد ديب','روائي جزائري عالمي'],
+      ['⚽','رابح ماجر','الذهبي - أسطورة كرة القدم الجزائرية'],
+      ['🏃','حسيبة بولمرقة','بطلة العالم في ألعاب القوى 1992'],
+      ['💻','مولود قاسم نايت بلقاسم','مفكر وأديب جزائري'],
+      ['🕊️','الشيخ عبد الحميد بن باديس','رائد الإصلاح الديني والنهضة الجزائرية'],
+      ['🌙','الشيخ البشير الإبراهيمي','مؤسس جمعية العلماء المسلمين'],
+    ];
+    heroes.innerHTML = list.map(([e,n,d])=>_algeriaItem(e,n,d)).join('');
+  }
+
+  const infra = document.getElementById('infraList');
+  if(infra && !infra.dataset.filled){
+    infra.dataset.filled='1';
+    const list=[
+      ['🕌','جامع الجزائر الأعظم','أكبر مسجد في إفريقيا والعالم الإسلامي'],
+      ['🏛️','متحف الفن والتاريخ المعاصر (MAMA)','المتحف الوطني'],
+      ['🏟️','ملعب 5 جويلية','الملعب الوطني'],
+      ['🛣️','الطريق السيار شرق-غرب','أطول طريق سيار في الجزائر'],
+      ['🚇','مترو الجزائر','أول مترو في إفريقيا'],
+      ['✈️','مطار هواري بومدين الدولي','أكبر مطار في الجزائر'],
+      ['🚢','ميناء الجزائر','الميناء التجاري الرئيسي'],
+      ['🏗️','سد بني هارون','أكبر سد في الجزائر'],
+      ['🔆','محطة حاسي الرمل','أكبر محطة غاز في العالم'],
+      ['🌆','تيميمون الجديدة','مدينة سياحية صحراوية'],
+      ['🏰','القصبة الجزائرية','تراث عالمي يونسكو'],
+      ['🌊','الكورنيش الجزائري','واجهة بحرية العاصمة'],
+      ['🏥','مستشفى محمد لمين دباغين','مستشفى جامعي كبير'],
+      ['🎓','المدينة الجامعية عين الحجر','أكبر مدينة جامعية'],
+      ['🔬','مركز البحث النووي بدرارية','أبحاث الطاقة النووية السلمية'],
+    ];
+    infra.innerHTML = list.map(([e,n,d])=>_algeriaItem(e,n,d)).join('');
+  }
+}
+
+/* رابط للأصدقاء من الملف الشخصي */
+window.openFBFriendsFromProfile = function(){
+  if(typeof switchSocialTab === 'function') switchSocialTab('friends');
+};
+
+/* إغلاق القائمة عند الضغط خارجها */
+document.addEventListener('click', function(e){
+  const menu = document.getElementById('profileDropdownMenu');
+  const btn = document.getElementById('profileTabMenuBtn');
+  if(menu && btn && !menu.contains(e.target) && !btn.contains(e.target)){
+    closeProfileDropdown();
+  }
+});
+
+/* تحديث عند فتح تبويب الملف الشخصي */
+const _origSwitchFinal = window.switchSocialTab;
+window.switchSocialTab = function(tab){
+  if(typeof _origSwitchFinal === 'function') _origSwitchFinal(tab);
+  if(tab==='myprofile') setTimeout(_updateFBProfile, 100);
+};
+
+})();
+</script>
+<!-- ══════════════════════════════════════════════════════════════
+     ✨ زر انضم إلينا — Google Form + إخفاء تلقائي بعد التسجيل
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  'use strict';
+
+  /* ── رابط Google Form الخاص بالتسجيل ── */
+  const JOIN_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/viewform';
+  /* 🔑 مفتاح localStorage لتتبع حالة التسجيل */
+  const JOIN_KEY = '__cdz_joined';
+
+  /* ── إخفاء الزر إذا سبق التسجيل ── */
+  function _checkJoinStatus(){
+    const user = localStorage.getItem('sklab_user_name');
+    const joined = localStorage.getItem(JOIN_KEY);
+    /* يختفي إذا: سبق الضغط على "إنشاء حساب" وأُنجز التسجيل */
+    if(joined === '1' || (user && user !== 'زائر')){
+      _hideJoinBtns();
+    } else {
+      _showJoinBtns();
+    }
+  }
+
+  function _hideJoinBtns(){
+    const b1 = document.getElementById('joinUsBtnMain');
+    const b2 = document.getElementById('joinUsBtnSocial');
+    if(b1) b1.style.display = 'none';
+    if(b2) b2.style.display = 'none';
+  }
+
+  function _showJoinBtns(){
+    const b1 = document.getElementById('joinUsBtnMain');
+    const b2 = document.getElementById('joinUsBtnSocial');
+    if(b1) b1.style.display = 'inline-flex';
+    if(b2) b2.style.display = 'inline-flex';
+  }
+
+  /* ── فتح نموذج الانضمام ── */
+  window.openJoinUsForm = function(){
+    /* فتح Google Form في نافذة جديدة */
+    window.open(JOIN_FORM_URL, '_blank', 'noopener,noreferrer');
+    /* تسجيل أن المستخدم ضغط على الزر (سيختفي عند تسجيله التالي) */
+    localStorage.setItem(JOIN_KEY, 'pending');
+  };
+
+  /* ── مراقبة حدث openFbRegister لإخفاء الزر فور التسجيل ── */
+  const _origOpenFbRegister = window.openFbRegister;
+  window.openFbRegister = function(){
+    /* تعليم أن المستخدم بدأ إنشاء حساب */
+    localStorage.setItem(JOIN_KEY, 'pending');
+    if(typeof _origOpenFbRegister === 'function') _origOpenFbRegister.apply(this, arguments);
+  };
+
+  /* ── الإخفاء الفعلي: عند أي تغيير في localStorage (تسجيل ناجح) ── */
+  const _origSetItem = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function(key, value){
+    _origSetItem(key, value);
+    /* عند حفظ اسم المستخدم = تسجيل ناجح → نخفي الزر */
+    if(key === 'sklab_user_name' && value && value !== 'زائر'){
+      _origSetItem(JOIN_KEY, '1');
+      _hideJoinBtns();
+    }
+  };
+
+  /* ── تشغيل الفحص عند تحميل الصفحة ── */
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(_checkJoinStatus, 800);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(_checkJoinStatus, 1200);
+  });
+
+  /* ── مراقبة تغييرات الـ DOM لإخفاء الزر عند ظهوره ── */
+  const _observer = new MutationObserver(function(){
+    _checkJoinStatus();
+  });
+
+  window.addEventListener('load', function(){
+    _observer.observe(document.body, { childList: true, subtree: false });
+  });
 
 })();
 </script>
