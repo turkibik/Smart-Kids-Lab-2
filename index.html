@@ -15068,17 +15068,56 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   const ratingKey = 'nld_star_rating_' + (myName||'').replace(/\s+/g,'_') + '_to_' + normName;
   const myRating = parseInt(localStorage.getItem(ratingKey)||'0');
 
-  // جلب بيانات التسجيل من Firebase (أو localStorage)
+  // جلب بيانات التسجيل من Firebase مع دعم كلا نظامي التسجيل (القديم والجديد)
   let regData = {};
   try{
     const res = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/registrations.json');
     const data = await res.json();
     if(data){
       const records = Object.values(data);
-      const rec = records.find(r => r && (r['الاسم_واللقب']||'').trim().toLowerCase() === memberName.trim().toLowerCase());
-      if(rec) regData = rec;
+      const mLower = memberName.trim().toLowerCase();
+      // البحث بالاسمين معاً: مع underscore (الجديد) وبدونه (القديم)
+      const rec = records.find(r => r && (
+        (r['الاسم_واللقب']||'').trim().toLowerCase() === mLower ||
+        (r['الاسم واللقب']||'').trim().toLowerCase() === mLower
+      ));
+      if(rec){
+        // توحيد أسماء الحقول: تحويل الحقول القديمة (بدون underscore) إلى مفاتيح موحدة
+        regData = {
+          'الولاية'          : rec['الولاية']          || rec['wilaya']    || '',
+          'البلدية'          : rec['البلدية']          || rec['البلدية']   || rec['municipality'] || rec['baladiya'] || '',
+          'العنوان'          : rec['عنوان_الإقامة'] || rec['عنوان الاقامة'] || rec['العنوان'] || rec['address'] || '',
+          'تاريخ_الميلاد' : rec['تاريخ_الميلاد'] || rec['تاريخ الميلاد'] || rec['birthdate'] || '',
+          'الجنس'            : rec['الجنس']            || rec['gender']    || '',
+          'المستوى_الدراسي' : rec['المستوى_الدراسي'] || rec['المستوى الدراسي'] || rec['education'] || '',
+          'تاريخ_الانخراط'  : rec['تاريخ_الانخراط'] || rec['تاريخ الانخراط'] || '',
+          'رابط_الصورة'    : rec['رابط_الصورة'] || rec['الصورة الشمسية'] || rec['photoUrl'] || '',
+          // الحقول الأصلية كاملة
+          ...(rec)
+        };
+      }
     }
-  }catch(e){}
+  }catch(e){ console.warn('⚠️ Firebase fetch error:', e); }
+  // إذا لم يوجد في Firebase جرب SheetDB مباشرةً
+  if(!regData['الولاية'] && !regData['الجنس']){
+    try{
+      const sr = await fetch('https://sheetdb.io/api/v1/sc1z9g0cnu62a?search[الاسم واللقب]='+encodeURIComponent(memberName));
+      const sd = await sr.json();
+      if(Array.isArray(sd) && sd.length > 0){
+        const r = sd[0];
+        regData = {
+          'الولاية'          : r['الولاية'] || '',
+          'البلدية'          : r['البلدية'] || '',
+          'العنوان'          : r['عنوان الاقامة'] || '',
+          'تاريخ_الميلاد' : r['تاريخ الميلاد'] || '',
+          'الجنس'            : r['الجنس'] || '',
+          'المستوى_الدراسي' : r['المستوى الدراسي'] || '',
+          'تاريخ_الانخراط'  : r['تاريخ الانخراط'] || '',
+          ...(r)
+        };
+      }
+    }catch(e2){ console.warn('⚠️ SheetDB fetch error:', e2); }
+  }
 
   // بناء نجوم التقييم (7 نجوم منفردة مع شريط تقدم)
   const starCategories = [
@@ -15135,16 +15174,18 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   // تعبئة المعلومات الشخصية تحت تبويب الكل
   const personalInfoGrid = document.getElementById('mpvPersonalInfoGrid');
   if(personalInfoGrid){
-    const memberSinceDate = memberSinceTs ? new Date(memberSinceTs).toLocaleDateString('ar-DZ') : '—';
+    // تاريخ التسجيل: من Firebase أولاً ثم localStorage
+    const regDateRaw = regData['تاريخ_الانخراط'] || regData['تاريخ الانخراط'] || '';
+    const memberSinceDate = regDateRaw || (memberSinceTs ? new Date(memberSinceTs).toLocaleDateString('ar-DZ') : '');
     const allPersonalFields = [
       {icon:'🏛️', label:'الولاية', val: regData['الولاية']||regData['wilaya']||localStorage.getItem('nld_wilaya_'+normName)||''},
-      {icon:'🏘️', label:'البلدية', val: regData['البلدية']||regData['municipality']||localStorage.getItem('nld_commune_'+normName)||''},
-      {icon:'🏠', label:'العنوان', val: regData['العنوان']||regData['address']||localStorage.getItem('nld_address_'+normName)||''},
-      {icon:'🎂', label:'تاريخ الميلاد', val: regData['تاريخ_الميلاد']||regData['birthdate']||localStorage.getItem('nld_birth_'+normName)||''},
+      {icon:'🏘️', label:'البلدية', val: regData['البلدية']||regData['municipality']||regData['baladiya']||localStorage.getItem('nld_commune_'+normName)||''},
+      {icon:'🏠', label:'العنوان', val: regData['العنوان']||regData['عنوان_الإقامة']||regData['عنوان الاقامة']||regData['address']||localStorage.getItem('nld_address_'+normName)||''},
+      {icon:'🎂', label:'تاريخ الميلاد', val: regData['تاريخ_الميلاد']||regData['تاريخ الميلاد']||regData['birthdate']||localStorage.getItem('nld_birth_'+normName)||''},
       {icon:'👤', label:'الجنس', val: regData['الجنس']||regData['gender']||localStorage.getItem('nld_gender_'+normName)||''},
-      {icon:'🎓', label:'المستوى الدراسي', val: regData['المستوى_التعليمي']||regData['التخصص']||regData['education']||localStorage.getItem('nld_edu_'+normName)||''},
+      {icon:'🎓', label:'المستوى الدراسي', val: regData['المستوى_الدراسي']||regData['المستوى الدراسي']||regData['المستوى_التعليمي']||regData['education']||localStorage.getItem('nld_edu_'+normName)||''},
       {icon:'📅', label:'تاريخ التسجيل', val: memberSinceDate},
-    ].filter(f=>f.val && f.val!=='—');
+    ].filter(f=>f.val);
     const personalSec = document.getElementById('mpvPersonalInfoSection');
     if(allPersonalFields.length > 0){
       personalInfoGrid.innerHTML = allPersonalFields.map(f=>'<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #F0F2F5;"><span style="font-size:18px;flex-shrink:0;">'+f.icon+'</span><div style="flex:1;"><div style="font-size:10px;color:#65676B;font-weight:700;">'+f.label+'</div><div style="font-size:13px;font-weight:800;color:#050505;">'+f.val+'</div></div></div>').join('');
