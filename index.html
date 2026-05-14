@@ -4447,7 +4447,7 @@ body.member-mode #onlineBar{
       <div onclick="showToast('مرحباً بكم في قاعة الشباب بودغن 🏛️')" style="background:linear-gradient(135deg,#11998e,#38ef7d);color:white;border-radius:14px;padding:14px;text-align:center;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(17,153,142,0.3);">📞 تواصل مع القاعة</div>
     </div>
   </div>
-  <div id="socialMainScroll" style="flex:1;overflow-y:auto;padding-bottom:70px;">
+  <div id="socialMainScroll" style="flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:70px;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;">
 
     <!-- ── HOME PANEL ── -->
     <div id="socialPanel_home" style="display:block;">
@@ -4554,18 +4554,46 @@ body.member-mode #onlineBar{
         <!-- صورة الملف (قابلة للنقر للتغيير — بدون أيقونة كاميرا فوقها) -->
         <div style="position:relative;display:inline-block;margin-top:-50px;margin-bottom:10px;">
           <label style="display:block;cursor:pointer;">
-            <div id="fbProfilePicWrapper" style="width:100px;height:100px;border-radius:50%;border:4px solid white;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 4px 14px rgba(0,0,0,0.18);">👑</div>
+            <div id="fbProfilePicWrapper" style="width:100px;height:100px;border-radius:50%;border:4px solid white;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 4px 14px rgba(0,0,0,0.18);position:relative;">👑
+              <!-- شارة التوثيق على صورة الملف الشخصي — رمادية حتى 300 نجمة -->
+              <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:4px;right:4px;width:26px;height:26px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:5;" title="شارة التوثيق">✓</div>
+            </div>
             <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
           </label>
         </div>
 
         <!-- الاسم والتوثيق -->
-        <div style="margin-bottom:8px;">
+        <div style="margin-bottom:6px;">
           <div style="display:flex;align-items:center;gap:8px;">
             <div id="fbProfileName" style="font-size:22px;font-weight:900;color:#050505;"></div>
             <div id="fbVerifiedBadge" style="display:none;font-size:18px;" title="موثّق">✅</div>
           </div>
           <div id="fbProfileRole" style="font-size:13px;color:#65676B;margin-top:2px;font-weight:600;"></div>
+        </div>
+
+        <!-- عداد المتابعون / المتابعين / المنشورات -->
+        <div style="display:flex;gap:0;margin:8px 0 10px;border-radius:12px;overflow:hidden;background:#F0F2F5;">
+          <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
+            <div id="fbFollowersCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;">متابِع</div>
+          </div>
+          <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
+            <div id="fbFollowingCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;">متابَع</div>
+          </div>
+          <div style="flex:1;padding:8px 4px;text-align:center;">
+            <div id="fbPostsCount" style="font-size:16px;font-weight:900;color:#1877F2;">0</div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;">منشور</div>
+          </div>
+        </div>
+
+        <!-- شعلة التقدم اليومي وعدد الأيام -->
+        <div style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:12px;padding:10px 14px;margin-bottom:10px;">
+          <span id="fbStreakFlame" style="font-size:26px;">🔥</span>
+          <div>
+            <div style="font-size:13px;font-weight:900;color:#e65100;">التقدم اليومي</div>
+            <div id="fbStreakInfo" style="font-size:12px;color:#bf360c;font-weight:700;">عضو منذ ... يوم</div>
+          </div>
         </div>
 
         <!-- بيانات التسجيل -->
@@ -4676,7 +4704,7 @@ body.member-mode #onlineBar{
 </div>
 
 <!-- ── نافذة ملف شخصي عضو آخر ── -->
-<div id="memberProfileView" style="display:none;position:fixed;inset:0;z-index:5400;background:#F0F2F5;flex-direction:column;overflow-y:auto;">
+<div id="memberProfileView" style="display:none;position:fixed;inset:0;z-index:5400;background:#F0F2F5;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;">
   <!-- Cover -->
   <div style="width:100%;max-width:480px;margin:0 auto;position:relative;">
     <div id="mpvCover" style="width:100%;height:180px;background:linear-gradient(135deg,#00c853 0%,#e53935 100%);position:relative;overflow:hidden;">
@@ -4685,33 +4713,40 @@ body.member-mode #onlineBar{
     </div>
     <div onclick="closeMemberProfileView()" style="position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:white;font-weight:900;z-index:5;">✕</div>
     <div onclick="closeMemberProfileView()" style="position:absolute;top:10px;left:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;color:white;font-weight:700;z-index:5;">‹</div>
-    <div style="position:absolute;bottom:-46px;right:14px;z-index:5;">
-      <div id="mpvAvatar" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#00c853,#e53935);display:flex;align-items:center;justify-content:center;font-size:38px;border:4px solid white;overflow:hidden;">👑</div>
-      <!-- شارة التوثيق الرسمية -->
-      <div id="mpvVerifiedBadge" style="display:none;position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#00c853,#e53935);border:2px solid white;border-radius:20px;padding:3px 8px;font-size:11px;font-weight:900;color:white;white-space:nowrap;box-shadow:0 2px 8px rgba(0,200,83,0.5);z-index:6;">✅ موثّق</div>
+    <div style="position:absolute;bottom:-46px;right:14px;z-index:5;position:relative;display:inline-block;">
+      <div id="mpvAvatar" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#00c853,#e53935);display:flex;align-items:center;justify-content:center;font-size:38px;border:4px solid white;overflow:hidden;position:relative;">👑
+        <!-- شارة التوثيق على صورة الملف — رمادية حتى 300 نجمة -->
+        <div id="mpvAvatarBadge" style="position:absolute;bottom:2px;right:2px;width:24px;height:24px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:11px;z-index:7;" title="شارة التوثيق">✓</div>
+      </div>
+    </div>
+    <!-- شارة الشعلة والأيام — أعلى يمين الصورة -->
+    <div id="mpvStreakBadge" style="position:absolute;bottom:-40px;left:14px;z-index:5;display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.95);border-radius:20px;padding:4px 10px;box-shadow:0 2px 8px rgba(0,0,0,0.12);">
+      <span id="mpvStreakFlame" style="font-size:18px;">🔥</span>
+      <span id="mpvStreakDays" style="font-size:12px;font-weight:900;color:#e53935;">0 يوم</span>
     </div>
   </div>
-  <div style="width:100%;max-width:480px;margin:0 auto;background:white;padding:54px 16px 14px;border-bottom:1px solid #E4E6EB;">
-    <div id="mpvName" style="font-size:20px;font-weight:900;color:#050505;margin-bottom:3px;"></div>
-    <div style="font-size:12px;color:#65676B;margin-bottom:14px;">عضو القادة المستقبليين • الجزائر 🇩🇿</div>
+  <div style="width:100%;max-width:480px;margin:0 auto;background:white;padding:60px 16px 14px;border-bottom:1px solid #E4E6EB;">
+    <div id="mpvName" style="font-size:20px;font-weight:900;color:#050505;margin-bottom:2px;"></div>
+    <!-- عداد المتابعون / المتابعين / المنشورات -->
+    <div style="display:flex;gap:0;margin:8px 0 10px;border-radius:12px;overflow:hidden;background:#F0F2F5;">
+      <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
+        <div id="mpvFollowersCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
+        <div style="font-size:9px;color:#65676B;font-weight:700;">متابِع</div>
+      </div>
+      <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
+        <div id="mpvFollowingCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
+        <div style="font-size:9px;color:#65676B;font-weight:700;">متابَع</div>
+      </div>
+      <div style="flex:1;padding:8px 4px;text-align:center;">
+        <div id="mpvPostsCount" style="font-size:16px;font-weight:900;color:#1877F2;">0</div>
+        <div style="font-size:9px;color:#65676B;font-weight:700;">منشور</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#65676B;margin-bottom:12px;">عضو القادة المستقبليين • الجزائر 🇩🇿</div>
     <div style="display:flex;gap:8px;">
       <button id="mpvFriendBtn" onclick="handleMpvFriendAction()" style="flex:1;padding:9px;background:linear-gradient(135deg,#00c853,#43a047);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">👥 إضافة صديق</button>
       <button onclick="startChatWithMpvUser()" style="flex:1;padding:9px;background:linear-gradient(135deg,#25D366,#128C7E);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">💬 رسالة</button>
       <button onclick="closeMemberProfileView()" style="padding:9px 14px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">رجوع</button>
-    </div>
-    <!-- شريط تقييم النجوم السبع -->
-    <div id="mpvStarRatingArea" style="margin-top:10px;background:#F7F8FA;border-radius:12px;padding:10px 14px;">
-      <div style="font-size:11px;font-weight:800;color:#65676B;text-align:center;margin-bottom:6px;">⭐ قيّم هذا العضو</div>
-      <div class="star-rating-bar" id="mpvStarBar">
-        <span class="star-item" data-v="1" onclick="rateMember(1)">⭐</span>
-        <span class="star-item" data-v="2" onclick="rateMember(2)">⭐</span>
-        <span class="star-item" data-v="3" onclick="rateMember(3)">⭐</span>
-        <span class="star-item" data-v="4" onclick="rateMember(4)">⭐</span>
-        <span class="star-item" data-v="5" onclick="rateMember(5)">⭐</span>
-        <span class="star-item" data-v="6" onclick="rateMember(6)">⭐</span>
-        <span class="star-item" data-v="7" onclick="rateMember(7)">⭐</span>
-      </div>
-      <div id="mpvStarScore" style="font-size:11px;color:#00c853;text-align:center;font-weight:800;min-height:16px;"></div>
     </div>
   </div>
   <div id="mpvPostsFeed" style="width:100%;max-width:480px;margin:0 auto 0;padding-bottom:40px;">
@@ -7955,6 +7990,11 @@ function loginWithSavedAccount(name){
   }
   _isAdmin = false;
   localStorage.setItem('sklab_user_name', name);
+  // حفظ تاريخ الانضمام (مرة واحدة فقط)
+  const _normLogin = name.replace(/\s+/g,'_');
+  if(!localStorage.getItem('nld_join_ts_'+_normLogin)){
+    localStorage.setItem('nld_join_ts_'+_normLogin, String(Date.now()));
+  }
   const localEarned = parseInt(localStorage.getItem('nld_earned_'+name.replace(/\s+/g,'_'))||'0');
   renderApp(name, 0, true, localEarned);
   _refreshPointsInBackground(name);
@@ -14843,17 +14883,67 @@ function viewMemberProfile(memberName){
   renderMpvPosts(memberName, true);
 }
 
-function _renderMpvExtendedInfo(memberName, canSeeAll){
+async function _renderMpvExtendedInfo(memberName, canSeeAll){
   const infoEl = document.getElementById('mpvExtendedInfo');
   if(!infoEl) return;
 
+  const myName = getCurrentUser();
+  const normName = memberName.replace(/\s+/g,'_');
+
+  // حساب عدد أيام العضوية (streak)
+  const joinTs = parseInt(localStorage.getItem('nld_join_ts_'+normName)||'0');
+  const memberSinceTs = joinTs || (parseInt(localStorage.getItem('nld_join_'+normName))||0);
+  const daysSinceJoin = memberSinceTs ? Math.max(1,Math.floor((Date.now()-memberSinceTs)/(1000*60*60*24))) : 0;
+
+  // تحديث شارة الأيام في الأعلى
+  const streakFlameEl = document.getElementById('mpvStreakFlame');
+  const streakDaysEl = document.getElementById('mpvStreakDays');
+  if(streakFlameEl){
+    // الشعلة تتوهج أكثر كلما زاد عدد الأيام
+    streakFlameEl.style.filter = daysSinceJoin > 30 ? 'drop-shadow(0 0 6px #f97316)' : '';
+    streakFlameEl.style.animation = daysSinceJoin > 7 ? 'pulse 1.5s infinite' : '';
+  }
+  if(streakDaysEl) streakDaysEl.innerText = daysSinceJoin > 0 ? daysSinceJoin+' يوم' : 'جديد';
+
+  // إجمالي النجوم التي حصل عليها هذا العضو
+  const totalStarsKey = 'nld_total_stars_' + normName;
+  const totalStars = parseInt(localStorage.getItem(totalStarsKey)||'0');
+  const isVerified = totalStars >= 300;
+
+  // تحديث شارة التوثيق على صورة الملف (رمادية / زرقاء)
+  const avatarBadgeEl = document.getElementById('mpvAvatarBadge');
+  if(avatarBadgeEl){
+    if(isVerified){
+      avatarBadgeEl.style.background = 'linear-gradient(135deg,#1877F2,#0052cc)';
+      avatarBadgeEl.style.color = 'white';
+      avatarBadgeEl.title = 'حساب موثّق ✅';
+    } else {
+      avatarBadgeEl.style.background = '#B0BEC5';
+      avatarBadgeEl.style.color = '#fff';
+      avatarBadgeEl.title = `${totalStars}/300 نجمة للتوثيق`;
+    }
+  }
+
+  // حساب عدد المتابعين / المتابعين / المنشورات
+  const allPosts = (() => { try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
+  const memberPosts = allPosts.filter(p=>p.author===memberName).length;
+  const followersKey = 'nld_followers_'+normName;
+  const followingKey = 'nld_following_'+normName;
+  const followersList = (() => { try{ return JSON.parse(localStorage.getItem(followersKey)||'[]'); }catch(e){ return []; } })();
+  const followingList = (() => { try{ return JSON.parse(localStorage.getItem(followingKey)||'[]'); }catch(e){ return []; } })();
+
+  // تحديث العداد في الرأس
+  const flEl = document.getElementById('mpvFollowersCount');
+  const fgEl = document.getElementById('mpvFollowingCount');
+  const pcEl = document.getElementById('mpvPostsCount');
+  if(flEl) flEl.innerText = followersList.length || 0;
+  if(fgEl) fgEl.innerText = followingList.length || 0;
+  if(pcEl) pcEl.innerText = memberPosts || 0;
+
   if(!canSeeAll){
     // ملف مقيّد: يظهر رسالة التقييد + شريط النجوم للتقييم
-    const myName2 = getCurrentUser();
-    const _rKey = 'nld_star_rating_' + (myName2||'').replace(/\s+/g,'_') + '_to_' + memberName.replace(/\s+/g,'_');
+    const _rKey = 'nld_star_rating_' + (myName||'').replace(/\s+/g,'_') + '_to_' + normName;
     const _myR = parseInt(localStorage.getItem(_rKey)||'0');
-    const _totKey = 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
-    const _totS = parseInt(localStorage.getItem(_totKey)||'0');
     const _starsHtml = Array.from({length:7}, function(_,i){
       const val=i+1;
       return `<span id="mpvStar_${val}" onclick="rateMember('${memberName}',${val})" style="font-size:28px;cursor:pointer;transition:transform .15s;${val<=_myR?'color:#f5c518;':'color:#ddd;'}" onmouseover="highlightStars(${val},'mpvStar')" onmouseout="resetStars(${_myR},'mpvStar')">★</span>`;
@@ -14870,89 +14960,167 @@ function _renderMpvExtendedInfo(memberName, canSeeAll){
         ${_myR>0
           ? `<div style="font-size:12px;color:#65676B;">قيّمت بـ <strong style="color:#f5c518;">${_myR} نجمة</strong></div>`
           : `<div style="font-size:12px;color:#65676B;">اضغط على النجوم لتقييم هذا العضو</div>`}
-        <div style="margin-top:6px;font-size:11px;color:#9ca3af;">إجمالي النجوم: <strong style="color:#f5c518;">${_totS} ⭐</strong></div>
+        <div style="margin-top:6px;font-size:11px;color:#9ca3af;">إجمالي النجوم: <strong style="color:#f5c518;">${totalStars} ⭐</strong></div>
       </div>
     </div>`;
     return;
   }
 
-  const myName = getCurrentUser();
-
   // ملف كامل للأصدقاء
   const pts = (() => {
-    const raw = localStorage.getItem('sklab_pts_'+memberName.replace(/\s+/g,'_'));
+    const raw = localStorage.getItem('sklab_pts_'+normName);
     if(raw) try{ return JSON.parse(raw).total||0; }catch(e){}
-    return parseInt(localStorage.getItem('nld_earned_'+memberName.replace(/\s+/g,'_'))||'0');
+    return parseInt(localStorage.getItem('nld_earned_'+normName)||'0');
   })();
   const level = Math.floor(pts/3000)+1;
   const balance = ((pts/50)*30).toFixed(2);
-  const code = localStorage.getItem('nld_code_'+memberName.replace(/\s+/g,'_')) || '—';
-  const joinDate = localStorage.getItem('nld_join_'+memberName.replace(/\s+/g,'_')) || 'عضو';
+  const code = localStorage.getItem('nld_code_'+normName) || '—';
 
   // جلب التقييم الحالي لهذا العضو من طرف الصديق
-  const ratingKey = 'nld_star_rating_' + myName.replace(/\s+/g,'_') + '_to_' + memberName.replace(/\s+/g,'_');
+  const ratingKey = 'nld_star_rating_' + (myName||'').replace(/\s+/g,'_') + '_to_' + normName;
   const myRating = parseInt(localStorage.getItem(ratingKey)||'0');
 
-  // إجمالي النجوم التي حصل عليها هذا العضو من الجميع
-  const totalStarsKey = 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
-  const totalStars = parseInt(localStorage.getItem(totalStarsKey)||'0');
+  // جلب بيانات التسجيل من Firebase (أو localStorage)
+  let regData = {};
+  try{
+    const res = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/registrations.json');
+    const data = await res.json();
+    if(data){
+      const records = Object.values(data);
+      const rec = records.find(r => r && (r['الاسم_واللقب']||'').trim().toLowerCase() === memberName.trim().toLowerCase());
+      if(rec) regData = rec;
+    }
+  }catch(e){}
 
-  // هل هو موثق (300 نجمة+)؟
-  const isVerified = totalStars >= 300;
-  const verifiedBadge = document.getElementById('mpvVerifiedBadge');
-  if(verifiedBadge) verifiedBadge.style.display = isVerified ? 'block' : 'none';
+  // بناء نجوم التقييم (7 نجوم منفردة مع شريط تقدم)
+  const starCategories = [
+    {label:'التفاعل مع المنشورات', key:'stars_interaction', icon:'💬'},
+    {label:'حضور النشاطات', key:'stars_activities', icon:'🎯'},
+    {label:'التعليقات والمشاركة', key:'stars_comments', icon:'🗣️'},
+    {label:'الاختبارات والمسابقات', key:'stars_quizzes', icon:'📝'},
+    {label:'الإبداع والمحتوى', key:'stars_content', icon:'🎨'},
+    {label:'المساعدة والتعاون', key:'stars_help', icon:'🤝'},
+    {label:'الالتزام والانضباط', key:'stars_discipline', icon:'⏰'},
+  ];
+  let totalCategoryStars = 0;
+  let starsProgressHtml = '';
+  starCategories.forEach(cat=>{
+    const val = parseInt(localStorage.getItem('nld_'+cat.key+'_'+normName)||'0');
+    totalCategoryStars += val;
+    const pct = Math.min(100,(val/3000)*100);
+    starsProgressHtml += `<div style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+        <span style="font-size:11px;font-weight:700;color:#050505;">${cat.icon} ${cat.label}</span>
+        <span style="font-size:11px;color:#65676B;">${val}/3000 ⭐</span>
+      </div>
+      <div style="height:5px;background:#E4E6EB;border-radius:3px;overflow:hidden;">
+        <div style="height:100%;background:linear-gradient(90deg,#f5c518,#f97316);width:${pct}%;border-radius:3px;transition:width .6s ease;"></div>
+      </div>
+    </div>`;
+  });
 
-  // بناء نجوم التقييم (7 نجوم)
-  const starsHtml = Array.from({length:7}, (_,i)=>{
+  // نجوم التقييم اليدوي (7 نجوم للضغط)
+  const manualStarsHtml = Array.from({length:7}, (_,i)=>{
     const val = i+1;
     return `<span id="mpvStar_${val}" onclick="rateMember('${memberName}',${val})" style="font-size:28px;cursor:pointer;transition:transform .15s;${val<=myRating?'color:#f5c518;':'color:#ddd;'}" onmouseover="highlightStars(${val},'mpvStar')" onmouseout="resetStars(${myRating},'mpvStar')">★</span>`;
   }).join('');
 
+  // بناء بيانات الملف الشخصي
+  const profileFields = [
+    {icon:'🎂', label:'تاريخ الميلاد', val: regData['تاريخ_الميلاد']||regData['birthdate']||localStorage.getItem('nld_birth_'+normName)||''},
+    {icon:'📍', label:'مكان الميلاد', val: regData['مكان_الميلاد']||regData['birthplace']||localStorage.getItem('nld_birthplace_'+normName)||''},
+    {icon:'🏛️', label:'الولاية', val: regData['الولاية']||regData['wilaya']||localStorage.getItem('nld_wilaya_'+normName)||''},
+    {icon:'🏘️', label:'البلدية', val: regData['البلدية']||regData['municipality']||localStorage.getItem('nld_commune_'+normName)||''},
+    {icon:'🏠', label:'العنوان', val: regData['العنوان']||regData['address']||localStorage.getItem('nld_address_'+normName)||''},
+    {icon:'👤', label:'الجنس', val: regData['الجنس']||regData['gender']||localStorage.getItem('nld_gender_'+normName)||''},
+    {icon:'🎓', label:'المستوى التعليمي', val: regData['المستوى_التعليمي']||regData['التخصص']||regData['education']||localStorage.getItem('nld_edu_'+normName)||''},
+  ].filter(f=>f.val);
+
+  const profileFieldsHtml = profileFields.length > 0
+    ? profileFields.map(f=>`<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #F0F2F5;">
+        <span style="font-size:16px;flex-shrink:0;">${f.icon}</span>
+        <div><div style="font-size:10px;color:#65676B;font-weight:700;">${f.label}</div>
+        <div style="font-size:13px;font-weight:800;color:#050505;">${f.val}</div></div>
+      </div>`).join('')
+    : '<div style="font-size:12px;color:#65676B;text-align:center;padding:10px;">لا توجد بيانات شخصية مضافة</div>';
+
+  const totalPtsPct = Math.min(100,(pts % 3000)/3000*100);
+  const daysSince = daysSinceJoin > 0 ? daysSinceJoin : '—';
+  const flameEmoji = daysSinceJoin > 100 ? '🔥' : daysSinceJoin > 30 ? '🔥' : daysSinceJoin > 7 ? '🌟' : '✨';
+
   infoEl.innerHTML=`
-    <div style="margin:10px 16px;">
+    <div style="margin:10px 16px;display:flex;flex-direction:column;gap:10px;">
+
+      <!-- التقدم اليومي والأيام -->
       <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">📋 معلومات العضو</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:800;color:#050505;">📊 التقدم اليومي</div>
+          <div style="display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:20px;padding:4px 12px;">
+            <span style="font-size:16px;">${flameEmoji}</span>
+            <span style="font-size:12px;font-weight:900;color:#e65100;">${daysSince} يوم عضو</span>
+          </div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
-            <div style="font-size:18px;font-weight:900;color:#050505;">${pts.toLocaleString()}</div>
+          <div style="background:#EEF4FF;border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:18px;font-weight:900;color:#1877F2;">${pts.toLocaleString()}</div>
             <div style="font-size:10px;color:#65676B;margin-top:2px;">🏆 النقاط الإجمالية</div>
           </div>
-          <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
-            <div style="font-size:18px;font-weight:900;color:#1877F2;">${level}</div>
-            <div style="font-size:10px;color:#65676B;margin-top:2px;">⭐ المستوى</div>
+          <div style="background:#F0FFF4;border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:18px;font-weight:900;color:#00c853;">${level}</div>
+            <div style="font-size:10px;color:#65676B;margin-top:2px;">🚀 المستوى</div>
           </div>
-          <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
-            <div style="font-size:15px;font-weight:900;color:#00c853;">${balance} دج</div>
+          <div style="background:#FFF8E1;border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:15px;font-weight:900;color:#f59e0b;">${balance} دج</div>
             <div style="font-size:10px;color:#65676B;margin-top:2px;">💰 الرصيد</div>
           </div>
-          <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
+          <div style="background:#FDF4FF;border-radius:10px;padding:10px;text-align:center;">
             <div style="font-size:13px;font-weight:900;color:#a855f7;">NLD-${code}</div>
             <div style="font-size:10px;color:#65676B;margin-top:2px;">🎯 رمز العضو</div>
           </div>
         </div>
-        <div style="margin-top:10px;display:flex;align-items:center;gap:8px;background:#F0F2F5;border-radius:10px;padding:10px 12px;">
-          <span style="font-size:16px;">📍</span>
-          <div>
-            <div style="font-size:12px;font-weight:800;color:#050505;">الجزائر 🇩🇿</div>
-            <div style="font-size:10px;color:#65676B;">Connect DZ</div>
+        <!-- شريط المستوى -->
+        <div style="margin-top:10px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;font-weight:700;color:#050505;">شريط التقدم</span>
+            <span style="font-size:11px;color:#65676B;">${(pts%3000).toLocaleString()} / 3000 للمستوى ${level+1}</span>
+          </div>
+          <div style="height:8px;background:#E4E6EB;border-radius:4px;overflow:hidden;">
+            <div style="height:100%;background:linear-gradient(90deg,#1877F2,#00c853);width:${totalPtsPct}%;border-radius:4px;transition:width .6s ease;"></div>
           </div>
         </div>
-        ${isVerified ? `<div style="margin-top:10px;background:linear-gradient(135deg,#EEF4FF,#DBEAFE);border:1.5px solid rgba(24,119,242,0.35);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">✅</span><div><div style="font-size:13px;font-weight:900;color:#1877F2;">حساب موثّق رسمياً</div><div style="font-size:10px;color:#65676B;">${totalStars} نجمة ذهبية</div></div></div>` : ''}
+        ${isVerified ? `<div style="margin-top:10px;background:linear-gradient(135deg,#EEF4FF,#DBEAFE);border:1.5px solid rgba(24,119,242,0.35);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">✅</span><div><div style="font-size:12px;font-weight:900;color:#1877F2;">حساب موثّق رسمياً</div><div style="font-size:10px;color:#65676B;">${totalStars} نجمة ذهبية</div></div></div>` : `<div style="margin-top:10px;background:#F5F5F5;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;"><span style="font-size:18px;filter:grayscale(1);">✓</span><div><div style="font-size:12px;font-weight:700;color:#65676B;">في طريقه للتوثيق</div><div style="font-size:10px;color:#9ca3af;">${totalStars}/300 نجمة</div></div></div>`}
       </div>
 
-      <!-- نظام التقييم بالنجوم (7 نجوم) -->
-      <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-top:10px;">
+      <!-- المعلومات الشخصية الكاملة -->
+      <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">👤 المعلومات الشخصية</div>
+        ${profileFieldsHtml}
+      </div>
+
+      <!-- نظام تقييم النجوم السبعة بأشرطة التقدم -->
+      <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">⭐ تقييم النجوم (7 معايير)</div>
+        ${starsProgressHtml}
+        <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;background:#FFF8E1;border-radius:8px;padding:8px 12px;">
+          <span style="font-size:12px;font-weight:700;color:#050505;">الإجمالي</span>
+          <span style="font-size:13px;font-weight:900;color:#f59e0b;">${totalCategoryStars.toLocaleString()} / 21,000 ⭐</span>
+        </div>
+      </div>
+
+      <!-- تقييمك لهذا الصديق (تقييم يدوي) -->
+      <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
         <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">⭐ قيّم صفحة هذا الصديق</div>
         <div style="display:flex;justify-content:center;gap:4px;margin-bottom:10px;" id="mpvStarsRow">
-          ${starsHtml}
+          ${manualStarsHtml}
         </div>
         <div style="text-align:center;">
           ${myRating > 0
             ? `<div style="font-size:12px;color:#65676B;">قيّمت بـ <strong style="color:#f5c518;">${myRating} نجمة</strong> — اضغط لتغيير تقييمك</div>`
             : `<div style="font-size:12px;color:#65676B;">اضغط على عدد النجوم لتقييم هذا الصديق</div>`}
-          <div style="margin-top:6px;font-size:11px;color:#9ca3af;">إجمالي النجوم التي حصل عليها: <strong style="color:#f5c518;">${totalStars} ⭐</strong></div>
+          <div style="margin-top:6px;font-size:11px;color:#9ca3af;">إجمالي نجوم التقييم التي حصل عليها: <strong style="color:#f5c518;">${totalStars} ⭐</strong></div>
         </div>
       </div>
+
     </div>`;
 }
 
@@ -20490,6 +20658,7 @@ window.renderApp = function(name, pts, isReg, externalEarned){
 function _updateFBProfile(){
   const name = typeof getCurrentUser === 'function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
   if(!name) return;
+  const normName = name.replace(/\s+/g,'_');
 
   // الاسم
   const nameEl = document.getElementById('fbProfileName');
@@ -20504,9 +20673,50 @@ function _updateFBProfile(){
   if(picWrapper){
     const photo = typeof getProfilePhoto === 'function' ? getProfilePhoto(name) : null;
     if(photo){
-      picWrapper.innerHTML = `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      picWrapper.innerHTML = `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"><div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:4px;right:4px;width:26px;height:26px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:5;" title="شارة التوثيق">✓</div>`;
     } else {
       picWrapper.innerText = typeof getLeaderIcon==='function' ? getLeaderIcon(name) : '👑';
+    }
+  }
+
+  // عداد المتابعون / المتابعين / المنشورات
+  const followersKey = 'nld_followers_'+normName;
+  const followingKey = 'nld_following_'+normName;
+  const allPosts = (() => { try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
+  const myPostsCount = allPosts.filter(p=>p.author===name).length;
+  const followersList = (() => { try{ return JSON.parse(localStorage.getItem(followersKey)||'[]'); }catch(e){ return []; } })();
+  const followingList = (() => { try{ return JSON.parse(localStorage.getItem(followingKey)||'[]'); }catch(e){ return []; } })();
+  const flEl = document.getElementById('fbFollowersCount');
+  const fgEl = document.getElementById('fbFollowingCount');
+  const pcEl = document.getElementById('fbPostsCount');
+  if(flEl) flEl.innerText = followersList.length || 0;
+  if(fgEl) fgEl.innerText = followingList.length || 0;
+  if(pcEl) pcEl.innerText = myPostsCount || 0;
+
+  // شعلة التقدم اليومي
+  const joinTs = parseInt(localStorage.getItem('nld_join_ts_'+normName)||'0') || parseInt(localStorage.getItem('nld_join_'+normName)||'0');
+  const daysSince = joinTs ? Math.max(1,Math.floor((Date.now()-joinTs)/(1000*60*60*24))) : 0;
+  const streakFlame = document.getElementById('fbStreakFlame');
+  const streakInfo = document.getElementById('fbStreakInfo');
+  if(streakFlame){
+    const flameEmoji = daysSince > 100 ? '🔥' : daysSince > 30 ? '🔥' : daysSince > 7 ? '🌟' : '✨';
+    streakFlame.innerText = flameEmoji;
+    streakFlame.style.filter = daysSince > 30 ? 'drop-shadow(0 0 6px #f97316)' : '';
+  }
+  if(streakInfo) streakInfo.innerText = daysSince > 0 ? `عضو منذ ${daysSince} يوم في التطبيق` : 'مرحباً بك في التطبيق!';
+
+  // شارة التوثيق على صورة الملف الشخصي
+  const totalStarsForBadge = parseInt(localStorage.getItem('nld_total_stars_'+normName)||'0');
+  const avatarBadge = document.getElementById('fbAvatarVerifiedBadge');
+  if(avatarBadge){
+    if(totalStarsForBadge >= 300){
+      avatarBadge.style.background = 'linear-gradient(135deg,#1877F2,#0052cc)';
+      avatarBadge.style.color = 'white';
+      avatarBadge.title = 'حساب موثّق ✅';
+    } else {
+      avatarBadge.style.background = '#B0BEC5';
+      avatarBadge.style.color = '#fff';
+      avatarBadge.title = `${totalStarsForBadge}/300 نجمة للتوثيق`;
     }
   }
 
