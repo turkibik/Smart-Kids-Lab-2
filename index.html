@@ -20737,90 +20737,97 @@ function _loadSavedAccountsInDropdown(){
   try{
     // ── الحسابات الجديدة (مسجلة بإيميل)
     const regAccs  = JSON.parse(localStorage.getItem('cdz_saved_login_accounts')||'[]');
-    // ── الحسابات القديمة (اسم فقط)
-    const legacyArr = JSON.parse(localStorage.getItem('nld_saved_accounts')||'[]');
+    // ── الحسابات القديمة (اسم فقط) — نستخدم getSavedAccounts() التي تقرأ بالمفتاح الصحيح مع deviceId
+    const legacyArr = (typeof getSavedAccounts === 'function') ? getSavedAccounts() : [];
     const current   = localStorage.getItem('sklab_user_name')||'';
 
     // تجنب التكرار: استبعاد من له نظير في regAccs
     const regNames = new Set(regAccs.map(a=>a.name));
     const legacyAccs = legacyArr.filter(a=>!regNames.has(a.name||a));
 
+    container.style.flexDirection = 'column';
+
     if(!regAccs.length && !legacyAccs.length){
-      container.innerHTML='<div style="font-size:12px;color:#65676B;padding:6px 0;">لا توجد حسابات محفوظة</div>';
-      container.style.flexDirection='column';
+      container.innerHTML = `<div style="font-size:12px;color:#65676B;padding:8px 4px;text-align:center;">لا توجد حسابات محفوظة على هذا الجهاز</div>`;
       return;
     }
 
-    /* عرض البطاقات بنفس نمط واجهة تسجيل الدخول — قائمة رأسية */
-    container.style.flexDirection='column';
-    container.style.overflowX='unset';
+    // ── نفس CSS بطاقات صفحة تسجيل الدخول
+    const cardBase = `display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;cursor:pointer;transition:.15s;position:relative;width:100%;box-sizing:border-box;margin-bottom:0;`;
 
-    const cardCSS = `display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(240,242,245,0.8);border:1.5px solid transparent;border-radius:14px;cursor:pointer;transition:.15s;position:relative;width:100%;box-sizing:border-box;`;
-    const activeBorder = '#1877F2';
-    const activeBg = 'rgba(231,243,255,0.9)';
-
-    // حسابات جديدة
-    const regHTML = regAccs.map((acc,i)=>{
-      const isCurr = acc.name===current;
+    // حسابات جديدة (مسجلة بإيميل + كلمة مرور)
+    const regHTML = regAccs.map((acc, i) => {
+      const isCurr = acc.name === current;
+      const bg     = isCurr ? 'rgba(231,243,255,0.95)' : '#F0F2F5';
+      const border = isCurr ? '1.5px solid #1877F2'    : '1.5px solid transparent';
+      const ring   = isCurr ? 'box-shadow:0 0 0 2.5px #1877F2,0 0 0 4.5px white;' : '';
       const avatarInner = acc.photo
         ? `<img src="${acc.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" loading="lazy">`
         : `<span style="font-size:20px;">${typeof getLeaderIcon==='function'?getLeaderIcon(acc.name):'👤'}</span>`;
-      return `<div onclick="fbQuickLogin(${i});closeProfileDropdown();"
-        oncontextmenu="event.preventDefault();showDeleteAccountMenu(${i},'reg')"
-        data-long-press-idx="${i}" data-long-press-type="reg"
-        onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()"
-        style="${cardCSS}background:${isCurr?activeBg:'rgba(240,242,245,0.8)'};border-color:${isCurr?activeBorder:'transparent'};"
-        onmouseover="this.style.background='${activeBg}';this.style.borderColor='${activeBorder}'"
-        onmouseout="this.style.background='${isCurr?activeBg:'rgba(240,242,245,0.8)'}';this.style.borderColor='${isCurr?activeBorder:'transparent'}'">
-        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;${isCurr?'box-shadow:0 0 0 2.5px #1877F2,0 0 0 4px white;':''}">
-          ${avatarInner}
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:900;color:#050505;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${acc.name}</div>
-          <div style="font-size:11px;color:#65676B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${acc.email||''}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          ${isCurr?'<span style="font-size:9px;color:#1877F2;font-weight:700;background:#E7F3FF;border-radius:6px;padding:2px 6px;">✓ حالي</span>':'<span style="font-size:16px;color:#BCC0C4;">›</span>'}
-          <button onclick="event.stopPropagation();showDeleteAccountMenu(${i},'reg')"
-            style="width:26px;height:26px;border-radius:8px;border:none;background:rgba(220,38,38,0.1);color:#ef4444;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
-            title="حذف" onmouseover="this.style.background='rgba(220,38,38,0.22)'" onmouseout="this.style.background='rgba(220,38,38,0.1)'">🗑️</button>
-        </div>
-      </div>`;
+      return `
+        <div onclick="fbQuickLogin(${i});closeProfileDropdown();"
+          oncontextmenu="event.preventDefault();showDeleteAccountMenu(${i},'reg')"
+          data-long-press-idx="${i}" data-long-press-type="reg"
+          onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()"
+          style="${cardBase}background:${bg};border:${border};"
+          onmouseover="this.style.background='rgba(231,243,255,0.95)';this.style.borderColor='#1877F2';"
+          onmouseout="this.style.background='${bg}';this.style.borderColor='${isCurr?'#1877F2':'transparent'}';">
+          <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;${ring}">
+            ${avatarInner}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:900;color:#050505;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${acc.name}</div>
+            <div style="font-size:11px;color:#65676B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${acc.email||''}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            ${isCurr?`<span style="font-size:9px;color:#1877F2;font-weight:800;background:#E7F3FF;border-radius:6px;padding:2px 7px;white-space:nowrap;">✓ حالي</span>`:`<span style="font-size:18px;color:#BCC0C4;">›</span>`}
+            <button onclick="event.stopPropagation();showDeleteAccountMenu(${i},'reg')"
+              style="width:28px;height:28px;border-radius:8px;border:none;background:rgba(220,38,38,0.1);color:#ef4444;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;"
+              onmouseover="this.style.background='rgba(220,38,38,0.22)'" onmouseout="this.style.background='rgba(220,38,38,0.1)'" title="حذف">🗑️</button>
+          </div>
+        </div>`;
     }).join('');
 
-    // حسابات legacy
-    const legacyHTML = legacyAccs.map((acc,i)=>{
-      const name = acc.name||acc;
-      const isCurr = name===current;
-      const icon = typeof getLeaderIcon==='function'?getLeaderIcon(name):'👤';
-      const photo = localStorage.getItem('nld_photo_'+name.replace(/\s+/g,'_'));
+    // حسابات قديمة (اسم فقط)
+    const regNamesSet = new Set(regAccs.map(a => a.name));
+    const legacyFiltered = legacyAccs.filter(a => !regNamesSet.has(a.name||a));
+    const legacyHTML = legacyFiltered.map((acc, i) => {
+      const name   = acc.name || acc;
+      const isCurr = name === current;
+      const bg     = isCurr ? 'rgba(231,243,255,0.95)' : '#F0F2F5';
+      const border = isCurr ? '1.5px solid #1877F2'    : '1.5px solid transparent';
+      const ring   = isCurr ? 'box-shadow:0 0 0 2.5px #1877F2,0 0 0 4.5px white;' : '';
+      const icon   = typeof getLeaderIcon==='function' ? getLeaderIcon(name) : '👤';
+      const photo  = localStorage.getItem('nld_photo_'+name.replace(/\s+/g,'_'));
       const avatarInner = photo
         ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" loading="lazy">`
         : `<span style="font-size:20px;">${icon}</span>`;
       const safeName = name.replace(/'/g,"\\'");
-      return `<div onclick="loginWithSavedAccount('${safeName}');closeProfileDropdown();"
-        oncontextmenu="event.preventDefault();showDeleteAccountMenu(${i},'legacy','${safeName}')"
-        data-long-press-idx="${i}" data-long-press-type="legacy" data-long-press-name="${safeName}"
-        onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()"
-        style="${cardCSS}background:${isCurr?activeBg:'rgba(240,242,245,0.8)'};border-color:${isCurr?activeBorder:'transparent'};"
-        onmouseover="this.style.background='${activeBg}';this.style.borderColor='${activeBorder}'"
-        onmouseout="this.style.background='${isCurr?activeBg:'rgba(240,242,245,0.8)'}';this.style.borderColor='${isCurr?activeBorder:'transparent'}'">
-        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;${isCurr?'box-shadow:0 0 0 2.5px #1877F2,0 0 0 4px white;':''}">
-          ${avatarInner}
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:900;color:#050505;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          ${isCurr?'<span style="font-size:9px;color:#1877F2;font-weight:700;background:#E7F3FF;border-radius:6px;padding:2px 6px;">✓ حالي</span>':'<span style="font-size:16px;color:#BCC0C4;">›</span>'}
-          <button onclick="event.stopPropagation();showDeleteAccountMenu(${i},'legacy','${safeName}')"
-            style="width:26px;height:26px;border-radius:8px;border:none;background:rgba(220,38,38,0.1);color:#ef4444;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
-            title="حذف" onmouseover="this.style.background='rgba(220,38,38,0.22)'" onmouseout="this.style.background='rgba(220,38,38,0.1)'">🗑️</button>
-        </div>
-      </div>`;
+      return `
+        <div onclick="loginWithSavedAccount('${safeName}');closeProfileDropdown();"
+          oncontextmenu="event.preventDefault();showDeleteAccountMenu(${i},'legacy','${safeName}')"
+          data-long-press-idx="${i}" data-long-press-type="legacy" data-long-press-name="${safeName}"
+          onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()"
+          style="${cardBase}background:${bg};border:${border};"
+          onmouseover="this.style.background='rgba(231,243,255,0.95)';this.style.borderColor='#1877F2';"
+          onmouseout="this.style.background='${bg}';this.style.borderColor='${isCurr?'#1877F2':'transparent'}';">
+          <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;${ring}">
+            ${avatarInner}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:900;color:#050505;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            ${isCurr?`<span style="font-size:9px;color:#1877F2;font-weight:800;background:#E7F3FF;border-radius:6px;padding:2px 7px;white-space:nowrap;">✓ حالي</span>`:`<span style="font-size:18px;color:#BCC0C4;">›</span>`}
+            <button onclick="event.stopPropagation();showDeleteAccountMenu(${i},'legacy','${safeName}')"
+              style="width:28px;height:28px;border-radius:8px;border:none;background:rgba(220,38,38,0.1);color:#ef4444;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;"
+              onmouseover="this.style.background='rgba(220,38,38,0.22)'" onmouseout="this.style.background='rgba(220,38,38,0.1)'" title="حذف">🗑️</button>
+          </div>
+        </div>`;
     }).join('');
 
     container.innerHTML = regHTML + legacyHTML;
+
   } catch(e){ console.warn('_loadSavedAccountsInDropdown error:', e); }
 }
 
