@@ -6479,43 +6479,77 @@ function buildGrid(isReg){
   }).join('');
 }
 
-/* ===== نموذج التسجيل والانخراط ===== */
+/* ===== نموذج التسجيل والانخراط — مطابق لأعمدة Google Sheet ===== */
 function openJoinRegistrationForm(){
   const old = document.getElementById('_joinRegOverlay');
   if(old) old.remove();
   const ov = document.createElement('div');
   ov.id = '_joinRegOverlay';
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(10px);z-index:99995;display:flex;align-items:center;justify-content:center;animation:fadeIn .25s ease;';
+  const inp = (id,type,ph,extra='')=>`<input id="${id}" type="${type}" placeholder="${ph}" ${extra} style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;box-sizing:border-box;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'">`;
+  const sel = (id,opts,ph)=>`<select id="${id}" style="width:100%;padding:11px 14px;background:#1a2230;border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;" onchange="this.style.borderColor='rgba(0,229,160,0.4)'"><option value="" disabled selected>${ph}</option>${opts.map(o=>`<option value="${o}">${o}</option>`).join('')}</select>`;
+  const lbl = (t,req='')=>`<div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">${t}${req?' <span style="color:#f87171;">*</span>':''}</div>`;
+  const blk = (l,html,req='')=>`<div>${lbl(l,req)}${html}</div>`;
+
   ov.innerHTML = `
-    <div style="background:linear-gradient(160deg,#0d1117,#161b22);border:1px solid rgba(0,229,160,0.3);border-radius:26px;padding:28px 22px;width:92%;max-width:380px;box-shadow:0 30px 80px rgba(0,0,0,0.6);animation:fadeUp .3s ease;position:relative;max-height:90vh;overflow-y:auto;">
-      <div style="text-align:center;margin-bottom:22px;">
-        <div style="font-size:46px;margin-bottom:10px;">🤝</div>
-        <div style="font-size:19px;font-weight:900;color:#fff;margin-bottom:6px;">تسجيل وانخراط</div>
-        <div style="font-size:12px;color:#8b949e;line-height:1.6;">أكمل البيانات التالية للانضمام إلى Connect DZ</div>
+    <div style="background:linear-gradient(160deg,#0d1117,#161b22);border:1px solid rgba(0,229,160,0.3);border-radius:26px;padding:24px 20px;width:94%;max-width:420px;box-shadow:0 30px 80px rgba(0,0,0,0.6);animation:fadeUp .3s ease;position:relative;max-height:92vh;overflow-y:auto;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-size:40px;margin-bottom:8px;">🤝</div>
+        <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:4px;">استمارة التسجيل والانخراط</div>
+        <div style="font-size:11px;color:#8b949e;">أكمل جميع البيانات للانضمام إلى Connect DZ</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:11px;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+
+        ${blk('الاسم واللقب',inp('_regName','text','أدخل اسمك الكامل'),'*')}
+        ${blk('البريد الإلكتروني',inp('_regEmail','email','example@email.com'),'*')}
+        ${blk('تاريخ الميلاد',inp('_regBirth','date',''))}
+        ${blk('عنوان الإقامة',inp('_regAddress','text','الحي، المدينة'))}
+        ${blk('رقم بطاقة التعريف (16 رقم)',inp('_regNid','text','XXXXXXXXXXXXXXXX','maxlength="18"'))}
+        ${blk('زمرة الدم',sel('_regBlood',['A+','A-','B+','B-','AB+','AB-','O+','O-'],'اختر زمرة الدم'))}
+        ${blk('الجنس',sel('_regGender',['ذكر','أنثى'],'اختر الجنس'))}
+        ${blk('تحديد الفئة',sel('_regCategory',['طفل (6-12)','مراهق (13-17)','شاب (18-25)','بالغ (+26)'],'اختر الفئة العمرية'))}
+        ${blk('المستوى الدراسي',sel('_regLevel',['ابتدائي','متوسط','ثانوي','جامعي','خريج','أخرى'],'اختر المستوى'))}
+        ${blk('الولاية',inp('_regWilaya','text','مثال: تلمسان'))}
+        ${blk('البلدية',inp('_regCommune','text','مثال: منصورة'))}
+        ${blk('رقم الهاتف',inp('_regPhone','tel','0XXXXXXXXX'),'*')}
+        ${blk('هل أنت منخرط بدار الشباب؟',sel('_regDarChab',['نعم','لا'],'اختر'))}
+        ${blk('هواياتك',`<textarea id="_regHobbies" placeholder="اذكر هواياتك..." style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;resize:none;min-height:70px;text-align:right;box-sizing:border-box;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'"></textarea>`)  }
+        ${blk('مهاراتك القيادية',`<textarea id="_regLeadership" placeholder="اذكر مهاراتك القيادية..." style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;resize:none;min-height:70px;text-align:right;box-sizing:border-box;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'"></textarea>`)}
+        ${blk('هل شاركت من قبل في الطفل الذكي؟',sel('_regSmartKidsBefore',['نعم','لا'],'اختر'))}
+        ${blk('هل تعاني من أمراض؟ اذكرها',inp('_regHealth','text','اذكر المرض أو اكتب: لا'))}
+        ${blk('ماذا أعجبك في Smart Kids؟',`<textarea id="_regLiked" placeholder="اكتب ما أعجبك..." style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;resize:none;min-height:60px;text-align:right;box-sizing:border-box;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'"></textarea>`)}
+        ${blk('ماذا تقترح لتطوير Smart Kids؟',`<textarea id="_regSuggest" placeholder="اكتب اقتراحك..." style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;resize:none;min-height:60px;text-align:right;box-sizing:border-box;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'"></textarea>`)}
+        ${blk('رأيك في مستوى Smart Kids',sel('_regRating',['ممتاز','جيد جداً','جيد','مقبول','ضعيف'],'قيّم المستوى'))}
+
+        <!-- حقول رفع الصور -->
         <div>
-          <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">الاسم الكامل *</div>
-          <input id="_regName" type="text" placeholder="أدخل اسمك الكامل" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'">
+          <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">الصورة الشمسية (صورة شخصية)</div>
+          <div id="_regPhotoBox" onclick="document.getElementById('_regPhotoFile').click()" style="width:100%;padding:14px;background:rgba(255,255,255,0.05);border:1.5px dashed rgba(0,229,160,0.35);border-radius:13px;color:#8b949e;font-family:'Tajawal',sans-serif;font-size:13px;text-align:center;cursor:pointer;">
+            📷 اضغط لرفع الصورة الشمسية
+          </div>
+          <input id="_regPhotoFile" type="file" accept="image/*" style="display:none" onchange="_regUploadImg(this,'photo','_regPhotoBox','_regPhotoUrl')">
+          <input id="_regPhotoUrl" type="hidden" value="">
         </div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">البريد الإلكتروني *</div>
-          <input id="_regEmail" type="email" placeholder="example@email.com" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'">
+          <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">شهادة الميلاد (صورة)</div>
+          <div id="_regBirthCertBox" onclick="document.getElementById('_regBirthCertFile').click()" style="width:100%;padding:14px;background:rgba(255,255,255,0.05);border:1.5px dashed rgba(0,229,160,0.35);border-radius:13px;color:#8b949e;font-family:'Tajawal',sans-serif;font-size:13px;text-align:center;cursor:pointer;">
+            📄 اضغط لرفع شهادة الميلاد
+          </div>
+          <input id="_regBirthCertFile" type="file" accept="image/*" style="display:none" onchange="_regUploadImg(this,'birth_cert','_regBirthCertBox','_regBirthCertUrl')">
+          <input id="_regBirthCertUrl" type="hidden" value="">
         </div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">رقم الهاتف *</div>
-          <input id="_regPhone" type="tel" placeholder="0XXXXXXXXX" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'">
+          <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">بطاقة التعريف ( القصر / ولي الأمر ) — صورة</div>
+          <div id="_regIdCardBox" onclick="document.getElementById('_regIdCardFile').click()" style="width:100%;padding:14px;background:rgba(255,255,255,0.05);border:1.5px dashed rgba(0,229,160,0.35);border-radius:13px;color:#8b949e;font-family:'Tajawal',sans-serif;font-size:13px;text-align:center;cursor:pointer;">
+            🪦 اضغط لرفع بطاقة التعريف
+          </div>
+          <input id="_regIdCardFile" type="file" accept="image/*" style="display:none" onchange="_regUploadImg(this,'id_card','_regIdCardBox','_regIdCardUrl')">
+          <input id="_regIdCardUrl" type="hidden" value="">
         </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">العمر</div>
-          <input id="_regAge" type="number" placeholder="السن" min="5" max="100" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'">
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">الولاية / المدينة</div>
-          <input id="_regCity" type="text" placeholder="مثال: تلمسان" style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;" oninput="this.style.borderColor='rgba(0,229,160,0.4)'">
-        </div>
+        <!-- نهاية حقول الصور -->
+
         <div id="_regMsg" style="display:none;padding:10px 14px;border-radius:11px;font-size:13px;font-weight:700;text-align:center;"></div>
-        <button onclick="_submitJoinRegistration()" style="width:100%;padding:14px;background:linear-gradient(135deg,#00e5a0,#00b894);border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;color:#050a0e;cursor:pointer;box-shadow:0 6px 20px rgba(0,229,160,0.35);margin-top:4px;transition:.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">📤 إرسال التسجيل</button>
+        <button onclick="_submitJoinRegistration()" style="width:100%;padding:14px;background:linear-gradient(135deg,#00e5a0,#00b894);border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;color:#050a0e;cursor:pointer;box-shadow:0 6px 20px rgba(0,229,160,0.35);margin-top:4px;transition:.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">&#x1F4E4; إرسال التسجيل</button>
         <button onclick="document.getElementById('_joinRegOverlay').remove()" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#8b949e;cursor:pointer;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'">إلغاء</button>
       </div>
     </div>`;
@@ -6523,12 +6557,62 @@ function openJoinRegistrationForm(){
   ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
 }
 
+/* ══ رفع صورة واحدة لـ Cloudinary من نموذج التسجيل ══ */
+async function _regUploadImg(input, folder, boxId, urlId){
+  const file = input.files[0];
+  if(!file) return;
+  const box = document.getElementById(boxId);
+  if(box){ box.style.borderColor='rgba(0,229,160,0.7)'; box.innerText='⏳ جاري الرفع...'; }
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset','connectdz_unsigned');
+    fd.append('folder','connectdz/documents');
+    const res = await fetch('https://api.cloudinary.com/v1_1/dzjutgs7s/image/upload',{method:'POST',body:fd});
+    const data = await res.json();
+    if(data.secure_url){
+      document.getElementById(urlId).value = data.secure_url;
+      if(box){
+        box.style.borderColor='rgba(0,229,160,1)';
+        box.style.background='rgba(0,229,160,0.08)';
+        box.style.color='#00e5a0';
+        box.innerText='✅ تم الرفع بنجاح';
+      }
+    } else {
+      throw new Error('فشل الرفع');
+    }
+  } catch(err){
+    if(box){ box.style.borderColor='rgba(248,113,113,0.7)'; box.style.color='#f87171'; box.innerText='❌ فشل الرفع — حاول مجدداً'; }
+  }
+}
+
 async function _submitJoinRegistration(){
-  const name  = (document.getElementById('_regName')?.value||'').trim();
-  const email = (document.getElementById('_regEmail')?.value||'').trim();
-  const phone = (document.getElementById('_regPhone')?.value||'').trim();
-  const age   = (document.getElementById('_regAge')?.value||'').trim();
-  const city  = (document.getElementById('_regCity')?.value||'').trim();
+  const name       = (document.getElementById('_regName')?.value||'').trim();
+  const email      = (document.getElementById('_regEmail')?.value||'').trim();
+  const phone      = (document.getElementById('_regPhone')?.value||'').trim();
+  const birth      = (document.getElementById('_regBirth')?.value||'').trim();
+  const address    = (document.getElementById('_regAddress')?.value||'').trim();
+  const nid        = (document.getElementById('_regNid')?.value||'').trim();
+  const blood      = (document.getElementById('_regBlood')?.value||'').trim();
+  const gender     = (document.getElementById('_regGender')?.value||'').trim();
+  const category   = (document.getElementById('_regCategory')?.value||'').trim();
+  const level      = (document.getElementById('_regLevel')?.value||'').trim();
+  const wilaya     = (document.getElementById('_regWilaya')?.value||'').trim();
+  const commune    = (document.getElementById('_regCommune')?.value||'').trim();
+  const darChab    = (document.getElementById('_regDarChab')?.value||'').trim();
+  const hobbies    = (document.getElementById('_regHobbies')?.value||'').trim();
+  const leadership = (document.getElementById('_regLeadership')?.value||'').trim();
+  const skBefore   = (document.getElementById('_regSmartKidsBefore')?.value||'').trim();
+  const health     = (document.getElementById('_regHealth')?.value||'').trim();
+  const liked      = (document.getElementById('_regLiked')?.value||'').trim();
+  const suggest    = (document.getElementById('_regSuggest')?.value||'').trim();
+  const rating      = (document.getElementById('_regRating')?.value||'').trim();
+  const photoUrl    = (document.getElementById('_regPhotoUrl')?.value||'').trim();
+  const birthCertUrl= (document.getElementById('_regBirthCertUrl')?.value||'').trim();
+  const idCardUrl   = (document.getElementById('_regIdCardUrl')?.value||'').trim();
+  // نحتفظ بـ age للتوافق مع الكود القديم
+  const age = birth;
+  const city = wilaya;
   const msgEl = document.getElementById('_regMsg');
 
   if(!name || !email || !phone){
@@ -6546,15 +6630,15 @@ async function _submitJoinRegistration(){
 
     // حفظ طلب الانضمام محلياً
     const requests = JSON.parse(localStorage.getItem(_JOIN_REQUESTS_KEY)||'[]');
-    requests.push({ id:'jr_'+Date.now(), name, email, phone, age, city, date:dateStr, time:timeStr, ts:Date.now() });
+    requests.push({ id:'jr_'+Date.now(), name, email, phone, birth, wilaya, commune, age, city, date:dateStr, time:timeStr, ts:Date.now() });
     localStorage.setItem(_JOIN_REQUESTS_KEY, JSON.stringify(requests));
 
     // إرسال رسالة P2P للمدير مع بيانات المنخرط
-    const regMsg = `🤝 طلب تسجيل وانخراط جديد!\n👤 الاسم: ${name}\n📧 البريد: ${email}\n📱 الهاتف: ${phone}${age?'\n🎂 العمر: '+age+' سنة':''}${city?'\n📍 المدينة: '+city:''}\n📅 ${dateStr} — ${timeStr}\n\n✅ يُرجى مراجعة البيانات وإضافتها لجدول المنخرطين`;
+    const regMsg = `🤝 طلب تسجيل وانخراط جديد!\n👤 الاسم: ${name}\n📧 البريد: ${email}\n📱 الهاتف: ${phone}\n📅 ت.ميلاد: ${birth}\n📍 ${wilaya} — ${commune}\n🩸 ${blood} | ${gender} | ${category}\n🏫 ${level}\n📅 ${dateStr} — ${timeStr}\n\n✅ يُرجى مراجعة البيانات وإضافتها لجدول المنخرطين`;
 
     // إضافة للصندوق الداخلي للمدير
     const adminMsgs = JSON.parse(localStorage.getItem('nld_member_msgs')||'[]');
-    adminMsgs.push({ from: name, email, phone, age, city, text: regMsg, ts: Date.now(), isRegistration: true });
+    adminMsgs.push({ from: name, email, phone, birth, wilaya, commune, blood, gender, category, level, text: regMsg, ts: Date.now(), isRegistration: true });
     localStorage.setItem('nld_member_msgs', JSON.stringify(adminMsgs));
 
     // إرسال عبر P2P مع المدير
@@ -6568,6 +6652,46 @@ async function _submitJoinRegistration(){
     if(typeof window.sendAdminPushNotif==='function'){
       window.sendAdminPushNotif('🤝 تسجيل جديد — Connect DZ', `👤 ${name} | 📱 ${phone}`);
     }
+
+    // ══ SheetDB — حفظ تلقائي في Google Sheet بنفس أسماء الأعمدة ══
+    try {
+      await fetch('https://sheetdb.io/api/v1/sc1z9g0cnu62a', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: [{
+            'Timestamp'                                          : new Date().toISOString(),
+            'Email Address'                                      : email,
+            'الاسم واللقب'                                       : name,
+            'تاريخ الميلاد'                                      : birth,
+            'عنوان الاقامة'                                      : address,
+            'رقم بطاقة التعريف ( 16 رقم )'                      : nid,
+            'زمرة الدم'                                          : blood,
+            'الجنس'                                              : gender,
+            'تحديد الفئة'                                        : category,
+            'المستوى الدراسي'                                    : level,
+            'الولاية'                                            : wilaya,
+            'البلدية'                                            : commune,
+            'رقم الهاتف'                                         : phone,
+            'هل انت منخرط بدار الشباب'                          : darChab,
+            'هواياتك'                                            : hobbies,
+            'مهاراتك القيادية'                                   : leadership,
+            'هل شاركت من قبل في الطفل الذكي'                   : skBefore,
+            'تعاني من امراض اذكرها'                             : health,
+            'ماذا اعجبك في Smart Kids'                          : liked,
+            'ماذا تقترح حتى يتم تطوير Smart Kids'              : suggest,
+            'Smart Kids رأيك في مستوى'                         : rating,
+            'الصورة الشمسية'                                     : photoUrl,
+            'شهادة الميلاد'                                       : birthCertUrl,
+            'بطاقة التعريف ( القصر ولي امر )'                    : idCardUrl
+          }]
+        })
+      });
+      console.log('✅ SheetDB: تم حفظ البيانات في Google Sheet');
+    } catch(sheetErr) {
+      console.warn('⚠️ SheetDB: فشل الحفظ (غير حرج):', sheetErr.message);
+    }
+    // ═══════════════════════════════════════════════════════════════
 
     if(msgEl){ msgEl.style.display='block'; msgEl.style.background='rgba(0,229,160,0.12)'; msgEl.style.border='1px solid rgba(0,229,160,0.3)'; msgEl.style.color='#00e5a0'; msgEl.innerText='✅ تم إرسال طلبك بنجاح! سيتواصل معك المدير قريباً 🎉'; }
     setTimeout(()=>{ document.getElementById('_joinRegOverlay')?.remove(); }, 2500);
@@ -18513,14 +18637,14 @@ function openCityFeature(key){
   <!-- Body -->
   <div class="reg-body">
 
-    <!-- ── STEP 1: المعلومات الشخصية ── -->
+    <!-- ── STEP 1: المعلومات الشخصية — مطابق لأعمدة Google Sheet ── -->
     <div class="reg-step active" id="regStep1">
       <div class="reg-step-title">📋 المعلومات الشخصية</div>
-      <div class="reg-step-sub">أدخل بياناتك الشخصية بدقة — ستُستخدم في ملفك الشخصي</div>
+      <div class="reg-step-sub">أدخل بياناتك الشخصية بدقة</div>
 
       <!-- الاسم واللقب -->
       <div class="reg-section-card">
-        <div class="reg-section-card-title">👤 الاسم الكامل</div>
+        <div class="reg-section-card-title">👤 الاسم واللقب *</div>
         <div class="reg-row">
           <input class="reg-input" id="regFirstName" placeholder="الاسم" type="text">
           <input class="reg-input" id="regLastName" placeholder="اللقب" type="text">
@@ -18543,10 +18667,68 @@ function openCityFeature(key){
         </div>
       </div>
 
-      <!-- الولاية فقط -->
+      <!-- عنوان الإقامة -->
       <div class="reg-section-card">
-        <div class="reg-section-card-title">📍 مكان الإقامة (الولاية)</div>
-        <select class="reg-select" id="regWilaya" style="margin-bottom:0;">
+        <div class="reg-section-card-title">🏠 عنوان الإقامة</div>
+        <input class="reg-input" id="regAddress" placeholder="الحي، الشارع..." type="text" style="margin-bottom:0;">
+      </div>
+
+      <!-- رقم بطاقة التعريف -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🪪 رقم بطاقة التعريف (16 رقم)</div>
+        <input class="reg-input" id="regIdNumber" placeholder="XXXXXXXXXXXXXXXX" type="text" maxlength="18" style="margin-bottom:0;">
+      </div>
+
+      <!-- زمرة الدم -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🩸 زمرة الدم</div>
+        <select class="reg-select" id="regBloodType" style="margin-bottom:0;">
+          <option value="">اختر زمرة دمك</option>
+          <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+          <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+        </select>
+      </div>
+
+      <!-- الجنس -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">👤 الجنس</div>
+        <select class="reg-select" id="regGender" style="margin-bottom:0;">
+          <option value="">اختر الجنس</option>
+          <option value="ذكر">ذكر</option>
+          <option value="أنثى">أنثى</option>
+        </select>
+      </div>
+
+      <!-- تحديد الفئة -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🏷️ تحديد الفئة</div>
+        <select class="reg-select" id="regCategory" style="margin-bottom:0;">
+          <option value="">اختر الفئة العمرية</option>
+          <option value="طفل (6-12)">طفل (6-12)</option>
+          <option value="مراهق (13-17)">مراهق (13-17)</option>
+          <option value="شاب (18-25)">شاب (18-25)</option>
+          <option value="بالغ (+26)">بالغ (+26)</option>
+        </select>
+      </div>
+
+      <!-- المستوى الدراسي -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🎓 المستوى الدراسي</div>
+        <select class="reg-select" id="regLevel" style="margin-bottom:0;">
+          <option value="">اختر المستوى</option>
+          <option value="ابتدائي">ابتدائي</option>
+          <option value="متوسط">متوسط</option>
+          <option value="ثانوي">ثانوي</option>
+          <option value="جامعي">جامعي</option>
+          <option value="ما بعد التدرج">ما بعد التدرج</option>
+          <option value="تكوين مهني">تكوين مهني</option>
+        </select>
+      </div>
+
+      <!-- الولاية -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">📍 الولاية</div>
+        <select class="reg-select" id="regWilaya" style="margin-bottom:8px;">
           <option value="">اختر الولاية</option>
           <option>01 - أدرار</option><option>02 - الشلف</option><option>03 - الأغواط</option><option>04 - أم البواقي</option>
           <option>05 - باتنة</option><option>06 - بجاية</option><option>07 - بسكرة</option><option>08 - بشار</option>
@@ -18564,39 +18746,102 @@ function openCityFeature(key){
           <option>53 - عين صالح</option><option>54 - عين قزام</option><option>55 - تقرت</option><option>56 - جانت</option>
           <option>57 - المغير</option><option>58 - المنيعة</option>
         </select>
+        <input class="reg-input" id="regBaladiya" placeholder="البلدية" type="text" style="margin-bottom:0;">
       </div>
 
-      <!-- الجنس -->
+      <!-- رقم الهاتف -->
       <div class="reg-section-card">
-        <div class="reg-section-card-title">👤 الجنس</div>
-        <select class="reg-select" id="regGender" style="margin-bottom:0;">
-          <option value="">اختر الجنس</option>
-          <option value="ذكر">ذكر</option>
-          <option value="أنثى">أنثى</option>
+        <div class="reg-section-card-title">📱 رقم الهاتف *</div>
+        <input class="reg-input" id="regPhone" placeholder="0XXXXXXXXX" type="tel" style="margin-bottom:0;">
+      </div>
+
+      <!-- الصورة الشمسية -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">📷 الصورة الشمسية</div>
+        <div id="regPhotoBox" onclick="document.getElementById('regPhotoInput').click()" style="padding:14px;background:rgba(0,200,83,0.05);border:1.5px dashed #00c853;border-radius:12px;text-align:center;cursor:pointer;color:#606770;font-size:13px;font-weight:700;">
+          📷 اضغط لرفع الصورة الشمسية
+        </div>
+        <input type="file" id="regPhotoInput" accept="image/*" style="display:none" onchange="handleRegUpload(this,'photo')">
+      </div>
+
+      <!-- شهادة الميلاد -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">📄 شهادة الميلاد</div>
+        <div id="regBirthBox" onclick="document.getElementById('regBirthInput').click()" style="padding:14px;background:rgba(0,200,83,0.05);border:1.5px dashed #00c853;border-radius:12px;text-align:center;cursor:pointer;color:#606770;font-size:13px;font-weight:700;">
+          📄 اضغط لرفع شهادة الميلاد
+        </div>
+        <input type="file" id="regBirthInput" accept="image/*,application/pdf" style="display:none" onchange="handleRegUpload(this,'birth')">
+      </div>
+
+      <!-- بطاقة التعريف (القصر / ولي الأمر) -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🪪 بطاقة التعريف — القصر / ولي الأمر</div>
+        <div id="regGuardianIdBox" onclick="document.getElementById('regGuardianIdInput').click()" style="padding:14px;background:rgba(0,200,83,0.05);border:1.5px dashed #00c853;border-radius:12px;text-align:center;cursor:pointer;color:#606770;font-size:13px;font-weight:700;">
+          🪪 اضغط لرفع بطاقة التعريف
+        </div>
+        <input type="file" id="regGuardianIdInput" accept="image/*" style="display:none" onchange="handleRegUpload(this,'guardianId')">
+      </div>
+
+      <!-- هل منخرط بدار الشباب -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🏫 هل أنت منخرط بدار الشباب؟</div>
+        <select class="reg-select" id="regYouthHouse" style="margin-bottom:0;">
+          <option value="">اختر</option>
+          <option value="نعم">نعم</option>
+          <option value="لا">لا</option>
         </select>
       </div>
 
-      <!-- المستوى الدراسي -->
+      <!-- الهوايات -->
       <div class="reg-section-card">
-        <div class="reg-section-card-title">🎓 المستوى الدراسي</div>
-        <select class="reg-select" id="regLevel" style="margin-bottom:0;">
-          <option value="">اختر المستوى الدراسي</option>
-          <option value="ابتدائي">ابتدائي</option>
-          <option value="متوسط">متوسط</option>
-          <option value="ثانوي">ثانوي</option>
-          <option value="جامعي">جامعي</option>
-          <option value="ما بعد التدرج">ما بعد التدرج</option>
-          <option value="تكوين مهني">تكوين مهني</option>
+        <div class="reg-section-card-title">🎨 هواياتك</div>
+        <textarea class="reg-input" id="regHobbiesText" placeholder="اذكر هواياتك..." style="min-height:70px;resize:none;margin-bottom:0;"></textarea>
+      </div>
+
+      <!-- المهارات القيادية -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🌟 مهاراتك القيادية</div>
+        <textarea class="reg-input" id="regLeadSkillsText" placeholder="اذكر مهاراتك القيادية..." style="min-height:70px;resize:none;margin-bottom:0;"></textarea>
+      </div>
+
+      <!-- هل شاركت في الطفل الذكي -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">🤖 هل شاركت من قبل في الطفل الذكي؟</div>
+        <select class="reg-select" id="regSmartKidsBefore" style="margin-bottom:0;">
+          <option value="">اختر</option>
+          <option value="نعم">نعم</option>
+          <option value="لا">لا</option>
         </select>
       </div>
 
-      <!-- زمرة الدم -->
+      <!-- أمراض -->
       <div class="reg-section-card">
-        <div class="reg-section-card-title">🩸 زمرة الدم ✅</div>
-        <select class="reg-select" id="regBloodType" style="margin-bottom:0;">
-          <option value="">اختر زمرة دمك</option>
-          <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-          <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+        <div class="reg-section-card-title">🏥 هل تعاني من أمراض؟ اذكرها</div>
+        <input class="reg-input" id="regHealthIssues" placeholder="اذكر المرض أو اكتب: لا" type="text" style="margin-bottom:0;">
+      </div>
+
+      <!-- ماذا أعجبك في Smart Kids -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">⭐ ماذا أعجبك في Smart Kids؟</div>
+        <textarea class="reg-input" id="regSmartKidsLikes" placeholder="اكتب ما أعجبك..." style="min-height:60px;resize:none;margin-bottom:0;"></textarea>
+      </div>
+
+      <!-- ماذا تقترح لتطوير Smart Kids -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">💡 ماذا تقترح لتطوير Smart Kids؟</div>
+        <textarea class="reg-input" id="regSmartKidsSuggestion" placeholder="اكتب اقتراحك..." style="min-height:60px;resize:none;margin-bottom:0;"></textarea>
+      </div>
+
+      <!-- رأيك في مستوى Smart Kids -->
+      <div class="reg-section-card">
+        <div class="reg-section-card-title">📊 رأيك في مستوى Smart Kids</div>
+        <select class="reg-select" id="regSmartKidsLevel" style="margin-bottom:0;">
+          <option value="">قيّم المستوى</option>
+          <option value="ممتاز">ممتاز</option>
+          <option value="جيد جداً">جيد جداً</option>
+          <option value="جيد">جيد</option>
+          <option value="مقبول">مقبول</option>
+          <option value="ضعيف">ضعيف</option>
         </select>
       </div>
 
@@ -18958,27 +19203,55 @@ window.regGoStep3 = function(){
 };
 
 window.regGoStep4 = function(){
-  // جمع بيانات الخطوة الأولى والتحقق منها
-  const fn = document.getElementById('regFirstName')?.value.trim();
-  const ln = document.getElementById('regLastName')?.value.trim();
-  const day = document.getElementById('regDobDay')?.value;
-  const month = document.getElementById('regDobMonth')?.value;
-  const year = document.getElementById('regDobYear')?.value;
-  const wilaya = document.getElementById('regWilaya')?.value;
-  const gender = document.getElementById('regGender')?.value;
-  const level = document.getElementById('regLevel')?.value;
-  const blood = document.getElementById('regBloodType')?.value;
+  const fn      = document.getElementById('regFirstName')?.value.trim();
+  const ln      = document.getElementById('regLastName')?.value.trim();
+  const day     = document.getElementById('regDobDay')?.value;
+  const month   = document.getElementById('regDobMonth')?.value;
+  const year    = document.getElementById('regDobYear')?.value;
+  const wilaya  = document.getElementById('regWilaya')?.value;
+  const gender  = document.getElementById('regGender')?.value;
+  const level   = document.getElementById('regLevel')?.value;
+  const blood   = document.getElementById('regBloodType')?.value;
+  // الحقول الجديدة
+  const address      = document.getElementById('regAddress')?.value.trim()||'';
+  const idNumber     = document.getElementById('regIdNumber')?.value.trim()||'';
+  const category     = document.getElementById('regCategory')?.value||'';
+  const baladiya     = document.getElementById('regBaladiya')?.value.trim()||'';
+  const phone        = document.getElementById('regPhone')?.value.trim()||'';
+  const youthHouse   = document.getElementById('regYouthHouse')?.value||'';
+  const hobbies      = document.getElementById('regHobbiesText')?.value.trim()||'';
+  const leadSkills   = document.getElementById('regLeadSkillsText')?.value.trim()||'';
+  const skBefore     = document.getElementById('regSmartKidsBefore')?.value||'';
+  const healthIssues = document.getElementById('regHealthIssues')?.value.trim()||'';
+  const skLikes      = document.getElementById('regSmartKidsLikes')?.value.trim()||'';
+  const skSuggest    = document.getElementById('regSmartKidsSuggestion')?.value.trim()||'';
+  const skLevel      = document.getElementById('regSmartKidsLevel')?.value||'';
+
   if(!fn||!ln){ toast('⚠️ أدخل الاسم واللقب'); return; }
   if(!day||!month||!year){ toast('⚠️ أدخل تاريخ الميلاد كاملاً'); return; }
   if(!wilaya){ toast('⚠️ اختر الولاية'); return; }
   if(!gender){ toast('⚠️ اختر الجنس'); return; }
   if(!level){ toast('⚠️ اختر المستوى الدراسي'); return; }
+
   _regData.firstName=fn; _regData.lastName=ln;
   _regData.dob=`${year}-${month}-${day}`;
   _regData.wilaya=wilaya;
+  _regData.baladiya=baladiya;
+  _regData.address=address;
+  _regData.idNumber=idNumber;
   _regData.gender=gender;
+  _regData.category=category;
   _regData.educationLevel=level;
   _regData.bloodType=blood||'';
+  _regData.phone=phone;
+  _regData.youthHouse=youthHouse;
+  _regData.hobbies=hobbies;
+  _regData.leadSkills=leadSkills;
+  _regData.smartKidsBefore=skBefore;
+  _regData.healthIssues=healthIssues;
+  _regData.smartKidsLikes=skLikes;
+  _regData.smartKidsSuggestion=skSuggest;
+  _regData.smartKidsLevel=skLevel;
   regGoStep(4);
 };
 
@@ -18986,19 +19259,22 @@ window.regGoStep4 = function(){
 window.handleRegUpload = async function(input, type){
   const file = input.files[0];
   if(!file) return;
-  const areaIds = {photo:'uploadPhotoArea',id:'uploadIdArea',birth:'uploadBirthArea',guardianId:'uploadGuardianIdArea'};
+  const areaIds = {photo:'regPhotoBox',id:'uploadIdArea',birth:'regBirthBox',guardianId:'regGuardianIdBox'};
   const area = document.getElementById(areaIds[type]);
 
   // معاينة فورية
   const reader = new FileReader();
   reader.onload = e=>{
-    if(type==='photo'){
-      area.innerHTML=`<img src="${e.target.result}" class="reg-upload-preview"><div style="font-size:12px;font-weight:700;color:#00a040;">✅ تم اختيار الصورة</div>`;
-      _regData.photoPreview = e.target.result;
-    } else {
-      area.innerHTML=`<img src="${e.target.result}" class="reg-upload-preview-doc"><div style="font-size:12px;font-weight:700;color:#00a040;">✅ ${file.name}</div>`;
+    if(area){
+      if(type==='photo'){
+        area.innerHTML=`<img src="${e.target.result}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;"><div style="font-size:12px;font-weight:700;color:#00a040;margin-top:6px;">✅ تم اختيار الصورة</div>`;
+        _regData.photoPreview = e.target.result;
+      } else {
+        area.innerHTML=`<div style="font-size:22px;">📎</div><div style="font-size:12px;font-weight:700;color:#00a040;">✅ ${file.name}</div>`;
+      }
+      area.style.borderColor='#00c853';
+      area.style.background='rgba(0,200,83,0.1)';
     }
-    area.classList.add('has-file');
   };
   reader.readAsDataURL(file);
 
@@ -19154,7 +19430,7 @@ window.completeRegistration = async function(){
       رابط_الصورة            : userData.photoUrl     || '',
       تاريخ_الانخراط         : dateStr,
       الجنس                  : gender,
-      تحديد_الفئة            : '',
+      تحديد_الفئة            : userData.category     || '',
       المستوى_الدراسي        : level,
       الولاية                : userData.wilaya       || '',
       البلدية                : userData.baladiya     || '',
@@ -19165,6 +19441,7 @@ window.completeRegistration = async function(){
       دار_الشباب             : (userData.youthHouse||'') + (userData.youthHouseName ? ' — ' + userData.youthHouseName : ''),
       الهوايات               : Array.isArray(userData.hobbies) ? userData.hobbies.join(', ') : (userData.hobbies||''),
       المهارات_القيادية      : Array.isArray(userData.leadSkills) ? userData.leadSkills.join(', ') : (userData.leadSkills||''),
+      تعاني_من_امراض        : userData.healthIssues        || '',
       شاركت_في_SmartKids    : userData.smartKidsBefore     || '',
       مستوى_SmartKids       : userData.smartKidsLevel      || '',
       اعجبني_في_SmartKids   : userData.smartKidsLikes      || '',
@@ -19187,8 +19464,42 @@ window.completeRegistration = async function(){
 
     // ── كتابة في Google Sheets في الخلفية (بدون انتظار) ──
     if(typeof window._writeRegToSheets === 'function'){
-      window._writeRegToSheets(regRecord); // لا await — لا يوقف التسجيل
+      window._writeRegToSheets(regRecord);
     }
+
+    // ══ SheetDB — حفظ مباشر في Google Sheet القديم ══
+    fetch('https://sheetdb.io/api/v1/sc1z9g0cnu62a', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({ data: [{
+        'Timestamp'                                     : new Date().toISOString(),
+        'Email Address'                                 : userData.email          || '',
+        'الاسم واللقب'                                  : fullName,
+        'تاريخ الميلاد'                                 : userData.dob            || '',
+        'عنوان الاقامة'                                 : address,
+        'رقم بطاقة التعريف ( 16 رقم )'                 : userData.idNumber        || '',
+        'زمرة الدم'                                     : userData.bloodType       || '',
+        'الصورة الشمسية'                                : userData.photoUrl        || '',
+        'تاريخ الانخراط'                                : dateStr,
+        'الجنس'                                         : gender,
+        'تحديد الفئة'                                   : userData.category        || '',
+        'المستوى الدراسي'                               : level,
+        'الولاية'                                       : userData.wilaya          || '',
+        'البلدية'                                       : userData.baladiya        || '',
+        'رقم الهاتف'                                    : userData.phone           || '',
+        'شهادة الميلاد'                                 : userData.birthUrl        || '',
+        'بطاقة التعريف ( القصر ولي امر )'               : userData.guardianIdUrl   || '',
+        'هل انت منخرط بدار الشباب'                     : userData.youthHouse      || '',
+        'هواياتك'                                       : userData.hobbies         || '',
+        'مهاراتك القيادية'                              : userData.leadSkills      || '',
+        'هل شاركت من قبل في الطفل الذكي'              : userData.smartKidsBefore  || '',
+        'تعاني من امراض اذكرها'                        : userData.healthIssues    || '',
+        'ماذا اعجبك في Smart Kids'                     : userData.smartKidsLikes   || '',
+        'ماذا تقترح حتى يتم تطوير Smart Kids'         : userData.smartKidsSuggestion || '',
+        'Smart Kids رأيك في مستوى'                    : userData.smartKidsLevel   || ''
+      }]})
+    }).then(()=>console.log('✅ SheetDB: تم الحفظ')).catch(e=>console.warn('⚠️ SheetDB:',e.message));
+    // ════════════════════════════════════════════════════════════
 
   } catch(e) { /* الإرسال اختياري — لا يوقف التسجيل */ }
 
@@ -19469,6 +19780,8 @@ function buildFormData(rec) {
   fd.append('entry.996736984',  rec['البلدية']             || '');
   fd.append('entry.666282552',  rec['رقم_الهاتف']          || '');
   fd.append('entry.1231822283', rec['الهوايات']            || '');
+  fd.append('entry.805674321',  rec['المهارات_القيادية']   || '');  /* مهاراتك القيادية */
+  fd.append('entry.324509817',  rec['تعاني_من_امراض']      || '');  /* تعاني من امراض اذكرها */
 
   /* ── حقول SmartKids ── */
   fd.append('entry.1588609453', rec['شاركت_في_SmartKids']  || '');
