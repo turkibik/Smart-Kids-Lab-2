@@ -4715,9 +4715,9 @@ body.member-mode #onlineBar{
     <div onclick="closeMemberProfileView()" style="position:absolute;top:10px;left:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;color:white;font-weight:700;z-index:5;">‹</div>
     <div style="position:absolute;bottom:-46px;right:14px;z-index:5;position:relative;display:inline-block;">
       <div id="mpvAvatar" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#00c853,#e53935);display:flex;align-items:center;justify-content:center;font-size:38px;border:4px solid white;overflow:hidden;position:relative;">👑
-        <!-- شارة التوثيق: رمادية <150 | زرقاء 150+ | ذهبية 300+ -->
-        <div id="mpvAvatarBadge" style="position:absolute;bottom:2px;right:2px;width:24px;height:24px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:11px;z-index:7;" title="شارة التوثيق">✓</div>
       </div>
+      <!-- شارة التوثيق: رمادية <150 | زرقاء 150+ | ذهبية 300+ — خارج الدائرة -->
+      <div id="mpvAvatarBadge" style="position:absolute;bottom:-4px;right:-4px;width:28px;height:28px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:7;box-shadow:0 1px 4px rgba(0,0,0,0.2);" title="شارة التوثيق">✓</div>
     </div>
     <!-- شارة الشعلة والأيام — أعلى يمين الصورة -->
     <div id="mpvStreakBadge" style="position:absolute;bottom:-40px;left:14px;z-index:5;display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.95);border-radius:20px;padding:4px 10px;box-shadow:0 2px 8px rgba(0,0,0,0.12);">
@@ -4785,6 +4785,11 @@ body.member-mode #onlineBar{
     <!-- تبويب الكل -->
     <div id="mpvPanel_all">
       <div id="mpvExtendedInfo"></div>
+      <!-- المعلومات الشخصية للمنخرط -->
+      <div id="mpvPersonalInfoSection" style="background:white;margin-bottom:8px;border-top:8px solid #F0F2F5;">
+        <div style="padding:12px 14px 8px;font-size:14px;font-weight:900;color:#050505;border-bottom:1px solid #F0F2F5;">📋 المعلومات الشخصية</div>
+        <div id="mpvPersonalInfoGrid" style="padding:10px 14px;display:flex;flex-direction:column;gap:0;"></div>
+      </div>
       <!-- منشورات العضو -->
       <div style="background:white;padding:12px 14px;margin-bottom:8px;border-bottom:1px solid #E4E6EB;border-top:8px solid #F0F2F5;">
         <div style="font-size:15px;font-weight:900;color:#050505;">منشورات</div>
@@ -4794,9 +4799,14 @@ body.member-mode #onlineBar{
 
     <!-- تبويب الصور -->
     <div id="mpvPanel_photos" style="display:none;">
-      <div style="background:white;padding:12px 14px;border-bottom:1px solid #E4E6EB;border-top:8px solid #F0F2F5;">
-        <div style="font-size:15px;font-weight:900;color:#050505;">📷 الصور</div>
-        <div style="font-size:11px;color:#65676B;margin-top:2px;">كل صور الملف الشخصي والغلاف والمنشورات</div>
+      <div style="background:white;padding:12px 14px 0;border-bottom:1px solid #E4E6EB;border-top:8px solid #F0F2F5;">
+        <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:10px;">📷 الصور</div>
+        <!-- تبويبات فرعية للصور -->
+        <div style="display:flex;gap:0;border-top:1px solid #E4E6EB;overflow-x:auto;">
+          <div id="mpvPhotoSub_profile" onclick="_switchPhotoSubTab('profile')" style="flex:1;min-width:fit-content;padding:10px 8px;text-align:center;font-size:11px;font-weight:800;color:#1877F2;border-bottom:2px solid #1877F2;cursor:pointer;white-space:nowrap;transition:.2s;">👤 صور الملف الشخصي</div>
+          <div id="mpvPhotoSub_cover" onclick="_switchPhotoSubTab('cover')" style="flex:1;min-width:fit-content;padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:#65676B;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:.2s;">🖼️ صور الغلاف والقصص</div>
+          <div id="mpvPhotoSub_posts" onclick="_switchPhotoSubTab('posts')" style="flex:1;min-width:fit-content;padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:#65676B;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:.2s;">📝 صور المنشورات</div>
+        </div>
       </div>
       <div id="mpvPhotosGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;background:#F0F2F5;"></div>
     </div>
@@ -14995,7 +15005,7 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
     if(memberAgeNum >= 15 || memberAgeNum === 0){
       brandEl.innerHTML = '<span style="color:#16a085;font-weight:900;">NEXT</span> <span style="color:#e74c3c;font-weight:900;">LEDARS</span> <span style="color:#050505;font-weight:900;">DZ</span>';
     } else {
-      brandEl.innerHTML = '<span style="color:#3498db;font-weight:900;">SMART</span> <span style="color:#e67e22;font-weight:900;">KIDS</span> <span style="color:#9b59b6;font-weight:900;">LAB</span>';
+      brandEl.innerHTML = '<span style="color:#00c853;font-weight:900;">SMART</span> <span style="color:#e53935;font-weight:900;">KIDS</span> <span style="color:#050505;font-weight:900;">LAB</span>';
     }
   }
 
@@ -15121,6 +15131,28 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
         <div style="font-size:13px;font-weight:800;color:#050505;">${f.val}</div></div>
       </div>`).join('')
     : '<div style="font-size:12px;color:#65676B;text-align:center;padding:10px;">لا توجد بيانات شخصية مضافة</div>';
+
+  // تعبئة المعلومات الشخصية تحت تبويب الكل
+  const personalInfoGrid = document.getElementById('mpvPersonalInfoGrid');
+  if(personalInfoGrid){
+    const memberSinceDate = memberSinceTs ? new Date(memberSinceTs).toLocaleDateString('ar-DZ') : '—';
+    const allPersonalFields = [
+      {icon:'🏛️', label:'الولاية', val: regData['الولاية']||regData['wilaya']||localStorage.getItem('nld_wilaya_'+normName)||''},
+      {icon:'🏘️', label:'البلدية', val: regData['البلدية']||regData['municipality']||localStorage.getItem('nld_commune_'+normName)||''},
+      {icon:'🏠', label:'العنوان', val: regData['العنوان']||regData['address']||localStorage.getItem('nld_address_'+normName)||''},
+      {icon:'🎂', label:'تاريخ الميلاد', val: regData['تاريخ_الميلاد']||regData['birthdate']||localStorage.getItem('nld_birth_'+normName)||''},
+      {icon:'👤', label:'الجنس', val: regData['الجنس']||regData['gender']||localStorage.getItem('nld_gender_'+normName)||''},
+      {icon:'🎓', label:'المستوى الدراسي', val: regData['المستوى_التعليمي']||regData['التخصص']||regData['education']||localStorage.getItem('nld_edu_'+normName)||''},
+      {icon:'📅', label:'تاريخ التسجيل', val: memberSinceDate},
+    ].filter(f=>f.val && f.val!=='—');
+    const personalSec = document.getElementById('mpvPersonalInfoSection');
+    if(allPersonalFields.length > 0){
+      personalInfoGrid.innerHTML = allPersonalFields.map(f=>'<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #F0F2F5;"><span style="font-size:18px;flex-shrink:0;">'+f.icon+'</span><div style="flex:1;"><div style="font-size:10px;color:#65676B;font-weight:700;">'+f.label+'</div><div style="font-size:13px;font-weight:800;color:#050505;">'+f.val+'</div></div></div>').join('');
+      if(personalSec) personalSec.style.display='block';
+    } else {
+      if(personalSec) personalSec.style.display='none';
+    }
+  }
 
   const totalPtsPct = Math.min(100,(pts % 3000)/3000*100);
   const daysSince = daysSinceJoin > 0 ? daysSinceJoin : '—';
@@ -15294,32 +15326,59 @@ function _switchMpvTab(tab){
     }
     if(panEl) panEl.style.display = t===tab ? 'block' : 'none';
   });
-  if(tab === 'photos') _renderMpvPhotos(_mpvCurrentUser);
+  if(tab === 'photos'){ _mpvCurrentPhotoSub='profile'; _switchPhotoSubTab('profile'); }
   if(tab === 'reels') _renderMpvReels(_mpvCurrentUser);
 }
 
-function _renderMpvPhotos(memberName){
+/* ── التبويبات الفرعية للصور ── */
+var _mpvCurrentPhotoSub = 'profile';
+
+function _switchPhotoSubTab(sub){
+  _mpvCurrentPhotoSub = sub;
+  ['profile','cover','posts'].forEach(function(s){
+    var el = document.getElementById('mpvPhotoSub_'+s);
+    if(el){
+      el.style.color = s===sub ? '#1877F2' : '#65676B';
+      el.style.borderBottom = s===sub ? '2px solid #1877F2' : '2px solid transparent';
+      el.style.fontWeight = s===sub ? '800' : '700';
+    }
+  });
+  _renderMpvPhotos(_mpvCurrentUser, sub);
+}
+
+function _renderMpvPhotos(memberName, sub){
   if(!memberName) return;
-  const grid = document.getElementById('mpvPhotosGrid');
+  var grid = document.getElementById('mpvPhotosGrid');
   if(!grid) return;
-  const normName = memberName.replace(/\s+/g,'_');
-  const photos = [];
-  // صورة الملف الشخصي
-  const profilePhoto = typeof getProfilePhoto==='function' ? getProfilePhoto(memberName) : null;
-  if(profilePhoto) photos.push(profilePhoto);
-  // صورة الغلاف
-  const cover = localStorage.getItem('nld_cover_'+normName);
-  if(cover) photos.push(cover);
-  // صور من المنشورات
-  const allPosts = (() => { try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
-  allPosts.filter(p=>p.author===memberName && p.image).forEach(p=>photos.push(p.image));
+  var normName = memberName.replace(/\s+/g,'_');
+  var photos = [];
+  var currentSub = sub || _mpvCurrentPhotoSub || 'profile';
+
+  var allPosts = (function(){ try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
+  var storiesKey = 'nld_stories_'+normName;
+  var stories = (function(){ try{ return JSON.parse(localStorage.getItem(storiesKey)||'[]'); }catch(e){ return []; } })();
+
+  if(currentSub === 'profile'){
+    // صور الملف الشخصي فقط
+    var profilePhoto = typeof getProfilePhoto==='function' ? getProfilePhoto(memberName) : null;
+    if(profilePhoto) photos.push(profilePhoto);
+  } else if(currentSub === 'cover'){
+    // صور الغلاف + القصص
+    var cover = localStorage.getItem('nld_cover_'+normName);
+    if(cover) photos.push(cover);
+    stories.forEach(function(s){ if(s.image) photos.push(s.image); });
+  } else if(currentSub === 'posts'){
+    // صور المنشورات
+    allPosts.filter(function(p){ return p.author===memberName && p.image; }).forEach(function(p){ photos.push(p.image); });
+  }
+
   if(photos.length === 0){
     grid.style.display='block';
     grid.innerHTML='<div style="padding:30px;text-align:center;background:white;"><div style="font-size:40px;">📷</div><div style="font-size:13px;color:#65676B;margin-top:8px;">لا توجد صور بعد</div></div>';
     return;
   }
   grid.style.display='grid';
-  grid.innerHTML = photos.map(src=>`<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;" onclick="window.open('${src}','_blank')"><img src="${src}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>`).join('');
+  grid.innerHTML = photos.map(function(src){ return '<div style="aspect-ratio:1;overflow:hidden;cursor:pointer;" onclick="window.open(\''+src+'\',\'_blank\')"><img src="'+src+'" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>'; }).join('');
 }
 
 function _renderMpvReels(memberName){
