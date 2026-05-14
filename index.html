@@ -3897,9 +3897,9 @@ body.member-mode #onlineBar{
         <div class="notif-btn" id="adminBroadcastBtn" onclick="openAdminBroadcastPanel()" title="برمجة التطبيق" style="display:none;position:relative;background:linear-gradient(135deg,rgba(0,150,255,0.2),rgba(168,85,247,0.2));border-color:rgba(0,150,255,0.4);font-size:18px;">💻</div>
         <!-- زر الإدارة في الأعلى - للأدمن فقط -->
         <div class="notif-btn" id="adminNavBtn" onclick="showModal('adminModal')" title="لوحة الإدارة" style="display:none;position:relative;background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(245,158,11,0.2));border-color:rgba(220,38,38,0.4);font-size:18px;">⚙️</div>
-        <button class="logout-btn" onclick="doLogout()" title="العودة للواجهة">
-          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          خروج
+        <button class="logout-btn" onclick="goBackToSocialHome()" title="رجوع للصفحة الرئيسية" style="gap:5px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          رجوع
         </button>
       </div>
     </div>
@@ -4050,10 +4050,18 @@ body.member-mode #onlineBar{
         <span style="font-size:9px;font-weight:700;color:#0084FF;">مسنجر</span>
         <span id="socialMsgBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;"></span>
       </div>
-      <div id="sTab_myprofile" onclick="toggleProfileDropdown()" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
-        <span style="display:block;width:18px;height:2px;background:#050505;border-radius:2px;"></span>
-        <span style="display:block;width:18px;height:2px;background:#050505;border-radius:2px;"></span>
-        <span style="display:block;width:18px;height:2px;background:#050505;border-radius:2px;"></span>
+      <div id="sTab_myprofile" onclick="toggleProfileDropdown()" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;" title="الإدارة">
+        <!-- أيقونة الإدارة SVG — ترس + درع -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="url(#adminGrad)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <defs>
+            <linearGradient id="adminGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#dc2626"/>
+              <stop offset="100%" style="stop-color:#f59e0b"/>
+            </linearGradient>
+          </defs>
+          <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.4C17.25 22.15 21 17.25 21 12V7L12 2z"/>
+          <polyline points="9 12 11 14 15 10"/>
+        </svg>
       </div>
     </div>
   </div>
@@ -4064,10 +4072,23 @@ body.member-mode #onlineBar{
       <!-- المقبض -->
       <div style="width:40px;height:4px;background:#E4E6EB;border-radius:2px;margin:10px auto 6px;"></div>
 
-      <!-- الحسابات المسجلة — عرض أفقي للتبديل السريع -->
-      <div style="padding:10px 16px 6px;">
+      <!-- رأس القائمة: أيقونة إدارة + زر إغلاق -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px 4px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="url(#adminGrad2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <defs><linearGradient id="adminGrad2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#dc2626"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+            <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.4C17.25 22.15 21 17.25 21 12V7L12 2z"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
+          <span style="font-size:13px;font-weight:900;background:linear-gradient(90deg,#dc2626,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">الإدارة</span>
+        </div>
+        <div onclick="closeProfileDropdown()" style="width:28px;height:28px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:900;color:#65676B;">✕</div>
+      </div>
+
+      <!-- الحسابات المسجلة من نفس الجهاز — للتبديل السريع -->
+      <div style="padding:8px 16px 4px;">
         <div style="font-size:11px;font-weight:900;color:#65676B;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase;">الحسابات المسجلة</div>
-        <div id="pdSavedAccounts" style="display:flex;flex-direction:row;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;-ms-overflow-style:none;"></div>
+        <div id="pdSavedAccounts" style="display:flex;flex-direction:column;gap:8px;padding-bottom:4px;"></div>
       </div>
 
       <div style="height:1px;background:#E4E6EB;margin:8px 0;"></div>
@@ -6801,6 +6822,10 @@ function showModal(id){
     adminRenderActivity();
     adminRenderJoinRequests();
     adminRenderQuestions();
+  }
+  // تسجيل في سجل التنقل
+  if(typeof window.navPush === 'function'){
+    window.navPush(id, function(){ hideModal(id); });
   }
   // تسجيل وقت الدخول لحساب نقاط الزيارة
   if(typeof _iconEnter === 'function') _iconEnter(id);
@@ -14576,6 +14601,80 @@ function openSocialNotifs(){
 }
 
 /* ── Toast ── */
+/* ══════════════════════════════════════════════════════════════
+   ◀️ نظام الرجوع للخلف — Back Navigation System
+   يتتبع سجل التنقل ويسمح بالعودة للشاشة السابقة
+   ══════════════════════════════════════════════════════════════ */
+(function(){
+  'use strict';
+  /* مكدس التنقل */
+  window._navStack = [];
+
+  /* تسجيل شاشة جديدة في السجل */
+  window.navPush = function(screenId, closeFunc){
+    window._navStack.push({ id: screenId, close: closeFunc });
+    _updateBackBtn();
+  };
+
+  /* إزالة آخر شاشة وإغلاقها */
+  window.navPop = function(){
+    const last = window._navStack.pop();
+    if(last && typeof last.close === 'function'){
+      try{ last.close(); }catch(e){}
+    }
+    _updateBackBtn();
+  };
+
+  /* مسح السجل بالكامل */
+  window.navClear = function(){
+    window._navStack = [];
+    _updateBackBtn();
+  };
+
+  /* تحديث زر الرجوع — لا يوجد زر عائم، الأزرار داخلية في كل شاشة */
+  function _updateBackBtn(){
+    /* لا شيء — زر الرجوع العائم أُزيل */
+  }
+
+  /* زر الرجوع مدمج — لا يوجد زر عائم، كل صفحة/ميزة تحتوي زر رجوعها الخاص */
+  /* _createBackBtn محذوف عمداً: الزر العائم أُزيل، يُستبدل بأزرار داخلية في كل شاشة */
+  window._globalBackBtn = null; // لا يوجد زر عائم
+
+  /* دعم زر الرجوع في المتصفح/الهاتف */
+  window.addEventListener('popstate', function(e){
+    if(window._navStack.length > 0){
+      e.preventDefault();
+      window.navPop();
+      history.pushState(null, '', location.href);
+    }
+  });
+
+  /* Override showModal لتتبع النوافذ تلقائياً */
+  document.addEventListener('DOMContentLoaded', function(){
+    const _origShowModal = window.showModal;
+    if(typeof _origShowModal === 'function'){
+      window.showModal = function(id){
+        _origShowModal(id);
+        const el = document.getElementById(id);
+        if(el){
+          window.navPush(id, function(){
+            el.style.display = 'none';
+            el.style.flexDirection && (el.style.display = 'none');
+          });
+        }
+      };
+    }
+  });
+
+  /* Override hideModal لإزالة من السجل */
+  const _origHideModal = window.hideModal;
+  window.hideModal = function(id){
+    if(typeof _origHideModal === 'function') _origHideModal(id);
+    window._navStack = window._navStack.filter(s => s.id !== id);
+    _updateBackBtn();
+  };
+})();
+
 function showToast(msg, type, duration){
   /* 🎨 نظام Toast محسّن مع أنواع متعددة */
   const old = document.getElementById('socialToast');
@@ -19125,6 +19224,30 @@ window.fbDoLogin = async function(){
   // ② تحقق من المستخدمين المسجلين
   const users = getRegUsers();
 
+  // ✅ كلمة المرور الأولى المؤقتة: 000000
+  // تسمح لأي مستخدم مسجل بالدخول لأول مرة ثم تذكّره بإنشاء كلمة مرور خاصة
+  if(password === '000000'){
+    const matchUser = users.find(u => u.email===emailTrimmed || u.phone===emailTrimmed);
+    if(matchUser){
+      if(btn){ btn.classList.remove('loading'); btn.textContent='تسجيل الدخول'; }
+      // تحقق هل سبق له إنشاء كلمة مرور خاصة
+      const hasCustomPass = matchUser.password && matchUser.password !== btoa('') && matchUser.password !== btoa('000000');
+      fbLoginUser(matchUser);
+      if(!hasCustomPass){
+        setTimeout(()=>{
+          if(typeof showToast==='function') showToast('🔑 مرحباً! كلمة المرور المؤقتة: 000000\n⚠️ يجب عليك إنشاء كلمة مرور خاصة بك من الإعدادات');
+          // فتح نافذة إنشاء كلمة المرور تلقائياً بعد ثانيتين
+          setTimeout(()=>{
+            const passSection = document.getElementById('profilePassSection');
+            if(passSection){ passSection.scrollIntoView({behavior:'smooth'}); }
+            if(typeof showToast==='function') showToast('⬆️ انتقل إلى الإعدادات ← إنشاء كلمة مرور لحماية حسابك');
+          }, 2500);
+        }, 1200);
+      }
+      return;
+    }
+  }
+
   // ✅ هل الإيميل موجود لكن بدون كلمة سر؟
   const userNoPass = users.find(u=>(u.email===emailTrimmed||u.phone===emailTrimmed) && (!u.password || u.password===btoa('')));
   if(userNoPass){
@@ -19186,10 +19309,20 @@ function fbLoginUser(user){
 /* تطبيق صورة المستخدم في كل مكان */
 function applyUserPhotoEverywhere(photoUrl, fullName){
   localStorage.setItem('cdz_user_photo_'+fullName.replace(/\s+/g,'_'), photoUrl);
-  const avatarEls = document.querySelectorAll('.user-avatar,[data-user-avatar],.profile-pic,.chat-avatar');
+  // حفظ الصورة في بيانات المستخدم الحالي
+  try{
+    const currUser = JSON.parse(localStorage.getItem('cdz_current_user_data')||'null');
+    if(currUser){ currUser.photoUrl = photoUrl; localStorage.setItem('cdz_current_user_data', JSON.stringify(currUser)); }
+    // تحديث في قائمة المستخدمين المسجلين أيضاً
+    const users = getRegUsers ? getRegUsers() : [];
+    const idx = users.findIndex(u=>(u.firstName+' '+u.lastName)===fullName || u.email===currUser?.email);
+    if(idx>=0){ users[idx].photoUrl = photoUrl; localStorage.setItem('cdz_registered_users', JSON.stringify(users)); }
+  }catch(e){}
+  // تطبيق على جميع عناصر الصورة في الواجهة
+  const avatarEls = document.querySelectorAll('.avatar,#userInitial,.user-avatar,[data-user-avatar],.profile-pic,.chat-avatar,#sideMenuAvatar,#scpAvatar,#fbProfileAvatar,#mpvAvatar');
   avatarEls.forEach(el=>{
     if(el.tagName==='IMG') el.src=photoUrl;
-    else el.style.backgroundImage=`url(${photoUrl})`;
+    else { el.style.backgroundImage=`url(${photoUrl})`; el.style.backgroundSize='cover'; el.style.backgroundPosition='center'; el.innerHTML=`<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; }
   });
 }
 
@@ -19321,6 +19454,11 @@ window.handleRegUpload = async function(input, type){
       if(type==='photo'){
         area.innerHTML=`<img src="${e.target.result}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;"><div style="font-size:12px;font-weight:700;color:#00a040;margin-top:6px;">✅ تم اختيار الصورة</div>`;
         _regData.photoPreview = e.target.result;
+        // تطبيق الصورة الشمسية على جميع الملفات الشخصية فور اختيارها
+        const avatarPreviewEls = document.querySelectorAll('.avatar,#userInitial');
+        avatarPreviewEls.forEach(el=>{
+          el.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        });
       } else {
         area.innerHTML=`<div style="font-size:22px;">📎</div><div style="font-size:12px;font-weight:700;color:#00a040;">✅ ${file.name}</div>`;
       }
@@ -19336,10 +19474,35 @@ window.handleRegUpload = async function(input, type){
     if(typeof window.uploadToCloudinary==='function'){
       const folder = type==='photo'?'profiles':'documents';
       const result = await window.uploadToCloudinary(file, folder, null);
-      if(type==='photo') _regData.photoUrl = result.url;
+      if(type==='photo'){
+        _regData.photoUrl = result.url;
+        // تطبيق الصورة على جميع الملفات الشخصية فور رفعها
+        const name = (_regData.firstName||'') + ' ' + (_regData.lastName||'');
+        if(typeof applyUserPhotoEverywhere==='function') applyUserPhotoEverywhere(result.url, name.trim());
+      }
       else if(type==='id') _regData.idUrl = result.url;
       else if(type==='birth') _regData.birthUrl = result.url;
       else if(type==='guardianId') _regData.guardianIdUrl = result.url;
+
+      // ── إرسال رابط الملف فوراً إلى Google Sheet (SheetDB) ──
+      const sheetColMap = { photo:'الصورة الشمسية', id:'صورة البطاقة', birth:'شهادة الميلاد', guardianId:'بطاقة ولي الأمر' };
+      const colName = sheetColMap[type];
+      if(colName){
+        const name2 = (_regData.firstName||'') + ' ' + (_regData.lastName||'');
+        const ts = new Date().toISOString();
+        // تسجيل الرابط في جدول Google Sheet مؤقت مخصص للملفات
+        fetch('https://sheetdb.io/api/v1/sc1z9g0cnu62a', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ data:[{
+            'Timestamp': ts,
+            'الاسم واللقب': name2,
+            [colName]: result.url,
+            'نوع الملف': type,
+            'رابط الملف': result.url
+          }]})
+        }).catch(()=>{});
+      }
+
       toast('✅ تم رفع الملف بنجاح');
     } else {
       // حفظ كـ base64 إذا Cloudinary غير متوفر
@@ -19670,7 +19833,7 @@ window.addEventListener('load', function(){
   const origRender = window.renderSavedAccounts;
   if(typeof origRender==='undefined') renderSavedLoginAccounts();
   // Override the original renderSavedAccounts to use the new combined render
-  window.renderSavedAccounts = function(){ renderSavedLoginAccounts(); };
+  window.renderSavedAccounts = function(){ renderSavedLoginAccounts(); if(typeof _loadSavedAccountsInDropdown==='function') _loadSavedAccountsInDropdown(); };
 });
 
 /* expose */
@@ -20556,11 +20719,16 @@ window.toggleProfileDropdown = function(){
   menu.style.flexDirection = 'column';
   // تحميل الحسابات المحفوظة
   _loadSavedAccountsInDropdown();
+  // تسجيل في سجل التنقل
+  if(typeof window.navPush==='function') window.navPush('profileDropdownMenu', closeProfileDropdown);
 };
 
 window.closeProfileDropdown = function(){
   const menu = document.getElementById('profileDropdownMenu');
   if(menu) menu.style.display = 'none';
+  // إزالة من سجل التنقل
+  if(window._navStack) window._navStack = window._navStack.filter(s=>s.id!=='profileDropdownMenu');
+  if(typeof window._updateBackBtn === 'function') window._updateBackBtn();
 };
 
 function _loadSavedAccountsInDropdown(){
@@ -20579,66 +20747,104 @@ function _loadSavedAccountsInDropdown(){
 
     if(!regAccs.length && !legacyAccs.length){
       container.innerHTML='<div style="font-size:12px;color:#65676B;padding:6px 0;">لا توجد حسابات محفوظة</div>';
+      container.style.flexDirection='column';
       return;
     }
 
-    // ── بطاقة حساب مشتركة — أفقية متوسطة الحجم
-    const cardStyle = `
-      flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;
-      width:76px;padding:10px 6px 8px;
-      border-radius:14px;cursor:pointer;transition:.15s;
-      background:#F0F2F5;border:1.5px solid transparent;text-align:center;
-    `;
-    const activeBorder = '1.5px solid #1877F2';
-    const activeBg     = '#E7F3FF';
+    /* عرض البطاقات بنفس نمط واجهة تسجيل الدخول — قائمة رأسية */
+    container.style.flexDirection='column';
+    container.style.overflowX='unset';
+
+    const cardCSS = `display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(240,242,245,0.8);border:1.5px solid transparent;border-radius:14px;cursor:pointer;transition:.15s;position:relative;width:100%;box-sizing:border-box;`;
+    const activeBorder = '#1877F2';
+    const activeBg = 'rgba(231,243,255,0.9)';
 
     // حسابات جديدة
-    const regHTML = regAccs.map(acc=>{
+    const regHTML = regAccs.map((acc,i)=>{
       const isCurr = acc.name===current;
       const avatarInner = acc.photo
-        ? `<img src="${acc.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-        : `<span style="font-size:22px;">${typeof getLeaderIcon==='function'?getLeaderIcon(acc.name):'👤'}</span>`;
-      return `<div onclick="loginWithSavedAccount('${acc.name.replace(/'/g,"\\'")}');closeProfileDropdown();"
-        style="${cardStyle}background:${isCurr?activeBg:'#F0F2F5'};border:${isCurr?activeBorder:'1.5px solid transparent'};"
-        onmouseover="this.style.background='#E7F3FF';this.style.borderColor='#1877F2';"
-        onmouseout="this.style.background='${isCurr?activeBg:'#F0F2F5'}';this.style.borderColor='${isCurr?'#1877F2':'transparent'}';">
-        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;${isCurr?'box-shadow:0 0 0 2.5px #1877F2,0 0 0 4px #fff;':''}">
+        ? `<img src="${acc.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" loading="lazy">`
+        : `<span style="font-size:20px;">${typeof getLeaderIcon==='function'?getLeaderIcon(acc.name):'👤'}</span>`;
+      return `<div onclick="fbQuickLogin(${i});closeProfileDropdown();"
+        oncontextmenu="event.preventDefault();showDeleteAccountMenu(${i},'reg')"
+        data-long-press-idx="${i}" data-long-press-type="reg"
+        onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()"
+        style="${cardCSS}background:${isCurr?activeBg:'rgba(240,242,245,0.8)'};border-color:${isCurr?activeBorder:'transparent'};"
+        onmouseover="this.style.background='${activeBg}';this.style.borderColor='${activeBorder}'"
+        onmouseout="this.style.background='${isCurr?activeBg:'rgba(240,242,245,0.8)'}';this.style.borderColor='${isCurr?activeBorder:'transparent'}'">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;${isCurr?'box-shadow:0 0 0 2.5px #1877F2,0 0 0 4px white;':''}">
           ${avatarInner}
         </div>
-        <div style="font-size:10.5px;font-weight:800;color:#050505;line-height:1.3;word-break:break-word;max-width:70px;">${acc.name.split(' ')[0]}</div>
-        ${isCurr?'<div style="font-size:9px;color:#1877F2;font-weight:700;">✓ حالي</div>':''}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:900;color:#050505;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${acc.name}</div>
+          <div style="font-size:11px;color:#65676B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${acc.email||''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${isCurr?'<span style="font-size:9px;color:#1877F2;font-weight:700;background:#E7F3FF;border-radius:6px;padding:2px 6px;">✓ حالي</span>':'<span style="font-size:16px;color:#BCC0C4;">›</span>'}
+          <button onclick="event.stopPropagation();showDeleteAccountMenu(${i},'reg')"
+            style="width:26px;height:26px;border-radius:8px;border:none;background:rgba(220,38,38,0.1);color:#ef4444;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
+            title="حذف" onmouseover="this.style.background='rgba(220,38,38,0.22)'" onmouseout="this.style.background='rgba(220,38,38,0.1)'">🗑️</button>
+        </div>
       </div>`;
     }).join('');
 
     // حسابات legacy
-    const legacyHTML = legacyAccs.map(acc=>{
+    const legacyHTML = legacyAccs.map((acc,i)=>{
       const name = acc.name||acc;
       const isCurr = name===current;
       const icon = typeof getLeaderIcon==='function'?getLeaderIcon(name):'👤';
       const photo = localStorage.getItem('nld_photo_'+name.replace(/\s+/g,'_'));
       const avatarInner = photo
-        ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-        : `<span style="font-size:22px;">${icon}</span>`;
-      return `<div onclick="loginWithSavedAccount('${name.replace(/'/g,"\\'")}');closeProfileDropdown();"
-        style="${cardStyle}background:${isCurr?activeBg:'#F0F2F5'};border:${isCurr?activeBorder:'1.5px solid transparent'};"
-        onmouseover="this.style.background='#E7F3FF';this.style.borderColor='#1877F2';"
-        onmouseout="this.style.background='${isCurr?activeBg:'#F0F2F5'}';this.style.borderColor='${isCurr?'#1877F2':'transparent'}';">
-        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;${isCurr?'box-shadow:0 0 0 2.5px #1877F2,0 0 0 4px #fff;':''}">
+        ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" loading="lazy">`
+        : `<span style="font-size:20px;">${icon}</span>`;
+      const safeName = name.replace(/'/g,"\\'");
+      return `<div onclick="loginWithSavedAccount('${safeName}');closeProfileDropdown();"
+        oncontextmenu="event.preventDefault();showDeleteAccountMenu(${i},'legacy','${safeName}')"
+        data-long-press-idx="${i}" data-long-press-type="legacy" data-long-press-name="${safeName}"
+        onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()"
+        style="${cardCSS}background:${isCurr?activeBg:'rgba(240,242,245,0.8)'};border-color:${isCurr?activeBorder:'transparent'};"
+        onmouseover="this.style.background='${activeBg}';this.style.borderColor='${activeBorder}'"
+        onmouseout="this.style.background='${isCurr?activeBg:'rgba(240,242,245,0.8)'}';this.style.borderColor='${isCurr?activeBorder:'transparent'}'">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;${isCurr?'box-shadow:0 0 0 2.5px #1877F2,0 0 0 4px white;':''}">
           ${avatarInner}
         </div>
-        <div style="font-size:10.5px;font-weight:800;color:#050505;line-height:1.3;word-break:break-word;max-width:70px;">${name.split(' ')[0]}</div>
-        ${isCurr?'<div style="font-size:9px;color:#1877F2;font-weight:700;">✓ حالي</div>':''}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:900;color:#050505;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${isCurr?'<span style="font-size:9px;color:#1877F2;font-weight:700;background:#E7F3FF;border-radius:6px;padding:2px 6px;">✓ حالي</span>':'<span style="font-size:16px;color:#BCC0C4;">›</span>'}
+          <button onclick="event.stopPropagation();showDeleteAccountMenu(${i},'legacy','${safeName}')"
+            style="width:26px;height:26px;border-radius:8px;border:none;background:rgba(220,38,38,0.1);color:#ef4444;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
+            title="حذف" onmouseover="this.style.background='rgba(220,38,38,0.22)'" onmouseout="this.style.background='rgba(220,38,38,0.1)'">🗑️</button>
+        </div>
       </div>`;
     }).join('');
 
     container.innerHTML = regHTML + legacyHTML;
-  }catch(e){container.innerHTML='';}
+  } catch(e){ console.warn('_loadSavedAccountsInDropdown error:', e); }
 }
 
 /* إخفاء صفحة الفيسبوك للذهاب للوحة التحكم */
 window.hideSocialHomeForDashboard = function(){
   const el = document.getElementById('socialHomeCard');
   if(el) el.style.display = 'none';
+};
+
+/* ── رجوع للصفحة الرئيسية من لوحة التحكم ── */
+window.goBackToSocialHome = function(){
+  // إظهار الصفحة الاجتماعية
+  const socialEl = document.getElementById('socialHomeCard');
+  if(socialEl){
+    socialEl.style.display = 'flex';
+    if(typeof switchSocialTab === 'function') switchSocialTab('home');
+  } else if(typeof showSocialHome === 'function'){
+    showSocialHome();
+  }
+  // إخفاء لوحة التحكم إن كانت ظاهرة
+  const appEl = document.getElementById('app');
+  if(appEl) appEl.style.display = 'none';
+  // إشعار المستخدم
+  if(typeof showToast === 'function') showToast('🏠 تم الرجوع للصفحة الرئيسية');
 };
 
 /* تبديل خصوصية الظهور */
