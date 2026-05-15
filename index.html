@@ -4539,117 +4539,138 @@ body.member-mode #onlineBar{
 
     <!-- ── REELS PANEL (ريلز) ── -->
     <div id="socialPanel_myprofile" style="display:none;background:#F0F2F5;min-height:100%;">
-      <!-- ══ غلاف الملف الشخصي — احترافي ══ -->
+      <!-- ══ غلاف الملف الشخصي — احترافي متطور ══ -->
       <div style="position:relative;width:100%;max-width:480px;margin:0 auto;" id="profileCoverFBWrapper">
-        <div id="profileCoverFB" style="position:relative;height:220px;background:linear-gradient(135deg,#0052cc 0%,#1877F2 40%,#00c853 100%);overflow:hidden;">
+
+        <!-- ══ صورة الغلاف الكبيرة ══ -->
+        <div id="profileCoverFB" style="position:relative;height:270px;background:linear-gradient(135deg,#0d1b3e 0%,#1877F2 45%,#00c853 100%);overflow:hidden;">
           <!-- صورة الغلاف -->
-          <div id="profileCoverFBImg" style="position:absolute;inset:0;background-size:cover;background-position:center;transition:opacity .4s;"></div>
-          <!-- طبقة تدرج فوق الغلاف -->
-          <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.08) 0%,rgba(0,0,0,0.0) 40%,rgba(0,0,0,0.45) 100%);pointer-events:none;"></div>
-          <!-- نمط هندسي خلفي -->
-          <div style="position:absolute;inset:0;opacity:0.12;background-image:radial-gradient(circle at 20% 50%,white 1px,transparent 1px),radial-gradient(circle at 80% 20%,white 1px,transparent 1px);background-size:30px 30px;pointer-events:none;"></div>
+          <div id="profileCoverFBImg" style="position:absolute;inset:0;background-size:cover;background-position:center;transition:opacity .5s ease;"></div>
+          <!-- طبقة تدرج سفلية قوية لقراءة الاسم -->
+          <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.05) 0%,transparent 35%,rgba(0,0,0,0.55) 100%);pointer-events:none;"></div>
+          <!-- نمط هندسي احترافي -->
+          <div style="position:absolute;inset:0;opacity:0.07;background-image:repeating-linear-gradient(45deg,white 0px,white 1px,transparent 1px,transparent 20px),repeating-linear-gradient(-45deg,white 0px,white 1px,transparent 1px,transparent 20px);pointer-events:none;"></div>
+          <!-- شعار المنصة على الغلاف -->
+          <div style="position:absolute;top:14px;right:16px;font-size:12px;font-weight:900;letter-spacing:1.5px;opacity:0.85;color:white;text-shadow:0 1px 4px rgba(0,0,0,0.5);">Connect <span style="color:#00c853;">DZ</span></div>
           <!-- زر تغيير الغلاف -->
-          <label style="position:absolute;bottom:12px;left:12px;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:6px 13px;font-size:12px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;gap:5px;transition:.2s;" onmouseover="this.style.background='rgba(0,0,0,0.72)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">
+          <label style="position:absolute;bottom:14px;left:14px;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:7px 14px;font-size:12px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.2s;box-shadow:0 2px 12px rgba(0,0,0,0.3);" onmouseover="this.style.background='rgba(0,0,0,0.78)'" onmouseout="this.style.background='rgba(0,0,0,0.6)'">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 15.2A3.2 3.2 0 1 1 15.2 12 3.2 3.2 0 0 1 12 15.2m5.8-10H17l-1.5-2h-7L7 5.2H3.2A2.2 2.2 0 0 0 1 7.4v11.4A2.2 2.2 0 0 0 3.2 21h17.6A2.2 2.2 0 0 0 23 18.8V7.4A2.2 2.2 0 0 0 20.8 5.2z"/></svg>
             تغيير الغلاف
             <input type="file" accept="image/*" style="display:none;" onchange="handleFBCoverChange(event)">
           </label>
         </div>
 
-        <!-- ── صورة الملف الشخصي + المعلومات ── -->
-        <div style="background:white;padding:0 16px 16px;position:relative;border-bottom:1px solid #E4E6EB;">
-          <!-- صورة الملف (تطفو فوق الغلاف) -->
-          <div style="position:relative;display:flex;align-items:flex-end;justify-content:space-between;margin-top:-44px;margin-bottom:10px;">
-            <label style="cursor:pointer;flex-shrink:0;">
-              <div id="fbProfilePicWrapper" style="width:90px;height:90px;border-radius:50%;border:4px solid white;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:38px;box-shadow:0 4px 18px rgba(0,0,0,0.22);position:relative;">👑
+        <!-- ══ منطقة الملف الشخصي ══ -->
+        <div style="background:white;padding:0 18px 20px;position:relative;border-bottom:1px solid #E4E6EB;">
+
+          <!-- صورة الملف + أزرار في نفس الصف -->
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:-52px;margin-bottom:14px;">
+            <!-- صورة الملف الشخصي الكبيرة -->
+            <label style="cursor:pointer;flex-shrink:0;position:relative;">
+              <div id="fbProfilePicWrapper" style="width:104px;height:104px;border-radius:50%;border:4px solid white;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:44px;box-shadow:0 6px 24px rgba(0,0,0,0.25);position:relative;">👑
                 <!-- شارة التوثيق -->
-                <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:2px;right:2px;width:24px;height:24px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:12px;z-index:5;" title="شارة التوثيق">✓</div>
+                <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:3px;right:3px;width:28px;height:28px;border-radius:50%;background:#B0BEC5;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;z-index:5;box-shadow:0 1px 4px rgba(0,0,0,0.2);" title="شارة التوثيق">✓</div>
               </div>
               <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
             </label>
-            <!-- أزرار التعديل — يمين أعلى -->
-            <div style="display:flex;gap:7px;padding-bottom:6px;">
-              <button onclick="openMyFullProfile()" style="padding:7px 14px;background:#1877F2;border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(24,119,242,0.3);">✏️ تعديل</button>
-              <button onclick="openFBFriendsFromProfile()" style="padding:7px 14px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">👥 أصدقاء</button>
+            <!-- أزرار الإجراءات -->
+            <div style="display:flex;gap:8px;padding-bottom:4px;">
+              <button onclick="openMyFullProfile()" style="padding:8px 16px;background:linear-gradient(135deg,#1877F2,#0052cc);border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(24,119,242,0.35);transition:.2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">✏️ تعديل</button>
+              <button onclick="openFBFriendsFromProfile()" style="padding:8px 16px;background:#F0F2F5;border:1px solid #D8DADF;border-radius:10px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:.2s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">👥 أصدقاء</button>
             </div>
           </div>
 
           <!-- الاسم والدور -->
-          <div style="margin-bottom:10px;">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <div id="fbProfileName" style="font-size:21px;font-weight:900;color:#050505;line-height:1.2;"></div>
-              <div id="fbVerifiedBadge" style="display:none;font-size:16px;" title="موثّق">✅</div>
+          <div style="margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+              <div id="fbProfileName" style="font-size:22px;font-weight:900;color:#050505;line-height:1.2;letter-spacing:-0.3px;"></div>
+              <div id="fbVerifiedBadge" style="display:none;font-size:17px;" title="موثّق">✅</div>
             </div>
-            <div id="fbProfileRole" style="font-size:12.5px;color:#65676B;margin-top:3px;font-weight:600;"></div>
+            <div id="fbProfileRole" style="font-size:13px;color:#65676B;font-weight:600;line-height:1.4;"></div>
           </div>
 
-          <!-- ── عداد المتابعين / المتابَعون / المنشورات — احترافي ── -->
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 0 12px;">
-            <div onclick="openFBFriendsFromProfile()" style="background:linear-gradient(135deg,#EEF4FF,#dbeafe);border:1px solid rgba(24,119,242,0.15);border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;transition:.2s;" onmouseover="this.style.background='linear-gradient(135deg,#dbeafe,#bfdbfe)'" onmouseout="this.style.background='linear-gradient(135deg,#EEF4FF,#dbeafe)'">
-              <div id="fbFollowersCount" style="font-size:20px;font-weight:900;color:#1877F2;line-height:1;">0</div>
-              <div style="font-size:10px;color:#65676B;font-weight:700;margin-top:3px;">متابِعون</div>
+          <!-- ══ عداد المتابعين / المتابَعون / المنشورات — ديناميكي ══ -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 0 16px;">
+            <!-- متابِعون = عدد الأصدقاء -->
+            <div onclick="openFBFriendsFromProfile()" style="background:linear-gradient(135deg,#EEF4FF,#dbeafe);border:1px solid rgba(24,119,242,0.18);border-radius:14px;padding:14px 8px;text-align:center;cursor:pointer;transition:.2s;box-shadow:0 1px 4px rgba(24,119,242,0.08);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(24,119,242,0.18)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 1px 4px rgba(24,119,242,0.08)'">
+              <div id="fbFollowersCount" style="font-size:22px;font-weight:900;color:#1877F2;line-height:1;">0</div>
+              <div style="font-size:10px;color:#1877F2;font-weight:700;margin-top:4px;opacity:0.75;">متابِعون</div>
+              <div style="font-size:9px;color:#65676B;margin-top:2px;font-weight:600;">الأصدقاء</div>
             </div>
-            <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid rgba(0,200,83,0.15);border-radius:12px;padding:10px 6px;text-align:center;">
-              <div id="fbFollowingCount" style="font-size:20px;font-weight:900;color:#00c853;line-height:1;">0</div>
-              <div style="font-size:10px;color:#65676B;font-weight:700;margin-top:3px;">متابَعون</div>
+            <!-- متابَعون = الأصدقاء + صفحات/مجموعات -->
+            <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid rgba(0,200,83,0.18);border-radius:14px;padding:14px 8px;text-align:center;transition:.2s;box-shadow:0 1px 4px rgba(0,200,83,0.08);">
+              <div id="fbFollowingCount" style="font-size:22px;font-weight:900;color:#00c853;line-height:1;">0</div>
+              <div style="font-size:10px;color:#00c853;font-weight:700;margin-top:4px;opacity:0.75;">متابَعون</div>
+              <div style="font-size:9px;color:#65676B;margin-top:2px;font-weight:600;">أصدقاء + صفحات</div>
             </div>
-            <div style="background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1px solid rgba(249,115,22,0.15);border-radius:12px;padding:10px 6px;text-align:center;">
-              <div id="fbPostsCount" style="font-size:20px;font-weight:900;color:#f97316;line-height:1;">0</div>
-              <div style="font-size:10px;color:#65676B;font-weight:700;margin-top:3px;">منشورات</div>
+            <!-- المنشورات -->
+            <div style="background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1px solid rgba(249,115,22,0.18);border-radius:14px;padding:14px 8px;text-align:center;transition:.2s;box-shadow:0 1px 4px rgba(249,115,22,0.08);">
+              <div id="fbPostsCount" style="font-size:22px;font-weight:900;color:#f97316;line-height:1;">0</div>
+              <div style="font-size:10px;color:#f97316;font-weight:700;margin-top:4px;opacity:0.75;">منشورات</div>
+              <div style="font-size:9px;color:#65676B;margin-top:2px;font-weight:600;">محتواي</div>
             </div>
           </div>
 
-        <!-- شعلة التقدم اليومي وعدد الأيام -->
-        <div style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:12px;padding:10px 14px;margin-bottom:10px;">
-          <span id="fbStreakFlame" style="font-size:26px;">🔥</span>
-          <div>
-            <div style="font-size:13px;font-weight:900;color:#e65100;">التقدم اليومي</div>
-            <div id="fbStreakInfo" style="font-size:12px;color:#bf360c;font-weight:700;">عضو منذ ... يوم</div>
+          <!-- شعلة التقدم اليومي -->
+          <div style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:14px;padding:12px 16px;margin-bottom:16px;border:1px solid rgba(230,81,0,0.12);box-shadow:0 1px 4px rgba(230,81,0,0.08);">
+            <span id="fbStreakFlame" style="font-size:30px;filter:drop-shadow(0 2px 4px rgba(249,115,22,0.4));">🔥</span>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:900;color:#e65100;">التقدم اليومي</div>
+              <div id="fbStreakInfo" style="font-size:12px;color:#bf360c;font-weight:700;margin-top:2px;">عضو منذ ... يوم</div>
+            </div>
           </div>
+
+          <!-- بيانات التسجيل -->
+          <div id="fbRegInfo" style="background:#F8F9FA;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:#65676B;line-height:2;border:1px solid #E4E6EB;"></div>
+
+          <!-- شريط التقدم والمستوى -->
+          <div style="background:white;border-radius:16px;padding:16px;margin-bottom:14px;border:1px solid #E4E6EB;box-shadow:0 1px 6px rgba(0,0,0,0.05);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <div style="font-size:13px;font-weight:900;color:#050505;">🚀 المستوى</div>
+              <div id="fbLevelBadge" style="background:linear-gradient(135deg,#1877F2,#00c853);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:900;color:white;box-shadow:0 2px 8px rgba(24,119,242,0.3);">🚀 1</div>
+            </div>
+            <div style="height:10px;background:#F0F2F5;border-radius:6px;overflow:hidden;margin-bottom:8px;box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);">
+              <div id="fbLevelBar" style="height:100%;background:linear-gradient(90deg,#1877F2,#00c853);border-radius:6px;transition:width .8s cubic-bezier(.4,0,.2,1);width:0%;box-shadow:0 1px 4px rgba(24,119,242,0.4);"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#65676B;font-weight:700;">
+              <span id="fbLevelPts">0 نقطة</span>
+              <span style="color:#1877F2;">3000 نقطة للمستوى التالي</span>
+            </div>
+          </div>
+
+          <!-- النقاط والرصيد -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div style="background:linear-gradient(135deg,#EEF4FF,#dbeafe);border-radius:14px;padding:16px;text-align:center;border:1px solid rgba(24,119,242,0.12);box-shadow:0 1px 4px rgba(24,119,242,0.08);">
+              <div id="fbTotalPts" style="font-size:24px;font-weight:900;color:#1877F2;">0</div>
+              <div style="font-size:11px;color:#1877F2;font-weight:700;margin-top:4px;opacity:0.75;">نقطة إجمالية</div>
+            </div>
+            <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:14px;padding:16px;text-align:center;border:1px solid rgba(0,200,83,0.12);box-shadow:0 1px 4px rgba(0,200,83,0.08);">
+              <div id="fbBalance" style="font-size:22px;font-weight:900;color:#00c853;">0 دج</div>
+              <div style="font-size:11px;color:#00c853;font-weight:700;margin-top:4px;opacity:0.75;">الرصيد</div>
+            </div>
+          </div>
+
+          <!-- ⭐ تقييم النجوم السبعة مع زر التصفير -->
+          <div style="background:white;border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid #E4E6EB;box-shadow:0 1px 6px rgba(0,0,0,0.05);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #F0F2F5;">
+              <div style="font-size:13px;font-weight:900;color:#050505;">⭐ تقييمي (7 معايير)</div>
+              <!-- زر تصفير النجوم -->
+              <button onclick="_resetMyStars()" style="background:linear-gradient(135deg,#fee2e2,#fecaca);border:1px solid rgba(239,68,68,0.2);border-radius:8px;color:#ef4444;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;padding:5px 10px;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:4px;" onmouseover="this.style.background='linear-gradient(135deg,#fecaca,#fca5a5)'" onmouseout="this.style.background='linear-gradient(135deg,#fee2e2,#fecaca)'" title="تصفير النجوم والبدء من الصفر">
+                🔄 تصفير
+              </button>
+            </div>
+            <div id="fbStarsRating" style="display:flex;flex-direction:column;gap:10px;"></div>
+            <div id="fbTotalStars" style="margin-top:12px;text-align:center;font-size:12px;color:#65676B;font-weight:700;background:#FFF8E1;border-radius:10px;padding:8px 12px;"></div>
+          </div>
+
+          <!-- منشورات الملف الشخصي -->
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #E4E6EB;">
+            <div style="font-size:14px;font-weight:900;color:#050505;">📝 منشوراتي</div>
+            <div id="fbPostsCountBadge" style="background:#1877F2;color:white;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:900;">0</div>
+          </div>
+          <div id="fbProfilePostsContainer" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
-
-        <!-- بيانات التسجيل -->
-        <div id="fbRegInfo" style="background:#F0F2F5;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#65676B;line-height:1.9;"></div>
-
-        <!-- شريط التقدم والمستوى -->
-        <div style="background:#F0F2F5;border-radius:14px;padding:14px;margin-bottom:12px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div style="font-size:13px;font-weight:900;color:#050505;">المستوى</div>
-            <div id="fbLevelBadge" style="background:linear-gradient(135deg,#1877F2,#00c853);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:900;color:white;">🚀 1</div>
-          </div>
-          <div style="height:8px;background:#E4E6EB;border-radius:4px;overflow:hidden;margin-bottom:6px;">
-            <div id="fbLevelBar" style="height:100%;background:linear-gradient(90deg,#1877F2,#00c853);border-radius:4px;transition:width .6s ease;width:0%;"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:#65676B;font-weight:700;">
-            <span id="fbLevelPts">0 نقطة</span>
-            <span>3000 نقطة للمستوى التالي</span>
-          </div>
-        </div>
-
-        <!-- النقاط والرصيد -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-          <div style="background:#F0F2F5;border-radius:12px;padding:14px;text-align:center;">
-            <div id="fbTotalPts" style="font-size:22px;font-weight:900;color:#1877F2;">0</div>
-            <div style="font-size:11px;color:#65676B;font-weight:700;">نقطة إجمالية</div>
-          </div>
-          <div style="background:#F0F2F5;border-radius:12px;padding:14px;text-align:center;">
-            <div id="fbBalance" style="font-size:22px;font-weight:900;color:#00c853;">0 دج</div>
-            <div style="font-size:11px;color:#65676B;font-weight:700;">الرصيد</div>
-          </div>
-        </div>
-
-        <!-- 7 نجوم التقييم -->
-        <div style="background:#F0F2F5;border-radius:14px;padding:14px;margin-bottom:14px;">
-          <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:10px;">⭐ تقييمك (7 معايير × 3000 نجم = توثيق)</div>
-          <div id="fbStarsRating" style="display:flex;flex-direction:column;gap:8px;"></div>
-          <div id="fbTotalStars" style="margin-top:10px;text-align:center;font-size:12px;color:#65676B;font-weight:700;"></div>
-        </div>
-
-        <!-- منشورات الملف الشخصي -->
-        <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #E4E6EB;">📝 منشوراتي</div>
-        <div id="fbProfilePostsContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
       </div>
-    </div>
 
   </div><!-- end scrollable -->
 
@@ -15325,17 +15346,20 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
         </div>
       </div>
 
-      <!-- تقييمك لهذا الصديق (تقييم يدوي) -->
+      <!-- تقييمك لهذا الصديق (تقييم يدوي 24 ساعة) -->
       <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">⭐ قيّم صفحة هذا الصديق</div>
-        <div style="display:flex;justify-content:center;gap:4px;margin-bottom:10px;" id="mpvStarsRow">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">
+          <div style="font-size:13px;font-weight:800;color:#050505;">⭐ قيّم هذا الصديق</div>
+          ${myRating > 0 ? `<button onclick="_resetMyRatingFor('${memberName}')" style="background:#fee2e2;border:1px solid rgba(239,68,68,0.2);border-radius:7px;color:#ef4444;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;padding:4px 9px;cursor:pointer;">🔄 تصفير</button>` : ''}
+        </div>
+        <div style="display:flex;justify-content:center;gap:6px;margin-bottom:12px;" id="mpvStarsRow">
           ${manualStarsHtml}
         </div>
         <div style="text-align:center;">
           ${myRating > 0
-            ? `<div style="font-size:12px;color:#65676B;">قيّمت بـ <strong style="color:#f5c518;">${myRating} نجمة</strong> — اضغط لتغيير تقييمك</div>`
-            : `<div style="font-size:12px;color:#65676B;">اضغط على عدد النجوم لتقييم هذا الصديق</div>`}
-          <div style="margin-top:6px;font-size:11px;color:#9ca3af;">إجمالي نجوم التقييم التي حصل عليها: <strong style="color:#f5c518;">${totalStars} ⭐</strong></div>
+            ? `<div style="font-size:12px;color:#65676B;">قيّمت بـ <strong style="color:#f5c518;">${myRating} نجمة</strong> — يمكن التعديل خلال 24 ساعة</div>`
+            : `<div style="font-size:12px;color:#65676B;">اضغط على النجوم لتقييم هذا الصديق</div>`}
+          <div style="margin-top:6px;font-size:11px;color:#9ca3af;">إجمالي النجوم: <strong style="color:#f5c518;">${totalStars} ⭐</strong></div>
         </div>
       </div>
 
@@ -21081,9 +21105,11 @@ function _updateFBProfile(){
   const flEl = document.getElementById('fbFollowersCount');
   const fgEl = document.getElementById('fbFollowingCount');
   const pcEl = document.getElementById('fbPostsCount');
-  if(flEl) flEl.innerText = friendsCount;
-  if(fgEl) fgEl.innerText = followingCount;
-  if(pcEl) pcEl.innerText = myPostsCount || 0;
+  const pcBadge = document.getElementById('fbPostsCountBadge');
+  if(flEl) flEl.innerText = friendsCount.toLocaleString();
+  if(fgEl) fgEl.innerText = followingCount.toLocaleString();
+  if(pcEl) pcEl.innerText = (myPostsCount || 0).toLocaleString();
+  if(pcBadge) pcBadge.innerText = (myPostsCount || 0).toLocaleString();
 
   // شعلة التقدم اليومي
   const joinTs = parseInt(localStorage.getItem('nld_join_ts_'+normName)||'0') || parseInt(localStorage.getItem('nld_join_'+normName)||'0');
@@ -21253,6 +21279,67 @@ function _updateStarsRating(name){
 }
 
 /* منشورات الملف الشخصي */
+/* ══ تصفير النجوم — يبدأ العضو من صفر ══ */
+window._resetMyStars = function(){
+  const name = (typeof getCurrentUser==='function') ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
+  if(!name || name==='زائر'){ if(typeof showToast==='function') showToast('⚠️ يجب تسجيل الدخول أولاً'); return; }
+
+  const confirmed = window.confirm('⚠️ هل أنت متأكد من تصفير جميع نجومك؟\nسيُعاد حسابك من صفر ولا يمكن التراجع.');
+  if(!confirmed) return;
+
+  const normName = name.replace(/\s+/g,'_');
+  const cats = ['stars_interaction','stars_activities','stars_comments','stars_quizzes','stars_content','stars_help','stars_discipline'];
+  cats.forEach(k => localStorage.removeItem('nld_'+k+'_'+normName));
+  localStorage.removeItem('nld_total_stars_'+normName);
+
+  // تصفير تقييمات الآخرين لهذا الملف أيضاً
+  localStorage.removeItem('nld_stars_'+normName);
+  localStorage.removeItem('nld_visitor_ratings_'+normName);
+
+  _updateStarsRating(name);
+  if(typeof showToast==='function') showToast('✅ تم تصفير النجوم — ابدأ من جديد!');
+  if(typeof _updateFBProfile==='function') setTimeout(_updateFBProfile, 200);
+};
+
+/* ══ تصفير تقييم النجوم لصديق بعينه ══ */
+window._resetMyRatingFor = function(targetName){
+  const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
+  if(!myName || myName==='زائر'){ if(typeof showToast==='function') showToast('⚠️ يجب تسجيل الدخول'); return; }
+
+  const confirmed = window.confirm(`هل تريد تصفير تقييمك لـ "${targetName}"؟\nيمكنك التقييم من جديد بعد التصفير.`);
+  if(!confirmed) return;
+
+  const normTarget = targetName.replace(/\s+/g,'_');
+  const normMe = myName.replace(/\s+/g,'_');
+
+  // حذف تقييمي من قائمة تقييمات العضو المستهدف
+  const rKey = _getStarRatingsKey ? _getStarRatingsKey(targetName) : 'nld_stars_'+normTarget;
+  try{
+    const ratings = JSON.parse(localStorage.getItem(rKey)||'{}');
+    delete ratings[myName];
+    localStorage.setItem(rKey, JSON.stringify(ratings));
+    const total = Object.values(ratings).reduce((s,v)=>s+(parseInt(v)||0),0);
+    localStorage.setItem('nld_total_stars_'+normTarget, String(total));
+  }catch(e){}
+
+  // حذف timestamp التقييم
+  const tsKey = 'nld_star_ts_'+normMe+'_for_'+normTarget;
+  localStorage.removeItem(tsKey);
+
+  // حذف تقييم الزائر
+  localStorage.removeItem('nld_visitor_rating_'+normMe+'_to_'+normTarget);
+  const vKey = 'nld_visitor_ratings_'+normTarget;
+  try{
+    const vr = JSON.parse(localStorage.getItem(vKey)||'{}');
+    delete vr[myName];
+    localStorage.setItem(vKey, JSON.stringify(vr));
+  }catch(e){}
+
+  if(typeof showToast==='function') showToast('✅ تم تصفير تقييمك — يمكنك التقييم من جديد');
+  if(typeof _renderMpvStars==='function') _renderMpvStars(targetName);
+  if(typeof _mpvCurrentUser!=='undefined') setTimeout(()=>{ if(typeof loadMemberProfile==='function') loadMemberProfile(targetName); }, 400);
+};
+
 function _loadFBProfilePosts(name){
   const container = document.getElementById('fbProfilePostsContainer');
   if(!container) return;
