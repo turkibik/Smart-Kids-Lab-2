@@ -4539,53 +4539,65 @@ body.member-mode #onlineBar{
 
     <!-- ── REELS PANEL (ريلز) ── -->
     <div id="socialPanel_myprofile" style="display:none;background:#F0F2F5;min-height:100%;">
-      <!-- غلاف الملف الشخصي -->
-      <div style="position:relative;height:180px;background:linear-gradient(135deg,#1877F2,#00c853);overflow:hidden;" id="profileCoverFB">
-        <div style="position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"60\" height=\"60\"><circle cx=\"30\" cy=\"30\" r=\"1\" fill=\"rgba(255,255,255,0.15)\"/></svg>') repeat;"></div>
-        <!-- زر تغيير الغلاف -->
-        <label style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.5);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;gap:4px;">
-          📷 تغيير الغلاف
-          <input type="file" accept="image/*" style="display:none;" onchange="handleFBCoverChange(event)">
-        </label>
-      </div>
-
-      <!-- صورة الملف الشخصي + الاسم -->
-      <div style="background:white;padding:0 16px 16px;position:relative;">
-        <!-- صورة الملف (قابلة للنقر للتغيير — بدون أيقونة كاميرا فوقها) -->
-        <div style="position:relative;display:inline-block;margin-top:-50px;margin-bottom:10px;">
-          <label style="display:block;cursor:pointer;">
-            <div id="fbProfilePicWrapper" style="width:100px;height:100px;border-radius:50%;border:4px solid white;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 4px 14px rgba(0,0,0,0.18);position:relative;">👑
-              <!-- شارة التوثيق على صورة الملف الشخصي — رمادية حتى 300 نجمة -->
-              <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:4px;right:4px;width:26px;height:26px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:5;" title="شارة التوثيق">✓</div>
-            </div>
-            <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
+      <!-- ══ غلاف الملف الشخصي — احترافي ══ -->
+      <div style="position:relative;width:100%;max-width:480px;margin:0 auto;" id="profileCoverFBWrapper">
+        <div id="profileCoverFB" style="position:relative;height:220px;background:linear-gradient(135deg,#0052cc 0%,#1877F2 40%,#00c853 100%);overflow:hidden;">
+          <!-- صورة الغلاف -->
+          <div id="profileCoverFBImg" style="position:absolute;inset:0;background-size:cover;background-position:center;transition:opacity .4s;"></div>
+          <!-- طبقة تدرج فوق الغلاف -->
+          <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.08) 0%,rgba(0,0,0,0.0) 40%,rgba(0,0,0,0.45) 100%);pointer-events:none;"></div>
+          <!-- نمط هندسي خلفي -->
+          <div style="position:absolute;inset:0;opacity:0.12;background-image:radial-gradient(circle at 20% 50%,white 1px,transparent 1px),radial-gradient(circle at 80% 20%,white 1px,transparent 1px);background-size:30px 30px;pointer-events:none;"></div>
+          <!-- زر تغيير الغلاف -->
+          <label style="position:absolute;bottom:12px;left:12px;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:6px 13px;font-size:12px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;gap:5px;transition:.2s;" onmouseover="this.style.background='rgba(0,0,0,0.72)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 15.2A3.2 3.2 0 1 1 15.2 12 3.2 3.2 0 0 1 12 15.2m5.8-10H17l-1.5-2h-7L7 5.2H3.2A2.2 2.2 0 0 0 1 7.4v11.4A2.2 2.2 0 0 0 3.2 21h17.6A2.2 2.2 0 0 0 23 18.8V7.4A2.2 2.2 0 0 0 20.8 5.2z"/></svg>
+            تغيير الغلاف
+            <input type="file" accept="image/*" style="display:none;" onchange="handleFBCoverChange(event)">
           </label>
         </div>
 
-        <!-- الاسم والتوثيق -->
-        <div style="margin-bottom:6px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div id="fbProfileName" style="font-size:22px;font-weight:900;color:#050505;"></div>
-            <div id="fbVerifiedBadge" style="display:none;font-size:18px;" title="موثّق">✅</div>
+        <!-- ── صورة الملف الشخصي + المعلومات ── -->
+        <div style="background:white;padding:0 16px 16px;position:relative;border-bottom:1px solid #E4E6EB;">
+          <!-- صورة الملف (تطفو فوق الغلاف) -->
+          <div style="position:relative;display:flex;align-items:flex-end;justify-content:space-between;margin-top:-44px;margin-bottom:10px;">
+            <label style="cursor:pointer;flex-shrink:0;">
+              <div id="fbProfilePicWrapper" style="width:90px;height:90px;border-radius:50%;border:4px solid white;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:38px;box-shadow:0 4px 18px rgba(0,0,0,0.22);position:relative;">👑
+                <!-- شارة التوثيق -->
+                <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:2px;right:2px;width:24px;height:24px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:12px;z-index:5;" title="شارة التوثيق">✓</div>
+              </div>
+              <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
+            </label>
+            <!-- أزرار التعديل — يمين أعلى -->
+            <div style="display:flex;gap:7px;padding-bottom:6px;">
+              <button onclick="openMyFullProfile()" style="padding:7px 14px;background:#1877F2;border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(24,119,242,0.3);">✏️ تعديل</button>
+              <button onclick="openFBFriendsFromProfile()" style="padding:7px 14px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">👥 أصدقاء</button>
+            </div>
           </div>
-          <div id="fbProfileRole" style="font-size:13px;color:#65676B;margin-top:2px;font-weight:600;"></div>
-        </div>
 
-        <!-- عداد المتابعون / المتابعين / المنشورات -->
-        <div style="display:flex;gap:0;margin:8px 0 10px;border-radius:12px;overflow:hidden;background:#F0F2F5;">
-          <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
-            <div id="fbFollowersCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">متابِع</div>
+          <!-- الاسم والدور -->
+          <div style="margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <div id="fbProfileName" style="font-size:21px;font-weight:900;color:#050505;line-height:1.2;"></div>
+              <div id="fbVerifiedBadge" style="display:none;font-size:16px;" title="موثّق">✅</div>
+            </div>
+            <div id="fbProfileRole" style="font-size:12.5px;color:#65676B;margin-top:3px;font-weight:600;"></div>
           </div>
-          <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
-            <div id="fbFollowingCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">متابَع</div>
+
+          <!-- ── عداد المتابعين / المتابَعون / المنشورات — احترافي ── -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 0 12px;">
+            <div onclick="openFBFriendsFromProfile()" style="background:linear-gradient(135deg,#EEF4FF,#dbeafe);border:1px solid rgba(24,119,242,0.15);border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;transition:.2s;" onmouseover="this.style.background='linear-gradient(135deg,#dbeafe,#bfdbfe)'" onmouseout="this.style.background='linear-gradient(135deg,#EEF4FF,#dbeafe)'">
+              <div id="fbFollowersCount" style="font-size:20px;font-weight:900;color:#1877F2;line-height:1;">0</div>
+              <div style="font-size:10px;color:#65676B;font-weight:700;margin-top:3px;">متابِعون</div>
+            </div>
+            <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid rgba(0,200,83,0.15);border-radius:12px;padding:10px 6px;text-align:center;">
+              <div id="fbFollowingCount" style="font-size:20px;font-weight:900;color:#00c853;line-height:1;">0</div>
+              <div style="font-size:10px;color:#65676B;font-weight:700;margin-top:3px;">متابَعون</div>
+            </div>
+            <div style="background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1px solid rgba(249,115,22,0.15);border-radius:12px;padding:10px 6px;text-align:center;">
+              <div id="fbPostsCount" style="font-size:20px;font-weight:900;color:#f97316;line-height:1;">0</div>
+              <div style="font-size:10px;color:#65676B;font-weight:700;margin-top:3px;">منشورات</div>
+            </div>
           </div>
-          <div style="flex:1;padding:8px 4px;text-align:center;">
-            <div id="fbPostsCount" style="font-size:16px;font-weight:900;color:#1877F2;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">منشور</div>
-          </div>
-        </div>
 
         <!-- شعلة التقدم اليومي وعدد الأيام -->
         <div style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:12px;padding:10px 14px;margin-bottom:10px;">
@@ -4631,12 +4643,6 @@ body.member-mode #onlineBar{
           <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:10px;">⭐ تقييمك (7 معايير × 3000 نجم = توثيق)</div>
           <div id="fbStarsRating" style="display:flex;flex-direction:column;gap:8px;"></div>
           <div id="fbTotalStars" style="margin-top:10px;text-align:center;font-size:12px;color:#65676B;font-weight:700;"></div>
-        </div>
-
-        <!-- أزرار الإجراءات -->
-        <div style="display:flex;gap:8px;margin-bottom:14px;">
-          <button onclick="openMyFullProfile()" style="flex:1;padding:9px;background:#1877F2;border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;">✏️ تعديل الملف</button>
-          <button onclick="openFBFriendsFromProfile()" style="flex:1;padding:9px;background:#F0F2F5;border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#050505;cursor:pointer;">👥 الأصدقاء</button>
         </div>
 
         <!-- منشورات الملف الشخصي -->
@@ -14063,6 +14069,16 @@ function getAdminVerifiedBadgeHtml(authorName){
    ⭐ نظام التقييم بالنجوم السبع
    ══════════════════════════════════════════════════════════ */
 
+/* ══════════════════════════════════════════════════════════
+   ⭐ نظام التقييم بالنجوم — مؤقت 24 ساعة، شخصي لكل عضو
+   ══════════════════════════════════════════════════════════
+   📌 القواعد:
+     - كل شخص يقيّم العضو الآخر بشكل مستقل
+     - التقييم يبقى نشطاً 24 ساعة (يمكن تغييره خلالها)
+     - بعد 24 ساعة يُثبّت على آخر تقييم قام به
+     - تقييم كل شخص لا يؤثر على تقييم الآخرين
+   ══════════════════════════════════════════════════════════ */
+
 function _getStarRatingsKey(memberName){
   return 'nld_stars_' + memberName.replace(/\s+/g,'_');
 }
@@ -14071,19 +14087,48 @@ function _getTotalStarsKey(memberName){
   return 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
 }
 
+/* مفتاح وقت آخر تقييم قام به myName لـ targetName */
+function _getStarTimestampKey(myName, targetName){
+  return 'nld_star_ts_' + myName.replace(/\s+/g,'_') + '_for_' + targetName.replace(/\s+/g,'_');
+}
+
+/* هل يمكن لـ myName تعديل تقييمه لـ targetName؟ (خلال 24 ساعة) */
+function _canEditStarRating(myName, targetName){
+  const tsKey = _getStarTimestampKey(myName, targetName);
+  const ts = parseInt(localStorage.getItem(tsKey)||'0');
+  if(!ts) return true; // لم يقيّم بعد
+  return (Date.now() - ts) < 24 * 60 * 60 * 1000; // أقل من 24 ساعة
+}
+
 function rateMember(stars){
   const myName = getCurrentUser();
   const targetName = _mpvCurrentUser;
   if(!myName || !targetName || myName === targetName) return;
   if(myName === 'زائر'){ showToast('⚠️ يجب تسجيل الدخول أولاً'); return; }
 
+  const tsKey = _getStarTimestampKey(myName, targetName);
+  const lastTs = parseInt(localStorage.getItem(tsKey)||'0');
+  const now = Date.now();
+  const elapsed = now - lastTs;
+  const locked = lastTs > 0 && elapsed >= 24 * 60 * 60 * 1000;
+
+  if(locked){
+    const hoursAgo = Math.floor(elapsed / 3600000);
+    showToast(`🔒 انتهت فترة 24 ساعة — تقييمك ثابت على ${(JSON.parse(localStorage.getItem(_getStarRatingsKey(targetName))||'{}')||{})[myName] || 0} نجوم`);
+    return;
+  }
+
   const key = _getStarRatingsKey(targetName);
   let ratings = {};
   try{ ratings = JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){ ratings = {}; }
 
   const prevStars = ratings[myName] || 0;
+  /* كل مستخدم له تقييمه الخاص — لا يؤثر على تقييمات الآخرين */
   ratings[myName] = stars;
   localStorage.setItem(key, JSON.stringify(ratings));
+
+  /* حفظ وقت أول تقييم فقط (لا نُحدِّث الوقت عند التعديل) */
+  if(!lastTs) localStorage.setItem(tsKey, String(now));
 
   // حساب مجموع النجوم
   const total = Object.values(ratings).reduce((s,v)=>s+(parseInt(v)||0), 0);
@@ -14101,7 +14146,8 @@ function rateMember(stars){
     addSocialNotif(targetName, myName + ' قيّمك بـ ' + stars + ' نجوم ⭐', '⭐');
   }
 
-  showToast('⭐ تم تقييمك بـ ' + stars + ' نجمة!');
+  const remaining = Math.round((24 * 60 * 60 * 1000 - (Date.now() - (parseInt(localStorage.getItem(tsKey)||String(now))))) / 3600000);
+  showToast(`⭐ تم تقييمك بـ ${stars} نجمة! يمكنك التعديل خلال ${remaining > 0 ? remaining : 0} ساعة`);
 }
 
 function _renderMpvStars(memberName){
@@ -14126,28 +14172,37 @@ function _renderMpvStars(memberName){
   const total = Object.values(ratings).reduce((s,v)=>s+(parseInt(v)||0), 0);
   const count = Object.keys(ratings).length;
 
+  /* حساب الوقت المتبقي لإمكانية التعديل */
+  const tsKey = _getStarTimestampKey(myName, memberName);
+  const lastTs = parseInt(localStorage.getItem(tsKey)||'0');
+  const canEdit = _canEditStarRating(myName, memberName);
+  const msLeft = lastTs ? Math.max(0, 24*3600*1000 - (Date.now()-lastTs)) : 0;
+  const hLeft = Math.floor(msLeft/3600000);
+  const mLeft = Math.floor((msLeft%3600000)/60000);
+
   // تلوين النجوم
   const stars = bar.querySelectorAll('.star-item');
   stars.forEach(function(s){
     const v = parseInt(s.getAttribute('data-v'));
-    if(v <= myRating){
-      s.classList.add('filled');
-      s.style.filter = 'none';
-      s.style.opacity = '1';
-    } else {
-      s.classList.remove('filled');
-      s.style.filter = 'grayscale(1)';
-      s.style.opacity = '0.4';
-    }
+    const filled = v <= myRating;
+    s.classList.toggle('filled', filled);
+    s.style.filter = filled ? 'none' : 'grayscale(1)';
+    s.style.opacity = filled ? '1' : '0.4';
+    /* تعطيل النقر بعد 24 ساعة */
+    s.style.cursor = canEdit ? 'pointer' : 'not-allowed';
+    s.onclick = canEdit ? (function(starVal){ return function(){ rateMember(starVal); }; })(v) : null;
   });
 
   // تحديث النص
   if(scoreEl){
     if(myRating > 0){
       const avg = count > 0 ? (total/count).toFixed(1) : '0';
-      scoreEl.innerHTML = 'تقييمك: ' + '⭐'.repeat(myRating) + ' | متوسط: ' + avg + ' من ' + count + ' تقييم';
+      const lockInfo = !canEdit
+        ? ' 🔒 ثابت'
+        : (msLeft > 0 ? ` · تعديل خلال ${hLeft}س ${mLeft}د` : '');
+      scoreEl.innerHTML = `تقييمك: ${'⭐'.repeat(myRating)}${lockInfo} | متوسط: ${avg} (${count} تقييم)`;
     } else {
-      scoreEl.innerText = 'لم تقيّم هذا العضو بعد';
+      scoreEl.innerText = canEdit ? 'انقر على النجوم لتقييم هذا العضو' : 'لم تقيّم هذا العضو بعد';
     }
   }
 }
@@ -21005,18 +21060,29 @@ function _updateFBProfile(){
     }
   }
 
-  // عداد المتابعون / المتابعين / المنشورات
-  const followersKey = 'nld_followers_'+normName;
-  const followingKey = 'nld_following_'+normName;
+  // ── عداد المتابعون / المتابَعون / المنشورات — المنطق الصحيح ──
+  // متابِعون = عدد الأصدقاء (من يتابعك = أصدقاؤك)
+  // متابَعون = الأصدقاء + أي متابعات لصفحات/مجموعات
   const allPosts = (() => { try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
   const myPostsCount = allPosts.filter(p=>p.author===name).length;
-  const followersList = (() => { try{ return JSON.parse(localStorage.getItem(followersKey)||'[]'); }catch(e){ return []; } })();
+
+  // جلب قائمة الأصدقاء
+  const myFriends = (typeof getFriends==='function') ? (getFriends(name)||[]) : (()=>{
+    try{ return JSON.parse(localStorage.getItem('nld_friends_'+normName)||'[]'); }catch(e){ return []; }
+  })();
+  const friendsCount = myFriends.length;
+
+  // جلب المتابعات (صفحات / مجموعات / أعضاء لا يتابعونك)
+  const followingKey = 'nld_following_'+normName;
   const followingList = (() => { try{ return JSON.parse(localStorage.getItem(followingKey)||'[]'); }catch(e){ return []; } })();
+  // المتابَعون = الأصدقاء + المتابعات الإضافية
+  const followingCount = friendsCount + followingList.filter(x=>!myFriends.includes(x)).length;
+
   const flEl = document.getElementById('fbFollowersCount');
   const fgEl = document.getElementById('fbFollowingCount');
   const pcEl = document.getElementById('fbPostsCount');
-  if(flEl) flEl.innerText = followersList.length || 0;
-  if(fgEl) fgEl.innerText = followingList.length || 0;
+  if(flEl) flEl.innerText = friendsCount;
+  if(fgEl) fgEl.innerText = followingCount;
   if(pcEl) pcEl.innerText = myPostsCount || 0;
 
   // شعلة التقدم اليومي
@@ -21240,8 +21306,12 @@ window.handleFBCoverChange = async function(e){
     const name = typeof getCurrentUser==='function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
     if(result && result.url){
       localStorage.setItem('nld_fb_cover_'+name.replace(/\s+/g,'_'), result.url);
-      const cover = document.getElementById('profileCoverFB');
-      if(cover) cover.style.backgroundImage=`url(${result.url})`;
+      /* تحديث العنصر الجديد profileCoverFBImg */
+      const coverImg = document.getElementById('profileCoverFBImg');
+      if(coverImg) coverImg.style.backgroundImage=`url(${result.url})`;
+      /* توافق مع القديم */
+      const coverOld = document.getElementById('profileCoverFB');
+      if(coverOld) coverOld.style.backgroundImage=`url(${result.url})`;
       if(typeof showToast==='function') showToast('✅ تم تغيير صورة الغلاف');
     }
   }catch(err){
@@ -21267,11 +21337,17 @@ if(typeof window.switchSocialTab === 'function'){
 /* تحميل غلاف المستخدم */
 function _loadFBCover(){
   const name = typeof getCurrentUser==='function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
-  const cover = document.getElementById('profileCoverFB');
-  if(!cover || !name) return;
-  const stored = localStorage.getItem('nld_fb_cover_'+name.replace(/\s+/g,'_'));
-  if(stored) cover.style.backgroundImage = `url(${stored})`;
-  else cover.style.backgroundImage = '';
+  if(!name) return;
+  const stored = localStorage.getItem('nld_fb_cover_'+name.replace(/\s+/g,'_'))
+    || localStorage.getItem('nld_cover_'+name.replace(/\s+/g,'_'));
+  const coverImg = document.getElementById('profileCoverFBImg');
+  if(coverImg){
+    if(stored){ coverImg.style.backgroundImage = `url(${stored})`; coverImg.style.opacity='1'; }
+    else { coverImg.style.backgroundImage = ''; }
+  }
+  /* توافق مع عناصر أخرى */
+  const coverOld = document.getElementById('profileCoverFB');
+  if(coverOld && stored) coverOld.style.backgroundImage = `url(${stored})`;
 }
 
 /* ══ القائمة المنسدلة للملف الشخصي ══ */
