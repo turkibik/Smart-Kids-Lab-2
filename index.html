@@ -4539,138 +4539,111 @@ body.member-mode #onlineBar{
 
     <!-- ── REELS PANEL (ريلز) ── -->
     <div id="socialPanel_myprofile" style="display:none;background:#F0F2F5;min-height:100%;">
-      <!-- ══ غلاف الملف الشخصي — احترافي متطور ══ -->
-      <div style="position:relative;width:100%;max-width:480px;margin:0 auto;" id="profileCoverFBWrapper">
+      <!-- غلاف الملف الشخصي -->
+      <div style="position:relative;height:180px;background:linear-gradient(135deg,#1877F2,#00c853);overflow:hidden;background-size:cover;background-position:center;" id="profileCoverFB">
+        <div style="position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"60\" height=\"60\"><circle cx=\"30\" cy=\"30\" r=\"1\" fill=\"rgba(255,255,255,0.15)\"/></svg>') repeat;pointer-events:none;"></div>
+        <!-- زر تغيير الغلاف -->
+        <label style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.5);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;gap:4px;">
+          📷 تغيير الغلاف
+          <input type="file" accept="image/*" style="display:none;" onchange="handleFBCoverChange(event)">
+        </label>
+      </div>
 
-        <!-- ══ صورة الغلاف الكبيرة ══ -->
-        <div id="profileCoverFB" style="position:relative;height:270px;background:linear-gradient(135deg,#0d1b3e 0%,#1877F2 45%,#00c853 100%);overflow:hidden;">
-          <!-- صورة الغلاف -->
-          <div id="profileCoverFBImg" style="position:absolute;inset:0;background-size:cover;background-position:center;transition:opacity .5s ease;"></div>
-          <!-- طبقة تدرج سفلية قوية لقراءة الاسم -->
-          <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.05) 0%,transparent 35%,rgba(0,0,0,0.55) 100%);pointer-events:none;"></div>
-          <!-- نمط هندسي احترافي -->
-          <div style="position:absolute;inset:0;opacity:0.07;background-image:repeating-linear-gradient(45deg,white 0px,white 1px,transparent 1px,transparent 20px),repeating-linear-gradient(-45deg,white 0px,white 1px,transparent 1px,transparent 20px);pointer-events:none;"></div>
-          <!-- شعار المنصة على الغلاف -->
-          <div style="position:absolute;top:14px;right:16px;font-size:12px;font-weight:900;letter-spacing:1.5px;opacity:0.85;color:white;text-shadow:0 1px 4px rgba(0,0,0,0.5);">Connect <span style="color:#00c853;">DZ</span></div>
-          <!-- زر تغيير الغلاف -->
-          <label style="position:absolute;bottom:14px;left:14px;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:7px 14px;font-size:12px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.2s;box-shadow:0 2px 12px rgba(0,0,0,0.3);" onmouseover="this.style.background='rgba(0,0,0,0.78)'" onmouseout="this.style.background='rgba(0,0,0,0.6)'">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 15.2A3.2 3.2 0 1 1 15.2 12 3.2 3.2 0 0 1 12 15.2m5.8-10H17l-1.5-2h-7L7 5.2H3.2A2.2 2.2 0 0 0 1 7.4v11.4A2.2 2.2 0 0 0 3.2 21h17.6A2.2 2.2 0 0 0 23 18.8V7.4A2.2 2.2 0 0 0 20.8 5.2z"/></svg>
-            تغيير الغلاف
-            <input type="file" accept="image/*" style="display:none;" onchange="handleFBCoverChange(event)">
+      <!-- صورة الملف الشخصي + الاسم -->
+      <div style="background:white;padding:0 16px 16px;position:relative;">
+        <!-- صورة الملف (قابلة للنقر للتغيير — بدون أيقونة كاميرا فوقها) -->
+        <div style="position:relative;display:inline-block;margin-top:-50px;margin-bottom:10px;">
+          <label style="display:block;cursor:pointer;">
+            <div id="fbProfilePicWrapper" style="width:100px;height:100px;border-radius:50%;border:4px solid white;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 4px 14px rgba(0,0,0,0.18);position:relative;">👑
+              <!-- شارة التوثيق على صورة الملف الشخصي — رمادية حتى 300 نجمة -->
+              <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:4px;right:4px;width:26px;height:26px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:5;" title="شارة التوثيق">✓</div>
+            </div>
+            <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
           </label>
         </div>
 
-        <!-- ══ منطقة الملف الشخصي ══ -->
-        <div style="background:white;padding:0 18px 20px;position:relative;border-bottom:1px solid #E4E6EB;">
-
-          <!-- صورة الملف + أزرار في نفس الصف -->
-          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:-52px;margin-bottom:14px;">
-            <!-- صورة الملف الشخصي الكبيرة -->
-            <label style="cursor:pointer;flex-shrink:0;position:relative;">
-              <div id="fbProfilePicWrapper" style="width:104px;height:104px;border-radius:50%;border:4px solid white;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:44px;box-shadow:0 6px 24px rgba(0,0,0,0.25);position:relative;">👑
-                <!-- شارة التوثيق -->
-                <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:3px;right:3px;width:28px;height:28px;border-radius:50%;background:#B0BEC5;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;z-index:5;box-shadow:0 1px 4px rgba(0,0,0,0.2);" title="شارة التوثيق">✓</div>
-              </div>
-              <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
-            </label>
-            <!-- أزرار الإجراءات -->
-            <div style="display:flex;gap:8px;padding-bottom:4px;">
-              <button onclick="openMyFullProfile()" style="padding:8px 16px;background:linear-gradient(135deg,#1877F2,#0052cc);border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(24,119,242,0.35);transition:.2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">✏️ تعديل</button>
-              <button onclick="openFBFriendsFromProfile()" style="padding:8px 16px;background:#F0F2F5;border:1px solid #D8DADF;border-radius:10px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:.2s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">👥 أصدقاء</button>
-            </div>
+        <!-- الاسم والتوثيق -->
+        <div style="margin-bottom:6px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div id="fbProfileName" style="font-size:22px;font-weight:900;color:#050505;"></div>
+            <div id="fbVerifiedBadge" style="display:none;font-size:18px;" title="موثّق">✅</div>
           </div>
-
-          <!-- الاسم والدور -->
-          <div style="margin-bottom:16px;">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-              <div id="fbProfileName" style="font-size:22px;font-weight:900;color:#050505;line-height:1.2;letter-spacing:-0.3px;"></div>
-              <div id="fbVerifiedBadge" style="display:none;font-size:17px;" title="موثّق">✅</div>
-            </div>
-            <div id="fbProfileRole" style="font-size:13px;color:#65676B;font-weight:600;line-height:1.4;"></div>
-          </div>
-
-          <!-- ══ عداد المتابعين / المتابَعون / المنشورات — ديناميكي ══ -->
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 0 16px;">
-            <!-- متابِعون = عدد الأصدقاء -->
-            <div onclick="openFBFriendsFromProfile()" style="background:linear-gradient(135deg,#EEF4FF,#dbeafe);border:1px solid rgba(24,119,242,0.18);border-radius:14px;padding:14px 8px;text-align:center;cursor:pointer;transition:.2s;box-shadow:0 1px 4px rgba(24,119,242,0.08);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(24,119,242,0.18)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 1px 4px rgba(24,119,242,0.08)'">
-              <div id="fbFollowersCount" style="font-size:22px;font-weight:900;color:#1877F2;line-height:1;">0</div>
-              <div style="font-size:10px;color:#1877F2;font-weight:700;margin-top:4px;opacity:0.75;">متابِعون</div>
-              <div style="font-size:9px;color:#65676B;margin-top:2px;font-weight:600;">الأصدقاء</div>
-            </div>
-            <!-- متابَعون = الأصدقاء + صفحات/مجموعات -->
-            <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid rgba(0,200,83,0.18);border-radius:14px;padding:14px 8px;text-align:center;transition:.2s;box-shadow:0 1px 4px rgba(0,200,83,0.08);">
-              <div id="fbFollowingCount" style="font-size:22px;font-weight:900;color:#00c853;line-height:1;">0</div>
-              <div style="font-size:10px;color:#00c853;font-weight:700;margin-top:4px;opacity:0.75;">متابَعون</div>
-              <div style="font-size:9px;color:#65676B;margin-top:2px;font-weight:600;">أصدقاء + صفحات</div>
-            </div>
-            <!-- المنشورات -->
-            <div style="background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1px solid rgba(249,115,22,0.18);border-radius:14px;padding:14px 8px;text-align:center;transition:.2s;box-shadow:0 1px 4px rgba(249,115,22,0.08);">
-              <div id="fbPostsCount" style="font-size:22px;font-weight:900;color:#f97316;line-height:1;">0</div>
-              <div style="font-size:10px;color:#f97316;font-weight:700;margin-top:4px;opacity:0.75;">منشورات</div>
-              <div style="font-size:9px;color:#65676B;margin-top:2px;font-weight:600;">محتواي</div>
-            </div>
-          </div>
-
-          <!-- شعلة التقدم اليومي -->
-          <div style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:14px;padding:12px 16px;margin-bottom:16px;border:1px solid rgba(230,81,0,0.12);box-shadow:0 1px 4px rgba(230,81,0,0.08);">
-            <span id="fbStreakFlame" style="font-size:30px;filter:drop-shadow(0 2px 4px rgba(249,115,22,0.4));">🔥</span>
-            <div style="flex:1;">
-              <div style="font-size:13px;font-weight:900;color:#e65100;">التقدم اليومي</div>
-              <div id="fbStreakInfo" style="font-size:12px;color:#bf360c;font-weight:700;margin-top:2px;">عضو منذ ... يوم</div>
-            </div>
-          </div>
-
-          <!-- بيانات التسجيل -->
-          <div id="fbRegInfo" style="background:#F8F9FA;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:#65676B;line-height:2;border:1px solid #E4E6EB;"></div>
-
-          <!-- شريط التقدم والمستوى -->
-          <div style="background:white;border-radius:16px;padding:16px;margin-bottom:14px;border:1px solid #E4E6EB;box-shadow:0 1px 6px rgba(0,0,0,0.05);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-              <div style="font-size:13px;font-weight:900;color:#050505;">🚀 المستوى</div>
-              <div id="fbLevelBadge" style="background:linear-gradient(135deg,#1877F2,#00c853);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:900;color:white;box-shadow:0 2px 8px rgba(24,119,242,0.3);">🚀 1</div>
-            </div>
-            <div style="height:10px;background:#F0F2F5;border-radius:6px;overflow:hidden;margin-bottom:8px;box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);">
-              <div id="fbLevelBar" style="height:100%;background:linear-gradient(90deg,#1877F2,#00c853);border-radius:6px;transition:width .8s cubic-bezier(.4,0,.2,1);width:0%;box-shadow:0 1px 4px rgba(24,119,242,0.4);"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:11px;color:#65676B;font-weight:700;">
-              <span id="fbLevelPts">0 نقطة</span>
-              <span style="color:#1877F2;">3000 نقطة للمستوى التالي</span>
-            </div>
-          </div>
-
-          <!-- النقاط والرصيد -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-            <div style="background:linear-gradient(135deg,#EEF4FF,#dbeafe);border-radius:14px;padding:16px;text-align:center;border:1px solid rgba(24,119,242,0.12);box-shadow:0 1px 4px rgba(24,119,242,0.08);">
-              <div id="fbTotalPts" style="font-size:24px;font-weight:900;color:#1877F2;">0</div>
-              <div style="font-size:11px;color:#1877F2;font-weight:700;margin-top:4px;opacity:0.75;">نقطة إجمالية</div>
-            </div>
-            <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:14px;padding:16px;text-align:center;border:1px solid rgba(0,200,83,0.12);box-shadow:0 1px 4px rgba(0,200,83,0.08);">
-              <div id="fbBalance" style="font-size:22px;font-weight:900;color:#00c853;">0 دج</div>
-              <div style="font-size:11px;color:#00c853;font-weight:700;margin-top:4px;opacity:0.75;">الرصيد</div>
-            </div>
-          </div>
-
-          <!-- ⭐ تقييم النجوم السبعة مع زر التصفير -->
-          <div style="background:white;border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid #E4E6EB;box-shadow:0 1px 6px rgba(0,0,0,0.05);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #F0F2F5;">
-              <div style="font-size:13px;font-weight:900;color:#050505;">⭐ تقييمي (7 معايير)</div>
-              <!-- زر تصفير النجوم -->
-              <button onclick="_resetMyStars()" style="background:linear-gradient(135deg,#fee2e2,#fecaca);border:1px solid rgba(239,68,68,0.2);border-radius:8px;color:#ef4444;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;padding:5px 10px;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:4px;" onmouseover="this.style.background='linear-gradient(135deg,#fecaca,#fca5a5)'" onmouseout="this.style.background='linear-gradient(135deg,#fee2e2,#fecaca)'" title="تصفير النجوم والبدء من الصفر">
-                🔄 تصفير
-              </button>
-            </div>
-            <div id="fbStarsRating" style="display:flex;flex-direction:column;gap:10px;"></div>
-            <div id="fbTotalStars" style="margin-top:12px;text-align:center;font-size:12px;color:#65676B;font-weight:700;background:#FFF8E1;border-radius:10px;padding:8px 12px;"></div>
-          </div>
-
-          <!-- منشورات الملف الشخصي -->
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #E4E6EB;">
-            <div style="font-size:14px;font-weight:900;color:#050505;">📝 منشوراتي</div>
-            <div id="fbPostsCountBadge" style="background:#1877F2;color:white;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:900;">0</div>
-          </div>
-          <div id="fbProfilePostsContainer" style="display:flex;flex-direction:column;gap:12px;"></div>
+          <div id="fbProfileRole" style="font-size:13px;color:#65676B;margin-top:2px;font-weight:600;"></div>
         </div>
+
+        <!-- عداد المتابعون / المتابعين / المنشورات -->
+        <div style="display:flex;gap:0;margin:8px 0 10px;border-radius:12px;overflow:hidden;background:#F0F2F5;">
+          <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
+            <div id="fbFollowersCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;">متابِع</div>
+          </div>
+          <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
+            <div id="fbFollowingCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;">متابَع</div>
+          </div>
+          <div style="flex:1;padding:8px 4px;text-align:center;">
+            <div id="fbPostsCount" style="font-size:16px;font-weight:900;color:#1877F2;">0</div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;">منشور</div>
+          </div>
+        </div>
+
+        <!-- شعلة التقدم اليومي وعدد الأيام -->
+        <div style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:12px;padding:10px 14px;margin-bottom:10px;">
+          <span id="fbStreakFlame" style="font-size:26px;">🔥</span>
+          <div>
+            <div style="font-size:13px;font-weight:900;color:#e65100;">التقدم اليومي</div>
+            <div id="fbStreakInfo" style="font-size:12px;color:#bf360c;font-weight:700;">عضو منذ ... يوم</div>
+          </div>
+        </div>
+
+        <!-- بيانات التسجيل -->
+        <div id="fbRegInfo" style="background:#F0F2F5;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#65676B;line-height:1.9;"></div>
+
+        <!-- شريط التقدم والمستوى -->
+        <div style="background:#F0F2F5;border-radius:14px;padding:14px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-size:13px;font-weight:900;color:#050505;">المستوى</div>
+            <div id="fbLevelBadge" style="background:linear-gradient(135deg,#1877F2,#00c853);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:900;color:white;">🚀 1</div>
+          </div>
+          <div style="height:8px;background:#E4E6EB;border-radius:4px;overflow:hidden;margin-bottom:6px;">
+            <div id="fbLevelBar" style="height:100%;background:linear-gradient(90deg,#1877F2,#00c853);border-radius:4px;transition:width .6s ease;width:0%;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#65676B;font-weight:700;">
+            <span id="fbLevelPts">0 نقطة</span>
+            <span>3000 نقطة للمستوى التالي</span>
+          </div>
+        </div>
+
+        <!-- النقاط والرصيد -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <div style="background:#F0F2F5;border-radius:12px;padding:14px;text-align:center;">
+            <div id="fbTotalPts" style="font-size:22px;font-weight:900;color:#1877F2;">0</div>
+            <div style="font-size:11px;color:#65676B;font-weight:700;">نقطة إجمالية</div>
+          </div>
+          <div style="background:#F0F2F5;border-radius:12px;padding:14px;text-align:center;">
+            <div id="fbBalance" style="font-size:22px;font-weight:900;color:#00c853;">0 دج</div>
+            <div style="font-size:11px;color:#65676B;font-weight:700;">الرصيد</div>
+          </div>
+        </div>
+
+        <!-- 7 نجوم التقييم -->
+        <div style="background:#F0F2F5;border-radius:14px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:10px;">⭐ تقييمك (7 معايير × 3000 نجم = توثيق)</div>
+          <div id="fbStarsRating" style="display:flex;flex-direction:column;gap:8px;"></div>
+          <div id="fbTotalStars" style="margin-top:10px;text-align:center;font-size:12px;color:#65676B;font-weight:700;"></div>
+        </div>
+
+        <!-- أزرار الإجراءات -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <button onclick="openMyFullProfile()" style="flex:1;padding:9px;background:#1877F2;border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;">✏️ تعديل الملف</button>
+          <button onclick="openFBFriendsFromProfile()" style="flex:1;padding:9px;background:#F0F2F5;border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#050505;cursor:pointer;">👥 الأصدقاء</button>
+        </div>
+
+        <!-- منشورات الملف الشخصي -->
+        <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #E4E6EB;">📝 منشوراتي</div>
+        <div id="fbProfilePostsContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
       </div>
+    </div>
 
   </div><!-- end scrollable -->
 
@@ -14090,16 +14063,6 @@ function getAdminVerifiedBadgeHtml(authorName){
    ⭐ نظام التقييم بالنجوم السبع
    ══════════════════════════════════════════════════════════ */
 
-/* ══════════════════════════════════════════════════════════
-   ⭐ نظام التقييم بالنجوم — مؤقت 24 ساعة، شخصي لكل عضو
-   ══════════════════════════════════════════════════════════
-   📌 القواعد:
-     - كل شخص يقيّم العضو الآخر بشكل مستقل
-     - التقييم يبقى نشطاً 24 ساعة (يمكن تغييره خلالها)
-     - بعد 24 ساعة يُثبّت على آخر تقييم قام به
-     - تقييم كل شخص لا يؤثر على تقييم الآخرين
-   ══════════════════════════════════════════════════════════ */
-
 function _getStarRatingsKey(memberName){
   return 'nld_stars_' + memberName.replace(/\s+/g,'_');
 }
@@ -14108,34 +14071,24 @@ function _getTotalStarsKey(memberName){
   return 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
 }
 
-/* مفتاح وقت آخر تقييم قام به myName لـ targetName */
-function _getStarTimestampKey(myName, targetName){
-  return 'nld_star_ts_' + myName.replace(/\s+/g,'_') + '_for_' + targetName.replace(/\s+/g,'_');
-}
-
-/* هل يمكن لـ myName تعديل تقييمه لـ targetName؟ (خلال 24 ساعة) */
-function _canEditStarRating(myName, targetName){
-  const tsKey = _getStarTimestampKey(myName, targetName);
-  const ts = parseInt(localStorage.getItem(tsKey)||'0');
-  if(!ts) return true; // لم يقيّم بعد
-  return (Date.now() - ts) < 24 * 60 * 60 * 1000; // أقل من 24 ساعة
-}
-
 function rateMember(stars){
   const myName = getCurrentUser();
   const targetName = _mpvCurrentUser;
   if(!myName || !targetName || myName === targetName) return;
   if(myName === 'زائر'){ showToast('⚠️ يجب تسجيل الدخول أولاً'); return; }
 
-  const tsKey = _getStarTimestampKey(myName, targetName);
-  const lastTs = parseInt(localStorage.getItem(tsKey)||'0');
+  // مفتاح وقت آخر تقييم (قفل 24 ساعة)
+  const lockKey = 'nld_rate_lock_' + myName.replace(/\s+/g,'_') + '_to_' + targetName.replace(/\s+/g,'_');
+  const lastRateTs = parseInt(localStorage.getItem(lockKey)||'0');
   const now = Date.now();
-  const elapsed = now - lastTs;
-  const locked = lastTs > 0 && elapsed >= 24 * 60 * 60 * 1000;
+  const H24 = 24 * 60 * 60 * 1000;
 
-  if(locked){
-    const hoursAgo = Math.floor(elapsed / 3600000);
-    showToast(`🔒 انتهت فترة 24 ساعة — تقييمك ثابت على ${(JSON.parse(localStorage.getItem(_getStarRatingsKey(targetName))||'{}')||{})[myName] || 0} نجوم`);
+  // التحقق: هل سبق التقييم وما زال القفل ساريًا؟
+  if(lastRateTs > 0 && (now - lastRateTs) < H24){
+    const remaining = H24 - (now - lastRateTs);
+    const hrs = Math.floor(remaining / 3600000);
+    const mins = Math.ceil((remaining % 3600000) / 60000);
+    showToast(`⏳ يمكنك تغيير تقييمك بعد ${hrs}س ${mins}د`);
     return;
   }
 
@@ -14144,19 +14097,28 @@ function rateMember(stars){
   try{ ratings = JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){ ratings = {}; }
 
   const prevStars = ratings[myName] || 0;
-  /* كل مستخدم له تقييمه الخاص — لا يؤثر على تقييمات الآخرين */
-  ratings[myName] = stars;
+
+  // تخزين التقييم مع الطابع الزمني
+  ratings[myName] = { v: stars, ts: now };
   localStorage.setItem(key, JSON.stringify(ratings));
 
-  /* حفظ وقت أول تقييم فقط (لا نُحدِّث الوقت عند التعديل) */
-  if(!lastTs) localStorage.setItem(tsKey, String(now));
+  // تسجيل وقت التقييم (قفل 24 ساعة)
+  localStorage.setItem(lockKey, String(now));
 
-  // حساب مجموع النجوم
-  const total = Object.values(ratings).reduce((s,v)=>s+(parseInt(v)||0), 0);
+  // حساب مجموع ومعدل النجوم
+  const allVals = Object.values(ratings).map(r => typeof r === 'object' ? (r.v||0) : (parseInt(r)||0));
+  const total = allVals.reduce((s,v)=>s+v, 0);
+  const count = allVals.length;
+  const avg = count > 0 ? (total / count) : 0;
+
   const totalKey = _getTotalStarsKey(targetName);
+  const avgKey = 'nld_star_avg_' + targetName.replace(/\s+/g,'_');
+  const countKey = 'nld_star_count_' + targetName.replace(/\s+/g,'_');
   localStorage.setItem(totalKey, String(total));
+  localStorage.setItem(avgKey, avg.toFixed(2));
+  localStorage.setItem(countKey, String(count));
 
-  // تحديث عداد نجوم التوثيق
+  // تحديث شارة التوثيق
   _updateMpvAdminBadge(targetName);
 
   // تحديث واجهة النجوم
@@ -14164,11 +14126,10 @@ function rateMember(stars){
 
   // إشعار لصاحب الملف
   if(prevStars !== stars){
-    addSocialNotif(targetName, myName + ' قيّمك بـ ' + stars + ' نجوم ⭐', '⭐');
+    addSocialNotif(targetName, myName + ' قيّمك بـ ' + stars + ' نجوم ⭐ (معدل: ' + avg.toFixed(1) + ')', '⭐');
   }
 
-  const remaining = Math.round((24 * 60 * 60 * 1000 - (Date.now() - (parseInt(localStorage.getItem(tsKey)||String(now))))) / 3600000);
-  showToast(`⭐ تم تقييمك بـ ${stars} نجمة! يمكنك التعديل خلال ${remaining > 0 ? remaining : 0} ساعة`);
+  showToast('⭐ تم تقييمك بـ ' + stars + ' نجمة! (المعدل الحالي: ' + avg.toFixed(1) + ')');
 }
 
 function _renderMpvStars(memberName){
@@ -14189,42 +14150,74 @@ function _renderMpvStars(memberName){
   let ratings = {};
   try{ ratings = JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){}
 
-  const myRating = ratings[myName] || 0;
-  const total = Object.values(ratings).reduce((s,v)=>s+(parseInt(v)||0), 0);
-  const count = Object.keys(ratings).length;
+  // دعم صيغة التقييم الجديدة {v, ts} والقديمة (رقم مباشر)
+  const myRatingObj = ratings[myName];
+  const myRating = myRatingObj ? (typeof myRatingObj === 'object' ? (myRatingObj.v||0) : (parseInt(myRatingObj)||0)) : 0;
 
-  /* حساب الوقت المتبقي لإمكانية التعديل */
-  const tsKey = _getStarTimestampKey(myName, memberName);
-  const lastTs = parseInt(localStorage.getItem(tsKey)||'0');
-  const canEdit = _canEditStarRating(myName, memberName);
-  const msLeft = lastTs ? Math.max(0, 24*3600*1000 - (Date.now()-lastTs)) : 0;
-  const hLeft = Math.floor(msLeft/3600000);
-  const mLeft = Math.floor((msLeft%3600000)/60000);
+  const allVals = Object.values(ratings).map(r => typeof r === 'object' ? (r.v||0) : (parseInt(r)||0));
+  const total = allVals.reduce((s,v)=>s+v, 0);
+  const count = allVals.length;
+  const avg = count > 0 ? (total / count) : 0;
+
+  // فحص قفل 24 ساعة
+  const lockKey = 'nld_rate_lock_' + (myName||'').replace(/\s+/g,'_') + '_to_' + memberName.replace(/\s+/g,'_');
+  const lastRateTs = parseInt(localStorage.getItem(lockKey)||'0');
+  const now = Date.now();
+  const H24 = 24 * 60 * 60 * 1000;
+  const isLocked = lastRateTs > 0 && (now - lastRateTs) < H24;
+  let lockInfo = '';
+  if(isLocked){
+    const remaining = H24 - (now - lastRateTs);
+    const hrs = Math.floor(remaining / 3600000);
+    const mins = Math.ceil((remaining % 3600000) / 60000);
+    lockInfo = ` — 🔒 تغيير التقييم بعد ${hrs}س ${mins}د`;
+  }
 
   // تلوين النجوم
   const stars = bar.querySelectorAll('.star-item');
   stars.forEach(function(s){
     const v = parseInt(s.getAttribute('data-v'));
-    const filled = v <= myRating;
-    s.classList.toggle('filled', filled);
-    s.style.filter = filled ? 'none' : 'grayscale(1)';
-    s.style.opacity = filled ? '1' : '0.4';
-    /* تعطيل النقر بعد 24 ساعة */
-    s.style.cursor = canEdit ? 'pointer' : 'not-allowed';
-    s.onclick = canEdit ? (function(starVal){ return function(){ rateMember(starVal); }; })(v) : null;
+    if(v <= myRating){
+      s.classList.add('filled');
+      s.style.filter = 'none';
+      s.style.opacity = '1';
+    } else {
+      s.classList.remove('filled');
+      s.style.filter = 'grayscale(1)';
+      s.style.opacity = '0.4';
+    }
+    // إظهار بصري لحالة القفل
+    s.style.cursor = isLocked ? 'not-allowed' : 'pointer';
+    s.style.pointerEvents = isLocked ? 'none' : '';
   });
 
-  // تحديث النص
+  // تحديث النص مع المعدل
   if(scoreEl){
     if(myRating > 0){
-      const avg = count > 0 ? (total/count).toFixed(1) : '0';
-      const lockInfo = !canEdit
-        ? ' 🔒 ثابت'
-        : (msLeft > 0 ? ` · تعديل خلال ${hLeft}س ${mLeft}د` : '');
-      scoreEl.innerHTML = `تقييمك: ${'⭐'.repeat(myRating)}${lockInfo} | متوسط: ${avg} (${count} تقييم)`;
+      scoreEl.innerHTML = `تقييمك: ${'⭐'.repeat(myRating)} | <strong style="color:#f5c518;">معدل: ${avg.toFixed(1)}★</strong> من ${count} تقييم${lockInfo}`;
     } else {
-      scoreEl.innerText = canEdit ? 'انقر على النجوم لتقييم هذا العضو' : 'لم تقيّم هذا العضو بعد';
+      scoreEl.innerHTML = `لم تقيّم بعد | <strong style="color:#f5c518;">معدل: ${avg.toFixed(1)}★</strong> من ${count} تقييم`;
     }
+  }
+
+  // عرض المعدل في شريط التقييم بالرأس (mpvRatingStars)
+  const ratingStarsEl = document.getElementById('mpvRatingStars');
+  const ratingLabelEl = document.getElementById('mpvRatingLabel');
+  if(ratingStarsEl){
+    const fullStars = Math.floor(avg);
+    const halfStar = (avg - fullStars) >= 0.5;
+    let starsHtml = '';
+    for(let i=1;i<=5;i++){
+      if(i<=fullStars) starsHtml += '<span style="color:#f5c518;font-size:14px;">★</span>';
+      else if(i===fullStars+1 && halfStar) starsHtml += '<span style="color:#f5c518;font-size:14px;">½</span>';
+      else starsHtml += '<span style="color:#ddd;font-size:14px;">★</span>';
+    }
+    ratingStarsEl.innerHTML = starsHtml;
+  }
+  if(ratingLabelEl){
+    ratingLabelEl.innerHTML = count > 0
+      ? `<span style="color:#f5c518;font-weight:900;">${avg.toFixed(1)}</span> <span style="color:#65676B;">(${count})</span>`
+      : '<span style="color:#9ca3af;">لا تقييمات</span>';
   }
 }
 
@@ -15346,20 +15339,17 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
         </div>
       </div>
 
-      <!-- تقييمك لهذا الصديق (تقييم يدوي 24 ساعة) -->
+      <!-- تقييمك لهذا الصديق (تقييم يدوي) -->
       <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">
-          <div style="font-size:13px;font-weight:800;color:#050505;">⭐ قيّم هذا الصديق</div>
-          ${myRating > 0 ? `<button onclick="_resetMyRatingFor('${memberName}')" style="background:#fee2e2;border:1px solid rgba(239,68,68,0.2);border-radius:7px;color:#ef4444;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;padding:4px 9px;cursor:pointer;">🔄 تصفير</button>` : ''}
-        </div>
-        <div style="display:flex;justify-content:center;gap:6px;margin-bottom:12px;" id="mpvStarsRow">
+        <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">⭐ قيّم صفحة هذا الصديق</div>
+        <div style="display:flex;justify-content:center;gap:4px;margin-bottom:10px;" id="mpvStarsRow">
           ${manualStarsHtml}
         </div>
         <div style="text-align:center;">
           ${myRating > 0
-            ? `<div style="font-size:12px;color:#65676B;">قيّمت بـ <strong style="color:#f5c518;">${myRating} نجمة</strong> — يمكن التعديل خلال 24 ساعة</div>`
-            : `<div style="font-size:12px;color:#65676B;">اضغط على النجوم لتقييم هذا الصديق</div>`}
-          <div style="margin-top:6px;font-size:11px;color:#9ca3af;">إجمالي النجوم: <strong style="color:#f5c518;">${totalStars} ⭐</strong></div>
+            ? `<div style="font-size:12px;color:#65676B;">قيّمت بـ <strong style="color:#f5c518;">${myRating} نجمة</strong> — اضغط لتغيير تقييمك</div>`
+            : `<div style="font-size:12px;color:#65676B;">اضغط على عدد النجوم لتقييم هذا الصديق</div>`}
+          <div style="margin-top:6px;font-size:11px;color:#9ca3af;">إجمالي نجوم التقييم التي حصل عليها: <strong style="color:#f5c518;">${totalStars} ⭐</strong></div>
         </div>
       </div>
 
@@ -15379,58 +15369,83 @@ function _renderMpvVisitorRating(memberName, normName){
   const myName = getCurrentUser() || '';
   const rKey = 'nld_visitor_rating_' + (myName).replace(/\s+/g,'_') + '_to_' + normName;
   const myRating = parseInt(localStorage.getItem(rKey)||'0');
-  // إجمالي تقييمات الزوار
+
+  // إجمالي تقييمات الزوار — دعم الصيغتين القديمة والجديدة
   const allRatingsRaw = (() => { try{ return JSON.parse(localStorage.getItem('nld_visitor_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
-  const ratingValues = Object.values(allRatingsRaw).map(v=>parseInt(v)||0).filter(v=>v>0);
+  const ratingValues = Object.values(allRatingsRaw).map(v=>typeof v==='object'?(v.v||0):(parseInt(v)||0)).filter(v=>v>0);
   const avgRating = ratingValues.length > 0 ? (ratingValues.reduce((a,b)=>a+b,0)/ratingValues.length) : 0;
   const ratingCount = ratingValues.length;
+
+  // فحص قفل 24 ساعة
+  const lockKey = 'nld_vrate_lock_' + (myName||'').replace(/\s+/g,'_') + '_to_' + normName;
+  const lastTs = parseInt(localStorage.getItem(lockKey)||'0');
+  const now = Date.now();
+  const H24 = 24 * 60 * 60 * 1000;
+  const isLocked = lastTs > 0 && (now - lastTs) < H24;
 
   const starsEl = document.getElementById('mpvRatingStars');
   const labelEl = document.getElementById('mpvRatingLabel');
   if(!starsEl || !labelEl) return;
 
   const isMe = myName === memberName;
-  // عرض النجوم
   let html = '';
   for(let i=1;i<=5;i++){
     const filled = i <= Math.round(avgRating);
     const myFilled = i <= myRating;
-    if(isMe || myRating > 0){
-      // للمالك أو من قيّم: عرض فقط
-      html += `<span style="font-size:20px;color:${filled?'#f5c518':'#ddd'};">★</span>`;
+    if(isMe || isLocked){
+      html += `<span style="font-size:20px;color:${myRating>0?(myFilled?'#f5c518':'#ddd'):(filled?'#f5c518':'#ddd')};">★</span>`;
     } else {
-      // للزائر الذي لم يقيّم بعد: قابل للنقر
       html += `<span onclick="_submitMpvVisitorRating('${memberName}','${normName}',${i})" style="font-size:22px;color:${myFilled?'#f5c518':'#ddd'};cursor:pointer;transition:.15s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">★</span>`;
     }
   }
   starsEl.innerHTML = html;
 
   if(isMe){
-    labelEl.innerText = ratingCount > 0 ? `${avgRating.toFixed(1)} (${ratingCount} تقييم)` : 'لا يوجد تقييم بعد';
+    labelEl.innerHTML = ratingCount > 0 ? `<strong style="color:#f5c518;">${avgRating.toFixed(1)}★</strong> (${ratingCount} تقييم)` : 'لا يوجد تقييم بعد';
+  } else if(myRating > 0 && isLocked){
+    const remaining = H24 - (now - lastTs);
+    const hrs = Math.floor(remaining / 3600000);
+    const mins = Math.ceil((remaining % 3600000) / 60000);
+    labelEl.innerHTML = `<span style="color:#f5c518;font-weight:800;">${avgRating.toFixed(1)}★</span> (${ratingCount}) — 🔒${hrs}س${mins}د`;
   } else if(myRating > 0){
-    labelEl.innerHTML = `<span style="color:#f5c518;font-weight:800;">${avgRating.toFixed(1)}</span> (${ratingCount}) — قيّمت بـ ${myRating}★`;
+    labelEl.innerHTML = `<span style="color:#f5c518;font-weight:800;">${avgRating.toFixed(1)}★</span> (${ratingCount}) — قيّمت ${myRating}★`;
   } else {
-    labelEl.innerText = ratingCount > 0 ? `${avgRating.toFixed(1)} (${ratingCount}) — اضغط للتقييم` : 'اضغط للتقييم';
+    labelEl.innerHTML = ratingCount > 0 ? `<span style="color:#f5c518;">${avgRating.toFixed(1)}★</span> (${ratingCount}) — اضغط للتقييم` : 'اضغط للتقييم ⭐';
   }
 }
 
 function _submitMpvVisitorRating(memberName, normName, stars){
   const myName = getCurrentUser() || '';
   if(!myName || myName === memberName) return;
-  const rKey = 'nld_visitor_rating_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
-  const oldRating = parseInt(localStorage.getItem(rKey)||'0');
-  if(oldRating > 0){
-    if(typeof showToast === 'function') showToast('⚠️ سبق أن قيّمت هذا الملف — لا يمكن التقييم مرة ثانية');
+
+  // قفل 24 ساعة للتقييم
+  const lockKey = 'nld_vrate_lock_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
+  const lastTs = parseInt(localStorage.getItem(lockKey)||'0');
+  const now = Date.now();
+  const H24 = 24 * 60 * 60 * 1000;
+  if(lastTs > 0 && (now - lastTs) < H24){
+    const remaining = H24 - (now - lastTs);
+    const hrs = Math.floor(remaining / 3600000);
+    const mins = Math.ceil((remaining % 3600000) / 60000);
+    if(typeof showToast === 'function') showToast(`⏳ يمكنك تغيير تقييمك بعد ${hrs}س ${mins}د`);
     return;
   }
-  // حفظ التقييم
+
+  const rKey = 'nld_visitor_rating_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
+  // حفظ التقييم + وقت القفل
   localStorage.setItem(rKey, String(stars));
+  localStorage.setItem(lockKey, String(now));
+
   const allRatings = (() => { try{ return JSON.parse(localStorage.getItem('nld_visitor_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
-  allRatings[myName] = stars;
+  allRatings[myName] = { v: stars, ts: now };
   localStorage.setItem('nld_visitor_ratings_'+normName, JSON.stringify(allRatings));
-  if(typeof showToast === 'function') showToast(`✅ قيّمت ${memberName} بـ ${stars} نجوم — شكراً!`);
-  // إشعار صاحب الملف
-  if(typeof addSocialNotif === 'function') addSocialNotif(memberName, `${myName} قيّم ملفك بـ ${stars} نجوم ⭐`, '⭐');
+
+  // حساب المعدل الجديد
+  const rVals = Object.values(allRatings).map(r=>typeof r==='object'?(r.v||0):(parseInt(r)||0)).filter(v=>v>0);
+  const rAvg = rVals.length>0 ? (rVals.reduce((s,v)=>s+v,0)/rVals.length) : 0;
+
+  if(typeof showToast === 'function') showToast(`✅ قيّمت ${memberName} بـ ${stars} نجوم! (معدل: ${rAvg.toFixed(1)}★)`);
+  if(typeof addSocialNotif === 'function') addSocialNotif(memberName, `${myName} قيّم ملفك بـ ${stars} نجوم ⭐ (معدل: ${rAvg.toFixed(1)})`, '⭐');
   _renderMpvVisitorRating(memberName, normName);
 }
 
@@ -15541,17 +15556,40 @@ function rateMember(memberName, stars){
   const myName = getCurrentUser();
   if(!myName || myName === memberName) return;
 
+  // قفل 24 ساعة
+  const lockKey = 'nld_rate_lock_' + myName.replace(/\s+/g,'_') + '_to_' + memberName.replace(/\s+/g,'_');
+  const lastRateTs = parseInt(localStorage.getItem(lockKey)||'0');
+  const now = Date.now();
+  const H24 = 24 * 60 * 60 * 1000;
+  if(lastRateTs > 0 && (now - lastRateTs) < H24){
+    const remaining = H24 - (now - lastRateTs);
+    const hrs = Math.floor(remaining / 3600000);
+    const mins = Math.ceil((remaining % 3600000) / 60000);
+    showToast(`⏳ يمكنك تغيير تقييمك بعد ${hrs}س ${mins}د`);
+    return;
+  }
+
   const ratingKey = 'nld_star_rating_' + myName.replace(/\s+/g,'_') + '_to_' + memberName.replace(/\s+/g,'_');
   const oldRating = parseInt(localStorage.getItem(ratingKey)||'0');
-
-  // تحديث تقييمي الشخصي
   localStorage.setItem(ratingKey, String(stars));
+  localStorage.setItem(lockKey, String(now));
 
   // تحديث إجمالي نجوم هذا العضو
   const totalStarsKey = 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
   const currentTotal = parseInt(localStorage.getItem(totalStarsKey)||'0');
   const newTotal = Math.max(0, currentTotal - oldRating + stars);
   localStorage.setItem(totalStarsKey, String(newTotal));
+
+  // تحديث نظام المعدل
+  const rKey = 'nld_stars_' + memberName.replace(/\s+/g,'_');
+  let allRatings = {};
+  try{ allRatings = JSON.parse(localStorage.getItem(rKey)||'{}'); }catch(e){}
+  allRatings[myName] = { v: stars, ts: now };
+  localStorage.setItem(rKey, JSON.stringify(allRatings));
+  const rVals = Object.values(allRatings).map(r=>typeof r==='object'?(r.v||0):(parseInt(r)||0)).filter(v=>v>0);
+  const rAvg = rVals.length>0 ? (rVals.reduce((s,v)=>s+v,0)/rVals.length) : 0;
+  localStorage.setItem('nld_star_avg_'+memberName.replace(/\s+/g,'_'), rAvg.toFixed(2));
+  localStorage.setItem('nld_star_count_'+memberName.replace(/\s+/g,'_'), String(rVals.length));
 
   // تحديث النجوم في الواجهة فوراً
   for(let i=1;i<=7;i++){
@@ -15560,13 +15598,9 @@ function rateMember(memberName, stars){
   }
 
   // إشعار لصاحب الملف
-  addSocialNotif(memberName, `${myName} قيّم ملفك الشخصي بـ ${stars} نجمات ⭐`, '⭐');
-
-  // تحديث إنجازات صاحب الملف (شارة التوثيق)
+  addSocialNotif(memberName, `${myName} قيّم ملفك الشخصي بـ ${stars} نجوم ⭐ (معدل: ${rAvg.toFixed(1)})`, '⭐');
   _checkVerifiedBadge(memberName, newTotal);
-
-  // تحديث العرض في المحادثة
-  showToast(`✅ قيّمت ${memberName} بـ ${stars} نجوم!`);
+  showToast(`✅ قيّمت ${memberName} بـ ${stars} نجوم! (معدل: ${rAvg.toFixed(1)}★)`);
 }
 
 /** فحص وتفعيل شارة التوثيق إذا وصل لـ 300 نجمة */
@@ -21084,32 +21118,19 @@ function _updateFBProfile(){
     }
   }
 
-  // ── عداد المتابعون / المتابَعون / المنشورات — المنطق الصحيح ──
-  // متابِعون = عدد الأصدقاء (من يتابعك = أصدقاؤك)
-  // متابَعون = الأصدقاء + أي متابعات لصفحات/مجموعات
+  // عداد المتابعون / المتابعين / المنشورات — تحديث آلي شامل
+  const followersKey = 'nld_followers_'+normName;
+  const followingKey = 'nld_following_'+normName;
   const allPosts = (() => { try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
   const myPostsCount = allPosts.filter(p=>p.author===name).length;
-
-  // جلب قائمة الأصدقاء
-  const myFriends = (typeof getFriends==='function') ? (getFriends(name)||[]) : (()=>{
-    try{ return JSON.parse(localStorage.getItem('nld_friends_'+normName)||'[]'); }catch(e){ return []; }
-  })();
-  const friendsCount = myFriends.length;
-
-  // جلب المتابعات (صفحات / مجموعات / أعضاء لا يتابعونك)
-  const followingKey = 'nld_following_'+normName;
+  const followersList = (() => { try{ return JSON.parse(localStorage.getItem(followersKey)||'[]'); }catch(e){ return []; } })();
   const followingList = (() => { try{ return JSON.parse(localStorage.getItem(followingKey)||'[]'); }catch(e){ return []; } })();
-  // المتابَعون = الأصدقاء + المتابعات الإضافية
-  const followingCount = friendsCount + followingList.filter(x=>!myFriends.includes(x)).length;
-
   const flEl = document.getElementById('fbFollowersCount');
   const fgEl = document.getElementById('fbFollowingCount');
   const pcEl = document.getElementById('fbPostsCount');
-  const pcBadge = document.getElementById('fbPostsCountBadge');
-  if(flEl) flEl.innerText = friendsCount.toLocaleString();
-  if(fgEl) fgEl.innerText = followingCount.toLocaleString();
-  if(pcEl) pcEl.innerText = (myPostsCount || 0).toLocaleString();
-  if(pcBadge) pcBadge.innerText = (myPostsCount || 0).toLocaleString();
+  if(flEl){ flEl.innerText = (followersList.length || 0).toLocaleString(); }
+  if(fgEl){ fgEl.innerText = (followingList.length || 0).toLocaleString(); }
+  if(pcEl){ pcEl.innerText = (myPostsCount || 0).toLocaleString(); }
 
   // شعلة التقدم اليومي
   const joinTs = parseInt(localStorage.getItem('nld_join_ts_'+normName)||'0') || parseInt(localStorage.getItem('nld_join_'+normName)||'0');
@@ -21270,76 +21291,26 @@ function _updateStarsRating(name){
   const verBadge = document.getElementById('fbVerifiedBadge');
   if(verBadge) verBadge.style.display = verified ? 'inline' : 'none';
 
+  // حساب معدل نجوم التقييم من الزوار
+  const rKey = _getStarRatingsKey ? _getStarRatingsKey(name) : ('nld_stars_'+normName);
+  let visitorRatings = {};
+  try{ visitorRatings = JSON.parse(localStorage.getItem(rKey)||'{}'); }catch(e){}
+  const rVals = Object.values(visitorRatings).map(r => typeof r === 'object' ? (r.v||0) : (parseInt(r)||0)).filter(v=>v>0);
+  const rCount = rVals.length;
+  const rAvg = rCount > 0 ? (rVals.reduce((s,v)=>s+v,0) / rCount) : 0;
+
   if(totalEl){
     const pctTotal = Math.min(100,(totalStars/(7*3000))*100);
+    const avgStarsHtml = rCount > 0
+      ? `<span style="color:#65676B;"> | تقييم الأعضاء: <strong style="color:#f5c518;">${rAvg.toFixed(1)}★</strong> (${rCount} تقييم)</span>`
+      : '';
     totalEl.innerHTML = `
-      إجمالي النجوم: <strong style="color:#f5c518;">${totalStars.toLocaleString()}</strong> / 21,000
+      إجمالي النجوم: <strong style="color:#f5c518;">${totalStars.toLocaleString()}</strong> / 21,000${avgStarsHtml}
       ${verified ? ' — <span style="color:#1877F2;font-weight:900;">✅ موثّق</span>' : ` — تحتاج ${(3000-Math.min(3000,totalStars)).toLocaleString()} نجمة للتوثيق`}`;
   }
 }
 
 /* منشورات الملف الشخصي */
-/* ══ تصفير النجوم — يبدأ العضو من صفر ══ */
-window._resetMyStars = function(){
-  const name = (typeof getCurrentUser==='function') ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
-  if(!name || name==='زائر'){ if(typeof showToast==='function') showToast('⚠️ يجب تسجيل الدخول أولاً'); return; }
-
-  const confirmed = window.confirm('⚠️ هل أنت متأكد من تصفير جميع نجومك؟\nسيُعاد حسابك من صفر ولا يمكن التراجع.');
-  if(!confirmed) return;
-
-  const normName = name.replace(/\s+/g,'_');
-  const cats = ['stars_interaction','stars_activities','stars_comments','stars_quizzes','stars_content','stars_help','stars_discipline'];
-  cats.forEach(k => localStorage.removeItem('nld_'+k+'_'+normName));
-  localStorage.removeItem('nld_total_stars_'+normName);
-
-  // تصفير تقييمات الآخرين لهذا الملف أيضاً
-  localStorage.removeItem('nld_stars_'+normName);
-  localStorage.removeItem('nld_visitor_ratings_'+normName);
-
-  _updateStarsRating(name);
-  if(typeof showToast==='function') showToast('✅ تم تصفير النجوم — ابدأ من جديد!');
-  if(typeof _updateFBProfile==='function') setTimeout(_updateFBProfile, 200);
-};
-
-/* ══ تصفير تقييم النجوم لصديق بعينه ══ */
-window._resetMyRatingFor = function(targetName){
-  const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
-  if(!myName || myName==='زائر'){ if(typeof showToast==='function') showToast('⚠️ يجب تسجيل الدخول'); return; }
-
-  const confirmed = window.confirm(`هل تريد تصفير تقييمك لـ "${targetName}"؟\nيمكنك التقييم من جديد بعد التصفير.`);
-  if(!confirmed) return;
-
-  const normTarget = targetName.replace(/\s+/g,'_');
-  const normMe = myName.replace(/\s+/g,'_');
-
-  // حذف تقييمي من قائمة تقييمات العضو المستهدف
-  const rKey = _getStarRatingsKey ? _getStarRatingsKey(targetName) : 'nld_stars_'+normTarget;
-  try{
-    const ratings = JSON.parse(localStorage.getItem(rKey)||'{}');
-    delete ratings[myName];
-    localStorage.setItem(rKey, JSON.stringify(ratings));
-    const total = Object.values(ratings).reduce((s,v)=>s+(parseInt(v)||0),0);
-    localStorage.setItem('nld_total_stars_'+normTarget, String(total));
-  }catch(e){}
-
-  // حذف timestamp التقييم
-  const tsKey = 'nld_star_ts_'+normMe+'_for_'+normTarget;
-  localStorage.removeItem(tsKey);
-
-  // حذف تقييم الزائر
-  localStorage.removeItem('nld_visitor_rating_'+normMe+'_to_'+normTarget);
-  const vKey = 'nld_visitor_ratings_'+normTarget;
-  try{
-    const vr = JSON.parse(localStorage.getItem(vKey)||'{}');
-    delete vr[myName];
-    localStorage.setItem(vKey, JSON.stringify(vr));
-  }catch(e){}
-
-  if(typeof showToast==='function') showToast('✅ تم تصفير تقييمك — يمكنك التقييم من جديد');
-  if(typeof _renderMpvStars==='function') _renderMpvStars(targetName);
-  if(typeof _mpvCurrentUser!=='undefined') setTimeout(()=>{ if(typeof loadMemberProfile==='function') loadMemberProfile(targetName); }, 400);
-};
-
 function _loadFBProfilePosts(name){
   const container = document.getElementById('fbProfilePostsContainer');
   if(!container) return;
@@ -21393,12 +21364,8 @@ window.handleFBCoverChange = async function(e){
     const name = typeof getCurrentUser==='function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
     if(result && result.url){
       localStorage.setItem('nld_fb_cover_'+name.replace(/\s+/g,'_'), result.url);
-      /* تحديث العنصر الجديد profileCoverFBImg */
-      const coverImg = document.getElementById('profileCoverFBImg');
-      if(coverImg) coverImg.style.backgroundImage=`url(${result.url})`;
-      /* توافق مع القديم */
-      const coverOld = document.getElementById('profileCoverFB');
-      if(coverOld) coverOld.style.backgroundImage=`url(${result.url})`;
+      const cover = document.getElementById('profileCoverFB');
+      if(cover) cover.style.backgroundImage=`url(${result.url})`;
       if(typeof showToast==='function') showToast('✅ تم تغيير صورة الغلاف');
     }
   }catch(err){
@@ -21424,17 +21391,23 @@ if(typeof window.switchSocialTab === 'function'){
 /* تحميل غلاف المستخدم */
 function _loadFBCover(){
   const name = typeof getCurrentUser==='function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
-  if(!name) return;
-  const stored = localStorage.getItem('nld_fb_cover_'+name.replace(/\s+/g,'_'))
-    || localStorage.getItem('nld_cover_'+name.replace(/\s+/g,'_'));
-  const coverImg = document.getElementById('profileCoverFBImg');
-  if(coverImg){
-    if(stored){ coverImg.style.backgroundImage = `url(${stored})`; coverImg.style.opacity='1'; }
-    else { coverImg.style.backgroundImage = ''; }
+  const cover = document.getElementById('profileCoverFB');
+  if(!cover || !name) return;
+  const stored = localStorage.getItem('nld_fb_cover_'+name.replace(/\s+/g,'_'));
+  if(stored){
+    cover.style.backgroundImage = `url(${stored})`;
+    cover.style.backgroundSize = 'cover';
+    cover.style.backgroundPosition = 'center';
+    cover.style.backgroundRepeat = 'no-repeat';
+    const svgLayer = cover.querySelector('div');
+    if(svgLayer) svgLayer.style.display = 'none';
+  } else {
+    cover.style.backgroundImage = '';
+    cover.style.backgroundSize = '';
+    cover.style.backgroundPosition = '';
+    const svgLayer = cover.querySelector('div');
+    if(svgLayer) svgLayer.style.display = '';
   }
-  /* توافق مع عناصر أخرى */
-  const coverOld = document.getElementById('profileCoverFB');
-  if(coverOld && stored) coverOld.style.backgroundImage = `url(${stored})`;
 }
 
 /* ══ القائمة المنسدلة للملف الشخصي ══ */
