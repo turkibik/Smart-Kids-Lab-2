@@ -4768,8 +4768,9 @@ body.member-mode #onlineBar{
     <div style="font-size:11px;color:#65676B;margin-bottom:12px;">عضو القادة المستقبليين • الجزائر 🇩🇿</div>
     <div style="display:flex;gap:8px;">
       <button id="mpvFriendBtn" onclick="handleMpvFriendAction()" style="flex:1;padding:9px;background:linear-gradient(135deg,#00c853,#43a047);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">👥 إضافة صديق</button>
-      <button onclick="startChatWithMpvUser()" style="flex:1;padding:9px;background:linear-gradient(135deg,#25D366,#128C7E);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">💬 رسالة</button>
-      <button onclick="closeMemberProfileView()" style="padding:9px 14px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">رجوع</button>
+      <button id="mpvFollowBtn" onclick="handleMpvFollowAction()" style="flex:1;padding:9px;background:linear-gradient(135deg,#1877F2,#0052cc);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">➕ متابعة</button>
+      <button onclick="startChatWithMpvUser()" style="padding:9px 12px;background:linear-gradient(135deg,#25D366,#128C7E);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">💬</button>
+      <button onclick="closeMemberProfileView()" style="padding:9px 12px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">‹</button>
     </div>
   </div>
 
@@ -13843,6 +13844,8 @@ function submitSocialPost(){
   closeSocialCreatePost();
   renderSocialFeed();
   showToast('تم نشر منشورك ✅');
+  // تحديث عداد المنشورات في ملفي الشخصي تلقائياً
+  setTimeout(()=>{ if(typeof _updateFBProfile==='function') _updateFBProfile(); }, 300);
 }
 
 /* ══════════════════════════════════════════
@@ -14071,37 +14074,18 @@ function _getTotalStarsKey(memberName){
   return 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
 }
 
-function rateMember(stars){
-  const myName = getCurrentUser();
-  const targetName = _mpvCurrentUser;
-  if(!myName || !targetName || myName === targetName) return;
-  if(myName === 'زائر'){ showToast('⚠️ يجب تسجيل الدخول أولاً'); return; }
-
-  const key = _getStarRatingsKey(targetName);
-  let ratings = {};
-  try{ ratings = JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){ ratings = {}; }
-
-  const prevStars = ratings[myName] || 0;
-  ratings[myName] = stars;
-  localStorage.setItem(key, JSON.stringify(ratings));
-
-  // حساب مجموع النجوم
-  const total = Object.values(ratings).reduce((s,v)=>s+(parseInt(v)||0), 0);
-  const totalKey = _getTotalStarsKey(targetName);
-  localStorage.setItem(totalKey, String(total));
-
-  // تحديث عداد نجوم التوثيق
-  _updateMpvAdminBadge(targetName);
-
-  // تحديث واجهة النجوم
-  _renderMpvStars(targetName);
-
-  // إشعار لصاحب الملف
-  if(prevStars !== stars){
-    addSocialNotif(targetName, myName + ' قيّمك بـ ' + stars + ' نجوم ⭐', '⭐');
+/* rateMember — wrapper للتوافق مع الكود القديم
+   إذا نُودي بمعامل واحد فقط (نجوم)، يُعيد توجيه الاستدعاء للنسخة الجديدة */
+function rateMember(memberNameOrStars, starsArg){
+  // التمييز: إذا كان الأول رقماً فهذا استدعاء قديم rateMember(stars)
+  if(typeof memberNameOrStars === 'number'){
+    const stars = memberNameOrStars;
+    const targetName = _mpvCurrentUser;
+    if(!targetName){ return; }
+    return rateMember(targetName, stars);
   }
-
-  showToast('⭐ تم تقييمك بـ ' + stars + ' نجمة!');
+  // الاستدعاء الجديد: rateMember(memberName, stars) — معالج في الأسفل
+  // لن نصل هنا لأن الدالة الجديدة ستُعرَّف لاحقاً وتُلغي هذه
 }
 
 function _renderMpvStars(memberName){
@@ -14355,6 +14339,130 @@ function handleMpvFriendAction(){
   } else {
     sendFriendRequest(_mpvCurrentUser);
   }
+}
+
+/* ══════════════════════════════════════════
+   👤 نظام المتابعة (Follow / Unfollow)
+   ══════════════════════════════════════════ */
+
+/** جلب قائمة من يتابعهم المستخدم */
+function _getFollowingList(userName){
+  const key = 'nld_following_' + (userName||'').replace(/\s+/g,'_');
+  try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; }
+}
+
+/** جلب قائمة متابعي المستخدم */
+function _getFollowersList(userName){
+  const key = 'nld_followers_' + (userName||'').replace(/\s+/g,'_');
+  try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; }
+}
+
+/** حفظ قائمة المتابَعين */
+function _saveFollowingList(userName, list){
+  localStorage.setItem('nld_following_' + (userName||'').replace(/\s+/g,'_'), JSON.stringify(list));
+}
+
+/** حفظ قائمة المتابِعين */
+function _saveFollowersList(userName, list){
+  localStorage.setItem('nld_followers_' + (userName||'').replace(/\s+/g,'_'), JSON.stringify(list));
+}
+
+/** هل المستخدم الحالي يتابع العضو؟ */
+function _isFollowing(targetName){
+  const myName = getCurrentUser()||'';
+  if(!myName || myName === targetName) return false;
+  return _getFollowingList(myName).includes(targetName);
+}
+
+/** متابعة عضو */
+function _followMember(targetName){
+  const myName = getCurrentUser()||'';
+  if(!myName || myName === targetName) return;
+
+  // أضف للمتابَعين (following) عندي
+  const myFollowing = _getFollowingList(myName);
+  if(!myFollowing.includes(targetName)){
+    myFollowing.push(targetName);
+    _saveFollowingList(myName, myFollowing);
+  }
+
+  // أضف للمتابِعين (followers) عند العضو المستهدف
+  const targetFollowers = _getFollowersList(targetName);
+  if(!targetFollowers.includes(myName)){
+    targetFollowers.push(myName);
+    _saveFollowersList(targetName, targetFollowers);
+  }
+
+  // إشعار
+  if(typeof addSocialNotif === 'function')
+    addSocialNotif(targetName, `${myName} بدأ متابعتك 👤`, '👤');
+  if(typeof showToast === 'function') showToast(`✅ أنت الآن تتابع ${targetName}`);
+}
+
+/** إلغاء متابعة عضو */
+function _unfollowMember(targetName){
+  const myName = getCurrentUser()||'';
+  if(!myName) return;
+
+  // أزل من المتابَعين عندي
+  let myFollowing = _getFollowingList(myName).filter(n=>n!==targetName);
+  _saveFollowingList(myName, myFollowing);
+
+  // أزل من المتابِعين عند العضو المستهدف
+  let targetFollowers = _getFollowersList(targetName).filter(n=>n!==myName);
+  _saveFollowersList(targetName, targetFollowers);
+
+  if(typeof showToast === 'function') showToast(`تم إلغاء متابعة ${targetName}`);
+}
+
+/** تحديث زر المتابعة في واجهة ملف العضو */
+function _updateMpvFollowBtn(targetName){
+  const btn = document.getElementById('mpvFollowBtn');
+  if(!btn) return;
+  const myName = getCurrentUser()||'';
+  if(!myName || myName === targetName){ btn.style.display='none'; return; }
+  btn.style.display='';
+  if(_isFollowing(targetName)){
+    btn.innerText = '✅ تتابعه';
+    btn.style.background = '#E4E6EB';
+    btn.style.color = '#050505';
+  } else {
+    btn.innerText = '➕ متابعة';
+    btn.style.background = 'linear-gradient(135deg,#1877F2,#0052cc)';
+    btn.style.color = 'white';
+  }
+}
+
+/** تبديل المتابعة عند الضغط على الزر */
+function handleMpvFollowAction(){
+  if(!_mpvCurrentUser) return;
+  if(_isFollowing(_mpvCurrentUser)){
+    _unfollowMember(_mpvCurrentUser);
+  } else {
+    _followMember(_mpvCurrentUser);
+  }
+  _updateMpvFollowBtn(_mpvCurrentUser);
+  // تحديث الإحصائيات في ملف العضو المستهدف
+  _refreshMpvStats(_mpvCurrentUser);
+  // تحديث إحصائيات ملفي أنا أيضاً (متابَعيني تغيّرت)
+  _updateFBProfile();
+}
+
+/** تحديث إحصائيات ملف العضو (متابعون / متابَعون / منشورات) */
+function _refreshMpvStats(memberName){
+  if(!memberName) return;
+  const normName = memberName.replace(/\s+/g,'_');
+  const allPosts = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
+  const memberPostsCount = allPosts.filter(p=>p.author===memberName).length;
+  const followersList = _getFollowersList(memberName);
+  const followingList = _getFollowingList(memberName);
+
+  const flEl = document.getElementById('mpvFollowersCount');
+  const fgEl = document.getElementById('mpvFollowingCount');
+  const pcEl = document.getElementById('mpvPostsCount');
+  if(flEl) flEl.innerText = followersList.length || 0;
+  if(fgEl) fgEl.innerText = followingList.length || 0;
+  if(pcEl) pcEl.innerText = memberPostsCount || 0;
 }
 
 function renderMpvPosts(memberName, canSeeAll){
@@ -15012,29 +15120,20 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   // ── تقييم الزائر (5 نجوم، مرة واحدة فقط لكل زائر) ──
   _renderMpvVisitorRating(memberName, normName);
 
-  // حساب عدد المتابعين / المتابعين / المنشورات
-  const allPosts = (() => { try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
-  const memberPosts = allPosts.filter(p=>p.author===memberName).length;
-  const followersKey = 'nld_followers_'+normName;
-  const followingKey = 'nld_following_'+normName;
-  const followersList = (() => { try{ return JSON.parse(localStorage.getItem(followersKey)||'[]'); }catch(e){ return []; } })();
-  const followingList = (() => { try{ return JSON.parse(localStorage.getItem(followingKey)||'[]'); }catch(e){ return []; } })();
+  // حساب عدد المتابعين / المتابَعون / المنشورات — باستخدام النظام الموحّد
+  _refreshMpvStats(memberName);
 
-  // تحديث العداد في الرأس
-  const flEl = document.getElementById('mpvFollowersCount');
-  const fgEl = document.getElementById('mpvFollowingCount');
-  const pcEl = document.getElementById('mpvPostsCount');
-  if(flEl) flEl.innerText = followersList.length || 0;
-  if(fgEl) fgEl.innerText = followingList.length || 0;
-  if(pcEl) pcEl.innerText = memberPosts || 0;
+  // تحديث زر المتابعة
+  if(typeof _updateMpvFollowBtn === 'function') _updateMpvFollowBtn(memberName);
 
   if(!canSeeAll){
     // ملف مقيّد: يظهر رسالة التقييد + شريط النجوم للتقييم
     const _rKey = 'nld_star_rating_' + (myName||'').replace(/\s+/g,'_') + '_to_' + normName;
     const _myR = parseInt(localStorage.getItem(_rKey)||'0');
+    const _starPrefix = 'mpvStar_'+normName;
     const _starsHtml = Array.from({length:7}, function(_,i){
       const val=i+1;
-      return `<span id="mpvStar_${val}" onclick="rateMember('${memberName}',${val})" style="font-size:28px;cursor:pointer;transition:transform .15s;${val<=_myR?'color:#f5c518;':'color:#ddd;'}" onmouseover="highlightStars(${val},'mpvStar')" onmouseout="resetStars(${_myR},'mpvStar')">★</span>`;
+      return `<span id="${_starPrefix}_${val}" onclick="rateMember('${memberName}',${val})" style="font-size:28px;cursor:pointer;transition:transform .15s;${val<=_myR?'color:#f5c518;':'color:#ddd;'}" onmouseover="highlightStars(${val},'${_starPrefix}')" onmouseout="resetStars(${_myR},'${_starPrefix}')">★</span>`;
     }).join('');
     infoEl.innerHTML=`<div style="background:#F7F8FA;border-radius:12px;padding:16px;text-align:center;margin:10px 16px;">
       <div style="font-size:32px;margin-bottom:8px;">🔒</div>
@@ -15164,7 +15263,8 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
       }).join('') + `<span style="font-size:16px;margin-right:6px;vertical-align:middle;" title="انتهت مدة التعديل">🔒</span>`
     : Array.from({length:7}, (_,i)=>{
         const val = i+1;
-        return `<span id="mpvStar_${val}" onclick="rateMember('${memberName}',${val})" style="font-size:28px;cursor:pointer;transition:transform .15s;${val<=myRating?'color:#f5c518;':'color:#ddd;'}" onmouseover="highlightStars(${val},'mpvStar')" onmouseout="resetStars(${myRating},'mpvStar')">★</span>`;
+        const _fStarPrefix = 'mpvStar_'+normName;
+        return `<span id="${_fStarPrefix}_${val}" onclick="rateMember('${memberName}',${val})" style="font-size:28px;cursor:pointer;transition:transform .15s;${val<=myRating?'color:#f5c518;':'color:#ddd;'}" onmouseover="highlightStars(${val},'${_fStarPrefix}')" onmouseout="resetStars(${myRating},'${_fStarPrefix}')">★</span>`;
       }).join('');
   // حساب وقت المتبقي للتعديل (بالساعات)
   const _remainHours = _ratingTs > 0 ? Math.max(0, Math.ceil((_LOCK_24H - (Date.now()-_ratingTs))/3600000)) : 24;
@@ -15513,7 +15613,7 @@ function _renderMpvReels(memberName){
   ].join('');
 }
 
-/** تظليل النجوم عند مرور المؤشر */
+/** تظليل النجوم عند مرور المؤشر — prefix يشمل اسم العضو مثل 'mpvStar_اسم_العضو' */
 function highlightStars(val, prefix){
   for(let i=1;i<=7;i++){
     const el=document.getElementById(prefix+'_'+i);
@@ -15521,7 +15621,7 @@ function highlightStars(val, prefix){
   }
 }
 
-/** إعادة النجوم لحالتها الأصلية */
+/** إعادة النجوم لحالتها الأصلية — prefix يشمل اسم العضو */
 function resetStars(myRating, prefix){
   for(let i=1;i<=7;i++){
     const el=document.getElementById(prefix+'_'+i);
@@ -15568,9 +15668,10 @@ function rateMember(memberName, stars){
   const totalStarsKey = 'nld_total_stars_' + normMember;
   localStorage.setItem(totalStarsKey, String(newTotal));
 
-  // تحديث النجوم في الواجهة فوراً
+  // تحديث النجوم في الواجهة فوراً — باستخدام ID فريد لكل عضو
+  const _uPrefix = 'mpvStar_' + normMember;
   for(let i=1;i<=7;i++){
-    const el=document.getElementById('mpvStar_'+i);
+    const el=document.getElementById(_uPrefix+'_'+i);
     if(el) el.style.color = i<=stars ? '#f5c518' : '#ddd';
   }
 
@@ -21106,13 +21207,11 @@ function _updateFBProfile(){
     }
   }
 
-  // عداد المتابعون / المتابعين / المنشورات
-  const followersKey = 'nld_followers_'+normName;
-  const followingKey = 'nld_following_'+normName;
+  // عداد المتابعون / المتابَعون / المنشورات — باستخدام دوال النظام الموحّد
   const allPosts = (() => { try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
   const myPostsCount = allPosts.filter(p=>p.author===name).length;
-  const followersList = (() => { try{ return JSON.parse(localStorage.getItem(followersKey)||'[]'); }catch(e){ return []; } })();
-  const followingList = (() => { try{ return JSON.parse(localStorage.getItem(followingKey)||'[]'); }catch(e){ return []; } })();
+  const followersList = typeof _getFollowersList==='function' ? _getFollowersList(name) : (()=>{ try{ return JSON.parse(localStorage.getItem('nld_followers_'+normName)||'[]'); }catch(e){ return []; } })();
+  const followingList = typeof _getFollowingList==='function' ? _getFollowingList(name) : (()=>{ try{ return JSON.parse(localStorage.getItem('nld_following_'+normName)||'[]'); }catch(e){ return []; } })();
   const flEl = document.getElementById('fbFollowersCount');
   const fgEl = document.getElementById('fbFollowingCount');
   const pcEl = document.getElementById('fbPostsCount');
