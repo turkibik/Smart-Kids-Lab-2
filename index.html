@@ -4768,9 +4768,8 @@ body.member-mode #onlineBar{
     <div style="font-size:11px;color:#65676B;margin-bottom:12px;">عضو القادة المستقبليين • الجزائر 🇩🇿</div>
     <div style="display:flex;gap:8px;">
       <button id="mpvFriendBtn" onclick="handleMpvFriendAction()" style="flex:1;padding:9px;background:linear-gradient(135deg,#00c853,#43a047);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">👥 إضافة صديق</button>
-      <button id="mpvFollowBtn" onclick="handleMpvFollowAction()" style="flex:1;padding:9px;background:linear-gradient(135deg,#1877F2,#0052cc);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">➕ متابعة</button>
-      <button onclick="startChatWithMpvUser()" style="padding:9px 12px;background:linear-gradient(135deg,#25D366,#128C7E);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">💬</button>
-      <button onclick="closeMemberProfileView()" style="padding:9px 12px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">‹</button>
+      <button onclick="startChatWithMpvUser()" style="flex:1;padding:9px;background:linear-gradient(135deg,#25D366,#128C7E);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">💬 رسالة</button>
+      <button onclick="closeMemberProfileView()" style="padding:9px 14px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">رجوع</button>
     </div>
   </div>
 
@@ -13844,8 +13843,6 @@ function submitSocialPost(){
   closeSocialCreatePost();
   renderSocialFeed();
   showToast('تم نشر منشورك ✅');
-  // تحديث عداد المنشورات في ملفي الشخصي تلقائياً
-  setTimeout(()=>{ if(typeof _updateFBProfile==='function') _updateFBProfile(); }, 300);
 }
 
 /* ══════════════════════════════════════════
@@ -14074,18 +14071,37 @@ function _getTotalStarsKey(memberName){
   return 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
 }
 
-/* rateMember — wrapper للتوافق مع الكود القديم
-   إذا نُودي بمعامل واحد فقط (نجوم)، يُعيد توجيه الاستدعاء للنسخة الجديدة */
-function rateMember(memberNameOrStars, starsArg){
-  // التمييز: إذا كان الأول رقماً فهذا استدعاء قديم rateMember(stars)
-  if(typeof memberNameOrStars === 'number'){
-    const stars = memberNameOrStars;
-    const targetName = _mpvCurrentUser;
-    if(!targetName){ return; }
-    return rateMember(targetName, stars);
+function rateMember(stars){
+  const myName = getCurrentUser();
+  const targetName = _mpvCurrentUser;
+  if(!myName || !targetName || myName === targetName) return;
+  if(myName === 'زائر'){ showToast('⚠️ يجب تسجيل الدخول أولاً'); return; }
+
+  const key = _getStarRatingsKey(targetName);
+  let ratings = {};
+  try{ ratings = JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){ ratings = {}; }
+
+  const prevStars = ratings[myName] || 0;
+  ratings[myName] = stars;
+  localStorage.setItem(key, JSON.stringify(ratings));
+
+  // حساب مجموع النجوم
+  const total = Object.values(ratings).reduce((s,v)=>s+(parseInt(v)||0), 0);
+  const totalKey = _getTotalStarsKey(targetName);
+  localStorage.setItem(totalKey, String(total));
+
+  // تحديث عداد نجوم التوثيق
+  _updateMpvAdminBadge(targetName);
+
+  // تحديث واجهة النجوم
+  _renderMpvStars(targetName);
+
+  // إشعار لصاحب الملف
+  if(prevStars !== stars){
+    addSocialNotif(targetName, myName + ' قيّمك بـ ' + stars + ' نجوم ⭐', '⭐');
   }
-  // الاستدعاء الجديد: rateMember(memberName, stars) — معالج في الأسفل
-  // لن نصل هنا لأن الدالة الجديدة ستُعرَّف لاحقاً وتُلغي هذه
+
+  showToast('⭐ تم تقييمك بـ ' + stars + ' نجمة!');
 }
 
 function _renderMpvStars(memberName){
@@ -14339,130 +14355,6 @@ function handleMpvFriendAction(){
   } else {
     sendFriendRequest(_mpvCurrentUser);
   }
-}
-
-/* ══════════════════════════════════════════
-   👤 نظام المتابعة (Follow / Unfollow)
-   ══════════════════════════════════════════ */
-
-/** جلب قائمة من يتابعهم المستخدم */
-function _getFollowingList(userName){
-  const key = 'nld_following_' + (userName||'').replace(/\s+/g,'_');
-  try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; }
-}
-
-/** جلب قائمة متابعي المستخدم */
-function _getFollowersList(userName){
-  const key = 'nld_followers_' + (userName||'').replace(/\s+/g,'_');
-  try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; }
-}
-
-/** حفظ قائمة المتابَعين */
-function _saveFollowingList(userName, list){
-  localStorage.setItem('nld_following_' + (userName||'').replace(/\s+/g,'_'), JSON.stringify(list));
-}
-
-/** حفظ قائمة المتابِعين */
-function _saveFollowersList(userName, list){
-  localStorage.setItem('nld_followers_' + (userName||'').replace(/\s+/g,'_'), JSON.stringify(list));
-}
-
-/** هل المستخدم الحالي يتابع العضو؟ */
-function _isFollowing(targetName){
-  const myName = getCurrentUser()||'';
-  if(!myName || myName === targetName) return false;
-  return _getFollowingList(myName).includes(targetName);
-}
-
-/** متابعة عضو */
-function _followMember(targetName){
-  const myName = getCurrentUser()||'';
-  if(!myName || myName === targetName) return;
-
-  // أضف للمتابَعين (following) عندي
-  const myFollowing = _getFollowingList(myName);
-  if(!myFollowing.includes(targetName)){
-    myFollowing.push(targetName);
-    _saveFollowingList(myName, myFollowing);
-  }
-
-  // أضف للمتابِعين (followers) عند العضو المستهدف
-  const targetFollowers = _getFollowersList(targetName);
-  if(!targetFollowers.includes(myName)){
-    targetFollowers.push(myName);
-    _saveFollowersList(targetName, targetFollowers);
-  }
-
-  // إشعار
-  if(typeof addSocialNotif === 'function')
-    addSocialNotif(targetName, `${myName} بدأ متابعتك 👤`, '👤');
-  if(typeof showToast === 'function') showToast(`✅ أنت الآن تتابع ${targetName}`);
-}
-
-/** إلغاء متابعة عضو */
-function _unfollowMember(targetName){
-  const myName = getCurrentUser()||'';
-  if(!myName) return;
-
-  // أزل من المتابَعين عندي
-  let myFollowing = _getFollowingList(myName).filter(n=>n!==targetName);
-  _saveFollowingList(myName, myFollowing);
-
-  // أزل من المتابِعين عند العضو المستهدف
-  let targetFollowers = _getFollowersList(targetName).filter(n=>n!==myName);
-  _saveFollowersList(targetName, targetFollowers);
-
-  if(typeof showToast === 'function') showToast(`تم إلغاء متابعة ${targetName}`);
-}
-
-/** تحديث زر المتابعة في واجهة ملف العضو */
-function _updateMpvFollowBtn(targetName){
-  const btn = document.getElementById('mpvFollowBtn');
-  if(!btn) return;
-  const myName = getCurrentUser()||'';
-  if(!myName || myName === targetName){ btn.style.display='none'; return; }
-  btn.style.display='';
-  if(_isFollowing(targetName)){
-    btn.innerText = '✅ تتابعه';
-    btn.style.background = '#E4E6EB';
-    btn.style.color = '#050505';
-  } else {
-    btn.innerText = '➕ متابعة';
-    btn.style.background = 'linear-gradient(135deg,#1877F2,#0052cc)';
-    btn.style.color = 'white';
-  }
-}
-
-/** تبديل المتابعة عند الضغط على الزر */
-function handleMpvFollowAction(){
-  if(!_mpvCurrentUser) return;
-  if(_isFollowing(_mpvCurrentUser)){
-    _unfollowMember(_mpvCurrentUser);
-  } else {
-    _followMember(_mpvCurrentUser);
-  }
-  _updateMpvFollowBtn(_mpvCurrentUser);
-  // تحديث الإحصائيات في ملف العضو المستهدف
-  _refreshMpvStats(_mpvCurrentUser);
-  // تحديث إحصائيات ملفي أنا أيضاً (متابَعيني تغيّرت)
-  _updateFBProfile();
-}
-
-/** تحديث إحصائيات ملف العضو (متابعون / متابَعون / منشورات) */
-function _refreshMpvStats(memberName){
-  if(!memberName) return;
-  const normName = memberName.replace(/\s+/g,'_');
-  const allPosts = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
-  const memberPostsCount = allPosts.filter(p=>p.author===memberName).length;
-  const followersList = _getFollowersList(memberName);
-  const followingList = _getFollowingList(memberName);
-
-  const flEl = document.getElementById('mpvFollowersCount');
-  const fgEl = document.getElementById('mpvFollowingCount');
-  const pcEl = document.getElementById('mpvPostsCount');
-  if(flEl) flEl.innerText = followersList.length || 0;
-  if(fgEl) fgEl.innerText = followingList.length || 0;
-  if(pcEl) pcEl.innerText = memberPostsCount || 0;
 }
 
 function renderMpvPosts(memberName, canSeeAll){
@@ -15120,20 +15012,29 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   // ── تقييم الزائر (5 نجوم، مرة واحدة فقط لكل زائر) ──
   _renderMpvVisitorRating(memberName, normName);
 
-  // حساب عدد المتابعين / المتابَعون / المنشورات — باستخدام النظام الموحّد
-  _refreshMpvStats(memberName);
+  // حساب عدد المتابعين / المتابعين / المنشورات
+  const allPosts = (() => { try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
+  const memberPosts = allPosts.filter(p=>p.author===memberName).length;
+  const followersKey = 'nld_followers_'+normName;
+  const followingKey = 'nld_following_'+normName;
+  const followersList = (() => { try{ return JSON.parse(localStorage.getItem(followersKey)||'[]'); }catch(e){ return []; } })();
+  const followingList = (() => { try{ return JSON.parse(localStorage.getItem(followingKey)||'[]'); }catch(e){ return []; } })();
 
-  // تحديث زر المتابعة
-  if(typeof _updateMpvFollowBtn === 'function') _updateMpvFollowBtn(memberName);
+  // تحديث العداد في الرأس
+  const flEl = document.getElementById('mpvFollowersCount');
+  const fgEl = document.getElementById('mpvFollowingCount');
+  const pcEl = document.getElementById('mpvPostsCount');
+  if(flEl) flEl.innerText = followersList.length || 0;
+  if(fgEl) fgEl.innerText = followingList.length || 0;
+  if(pcEl) pcEl.innerText = memberPosts || 0;
 
   if(!canSeeAll){
     // ملف مقيّد: يظهر رسالة التقييد + شريط النجوم للتقييم
     const _rKey = 'nld_star_rating_' + (myName||'').replace(/\s+/g,'_') + '_to_' + normName;
     const _myR = parseInt(localStorage.getItem(_rKey)||'0');
-    const _starPrefix = 'mpvStar_'+normName;
     const _starsHtml = Array.from({length:7}, function(_,i){
       const val=i+1;
-      return `<span id="${_starPrefix}_${val}" onclick="rateMember('${memberName}',${val})" style="font-size:28px;cursor:pointer;transition:transform .15s;${val<=_myR?'color:#f5c518;':'color:#ddd;'}" onmouseover="highlightStars(${val},'${_starPrefix}')" onmouseout="resetStars(${_myR},'${_starPrefix}')">★</span>`;
+      return `<span id="mpvStar_${val}" onclick="rateMember('${memberName}',${val})" style="font-size:28px;cursor:pointer;transition:transform .15s;${val<=_myR?'color:#f5c518;':'color:#ddd;'}" onmouseover="highlightStars(${val},'mpvStar')" onmouseout="resetStars(${_myR},'mpvStar')">★</span>`;
     }).join('');
     infoEl.innerHTML=`<div style="background:#F7F8FA;border-radius:12px;padding:16px;text-align:center;margin:10px 16px;">
       <div style="font-size:32px;margin-bottom:8px;">🔒</div>
@@ -15166,16 +15067,6 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   // جلب التقييم الحالي لهذا العضو من طرف الصديق
   const ratingKey = 'nld_star_rating_' + (myName||'').replace(/\s+/g,'_') + '_to_' + normName;
   const myRating = parseInt(localStorage.getItem(ratingKey)||'0');
-  // نافذة 24 ساعة: هل انتهت مدة تعديل التقييم؟
-  const _ratingTsKey = 'nld_star_rating_ts_' + (myName||'').replace(/\s+/g,'_') + '_to_' + normName;
-  const _ratingTs = parseInt(localStorage.getItem(_ratingTsKey)||'0');
-  const _LOCK_24H = 24 * 60 * 60 * 1000;
-  const isManualRatingLocked = myRating > 0 && _ratingTs > 0 && (Date.now() - _ratingTs) > _LOCK_24H;
-  // حساب المعدل من كل المقيّمين (7 نجوم)
-  const _manualRatingsAll = (() => { try{ return JSON.parse(localStorage.getItem('nld_manual_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
-  const _manualRatingVals = Object.values(_manualRatingsAll).map(v=>parseInt(v)||0).filter(v=>v>0);
-  const avgManualRating = _manualRatingVals.length > 0 ? (_manualRatingVals.reduce((a,b)=>a+b,0)/_manualRatingVals.length) : 0;
-  const manualRatingCount = _manualRatingVals.length;
 
   // جلب بيانات التسجيل من Firebase مع دعم كلا نظامي التسجيل (القديم والجديد)
   let regData = {};
@@ -15255,21 +15146,11 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
     </div>`;
   });
 
-  // نجوم التقييم اليدوي (7 نجوم للضغط) — مع دعم 24 ساعة
-  const manualStarsHtml = isManualRatingLocked
-    ? Array.from({length:7}, (_,i)=>{
-        const val=i+1;
-        return `<span style="font-size:28px;${val<=myRating?'color:#f5c518;':'color:#ddd;'}">★</span>`;
-      }).join('') + `<span style="font-size:16px;margin-right:6px;vertical-align:middle;" title="انتهت مدة التعديل">🔒</span>`
-    : Array.from({length:7}, (_,i)=>{
-        const val = i+1;
-        const _fStarPrefix = 'mpvStar_'+normName;
-        return `<span id="${_fStarPrefix}_${val}" onclick="rateMember('${memberName}',${val})" style="font-size:28px;cursor:pointer;transition:transform .15s;${val<=myRating?'color:#f5c518;':'color:#ddd;'}" onmouseover="highlightStars(${val},'${_fStarPrefix}')" onmouseout="resetStars(${myRating},'${_fStarPrefix}')">★</span>`;
-      }).join('');
-  // حساب وقت المتبقي للتعديل (بالساعات)
-  const _remainHours = _ratingTs > 0 ? Math.max(0, Math.ceil((_LOCK_24H - (Date.now()-_ratingTs))/3600000)) : 24;
-  // المعدل بالنجوم (من 7) لعرضه للجمهور
-  const avgStarsDisplay = avgManualRating > 0 ? `${avgManualRating.toFixed(1)}/7 ⭐ (${manualRatingCount} تقييم)` : 'لا يوجد تقييم بعد';
+  // نجوم التقييم اليدوي (7 نجوم للضغط)
+  const manualStarsHtml = Array.from({length:7}, (_,i)=>{
+    const val = i+1;
+    return `<span id="mpvStar_${val}" onclick="rateMember('${memberName}',${val})" style="font-size:28px;cursor:pointer;transition:transform .15s;${val<=myRating?'color:#f5c518;':'color:#ddd;'}" onmouseover="highlightStars(${val},'mpvStar')" onmouseout="resetStars(${myRating},'mpvStar')">★</span>`;
+  }).join('');
 
   // بناء بيانات الملف الشخصي
   const profileFields = [
@@ -15391,21 +15272,15 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
 
       <!-- تقييمك لهذا الصديق (تقييم يدوي) -->
       <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">
-          <div style="font-size:13px;font-weight:800;color:#050505;">⭐ قيّم صفحة هذا الصديق</div>
-          ${avgManualRating > 0 ? `<div style="font-size:11px;color:#f59e0b;font-weight:700;">معدل ${avgManualRating.toFixed(1)}/7</div>` : ''}
-        </div>
+        <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">⭐ قيّم صفحة هذا الصديق</div>
         <div style="display:flex;justify-content:center;gap:4px;margin-bottom:10px;" id="mpvStarsRow">
           ${manualStarsHtml}
         </div>
         <div style="text-align:center;">
           ${myRating > 0
-            ? isManualRatingLocked
-              ? `<div style="font-size:12px;color:#9ca3af;">🔒 قيّمت بـ <strong style="color:#f5c518;">${myRating} نجمة</strong> — انتهت مدة التعديل</div>`
-              : `<div style="font-size:12px;color:#65676B;">قيّمت بـ <strong style="color:#f5c518;">${myRating} نجمة</strong> — يمكنك التغيير خلال <strong style="color:#1877F2;">${_remainHours}س</strong></div>`
-            : `<div style="font-size:12px;color:#65676B;">اضغط على النجوم لتقييم هذا الصديق (24 ساعة للتعديل)</div>`}
-          <div style="margin-top:6px;font-size:11px;color:#9ca3af;">معدل التقييم العام: <strong style="color:#f5c518;">${avgStarsDisplay}</strong></div>
-          <div style="margin-top:3px;font-size:11px;color:#9ca3af;">إجمالي النجوم للشارة: <strong style="color:#f5c518;">${totalStars} ⭐</strong></div>
+            ? `<div style="font-size:12px;color:#65676B;">قيّمت بـ <strong style="color:#f5c518;">${myRating} نجمة</strong> — اضغط لتغيير تقييمك</div>`
+            : `<div style="font-size:12px;color:#65676B;">اضغط على عدد النجوم لتقييم هذا الصديق</div>`}
+          <div style="margin-top:6px;font-size:11px;color:#9ca3af;">إجمالي نجوم التقييم التي حصل عليها: <strong style="color:#f5c518;">${totalStars} ⭐</strong></div>
         </div>
       </div>
 
@@ -15420,110 +15295,63 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   _renderMpvVisitorRating(memberName, normName);
 }
 
-/* ── دالة تقييم الزائر (5 نجوم — قابل للتعديل خلال 24 ساعة) ── */
+/* ── دالة تقييم الزائر (5 نجوم، مرة واحدة فقط) ── */
 function _renderMpvVisitorRating(memberName, normName){
   const myName = getCurrentUser() || '';
-  const rKey  = 'nld_visitor_rating_' + (myName).replace(/\s+/g,'_') + '_to_' + normName;
-  const tsKey = 'nld_visitor_rating_ts_' + (myName).replace(/\s+/g,'_') + '_to_' + normName;
-  const myRating  = parseInt(localStorage.getItem(rKey)||'0');
-  const myTs      = parseInt(localStorage.getItem(tsKey)||'0');
-  const LIMIT_24H = 24 * 60 * 60 * 1000;
-  const now       = Date.now();
-  const isLocked  = myRating > 0 && myTs > 0 && (now - myTs) > LIMIT_24H;
-  const hoursLeft = myTs > 0 ? Math.max(0, Math.ceil((LIMIT_24H - (now - myTs))/3600000)) : 24;
-
-  // إجمالي تقييمات الزوار (للمعدل)
+  const rKey = 'nld_visitor_rating_' + (myName).replace(/\s+/g,'_') + '_to_' + normName;
+  const myRating = parseInt(localStorage.getItem(rKey)||'0');
+  // إجمالي تقييمات الزوار
   const allRatingsRaw = (() => { try{ return JSON.parse(localStorage.getItem('nld_visitor_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
-  const ratingValues  = Object.values(allRatingsRaw).map(v=>parseInt(v)||0).filter(v=>v>0);
-  const avgRating     = ratingValues.length > 0 ? (ratingValues.reduce((a,b)=>a+b,0)/ratingValues.length) : 0;
-  const ratingCount   = ratingValues.length;
+  const ratingValues = Object.values(allRatingsRaw).map(v=>parseInt(v)||0).filter(v=>v>0);
+  const avgRating = ratingValues.length > 0 ? (ratingValues.reduce((a,b)=>a+b,0)/ratingValues.length) : 0;
+  const ratingCount = ratingValues.length;
 
   const starsEl = document.getElementById('mpvRatingStars');
   const labelEl = document.getElementById('mpvRatingLabel');
   if(!starsEl || !labelEl) return;
 
   const isMe = myName === memberName;
+  // عرض النجوم
   let html = '';
   for(let i=1;i<=5;i++){
-    const avgFilled = i <= Math.round(avgRating);
-    const myFilled  = i <= myRating;
-    if(isMe){
-      // المالك: عرض المعدل فقط
-      html += `<span style="font-size:20px;color:${avgFilled?'#f5c518':'#ddd'};">★</span>`;
-    } else if(isLocked){
-      // مقفل بعد 24 ساعة: عرض تقييمي بدون نقر
-      html += `<span style="font-size:20px;color:${myFilled?'#f5c518':'#ddd'};">★</span>`;
-    } else if(myRating > 0){
-      // قيّم وضمن 24 ساعة: قابل للتعديل
-      html += `<span onclick="_submitMpvVisitorRating('${memberName}','${normName}',${i})" style="font-size:22px;color:${myFilled?'#f5c518':'#ddd'};cursor:pointer;transition:.15s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">★</span>`;
+    const filled = i <= Math.round(avgRating);
+    const myFilled = i <= myRating;
+    if(isMe || myRating > 0){
+      // للمالك أو من قيّم: عرض فقط
+      html += `<span style="font-size:20px;color:${filled?'#f5c518':'#ddd'};">★</span>`;
     } else {
-      // لم يقيّم بعد: قابل للنقر (نجوم رمادية)
-      html += `<span onclick="_submitMpvVisitorRating('${memberName}','${normName}',${i})" style="font-size:22px;color:#ddd;cursor:pointer;transition:.15s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">★</span>`;
+      // للزائر الذي لم يقيّم بعد: قابل للنقر
+      html += `<span onclick="_submitMpvVisitorRating('${memberName}','${normName}',${i})" style="font-size:22px;color:${myFilled?'#f5c518':'#ddd'};cursor:pointer;transition:.15s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">★</span>`;
     }
   }
-  // أيقونة القفل بعد 24 ساعة
-  if(isLocked) html += `<span style="font-size:14px;margin-right:4px;vertical-align:middle;" title="انتهت مدة التعديل">🔒</span>`;
   starsEl.innerHTML = html;
 
-  // النص التوضيحي
   if(isMe){
     labelEl.innerText = ratingCount > 0 ? `${avgRating.toFixed(1)} (${ratingCount} تقييم)` : 'لا يوجد تقييم بعد';
-  } else if(isLocked){
-    labelEl.innerHTML = `<span style="color:#9ca3af;font-size:10px;">🔒 قيّمت بـ ${myRating}★ | معدل ${avgRating.toFixed(1)} (${ratingCount})</span>`;
   } else if(myRating > 0){
-    labelEl.innerHTML = `<span style="color:#f5c518;font-weight:800;">${avgRating.toFixed(1)}</span> (${ratingCount}) — <span style="color:#1877F2;">قيّمت ${myRating}★ · ${hoursLeft}س للتعديل</span>`;
+    labelEl.innerHTML = `<span style="color:#f5c518;font-weight:800;">${avgRating.toFixed(1)}</span> (${ratingCount}) — قيّمت بـ ${myRating}★`;
   } else {
-    labelEl.innerText = ratingCount > 0 ? `${avgRating.toFixed(1)} (${ratingCount}) — اضغط للتقييم` : 'اضغط للتقييم ★';
+    labelEl.innerText = ratingCount > 0 ? `${avgRating.toFixed(1)} (${ratingCount}) — اضغط للتقييم` : 'اضغط للتقييم';
   }
 }
 
 function _submitMpvVisitorRating(memberName, normName, stars){
   const myName = getCurrentUser() || '';
   if(!myName || myName === memberName) return;
-  const rKey  = 'nld_visitor_rating_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
-  const tsKey = 'nld_visitor_rating_ts_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
+  const rKey = 'nld_visitor_rating_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
   const oldRating = parseInt(localStorage.getItem(rKey)||'0');
-  const oldTs     = parseInt(localStorage.getItem(tsKey)||'0');
-  const now       = Date.now();
-  const LIMIT_24H = 24 * 60 * 60 * 1000;
-
-  // منع التعديل بعد انقضاء 24 ساعة
-  if(oldRating > 0 && oldTs > 0 && (now - oldTs) > LIMIT_24H){
-    if(typeof showToast === 'function') showToast('🔒 انتهت مدة تعديل التقييم (24 ساعة من أول تقييم)');
+  if(oldRating > 0){
+    if(typeof showToast === 'function') showToast('⚠️ سبق أن قيّمت هذا الملف — لا يمكن التقييم مرة ثانية');
     return;
   }
-
-  const isNew = oldRating === 0;
-
-  // حفظ التقييم + الطابع الزمني (الطابع يُحفظ فقط عند التقييم الأول)
+  // حفظ التقييم
   localStorage.setItem(rKey, String(stars));
-  if(isNew) localStorage.setItem(tsKey, String(now));
-
-  // تحديث قاموس كل التقييمات (للمعدل)
   const allRatings = (() => { try{ return JSON.parse(localStorage.getItem('nld_visitor_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
   allRatings[myName] = stars;
   localStorage.setItem('nld_visitor_ratings_'+normName, JSON.stringify(allRatings));
-
-  // تحديث إجمالي النجوم للشارة
-  const allVals = Object.values(allRatings).map(v=>parseInt(v)||0).filter(v=>v>0);
-  const newTotal = allVals.reduce((a,b)=>a+b,0);
-  const totalStarsKey = 'nld_total_stars_' + normName;
-  localStorage.setItem(totalStarsKey, String(newTotal));
-
-  // رسالة مختلفة لأول تقييم أو تعديل
-  const hoursLeft = Math.max(0, Math.ceil((LIMIT_24H - (now - (isNew ? now : oldTs)))/3600000));
-  const msg = isNew
-    ? `✅ قيّمت ${memberName} بـ ${stars} نجوم — يمكنك التعديل خلال 24 ساعة`
-    : `✅ تم تحديث تقييمك لـ ${memberName} إلى ${stars} نجوم (متبقي ${hoursLeft}س)`;
-  if(typeof showToast === 'function') showToast(msg);
-
-  // إشعار صاحب الملف عند التقييم الأول فقط
-  if(isNew && typeof addSocialNotif === 'function')
-    addSocialNotif(memberName, `${myName} قيّم ملفك بـ ${stars} نجوم ⭐`, '⭐');
-
-  // تحديث شارة التوثيق
-  if(typeof _checkVerifiedBadge === 'function') _checkVerifiedBadge(memberName, newTotal);
-
+  if(typeof showToast === 'function') showToast(`✅ قيّمت ${memberName} بـ ${stars} نجوم — شكراً!`);
+  // إشعار صاحب الملف
+  if(typeof addSocialNotif === 'function') addSocialNotif(memberName, `${myName} قيّم ملفك بـ ${stars} نجوم ⭐`, '⭐');
   _renderMpvVisitorRating(memberName, normName);
 }
 
@@ -15613,7 +15441,7 @@ function _renderMpvReels(memberName){
   ].join('');
 }
 
-/** تظليل النجوم عند مرور المؤشر — prefix يشمل اسم العضو مثل 'mpvStar_اسم_العضو' */
+/** تظليل النجوم عند مرور المؤشر */
 function highlightStars(val, prefix){
   for(let i=1;i<=7;i++){
     const el=document.getElementById(prefix+'_'+i);
@@ -15621,7 +15449,7 @@ function highlightStars(val, prefix){
   }
 }
 
-/** إعادة النجوم لحالتها الأصلية — prefix يشمل اسم العضو */
+/** إعادة النجوم لحالتها الأصلية */
 function resetStars(myRating, prefix){
   for(let i=1;i<=7;i++){
     const el=document.getElementById(prefix+'_'+i);
@@ -15629,67 +15457,37 @@ function resetStars(myRating, prefix){
   }
 }
 
-/** تقييم صديق بعدد معين من النجوم — مع نافذة 24 ساعة للتعديل */
+/** تقييم صديق بعدد معين من النجوم */
 function rateMember(memberName, stars){
   const myName = getCurrentUser();
   if(!myName || myName === memberName) return;
 
-  const normMember = memberName.replace(/\s+/g,'_');
-  const normMe     = myName.replace(/\s+/g,'_');
+  const ratingKey = 'nld_star_rating_' + myName.replace(/\s+/g,'_') + '_to_' + memberName.replace(/\s+/g,'_');
+  const oldRating = parseInt(localStorage.getItem(ratingKey)||'0');
 
-  const ratingKey  = 'nld_star_rating_' + normMe + '_to_' + normMember;
-  const tsKey      = 'nld_star_rating_ts_' + normMe + '_to_' + normMember;
-  const oldRating  = parseInt(localStorage.getItem(ratingKey)||'0');
-  const oldTs      = parseInt(localStorage.getItem(tsKey)||'0');
-  const now        = Date.now();
-  const LIMIT_24H  = 24 * 60 * 60 * 1000;
-
-  // منع التعديل بعد 24 ساعة من التقييم الأول
-  if(oldRating > 0 && oldTs > 0 && (now - oldTs) > LIMIT_24H){
-    showToast('🔒 انتهت مدة تعديل التقييم (24 ساعة من أول تقييم)');
-    return;
-  }
-
-  const isNew = oldRating === 0;
-
-  // حفظ التقييم الشخصي
+  // تحديث تقييمي الشخصي
   localStorage.setItem(ratingKey, String(stars));
-  // حفظ الطابع الزمني عند التقييم الأول فقط
-  if(isNew) localStorage.setItem(tsKey, String(now));
 
-  // تحديث قاموس كل التقييمات (للمعدل)
-  const allManual = (() => { try{ return JSON.parse(localStorage.getItem('nld_manual_ratings_'+normMember)||'{}'); }catch(e){ return {}; } })();
-  allManual[myName] = stars;
-  localStorage.setItem('nld_manual_ratings_'+normMember, JSON.stringify(allManual));
-
-  // إعادة حساب إجمالي النجوم للشارة (مجموع كل المقيّمين)
-  const allVals = Object.values(allManual).map(v=>parseInt(v)||0).filter(v=>v>0);
-  const newTotal = allVals.reduce((a,b)=>a+b,0);
-  const totalStarsKey = 'nld_total_stars_' + normMember;
+  // تحديث إجمالي نجوم هذا العضو
+  const totalStarsKey = 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
+  const currentTotal = parseInt(localStorage.getItem(totalStarsKey)||'0');
+  const newTotal = Math.max(0, currentTotal - oldRating + stars);
   localStorage.setItem(totalStarsKey, String(newTotal));
 
-  // تحديث النجوم في الواجهة فوراً — باستخدام ID فريد لكل عضو
-  const _uPrefix = 'mpvStar_' + normMember;
+  // تحديث النجوم في الواجهة فوراً
   for(let i=1;i<=7;i++){
-    const el=document.getElementById(_uPrefix+'_'+i);
+    const el=document.getElementById('mpvStar_'+i);
     if(el) el.style.color = i<=stars ? '#f5c518' : '#ddd';
   }
 
-  // حساب المعدل وعرضه
-  const avgNew = allVals.length > 0 ? (newTotal/allVals.length).toFixed(1) : stars;
-
-  // إشعار لصاحب الملف (فقط عند التقييم الأول)
-  if(isNew) addSocialNotif(memberName, `${myName} قيّم ملفك الشخصي بـ ${stars} نجوم ⭐`, '⭐');
+  // إشعار لصاحب الملف
+  addSocialNotif(memberName, `${myName} قيّم ملفك الشخصي بـ ${stars} نجمات ⭐`, '⭐');
 
   // تحديث إنجازات صاحب الملف (شارة التوثيق)
   _checkVerifiedBadge(memberName, newTotal);
 
-  // رسالة مختلفة لأول تقييم أو تعديل
-  const hoursLeft = isNew ? 24 : Math.max(0, Math.ceil((LIMIT_24H - (now - oldTs))/3600000));
-  const msg = isNew
-    ? `✅ قيّمت ${memberName} بـ ${stars} نجوم — يمكنك التعديل خلال 24 ساعة`
-    : `✅ تم تحديث تقييمك لـ ${memberName} إلى ${stars} نجوم — متبقي ${hoursLeft}س للتعديل`;
-  showToast(msg);
+  // تحديث العرض في المحادثة
+  showToast(`✅ قيّمت ${memberName} بـ ${stars} نجوم!`);
 }
 
 /** فحص وتفعيل شارة التوثيق إذا وصل لـ 300 نجمة */
@@ -21207,11 +21005,13 @@ function _updateFBProfile(){
     }
   }
 
-  // عداد المتابعون / المتابَعون / المنشورات — باستخدام دوال النظام الموحّد
+  // عداد المتابعون / المتابعين / المنشورات
+  const followersKey = 'nld_followers_'+normName;
+  const followingKey = 'nld_following_'+normName;
   const allPosts = (() => { try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
   const myPostsCount = allPosts.filter(p=>p.author===name).length;
-  const followersList = typeof _getFollowersList==='function' ? _getFollowersList(name) : (()=>{ try{ return JSON.parse(localStorage.getItem('nld_followers_'+normName)||'[]'); }catch(e){ return []; } })();
-  const followingList = typeof _getFollowingList==='function' ? _getFollowingList(name) : (()=>{ try{ return JSON.parse(localStorage.getItem('nld_following_'+normName)||'[]'); }catch(e){ return []; } })();
+  const followersList = (() => { try{ return JSON.parse(localStorage.getItem(followersKey)||'[]'); }catch(e){ return []; } })();
+  const followingList = (() => { try{ return JSON.parse(localStorage.getItem(followingKey)||'[]'); }catch(e){ return []; } })();
   const flEl = document.getElementById('fbFollowersCount');
   const fgEl = document.getElementById('fbFollowingCount');
   const pcEl = document.getElementById('fbPostsCount');
