@@ -1052,7 +1052,19 @@ window.uploadStoryMusic = async function(file) {
 @keyframes storyFill{from{width:0%}to{width:100%}}
 
 html,body{margin:0;padding:0;width:100%;height:100%;}
-body{min-height:100vh;background:var(--dark);color:var(--text);display:flex;justify-content:center;align-items:center;overflow:hidden;margin:0;padding:0;}
+body{
+  min-height:100vh;
+  background:var(--dark);
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow-y:auto;
+  overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;
+  margin:0;
+  padding:0;
+}
 
 /* ===== خلفية بصورة حقيقية ===== */
 #hero-bg{
@@ -21850,5 +21862,107 @@ window.switchSocialTab = function(tab){
 
 })();
 </script>
+
+<script>
+/* ═══════════════════════════════════════════════
+   📱 منع خروج التطبيق عند السحب للأسفل
+═══════════════════════════════════════════════ */
+let __touchStartY = 0;
+
+window.addEventListener('touchstart', e=>{
+  if(e.touches && e.touches.length){
+    __touchStartY = e.touches[0].clientY;
+  }
+},{passive:true});
+
+window.addEventListener('touchmove', e=>{
+  if(!e.touches || !e.touches.length) return;
+
+  const currentY = e.touches[0].clientY;
+
+  if(window.scrollY <= 0 && currentY > __touchStartY){
+    e.preventDefault();
+  }
+},{passive:false});
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════
+   👁️ نظام المشاهدات الموحد للملفات الشخصية
+═══════════════════════════════════════════════ */
+window.increaseProfileViews = function(userId,type){
+  try{
+    let data = JSON.parse(localStorage.getItem('profileViews') || '{}');
+
+    if(!data[userId]){
+      data[userId] = {
+        profile:0,
+        stories:0,
+        posts:0,
+        reels:0,
+        total:0
+      };
+    }
+
+    if(!data[userId][type]){
+      data[userId][type] = 0;
+    }
+
+    data[userId][type]++;
+
+    data[userId].total =
+      (data[userId].profile || 0) +
+      (data[userId].stories || 0) +
+      (data[userId].posts || 0) +
+      (data[userId].reels || 0);
+
+    localStorage.setItem('profileViews', JSON.stringify(data));
+
+    return data[userId].total;
+  }catch(err){
+    console.error('❌ خطأ حساب المشاهدات', err);
+    return 0;
+  }
+};
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════
+   ⭐ نظام تقييم منفصل لكل ملف شخصي
+═══════════════════════════════════════════════ */
+window.saveStarRating = function(profileId,rating){
+  try{
+    let ratings = JSON.parse(
+      localStorage.getItem('profileRatings') || '{}'
+    );
+
+    ratings[profileId] = Number(rating) || 0;
+
+    localStorage.setItem(
+      'profileRatings',
+      JSON.stringify(ratings)
+    );
+
+    return true;
+  }catch(err){
+    console.error('❌ خطأ حفظ التقييم', err);
+    return false;
+  }
+};
+
+window.getStarRating = function(profileId){
+  try{
+    let ratings = JSON.parse(
+      localStorage.getItem('profileRatings') || '{}'
+    );
+
+    return Number(ratings[profileId] || 0);
+  }catch(err){
+    console.error('❌ خطأ قراءة التقييم', err);
+    return 0;
+  }
+};
+</script>
+
 </body>
 </html>
