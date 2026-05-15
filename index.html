@@ -4540,8 +4540,8 @@ body.member-mode #onlineBar{
     <!-- ── REELS PANEL (ريلز) ── -->
     <div id="socialPanel_myprofile" style="display:none;background:#F0F2F5;min-height:100%;">
       <!-- غلاف الملف الشخصي -->
-      <div style="position:relative;height:180px;background:linear-gradient(135deg,#1877F2,#00c853);overflow:hidden;background-size:cover;background-position:center;" id="profileCoverFB">
-        <div style="position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"60\" height=\"60\"><circle cx=\"30\" cy=\"30\" r=\"1\" fill=\"rgba(255,255,255,0.15)\"/></svg>') repeat;pointer-events:none;"></div>
+      <div style="position:relative;height:180px;background:linear-gradient(135deg,#1877F2,#00c853);overflow:hidden;" id="profileCoverFB">
+        <div style="position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"60\" height=\"60\"><circle cx=\"30\" cy=\"30\" r=\"1\" fill=\"rgba(255,255,255,0.15)\"/></svg>') repeat;"></div>
         <!-- زر تغيير الغلاف -->
         <label style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.5);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;gap:4px;">
           📷 تغيير الغلاف
@@ -4550,7 +4550,7 @@ body.member-mode #onlineBar{
       </div>
 
       <!-- صورة الملف الشخصي + الاسم -->
-      <div style="background:white;padding:0 16px 16px;position:relative;">
+      <div style="background:#F0F2F5;padding:0 16px 16px;position:relative;">
         <!-- صورة الملف (قابلة للنقر للتغيير — بدون أيقونة كاميرا فوقها) -->
         <div style="position:relative;display:inline-block;margin-top:-50px;margin-bottom:10px;">
           <label style="display:block;cursor:pointer;">
@@ -14077,48 +14077,20 @@ function rateMember(stars){
   if(!myName || !targetName || myName === targetName) return;
   if(myName === 'زائر'){ showToast('⚠️ يجب تسجيل الدخول أولاً'); return; }
 
-  // مفتاح وقت آخر تقييم (قفل 24 ساعة)
-  const lockKey = 'nld_rate_lock_' + myName.replace(/\s+/g,'_') + '_to_' + targetName.replace(/\s+/g,'_');
-  const lastRateTs = parseInt(localStorage.getItem(lockKey)||'0');
-  const now = Date.now();
-  const H24 = 24 * 60 * 60 * 1000;
-
-  // التحقق: هل سبق التقييم وما زال القفل ساريًا؟
-  if(lastRateTs > 0 && (now - lastRateTs) < H24){
-    const remaining = H24 - (now - lastRateTs);
-    const hrs = Math.floor(remaining / 3600000);
-    const mins = Math.ceil((remaining % 3600000) / 60000);
-    showToast(`⏳ يمكنك تغيير تقييمك بعد ${hrs}س ${mins}د`);
-    return;
-  }
-
   const key = _getStarRatingsKey(targetName);
   let ratings = {};
   try{ ratings = JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){ ratings = {}; }
 
   const prevStars = ratings[myName] || 0;
-
-  // تخزين التقييم مع الطابع الزمني
-  ratings[myName] = { v: stars, ts: now };
+  ratings[myName] = stars;
   localStorage.setItem(key, JSON.stringify(ratings));
 
-  // تسجيل وقت التقييم (قفل 24 ساعة)
-  localStorage.setItem(lockKey, String(now));
-
-  // حساب مجموع ومعدل النجوم
-  const allVals = Object.values(ratings).map(r => typeof r === 'object' ? (r.v||0) : (parseInt(r)||0));
-  const total = allVals.reduce((s,v)=>s+v, 0);
-  const count = allVals.length;
-  const avg = count > 0 ? (total / count) : 0;
-
+  // حساب مجموع النجوم
+  const total = Object.values(ratings).reduce((s,v)=>s+(parseInt(v)||0), 0);
   const totalKey = _getTotalStarsKey(targetName);
-  const avgKey = 'nld_star_avg_' + targetName.replace(/\s+/g,'_');
-  const countKey = 'nld_star_count_' + targetName.replace(/\s+/g,'_');
   localStorage.setItem(totalKey, String(total));
-  localStorage.setItem(avgKey, avg.toFixed(2));
-  localStorage.setItem(countKey, String(count));
 
-  // تحديث شارة التوثيق
+  // تحديث عداد نجوم التوثيق
   _updateMpvAdminBadge(targetName);
 
   // تحديث واجهة النجوم
@@ -14126,10 +14098,10 @@ function rateMember(stars){
 
   // إشعار لصاحب الملف
   if(prevStars !== stars){
-    addSocialNotif(targetName, myName + ' قيّمك بـ ' + stars + ' نجوم ⭐ (معدل: ' + avg.toFixed(1) + ')', '⭐');
+    addSocialNotif(targetName, myName + ' قيّمك بـ ' + stars + ' نجوم ⭐', '⭐');
   }
 
-  showToast('⭐ تم تقييمك بـ ' + stars + ' نجمة! (المعدل الحالي: ' + avg.toFixed(1) + ')');
+  showToast('⭐ تم تقييمك بـ ' + stars + ' نجمة!');
 }
 
 function _renderMpvStars(memberName){
@@ -14150,28 +14122,9 @@ function _renderMpvStars(memberName){
   let ratings = {};
   try{ ratings = JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){}
 
-  // دعم صيغة التقييم الجديدة {v, ts} والقديمة (رقم مباشر)
-  const myRatingObj = ratings[myName];
-  const myRating = myRatingObj ? (typeof myRatingObj === 'object' ? (myRatingObj.v||0) : (parseInt(myRatingObj)||0)) : 0;
-
-  const allVals = Object.values(ratings).map(r => typeof r === 'object' ? (r.v||0) : (parseInt(r)||0));
-  const total = allVals.reduce((s,v)=>s+v, 0);
-  const count = allVals.length;
-  const avg = count > 0 ? (total / count) : 0;
-
-  // فحص قفل 24 ساعة
-  const lockKey = 'nld_rate_lock_' + (myName||'').replace(/\s+/g,'_') + '_to_' + memberName.replace(/\s+/g,'_');
-  const lastRateTs = parseInt(localStorage.getItem(lockKey)||'0');
-  const now = Date.now();
-  const H24 = 24 * 60 * 60 * 1000;
-  const isLocked = lastRateTs > 0 && (now - lastRateTs) < H24;
-  let lockInfo = '';
-  if(isLocked){
-    const remaining = H24 - (now - lastRateTs);
-    const hrs = Math.floor(remaining / 3600000);
-    const mins = Math.ceil((remaining % 3600000) / 60000);
-    lockInfo = ` — 🔒 تغيير التقييم بعد ${hrs}س ${mins}د`;
-  }
+  const myRating = ratings[myName] || 0;
+  const total = Object.values(ratings).reduce((s,v)=>s+(parseInt(v)||0), 0);
+  const count = Object.keys(ratings).length;
 
   // تلوين النجوم
   const stars = bar.querySelectorAll('.star-item');
@@ -14186,38 +14139,16 @@ function _renderMpvStars(memberName){
       s.style.filter = 'grayscale(1)';
       s.style.opacity = '0.4';
     }
-    // إظهار بصري لحالة القفل
-    s.style.cursor = isLocked ? 'not-allowed' : 'pointer';
-    s.style.pointerEvents = isLocked ? 'none' : '';
   });
 
-  // تحديث النص مع المعدل
+  // تحديث النص
   if(scoreEl){
     if(myRating > 0){
-      scoreEl.innerHTML = `تقييمك: ${'⭐'.repeat(myRating)} | <strong style="color:#f5c518;">معدل: ${avg.toFixed(1)}★</strong> من ${count} تقييم${lockInfo}`;
+      const avg = count > 0 ? (total/count).toFixed(1) : '0';
+      scoreEl.innerHTML = 'تقييمك: ' + '⭐'.repeat(myRating) + ' | متوسط: ' + avg + ' من ' + count + ' تقييم';
     } else {
-      scoreEl.innerHTML = `لم تقيّم بعد | <strong style="color:#f5c518;">معدل: ${avg.toFixed(1)}★</strong> من ${count} تقييم`;
+      scoreEl.innerText = 'لم تقيّم هذا العضو بعد';
     }
-  }
-
-  // عرض المعدل في شريط التقييم بالرأس (mpvRatingStars)
-  const ratingStarsEl = document.getElementById('mpvRatingStars');
-  const ratingLabelEl = document.getElementById('mpvRatingLabel');
-  if(ratingStarsEl){
-    const fullStars = Math.floor(avg);
-    const halfStar = (avg - fullStars) >= 0.5;
-    let starsHtml = '';
-    for(let i=1;i<=5;i++){
-      if(i<=fullStars) starsHtml += '<span style="color:#f5c518;font-size:14px;">★</span>';
-      else if(i===fullStars+1 && halfStar) starsHtml += '<span style="color:#f5c518;font-size:14px;">½</span>';
-      else starsHtml += '<span style="color:#ddd;font-size:14px;">★</span>';
-    }
-    ratingStarsEl.innerHTML = starsHtml;
-  }
-  if(ratingLabelEl){
-    ratingLabelEl.innerHTML = count > 0
-      ? `<span style="color:#f5c518;font-weight:900;">${avg.toFixed(1)}</span> <span style="color:#65676B;">(${count})</span>`
-      : '<span style="color:#9ca3af;">لا تقييمات</span>';
   }
 }
 
@@ -15369,83 +15300,58 @@ function _renderMpvVisitorRating(memberName, normName){
   const myName = getCurrentUser() || '';
   const rKey = 'nld_visitor_rating_' + (myName).replace(/\s+/g,'_') + '_to_' + normName;
   const myRating = parseInt(localStorage.getItem(rKey)||'0');
-
-  // إجمالي تقييمات الزوار — دعم الصيغتين القديمة والجديدة
+  // إجمالي تقييمات الزوار
   const allRatingsRaw = (() => { try{ return JSON.parse(localStorage.getItem('nld_visitor_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
-  const ratingValues = Object.values(allRatingsRaw).map(v=>typeof v==='object'?(v.v||0):(parseInt(v)||0)).filter(v=>v>0);
+  const ratingValues = Object.values(allRatingsRaw).map(v=>parseInt(v)||0).filter(v=>v>0);
   const avgRating = ratingValues.length > 0 ? (ratingValues.reduce((a,b)=>a+b,0)/ratingValues.length) : 0;
   const ratingCount = ratingValues.length;
-
-  // فحص قفل 24 ساعة
-  const lockKey = 'nld_vrate_lock_' + (myName||'').replace(/\s+/g,'_') + '_to_' + normName;
-  const lastTs = parseInt(localStorage.getItem(lockKey)||'0');
-  const now = Date.now();
-  const H24 = 24 * 60 * 60 * 1000;
-  const isLocked = lastTs > 0 && (now - lastTs) < H24;
 
   const starsEl = document.getElementById('mpvRatingStars');
   const labelEl = document.getElementById('mpvRatingLabel');
   if(!starsEl || !labelEl) return;
 
   const isMe = myName === memberName;
+  // عرض النجوم
   let html = '';
   for(let i=1;i<=5;i++){
     const filled = i <= Math.round(avgRating);
     const myFilled = i <= myRating;
-    if(isMe || isLocked){
-      html += `<span style="font-size:20px;color:${myRating>0?(myFilled?'#f5c518':'#ddd'):(filled?'#f5c518':'#ddd')};">★</span>`;
+    if(isMe || myRating > 0){
+      // للمالك أو من قيّم: عرض فقط
+      html += `<span style="font-size:20px;color:${filled?'#f5c518':'#ddd'};">★</span>`;
     } else {
+      // للزائر الذي لم يقيّم بعد: قابل للنقر
       html += `<span onclick="_submitMpvVisitorRating('${memberName}','${normName}',${i})" style="font-size:22px;color:${myFilled?'#f5c518':'#ddd'};cursor:pointer;transition:.15s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">★</span>`;
     }
   }
   starsEl.innerHTML = html;
 
   if(isMe){
-    labelEl.innerHTML = ratingCount > 0 ? `<strong style="color:#f5c518;">${avgRating.toFixed(1)}★</strong> (${ratingCount} تقييم)` : 'لا يوجد تقييم بعد';
-  } else if(myRating > 0 && isLocked){
-    const remaining = H24 - (now - lastTs);
-    const hrs = Math.floor(remaining / 3600000);
-    const mins = Math.ceil((remaining % 3600000) / 60000);
-    labelEl.innerHTML = `<span style="color:#f5c518;font-weight:800;">${avgRating.toFixed(1)}★</span> (${ratingCount}) — 🔒${hrs}س${mins}د`;
+    labelEl.innerText = ratingCount > 0 ? `${avgRating.toFixed(1)} (${ratingCount} تقييم)` : 'لا يوجد تقييم بعد';
   } else if(myRating > 0){
-    labelEl.innerHTML = `<span style="color:#f5c518;font-weight:800;">${avgRating.toFixed(1)}★</span> (${ratingCount}) — قيّمت ${myRating}★`;
+    labelEl.innerHTML = `<span style="color:#f5c518;font-weight:800;">${avgRating.toFixed(1)}</span> (${ratingCount}) — قيّمت بـ ${myRating}★`;
   } else {
-    labelEl.innerHTML = ratingCount > 0 ? `<span style="color:#f5c518;">${avgRating.toFixed(1)}★</span> (${ratingCount}) — اضغط للتقييم` : 'اضغط للتقييم ⭐';
+    labelEl.innerText = ratingCount > 0 ? `${avgRating.toFixed(1)} (${ratingCount}) — اضغط للتقييم` : 'اضغط للتقييم';
   }
 }
 
 function _submitMpvVisitorRating(memberName, normName, stars){
   const myName = getCurrentUser() || '';
   if(!myName || myName === memberName) return;
-
-  // قفل 24 ساعة للتقييم
-  const lockKey = 'nld_vrate_lock_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
-  const lastTs = parseInt(localStorage.getItem(lockKey)||'0');
-  const now = Date.now();
-  const H24 = 24 * 60 * 60 * 1000;
-  if(lastTs > 0 && (now - lastTs) < H24){
-    const remaining = H24 - (now - lastTs);
-    const hrs = Math.floor(remaining / 3600000);
-    const mins = Math.ceil((remaining % 3600000) / 60000);
-    if(typeof showToast === 'function') showToast(`⏳ يمكنك تغيير تقييمك بعد ${hrs}س ${mins}د`);
+  const rKey = 'nld_visitor_rating_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
+  const oldRating = parseInt(localStorage.getItem(rKey)||'0');
+  if(oldRating > 0){
+    if(typeof showToast === 'function') showToast('⚠️ سبق أن قيّمت هذا الملف — لا يمكن التقييم مرة ثانية');
     return;
   }
-
-  const rKey = 'nld_visitor_rating_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
-  // حفظ التقييم + وقت القفل
+  // حفظ التقييم
   localStorage.setItem(rKey, String(stars));
-  localStorage.setItem(lockKey, String(now));
-
   const allRatings = (() => { try{ return JSON.parse(localStorage.getItem('nld_visitor_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
-  allRatings[myName] = { v: stars, ts: now };
+  allRatings[myName] = stars;
   localStorage.setItem('nld_visitor_ratings_'+normName, JSON.stringify(allRatings));
-
-  // حساب المعدل الجديد
-  const rVals = Object.values(allRatings).map(r=>typeof r==='object'?(r.v||0):(parseInt(r)||0)).filter(v=>v>0);
-  const rAvg = rVals.length>0 ? (rVals.reduce((s,v)=>s+v,0)/rVals.length) : 0;
-
-  if(typeof showToast === 'function') showToast(`✅ قيّمت ${memberName} بـ ${stars} نجوم! (معدل: ${rAvg.toFixed(1)}★)`);
-  if(typeof addSocialNotif === 'function') addSocialNotif(memberName, `${myName} قيّم ملفك بـ ${stars} نجوم ⭐ (معدل: ${rAvg.toFixed(1)})`, '⭐');
+  if(typeof showToast === 'function') showToast(`✅ قيّمت ${memberName} بـ ${stars} نجوم — شكراً!`);
+  // إشعار صاحب الملف
+  if(typeof addSocialNotif === 'function') addSocialNotif(memberName, `${myName} قيّم ملفك بـ ${stars} نجوم ⭐`, '⭐');
   _renderMpvVisitorRating(memberName, normName);
 }
 
@@ -15556,40 +15462,17 @@ function rateMember(memberName, stars){
   const myName = getCurrentUser();
   if(!myName || myName === memberName) return;
 
-  // قفل 24 ساعة
-  const lockKey = 'nld_rate_lock_' + myName.replace(/\s+/g,'_') + '_to_' + memberName.replace(/\s+/g,'_');
-  const lastRateTs = parseInt(localStorage.getItem(lockKey)||'0');
-  const now = Date.now();
-  const H24 = 24 * 60 * 60 * 1000;
-  if(lastRateTs > 0 && (now - lastRateTs) < H24){
-    const remaining = H24 - (now - lastRateTs);
-    const hrs = Math.floor(remaining / 3600000);
-    const mins = Math.ceil((remaining % 3600000) / 60000);
-    showToast(`⏳ يمكنك تغيير تقييمك بعد ${hrs}س ${mins}د`);
-    return;
-  }
-
   const ratingKey = 'nld_star_rating_' + myName.replace(/\s+/g,'_') + '_to_' + memberName.replace(/\s+/g,'_');
   const oldRating = parseInt(localStorage.getItem(ratingKey)||'0');
+
+  // تحديث تقييمي الشخصي
   localStorage.setItem(ratingKey, String(stars));
-  localStorage.setItem(lockKey, String(now));
 
   // تحديث إجمالي نجوم هذا العضو
   const totalStarsKey = 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
   const currentTotal = parseInt(localStorage.getItem(totalStarsKey)||'0');
   const newTotal = Math.max(0, currentTotal - oldRating + stars);
   localStorage.setItem(totalStarsKey, String(newTotal));
-
-  // تحديث نظام المعدل
-  const rKey = 'nld_stars_' + memberName.replace(/\s+/g,'_');
-  let allRatings = {};
-  try{ allRatings = JSON.parse(localStorage.getItem(rKey)||'{}'); }catch(e){}
-  allRatings[myName] = { v: stars, ts: now };
-  localStorage.setItem(rKey, JSON.stringify(allRatings));
-  const rVals = Object.values(allRatings).map(r=>typeof r==='object'?(r.v||0):(parseInt(r)||0)).filter(v=>v>0);
-  const rAvg = rVals.length>0 ? (rVals.reduce((s,v)=>s+v,0)/rVals.length) : 0;
-  localStorage.setItem('nld_star_avg_'+memberName.replace(/\s+/g,'_'), rAvg.toFixed(2));
-  localStorage.setItem('nld_star_count_'+memberName.replace(/\s+/g,'_'), String(rVals.length));
 
   // تحديث النجوم في الواجهة فوراً
   for(let i=1;i<=7;i++){
@@ -15598,9 +15481,13 @@ function rateMember(memberName, stars){
   }
 
   // إشعار لصاحب الملف
-  addSocialNotif(memberName, `${myName} قيّم ملفك الشخصي بـ ${stars} نجوم ⭐ (معدل: ${rAvg.toFixed(1)})`, '⭐');
+  addSocialNotif(memberName, `${myName} قيّم ملفك الشخصي بـ ${stars} نجمات ⭐`, '⭐');
+
+  // تحديث إنجازات صاحب الملف (شارة التوثيق)
   _checkVerifiedBadge(memberName, newTotal);
-  showToast(`✅ قيّمت ${memberName} بـ ${stars} نجوم! (معدل: ${rAvg.toFixed(1)}★)`);
+
+  // تحديث العرض في المحادثة
+  showToast(`✅ قيّمت ${memberName} بـ ${stars} نجوم!`);
 }
 
 /** فحص وتفعيل شارة التوثيق إذا وصل لـ 300 نجمة */
@@ -21118,7 +21005,7 @@ function _updateFBProfile(){
     }
   }
 
-  // عداد المتابعون / المتابعين / المنشورات — تحديث آلي شامل
+  // عداد المتابعون / المتابعين / المنشورات
   const followersKey = 'nld_followers_'+normName;
   const followingKey = 'nld_following_'+normName;
   const allPosts = (() => { try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
@@ -21128,9 +21015,9 @@ function _updateFBProfile(){
   const flEl = document.getElementById('fbFollowersCount');
   const fgEl = document.getElementById('fbFollowingCount');
   const pcEl = document.getElementById('fbPostsCount');
-  if(flEl){ flEl.innerText = (followersList.length || 0).toLocaleString(); }
-  if(fgEl){ fgEl.innerText = (followingList.length || 0).toLocaleString(); }
-  if(pcEl){ pcEl.innerText = (myPostsCount || 0).toLocaleString(); }
+  if(flEl) flEl.innerText = followersList.length || 0;
+  if(fgEl) fgEl.innerText = followingList.length || 0;
+  if(pcEl) pcEl.innerText = myPostsCount || 0;
 
   // شعلة التقدم اليومي
   const joinTs = parseInt(localStorage.getItem('nld_join_ts_'+normName)||'0') || parseInt(localStorage.getItem('nld_join_'+normName)||'0');
@@ -21291,21 +21178,10 @@ function _updateStarsRating(name){
   const verBadge = document.getElementById('fbVerifiedBadge');
   if(verBadge) verBadge.style.display = verified ? 'inline' : 'none';
 
-  // حساب معدل نجوم التقييم من الزوار
-  const rKey = _getStarRatingsKey ? _getStarRatingsKey(name) : ('nld_stars_'+normName);
-  let visitorRatings = {};
-  try{ visitorRatings = JSON.parse(localStorage.getItem(rKey)||'{}'); }catch(e){}
-  const rVals = Object.values(visitorRatings).map(r => typeof r === 'object' ? (r.v||0) : (parseInt(r)||0)).filter(v=>v>0);
-  const rCount = rVals.length;
-  const rAvg = rCount > 0 ? (rVals.reduce((s,v)=>s+v,0) / rCount) : 0;
-
   if(totalEl){
     const pctTotal = Math.min(100,(totalStars/(7*3000))*100);
-    const avgStarsHtml = rCount > 0
-      ? `<span style="color:#65676B;"> | تقييم الأعضاء: <strong style="color:#f5c518;">${rAvg.toFixed(1)}★</strong> (${rCount} تقييم)</span>`
-      : '';
     totalEl.innerHTML = `
-      إجمالي النجوم: <strong style="color:#f5c518;">${totalStars.toLocaleString()}</strong> / 21,000${avgStarsHtml}
+      إجمالي النجوم: <strong style="color:#f5c518;">${totalStars.toLocaleString()}</strong> / 21,000
       ${verified ? ' — <span style="color:#1877F2;font-weight:900;">✅ موثّق</span>' : ` — تحتاج ${(3000-Math.min(3000,totalStars)).toLocaleString()} نجمة للتوثيق`}`;
   }
 }
@@ -21394,20 +21270,8 @@ function _loadFBCover(){
   const cover = document.getElementById('profileCoverFB');
   if(!cover || !name) return;
   const stored = localStorage.getItem('nld_fb_cover_'+name.replace(/\s+/g,'_'));
-  if(stored){
-    cover.style.backgroundImage = `url(${stored})`;
-    cover.style.backgroundSize = 'cover';
-    cover.style.backgroundPosition = 'center';
-    cover.style.backgroundRepeat = 'no-repeat';
-    const svgLayer = cover.querySelector('div');
-    if(svgLayer) svgLayer.style.display = 'none';
-  } else {
-    cover.style.backgroundImage = '';
-    cover.style.backgroundSize = '';
-    cover.style.backgroundPosition = '';
-    const svgLayer = cover.querySelector('div');
-    if(svgLayer) svgLayer.style.display = '';
-  }
+  if(stored) cover.style.backgroundImage = `url(${stored})`;
+  else cover.style.backgroundImage = '';
 }
 
 /* ══ القائمة المنسدلة للملف الشخصي ══ */
