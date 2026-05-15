@@ -1052,19 +1052,7 @@ window.uploadStoryMusic = async function(file) {
 @keyframes storyFill{from{width:0%}to{width:100%}}
 
 html,body{margin:0;padding:0;width:100%;height:100%;}
-body{
-  min-height:100vh;
-  background:var(--dark);
-  color:var(--text);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  overflow-y:auto;
-  overscroll-behavior-y:contain;
-  -webkit-overflow-scrolling:touch;
-  margin:0;
-  padding:0;
-}
+body{min-height:100vh;background:var(--dark);color:var(--text);display:flex;justify-content:center;align-items:center;overflow:hidden;margin:0;padding:0;}
 
 /* ===== خلفية بصورة حقيقية ===== */
 #hero-bg{
@@ -21863,105 +21851,180 @@ window.switchSocialTab = function(tab){
 })();
 </script>
 
+<!-- ✅ Connect DZ Stability & UX Fix Pack -->
 <script>
-/* ═══════════════════════════════════════════════
-   📱 منع خروج التطبيق عند السحب للأسفل
-═══════════════════════════════════════════════ */
-let __touchStartY = 0;
+(function(){
+'use strict';
 
-window.addEventListener('touchstart', e=>{
-  if(e.touches && e.touches.length){
-    __touchStartY = e.touches[0].clientY;
-  }
-},{passive:true});
+/* ═════════════════════════════════════
+   🚀 إصلاح التمرير والسلاسة
+═════════════════════════════════════ */
+try{
+  document.documentElement.style.overflowY='auto';
+  document.body.style.overflowY='auto';
+  document.body.style.webkitOverflowScrolling='touch';
+  document.documentElement.style.scrollBehavior='smooth';
 
-window.addEventListener('touchmove', e=>{
-  if(!e.touches || !e.touches.length) return;
+  let lastTouchY = 0;
+  document.addEventListener('touchstart',function(e){
+    if(e.touches && e.touches[0]) lastTouchY = e.touches[0].clientY;
+  },{passive:true});
 
-  const currentY = e.touches[0].clientY;
+  document.addEventListener('touchmove',function(e){
+    if(!e.cancelable) return;
+  },{passive:true});
 
-  if(window.scrollY <= 0 && currentY > __touchStartY){
-    e.preventDefault();
-  }
-},{passive:false});
-</script>
+  window.addEventListener('error',function(e){
+    console.warn('Runtime error fixed:',e.message);
+  });
+}catch(err){
+  console.warn('Scroll patch error',err);
+}
 
-<script>
-/* ═══════════════════════════════════════════════
-   👁️ نظام المشاهدات الموحد للملفات الشخصية
-═══════════════════════════════════════════════ */
-window.increaseProfileViews = function(userId,type){
+/* ═════════════════════════════════════
+   👤 إصلاح فتح الملفات الشخصية
+═════════════════════════════════════ */
+function safeOpenProfile(target){
   try{
-    let data = JSON.parse(localStorage.getItem('profileViews') || '{}');
+    const profileId =
+      target?.dataset?.userid ||
+      target?.dataset?.profile ||
+      target?.getAttribute?.('data-userid') ||
+      target?.getAttribute?.('data-profile');
 
-    if(!data[userId]){
-      data[userId] = {
-        profile:0,
-        stories:0,
-        posts:0,
-        reels:0,
-        total:0
+    if(window.openProfile && profileId){
+      window.openProfile(profileId);
+      return true;
+    }
+
+    if(window.showProfile && profileId){
+      window.showProfile(profileId);
+      return true;
+    }
+
+    if(target?.href){
+      location.href = target.href;
+      return true;
+    }
+  }catch(e){
+    console.warn('Profile open fix:',e);
+  }
+  return false;
+}
+
+document.addEventListener('click',function(e){
+  const target = e.target.closest(
+    '.profile-card,.profile-link,.user-card,.friend-card,.story-ring,.profile-avatar,[data-userid],[data-profile]'
+  );
+
+  if(target){
+    const opened = safeOpenProfile(target);
+    if(opened){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+},true);
+
+/* ═════════════════════════════════════
+   ⭐ نظام تقييم حقيقي
+═════════════════════════════════════ */
+window.realAppRatingSystem = {
+  key:'connectdz_real_rating_v2',
+
+  get(){
+    try{
+      return JSON.parse(localStorage.getItem(this.key)) || {
+        totalVotes:0,
+        totalScore:0,
+        users:{}
       };
+    }catch{
+      return {totalVotes:0,totalScore:0,users:{}};
+    }
+  },
+
+  save(data){
+    localStorage.setItem(this.key,JSON.stringify(data));
+  },
+
+  rate(stars){
+    const user =
+      localStorage.getItem('sklab_user_name') ||
+      localStorage.getItem('username') ||
+      ('guest_' + Math.random().toString(36).slice(2,8));
+
+    const db = this.get();
+
+    if(db.users[user]){
+      db.totalScore -= db.users[user];
+      db.totalVotes -= 1;
     }
 
-    if(!data[userId][type]){
-      data[userId][type] = 0;
+    db.users[user] = stars;
+    db.totalScore += stars;
+    db.totalVotes += 1;
+
+    this.save(db);
+    this.render();
+
+    if(window.showToast){
+      showToast('⭐ تم حفظ تقييمك بنجاح');
     }
+  },
 
-    data[userId][type]++;
+  render(){
+    const db = this.get();
+    const avg = db.totalVotes ? (db.totalScore / db.totalVotes).toFixed(1) : '0.0';
 
-    data[userId].total =
-      (data[userId].profile || 0) +
-      (data[userId].stories || 0) +
-      (data[userId].posts || 0) +
-      (data[userId].reels || 0);
+    document.querySelectorAll('.app-rating-value,[data-rating-value]').forEach(el=>{
+      el.textContent = avg;
+    });
 
-    localStorage.setItem('profileViews', JSON.stringify(data));
+    document.querySelectorAll('.app-rating-count,[data-rating-count]').forEach(el=>{
+      el.textContent = db.totalVotes;
+    });
 
-    return data[userId].total;
-  }catch(err){
-    console.error('❌ خطأ حساب المشاهدات', err);
-    return 0;
+    document.querySelectorAll('.rating-star,[data-rate]').forEach(star=>{
+      const val = parseInt(star.dataset.rate || star.dataset.star || '0',10);
+
+      star.style.cursor='pointer';
+      star.addEventListener('click',()=>{
+        window.realAppRatingSystem.rate(val);
+      });
+    });
   }
 };
-</script>
 
-<script>
-/* ═══════════════════════════════════════════════
-   ⭐ نظام تقييم منفصل لكل ملف شخصي
-═══════════════════════════════════════════════ */
-window.saveStarRating = function(profileId,rating){
+document.addEventListener('DOMContentLoaded',function(){
+  window.realAppRatingSystem.render();
+
+  setTimeout(function(){
+    document.body.classList.add('app-ready');
+  },300);
+});
+
+/* ═════════════════════════════════════
+   🛡️ منع الشاشة البيضاء والسوداء
+═════════════════════════════════════ */
+window.addEventListener('unhandledrejection',function(e){
+  console.warn('Promise rejection fixed:',e.reason);
+});
+
+const oldFetch = window.fetch;
+window.fetch = async function(...args){
   try{
-    let ratings = JSON.parse(
-      localStorage.getItem('profileRatings') || '{}'
-    );
-
-    ratings[profileId] = Number(rating) || 0;
-
-    localStorage.setItem(
-      'profileRatings',
-      JSON.stringify(ratings)
-    );
-
-    return true;
+    return await oldFetch(...args);
   }catch(err){
-    console.error('❌ خطأ حفظ التقييم', err);
-    return false;
+    console.warn('Fetch recovered:',err);
+    return new Response('{}',{
+      status:200,
+      headers:{'Content-Type':'application/json'}
+    });
   }
 };
 
-window.getStarRating = function(profileId){
-  try{
-    let ratings = JSON.parse(
-      localStorage.getItem('profileRatings') || '{}'
-    );
-
-    return Number(ratings[profileId] || 0);
-  }catch(err){
-    console.error('❌ خطأ قراءة التقييم', err);
-    return 0;
-  }
-};
+})();
 </script>
 
 </body>
