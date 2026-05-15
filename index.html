@@ -15067,6 +15067,16 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   // جلب التقييم الحالي لهذا العضو من طرف الصديق
   const ratingKey = 'nld_star_rating_' + (myName||'').replace(/\s+/g,'_') + '_to_' + normName;
   const myRating = parseInt(localStorage.getItem(ratingKey)||'0');
+  // نافذة 24 ساعة: هل انتهت مدة تعديل التقييم؟
+  const _ratingTsKey = 'nld_star_rating_ts_' + (myName||'').replace(/\s+/g,'_') + '_to_' + normName;
+  const _ratingTs = parseInt(localStorage.getItem(_ratingTsKey)||'0');
+  const _LOCK_24H = 24 * 60 * 60 * 1000;
+  const isManualRatingLocked = myRating > 0 && _ratingTs > 0 && (Date.now() - _ratingTs) > _LOCK_24H;
+  // حساب المعدل من كل المقيّمين (7 نجوم)
+  const _manualRatingsAll = (() => { try{ return JSON.parse(localStorage.getItem('nld_manual_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
+  const _manualRatingVals = Object.values(_manualRatingsAll).map(v=>parseInt(v)||0).filter(v=>v>0);
+  const avgManualRating = _manualRatingVals.length > 0 ? (_manualRatingVals.reduce((a,b)=>a+b,0)/_manualRatingVals.length) : 0;
+  const manualRatingCount = _manualRatingVals.length;
 
   // جلب بيانات التسجيل من Firebase مع دعم كلا نظامي التسجيل (القديم والجديد)
   let regData = {};
@@ -15146,32 +15156,20 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
     </div>`;
   });
 
-  // نجوم التقييم اليدوي (7 نجوم للضغط) مع دعم 24 ساعة
-  const ratingTsKeyLocal = 'nld_star_rating_ts_' + (myName||'').replace(/\s+/g,'_') + '_to_' + normName;
-  const ratingTsLocal    = parseInt(localStorage.getItem(ratingTsKeyLocal)||'0');
-  const HOURS24_local    = 24 * 60 * 60 * 1000;
-  const nowLocal         = Date.now();
-  const canChangeLocal   = myRating > 0 && (nowLocal - ratingTsLocal) < HOURS24_local;
-  const isLockedLocal    = myRating > 0 && (nowLocal - ratingTsLocal) >= HOURS24_local;
-
-  const manualStarsHtml = Array.from({length:7}, (_,i)=>{
-    const val = i+1;
-    /* النجمة ذهبية فقط إذا قيّم وتقييمه ≥ val */
-    const isGold   = myRating > 0 && val <= myRating;
-    const colorStr = isGold ? '#f5c518' : '#ccc';
-
-    if(isLockedLocal){
-      /* مقفل: عرض فقط */
-      return `<span id="mpvStar_${val}" style="font-size:28px;color:${colorStr};" title="انتهى وقت التعديل">★</span>`;
-    } else {
-      /* قابل للنقر (لم يقيّم بعد أو ضمن 24 ساعة) */
-      return `<span id="mpvStar_${val}"
-        onclick="rateMember('${memberName}',${val})"
-        style="font-size:28px;cursor:pointer;transition:transform .15s;color:${colorStr};"
-        onmouseover="highlightStars(${val},'mpvStar')"
-        onmouseout="resetStars(${myRating},'mpvStar')">★</span>`;
-    }
-  }).join('');
+  // نجوم التقييم اليدوي (7 نجوم للضغط) — مع دعم 24 ساعة
+  const manualStarsHtml = isManualRatingLocked
+    ? Array.from({length:7}, (_,i)=>{
+        const val=i+1;
+        return `<span style="font-size:28px;${val<=myRating?'color:#f5c518;':'color:#ddd;'}">★</span>`;
+      }).join('') + `<span style="font-size:16px;margin-right:6px;vertical-align:middle;" title="انتهت مدة التعديل">🔒</span>`
+    : Array.from({length:7}, (_,i)=>{
+        const val = i+1;
+        return `<span id="mpvStar_${val}" onclick="rateMember('${memberName}',${val})" style="font-size:28px;cursor:pointer;transition:transform .15s;${val<=myRating?'color:#f5c518;':'color:#ddd;'}" onmouseover="highlightStars(${val},'mpvStar')" onmouseout="resetStars(${myRating},'mpvStar')">★</span>`;
+      }).join('');
+  // حساب وقت المتبقي للتعديل (بالساعات)
+  const _remainHours = _ratingTs > 0 ? Math.max(0, Math.ceil((_LOCK_24H - (Date.now()-_ratingTs))/3600000)) : 24;
+  // المعدل بالنجوم (من 7) لعرضه للجمهور
+  const avgStarsDisplay = avgManualRating > 0 ? `${avgManualRating.toFixed(1)}/7 ⭐ (${manualRatingCount} تقييم)` : 'لا يوجد تقييم بعد';
 
   // بناء بيانات الملف الشخصي
   const profileFields = [
@@ -15293,37 +15291,21 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
 
       <!-- تقييمك لهذا الصديق (تقييم يدوي) -->
       <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">⭐ قيّم صفحة هذا الصديق</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">
+          <div style="font-size:13px;font-weight:800;color:#050505;">⭐ قيّم صفحة هذا الصديق</div>
+          ${avgManualRating > 0 ? `<div style="font-size:11px;color:#f59e0b;font-weight:700;">معدل ${avgManualRating.toFixed(1)}/7</div>` : ''}
+        </div>
         <div style="display:flex;justify-content:center;gap:4px;margin-bottom:10px;" id="mpvStarsRow">
           ${manualStarsHtml}
         </div>
-        <div style="text-align:center;" id="mpvManualRatingInfo">
-          ${(()=>{
-            /* المعدل الحالي للتقييمات اليدوية */
-            const _allMR = (() => { try{ return JSON.parse(localStorage.getItem('nld_all_manual_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
-            const _vals  = Object.values(_allMR).map(v=>parseInt(v)||0).filter(v=>v>0);
-            const _avg   = _vals.length > 0 ? (_vals.reduce((a,b)=>a+b,0)/_vals.length).toFixed(1) : null;
-            const _cnt   = _vals.length;
-            if(isLockedLocal){
-              return `<div style="font-size:12px;color:#65676B;">قيّمت بـ <strong style="color:#f5c518;">${myRating} نجمة</strong> · <span style="color:#9ca3af;">انتهى وقت التعديل</span></div>`;
-            } else if(canChangeLocal){
-              const _ms   = HOURS24_local - (nowLocal - ratingTsLocal);
-              const _h    = Math.floor(_ms/3600000);
-              const _m    = Math.floor((_ms%3600000)/60000);
-              return `<div style="font-size:12px;color:#65676B;">قيّمت بـ <strong style="color:#f5c518;">${myRating} نجمة</strong> &nbsp;·&nbsp; <span style="color:#22c55e;">يمكن التغيير خلال ${_h}س ${_m}د</span></div>`;
-            } else {
-              return `<div style="font-size:12px;color:#65676B;">اضغط على عدد النجوم لتقييم هذا الصديق</div>`;
-            }
-          })()}
-          <div style="margin-top:6px;font-size:11px;color:#9ca3af;">
-            ${(()=>{
-              const _allMR2 = (() => { try{ return JSON.parse(localStorage.getItem('nld_all_manual_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
-              const _vals2  = Object.values(_allMR2).map(v=>parseInt(v)||0).filter(v=>v>0);
-              const _avg2   = _vals2.length > 0 ? (_vals2.reduce((a,b)=>a+b,0)/_vals2.length).toFixed(1) : '—';
-              const _cnt2   = _vals2.length;
-              return `معدل التقييمات: <strong style="color:#f5c518;">${_avg2}/7</strong> (${_cnt2} مقيّم) · إجمالي: <strong style="color:#f5c518;">${totalStars} ⭐</strong>`;
-            })()}
-          </div>
+        <div style="text-align:center;">
+          ${myRating > 0
+            ? isManualRatingLocked
+              ? `<div style="font-size:12px;color:#9ca3af;">🔒 قيّمت بـ <strong style="color:#f5c518;">${myRating} نجمة</strong> — انتهت مدة التعديل</div>`
+              : `<div style="font-size:12px;color:#65676B;">قيّمت بـ <strong style="color:#f5c518;">${myRating} نجمة</strong> — يمكنك التغيير خلال <strong style="color:#1877F2;">${_remainHours}س</strong></div>`
+            : `<div style="font-size:12px;color:#65676B;">اضغط على النجوم لتقييم هذا الصديق (24 ساعة للتعديل)</div>`}
+          <div style="margin-top:6px;font-size:11px;color:#9ca3af;">معدل التقييم العام: <strong style="color:#f5c518;">${avgStarsDisplay}</strong></div>
+          <div style="margin-top:3px;font-size:11px;color:#9ca3af;">إجمالي النجوم للشارة: <strong style="color:#f5c518;">${totalStars} ⭐</strong></div>
         </div>
       </div>
 
@@ -15338,24 +15320,22 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   _renderMpvVisitorRating(memberName, normName);
 }
 
-/* ── دالة تقييم الزائر (5 نجوم — قابل للتغيير خلال 24 ساعة) ── */
+/* ── دالة تقييم الزائر (5 نجوم — قابل للتعديل خلال 24 ساعة) ── */
 function _renderMpvVisitorRating(memberName, normName){
-  const myName   = getCurrentUser() || '';
-  const rKey     = 'nld_visitor_rating_'    + myName.replace(/\s+/g,'_') + '_to_' + normName;
-  const rTimeKey = 'nld_visitor_rating_ts_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
-
+  const myName = getCurrentUser() || '';
+  const rKey  = 'nld_visitor_rating_' + (myName).replace(/\s+/g,'_') + '_to_' + normName;
+  const tsKey = 'nld_visitor_rating_ts_' + (myName).replace(/\s+/g,'_') + '_to_' + normName;
   const myRating  = parseInt(localStorage.getItem(rKey)||'0');
-  const ratedAt   = parseInt(localStorage.getItem(rTimeKey)||'0');
+  const myTs      = parseInt(localStorage.getItem(tsKey)||'0');
+  const LIMIT_24H = 24 * 60 * 60 * 1000;
   const now       = Date.now();
-  const HOURS24   = 24 * 60 * 60 * 1000;
-  const canChange = myRating > 0 && (now - ratedAt) < HOURS24;   // قيّم ولم تمرّ 24 ساعة
-  const isLocked  = myRating > 0 && (now - ratedAt) >= HOURS24;  // انقضت 24 ساعة
-  const notRated  = myRating === 0;                               // لم يقيّم بعد
+  const isLocked  = myRating > 0 && myTs > 0 && (now - myTs) > LIMIT_24H;
+  const hoursLeft = myTs > 0 ? Math.max(0, Math.ceil((LIMIT_24H - (now - myTs))/3600000)) : 24;
 
-  /* ── إحصاء التقييمات الجماعية (للمعدل العام) ── */
+  // إجمالي تقييمات الزوار (للمعدل)
   const allRatingsRaw = (() => { try{ return JSON.parse(localStorage.getItem('nld_visitor_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
   const ratingValues  = Object.values(allRatingsRaw).map(v=>parseInt(v)||0).filter(v=>v>0);
-  const avgRating     = ratingValues.length > 0 ? ratingValues.reduce((a,b)=>a+b,0)/ratingValues.length : 0;
+  const avgRating     = ratingValues.length > 0 ? (ratingValues.reduce((a,b)=>a+b,0)/ratingValues.length) : 0;
   const ratingCount   = ratingValues.length;
 
   const starsEl = document.getElementById('mpvRatingStars');
@@ -15363,111 +15343,86 @@ function _renderMpvVisitorRating(memberName, normName){
   if(!starsEl || !labelEl) return;
 
   const isMe = myName === memberName;
-
-  /* ── بناء النجوم الخمسة ── */
   let html = '';
-  for(let i=1; i<=5; i++){
-    /* لون كل نجمة:
-       • المالك  → يرى المعدل العام (ذهبي إذا avg >= i)
-       • قيّم ومنقضية 24 ساعة → مقفل: يُعرض تقييمه فقط
-       • قيّم وضمن 24 ساعة   → يمكن التغيير (نجمته ذهبية + قابل للنقر)
-       • لم يقيّم            → رمادي تماماً + قابل للنقر */
+  for(let i=1;i<=5;i++){
+    const avgFilled = i <= Math.round(avgRating);
+    const myFilled  = i <= myRating;
     if(isMe){
-      const filled = i <= Math.round(avgRating);
-      html += `<span style="font-size:20px;color:${filled?'#f5c518':'#ccc'};" title="المعدل العام: ${avgRating.toFixed(1)}">★</span>`;
+      // المالك: عرض المعدل فقط
+      html += `<span style="font-size:20px;color:${avgFilled?'#f5c518':'#ddd'};">★</span>`;
     } else if(isLocked){
-      /* انقضت 24 ساعة → عرض فقط (تقييمه ذهبي، الباقي رمادي) */
-      html += `<span style="font-size:20px;color:${i<=myRating?'#f5c518':'#ccc'};" title="انتهت مدة التعديل">★</span>`;
-    } else if(canChange){
-      /* ضمن 24 ساعة → يمكن التعديل */
-      html += `<span onclick="_submitMpvVisitorRating('${memberName}','${normName}',${i})"
-        style="font-size:22px;color:${i<=myRating?'#f5c518':'#ccc'};cursor:pointer;transition:.15s;"
-        title="انقر لتغيير تقييمك"
-        onmouseover="this.style.transform='scale(1.2)'"
-        onmouseout="this.style.transform='scale(1)'">★</span>`;
+      // مقفل بعد 24 ساعة: عرض تقييمي بدون نقر
+      html += `<span style="font-size:20px;color:${myFilled?'#f5c518':'#ddd'};">★</span>`;
+    } else if(myRating > 0){
+      // قيّم وضمن 24 ساعة: قابل للتعديل
+      html += `<span onclick="_submitMpvVisitorRating('${memberName}','${normName}',${i})" style="font-size:22px;color:${myFilled?'#f5c518':'#ddd'};cursor:pointer;transition:.15s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">★</span>`;
     } else {
-      /* لم يقيّم بعد → رمادي تماماً + قابل للنقر */
-      html += `<span onclick="_submitMpvVisitorRating('${memberName}','${normName}',${i})"
-        style="font-size:22px;color:#ccc;cursor:pointer;transition:.15s;"
-        title="انقر للتقييم"
-        onmouseover="this.style.transform='scale(1.2)';this.style.color='#f5c518'"
-        onmouseout="this.style.transform='scale(1)';this.style.color='#ccc'">★</span>`;
+      // لم يقيّم بعد: قابل للنقر (نجوم رمادية)
+      html += `<span onclick="_submitMpvVisitorRating('${memberName}','${normName}',${i})" style="font-size:22px;color:#ddd;cursor:pointer;transition:.15s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">★</span>`;
     }
   }
+  // أيقونة القفل بعد 24 ساعة
+  if(isLocked) html += `<span style="font-size:14px;margin-right:4px;vertical-align:middle;" title="انتهت مدة التعديل">🔒</span>`;
   starsEl.innerHTML = html;
 
-  /* ── تسمية تحت النجوم ── */
+  // النص التوضيحي
   if(isMe){
-    const avgLabel = ratingCount > 0
-      ? `المعدل: <strong style="color:#f5c518;">${avgRating.toFixed(1)}</strong> / 5 &nbsp;·&nbsp; ${ratingCount} مقيّم`
-      : 'لا يوجد تقييم بعد';
-    labelEl.innerHTML = avgLabel;
+    labelEl.innerText = ratingCount > 0 ? `${avgRating.toFixed(1)} (${ratingCount} تقييم)` : 'لا يوجد تقييم بعد';
   } else if(isLocked){
-    const minsLeft = 0;
-    labelEl.innerHTML = `قيّمت بـ <strong style="color:#f5c518;">${myRating}★</strong> · معدل الجميع: <strong style="color:#f5c518;">${avgRating.toFixed(1)}</strong> (${ratingCount}) <span style="color:#9ca3af;font-size:10px;">· انتهى وقت التعديل</span>`;
-  } else if(canChange){
-    const minsRemain = Math.ceil((HOURS24 - (now - ratedAt)) / 60000);
-    const hRemain    = minsRemain >= 60 ? Math.floor(minsRemain/60)+'س ' : '';
-    const mRemain    = (minsRemain % 60) + 'د';
-    labelEl.innerHTML = `قيّمت بـ <strong style="color:#f5c518;">${myRating}★</strong> · <span style="color:#22c55e;font-size:10px;">يمكن التغيير خلال ${hRemain}${mRemain}</span>`;
+    labelEl.innerHTML = `<span style="color:#9ca3af;font-size:10px;">🔒 قيّمت بـ ${myRating}★ | معدل ${avgRating.toFixed(1)} (${ratingCount})</span>`;
+  } else if(myRating > 0){
+    labelEl.innerHTML = `<span style="color:#f5c518;font-weight:800;">${avgRating.toFixed(1)}</span> (${ratingCount}) — <span style="color:#1877F2;">قيّمت ${myRating}★ · ${hoursLeft}س للتعديل</span>`;
   } else {
-    /* لم يقيّم */
-    const avgLabel = ratingCount > 0
-      ? `معدل: ${avgRating.toFixed(1)}/5 (${ratingCount}) · اضغط للتقييم`
-      : 'اضغط على نجمة لتقييم هذا الملف';
-    labelEl.innerText = avgLabel;
+    labelEl.innerText = ratingCount > 0 ? `${avgRating.toFixed(1)} (${ratingCount}) — اضغط للتقييم` : 'اضغط للتقييم ★';
   }
 }
 
 function _submitMpvVisitorRating(memberName, normName, stars){
   const myName = getCurrentUser() || '';
   if(!myName || myName === memberName) return;
-
-  /* ── مفتاح التقييم الشخصي ── */
-  const rKey      = 'nld_visitor_rating_'      + myName.replace(/\s+/g,'_') + '_to_' + normName;
-  /* ── مفتاح وقت آخر تقييم (لحساب 24 ساعة) ── */
-  const rTimeKey  = 'nld_visitor_rating_ts_'   + myName.replace(/\s+/g,'_') + '_to_' + normName;
-
+  const rKey  = 'nld_visitor_rating_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
+  const tsKey = 'nld_visitor_rating_ts_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
   const oldRating = parseInt(localStorage.getItem(rKey)||'0');
-  const oldTs     = parseInt(localStorage.getItem(rTimeKey)||'0');
+  const oldTs     = parseInt(localStorage.getItem(tsKey)||'0');
   const now       = Date.now();
-  const HOURS24   = 24 * 60 * 60 * 1000;
+  const LIMIT_24H = 24 * 60 * 60 * 1000;
 
-  /* إذا قيّم من قبل وانقضت 24 ساعة → يُمنع من التغيير */
-  if(oldRating > 0 && (now - oldTs) >= HOURS24){
-    if(typeof showToast === 'function') showToast('⏳ مرّت 24 ساعة على تقييمك — لا يمكن تغييره بعد الآن');
+  // منع التعديل بعد انقضاء 24 ساعة
+  if(oldRating > 0 && oldTs > 0 && (now - oldTs) > LIMIT_24H){
+    if(typeof showToast === 'function') showToast('🔒 انتهت مدة تعديل التقييم (24 ساعة من أول تقييم)');
     return;
   }
 
-  /* إذا لم يمرّ 24 ساعة يمكن التغيير */
-  const isChange = oldRating > 0;
+  const isNew = oldRating === 0;
 
-  /* حفظ التقييم والوقت */
-  localStorage.setItem(rKey,     String(stars));
-  localStorage.setItem(rTimeKey, String(now));
+  // حفظ التقييم + الطابع الزمني (الطابع يُحفظ فقط عند التقييم الأول)
+  localStorage.setItem(rKey, String(stars));
+  if(isNew) localStorage.setItem(tsKey, String(now));
 
-  /* تحديث كائن التقييمات الجماعي */
+  // تحديث قاموس كل التقييمات (للمعدل)
   const allRatings = (() => { try{ return JSON.parse(localStorage.getItem('nld_visitor_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
   allRatings[myName] = stars;
   localStorage.setItem('nld_visitor_ratings_'+normName, JSON.stringify(allRatings));
 
-  /* حساب المعدل الجديد وتحديث المجموع الكلي للشارة */
-  const ratingValues = Object.values(allRatings).map(v=>parseInt(v)||0).filter(v=>v>0);
-  const newTotalForBadge = ratingValues.reduce((a,b)=>a+b, 0);
-  localStorage.setItem('nld_total_stars_'+normName, String(newTotalForBadge));
-  _checkVerifiedBadge(memberName, newTotalForBadge);
-  _refreshMyVerifiedBadge(memberName);
+  // تحديث إجمالي النجوم للشارة
+  const allVals = Object.values(allRatings).map(v=>parseInt(v)||0).filter(v=>v>0);
+  const newTotal = allVals.reduce((a,b)=>a+b,0);
+  const totalStarsKey = 'nld_total_stars_' + normName;
+  localStorage.setItem(totalStarsKey, String(newTotal));
 
-  if(typeof showToast === 'function'){
-    if(isChange) showToast(`🔄 غيّرت تقييمك لـ ${memberName} إلى ${stars} نجوم — متاح للتغيير خلال 24 ساعة`);
-    else         showToast(`✅ قيّمت ${memberName} بـ ${stars} نجوم — يمكنك التغيير خلال 24 ساعة`);
-  }
+  // رسالة مختلفة لأول تقييم أو تعديل
+  const hoursLeft = Math.max(0, Math.ceil((LIMIT_24H - (now - (isNew ? now : oldTs)))/3600000));
+  const msg = isNew
+    ? `✅ قيّمت ${memberName} بـ ${stars} نجوم — يمكنك التعديل خلال 24 ساعة`
+    : `✅ تم تحديث تقييمك لـ ${memberName} إلى ${stars} نجوم (متبقي ${hoursLeft}س)`;
+  if(typeof showToast === 'function') showToast(msg);
 
-  /* إشعار صاحب الملف فقط عند التقييم الأول أو التغيير */
-  if(typeof addSocialNotif === 'function'){
-    if(isChange) addSocialNotif(memberName, `${myName} غيّر تقييمه لملفك إلى ${stars} نجوم ⭐`, '⭐');
-    else         addSocialNotif(memberName, `${myName} قيّم ملفك بـ ${stars} نجوم ⭐`, '⭐');
-  }
+  // إشعار صاحب الملف عند التقييم الأول فقط
+  if(isNew && typeof addSocialNotif === 'function')
+    addSocialNotif(memberName, `${myName} قيّم ملفك بـ ${stars} نجوم ⭐`, '⭐');
+
+  // تحديث شارة التوثيق
+  if(typeof _checkVerifiedBadge === 'function') _checkVerifiedBadge(memberName, newTotal);
 
   _renderMpvVisitorRating(memberName, normName);
 }
@@ -15574,86 +15529,66 @@ function resetStars(myRating, prefix){
   }
 }
 
-/** تقييم صديق بعدد معين من النجوم */
+/** تقييم صديق بعدد معين من النجوم — مع نافذة 24 ساعة للتعديل */
 function rateMember(memberName, stars){
   const myName = getCurrentUser();
   if(!myName || myName === memberName) return;
 
-  const normName   = memberName.replace(/\s+/g,'_');
-  const ratingKey  = 'nld_star_rating_'    + myName.replace(/\s+/g,'_') + '_to_' + normName;
-  const ratingTsKey= 'nld_star_rating_ts_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
+  const normMember = memberName.replace(/\s+/g,'_');
+  const normMe     = myName.replace(/\s+/g,'_');
 
+  const ratingKey  = 'nld_star_rating_' + normMe + '_to_' + normMember;
+  const tsKey      = 'nld_star_rating_ts_' + normMe + '_to_' + normMember;
   const oldRating  = parseInt(localStorage.getItem(ratingKey)||'0');
-  const oldTs      = parseInt(localStorage.getItem(ratingTsKey)||'0');
+  const oldTs      = parseInt(localStorage.getItem(tsKey)||'0');
   const now        = Date.now();
-  const HOURS24    = 24 * 60 * 60 * 1000;
+  const LIMIT_24H  = 24 * 60 * 60 * 1000;
 
-  /* إذا قيّم من قبل وانقضت 24 ساعة → مقفل */
-  if(oldRating > 0 && (now - oldTs) >= HOURS24){
-    if(typeof showToast === 'function') showToast('⏳ مرّت 24 ساعة على تقييمك — لا يمكن تغييره بعد الآن');
+  // منع التعديل بعد 24 ساعة من التقييم الأول
+  if(oldRating > 0 && oldTs > 0 && (now - oldTs) > LIMIT_24H){
+    showToast('🔒 انتهت مدة تعديل التقييم (24 ساعة من أول تقييم)');
     return;
   }
 
-  const isChange = oldRating > 0;
+  const isNew = oldRating === 0;
 
-  /* حفظ التقييم الجديد والوقت */
-  localStorage.setItem(ratingKey,   String(stars));
-  localStorage.setItem(ratingTsKey, String(now));
+  // حفظ التقييم الشخصي
+  localStorage.setItem(ratingKey, String(stars));
+  // حفظ الطابع الزمني عند التقييم الأول فقط
+  if(isNew) localStorage.setItem(tsKey, String(now));
 
-  /* تحديث كائن التقييمات الجماعي لهذا العضو */
-  const allRatingsKey = 'nld_all_manual_ratings_' + normName;
-  const allRatings = (() => { try{ return JSON.parse(localStorage.getItem(allRatingsKey)||'{}'); }catch(e){ return {}; } })();
-  allRatings[myName] = stars;
-  localStorage.setItem(allRatingsKey, JSON.stringify(allRatings));
+  // تحديث قاموس كل التقييمات (للمعدل)
+  const allManual = (() => { try{ return JSON.parse(localStorage.getItem('nld_manual_ratings_'+normMember)||'{}'); }catch(e){ return {}; } })();
+  allManual[myName] = stars;
+  localStorage.setItem('nld_manual_ratings_'+normMember, JSON.stringify(allManual));
 
-  /* حساب المجموع الكلي (لتحديث شارة التوثيق) */
-  const ratingValues  = Object.values(allRatings).map(v=>parseInt(v)||0).filter(v=>v>0);
-  const newTotal      = ratingValues.reduce((a,b)=>a+b, 0);
-  const ratingCount   = ratingValues.length;
-  const avgRating     = ratingCount > 0 ? (newTotal / ratingCount).toFixed(1) : '0';
+  // إعادة حساب إجمالي النجوم للشارة (مجموع كل المقيّمين)
+  const allVals = Object.values(allManual).map(v=>parseInt(v)||0).filter(v=>v>0);
+  const newTotal = allVals.reduce((a,b)=>a+b,0);
+  const totalStarsKey = 'nld_total_stars_' + normMember;
+  localStorage.setItem(totalStarsKey, String(newTotal));
 
-  localStorage.setItem('nld_total_stars_'+normName, String(newTotal));
-
-  /* تحديث النجوم في الواجهة فوراً */
+  // تحديث النجوم في الواجهة فوراً
   for(let i=1;i<=7;i++){
     const el=document.getElementById('mpvStar_'+i);
     if(el) el.style.color = i<=stars ? '#f5c518' : '#ddd';
   }
 
-  /* تحديث نص التقييم في الواجهة */
-  const mpvStarsRow = document.getElementById('mpvStarsRow');
-  if(mpvStarsRow){
-    const infoDiv = mpvStarsRow.nextElementSibling;
-    if(infoDiv){
-      infoDiv.innerHTML = `
-        <div style="font-size:12px;color:#65676B;">
-          قيّمت بـ <strong style="color:#f5c518;">${stars} نجمة</strong>
-          &nbsp;·&nbsp; معدل الجميع: <strong style="color:#f5c518;">${avgRating}</strong>/7
-          &nbsp;·&nbsp; <span style="color:#9ca3af;">(${ratingCount} مقيّم)</span>
-        </div>
-        <div style="margin-top:4px;font-size:11px;color:#9ca3af;">
-          إجمالي نجوم التقييم: <strong style="color:#f5c518;">${newTotal} ⭐</strong>
-          ${(now - parseInt(localStorage.getItem(ratingTsKey)||'0')) < HOURS24
-            ? ' &nbsp;·&nbsp; <span style="color:#22c55e;">يمكنك التغيير خلال 24 ساعة</span>'
-            : ''}
-        </div>`;
-    }
-  }
+  // حساب المعدل وعرضه
+  const avgNew = allVals.length > 0 ? (newTotal/allVals.length).toFixed(1) : stars;
 
-  /* إشعار لصاحب الملف */
-  if(typeof addSocialNotif === 'function'){
-    if(isChange) addSocialNotif(memberName, `${myName} غيّر تقييمه لملفك إلى ${stars} نجوم ⭐`, '⭐');
-    else         addSocialNotif(memberName, `${myName} قيّم ملفك الشخصي بـ ${stars} نجمات ⭐`, '⭐');
-  }
+  // إشعار لصاحب الملف (فقط عند التقييم الأول)
+  if(isNew) addSocialNotif(memberName, `${myName} قيّم ملفك الشخصي بـ ${stars} نجوم ⭐`, '⭐');
 
-  /* تحديث شارة التوثيق */
+  // تحديث إنجازات صاحب الملف (شارة التوثيق)
   _checkVerifiedBadge(memberName, newTotal);
-  _refreshMyVerifiedBadge(memberName);
 
-  if(typeof showToast === 'function'){
-    if(isChange) showToast(`🔄 تم تغيير تقييمك لـ ${memberName} إلى ${stars} نجوم — المعدل: ${avgRating}/7`);
-    else         showToast(`✅ قيّمت ${memberName} بـ ${stars} نجوم — المعدل: ${avgRating}/7`);
-  }
+  // رسالة مختلفة لأول تقييم أو تعديل
+  const hoursLeft = isNew ? 24 : Math.max(0, Math.ceil((LIMIT_24H - (now - oldTs))/3600000));
+  const msg = isNew
+    ? `✅ قيّمت ${memberName} بـ ${stars} نجوم — يمكنك التعديل خلال 24 ساعة`
+    : `✅ تم تحديث تقييمك لـ ${memberName} إلى ${stars} نجوم — متبقي ${hoursLeft}س للتعديل`;
+  showToast(msg);
 }
 
 /** فحص وتفعيل شارة التوثيق إذا وصل لـ 300 نجمة */
