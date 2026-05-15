@@ -1,8 +1,3 @@
-
-<!-- ████████████████████████████████████████████████████████████████████
-     ⚙️  SECTION 01 — CONFIG & CORE SETUP
-         الإعدادات العامة · EmailJS · معالجة الأخطاء
-████████████████████████████████████████████████████████████████████ -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -86,11 +81,6 @@
 })();
 </script>
 
-
-<!-- ████████████████████████████████████████████████████████████████████
-     ☁️  SECTION 02 — UPLOAD SYSTEM — Cloudinary
-         نظام رفع الملفات · Cloudinary · ضغط الصور · شريط التقدم
-████████████████████████████████████████████████████████████████████ -->
 <!-- ══════════════════════════════════════════════════════════════
      ☁️ Cloudinary — رفع الصور والفيديوهات والموسيقى مجاناً
      ══════════════════════════════════════════════════════════════ -->
@@ -389,11 +379,6 @@
 })();
 </script>
 
-
-<!-- ████████████████████████████████████████████████████████████████████
-     🔥  SECTION 03 — FIREBASE REALTIME SYNC & NOTIFICATIONS
-         مزامنة Firebase · OneSignal الإشعارات · مراقبة الأداء
-████████████████████████████████████████████████████████████████████ -->
 <!-- ══════════════════════════════════════════════════════════════
      🛠️ Firebase Storage — واجهة تقدم الرفع (Progress UI)
      ══════════════════════════════════════════════════════════════ -->
@@ -819,11 +804,6 @@ window.uploadStoryMusic = async function(file) {
   });
 })();
 </script>
-
-<!-- ████████████████████████████████████████████████████████████████████
-     🎨  SECTION 04 — STYLES & CSS DESIGN SYSTEM
-         CSS الكامل · الألوان · الخطوط · الأنيميشن · الـ Favicon
-████████████████████████████████████████████████████████████████████ -->
 <!-- ═══════════════════════════════════════════
      🏆 NEXT LEADERS DZ — Professional Favicon v2
      ND = Next Leaders identity
@@ -3527,11 +3507,6 @@ body.member-mode #onlineBar{
 }
 </style>
 
-
-<!-- ████████████████████████████████████████████████████████████████████
-     📊  SECTION 05 — MONITOR & ERROR TRACKING
-         مراقبة الأخطاء · قياس الأداء · سجل Firebase · لوحة المطور
-████████████████████████████████████████████████████████████████████ -->
 <!-- ══════════════════════════════════════════════════════
      📊 نظام مراقبة الأخطاء والأداء — Connect DZ Monitor
      ══════════════════════════════════════════════════════ -->
@@ -3674,11 +3649,6 @@ body.member-mode #onlineBar{
 
 })();
 </script>
-
-<!-- ████████████████████████████████████████████████████████████████████
-     🖼️  SECTION 06 — HTML STRUCTURE & UI COMPONENTS
-         هيكل HTML · الشاشات · لوحة المدير · واجهة الشات
-████████████████████████████████████████████████████████████████████ -->
 </head>
 <body>
 
@@ -4581,15 +4551,15 @@ body.member-mode #onlineBar{
 
       <!-- صورة الملف الشخصي + الاسم -->
       <div style="background:white;padding:0 16px 16px;position:relative;margin-top:-2px;">
-        <!-- صورة الملف (قابلة للنقر للتغيير — بدون أيقونة كاميرا فوقها) -->
+        <!-- صورة الملف (الضغط المفرد يفتح الملف الشخصي / الضغط المطوّل يغيّر الصورة) -->
         <div style="position:relative;display:inline-block;margin-top:-50px;margin-bottom:10px;">
-          <label style="display:block;cursor:pointer;">
+          <div style="display:block;cursor:pointer;" onclick="openMyFullProfile()">
             <div id="fbProfilePicWrapper" style="width:100px;height:100px;border-radius:50%;border:4px solid white;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 4px 14px rgba(0,0,0,0.18);position:relative;">👑
               <!-- شارة التوثيق على صورة الملف الشخصي — رمادية حتى 300 نجمة -->
               <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:4px;right:4px;width:26px;height:26px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:5;" title="شارة التوثيق">✓</div>
             </div>
-            <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
-          </label>
+          </div>
+          <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
         </div>
 
         <!-- الاسم والتوثيق -->
@@ -4601,19 +4571,19 @@ body.member-mode #onlineBar{
           <div id="fbProfileRole" style="font-size:13px;color:#65676B;margin-top:2px;font-weight:600;"></div>
         </div>
 
-        <!-- عداد المتابعون / المتابعين / المنشورات -->
+        <!-- عداد الأصدقاء / المشاهدات / التفاعل -->
         <div style="display:flex;gap:0;margin:8px 0 10px;border-radius:12px;overflow:hidden;background:#F0F2F5;">
           <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
             <div id="fbFollowersCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">متابِع</div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;">أصدقاء</div>
           </div>
           <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
             <div id="fbFollowingCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">متابَع</div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;">مشاهدة</div>
           </div>
           <div style="flex:1;padding:8px 4px;text-align:center;">
             <div id="fbPostsCount" style="font-size:16px;font-weight:900;color:#1877F2;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">منشور</div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;">تفاعل</div>
           </div>
         </div>
 
@@ -4656,11 +4626,14 @@ body.member-mode #onlineBar{
           </div>
         </div>
 
-        <!-- 7 نجوم التقييم -->
+        <!-- 7 نجوم التقييم — كما يراها الآخرون في ملفك -->
         <div style="background:#F0F2F5;border-radius:14px;padding:14px;margin-bottom:14px;">
-          <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:10px;">⭐ تقييمك (7 معايير × 3000 نجم = توثيق)</div>
+          <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:4px;">⭐ تقييمك (7 معايير × 3000 نجم = توثيق)</div>
+          <div style="font-size:10px;color:#65676B;margin-bottom:10px;">هذه النجوم مخصصة لملفك وتظهر للآخرين كما تراها</div>
           <div id="fbStarsRating" style="display:flex;flex-direction:column;gap:8px;"></div>
           <div id="fbTotalStars" style="margin-top:10px;text-align:center;font-size:12px;color:#65676B;font-weight:700;"></div>
+          <!-- معدل تقييم الزوار لملفك -->
+          <div id="fbVisitorRatingSum" style="margin-top:8px;text-align:center;font-size:11px;color:#65676B;"></div>
         </div>
 
         <!-- أزرار الإجراءات -->
@@ -5969,11 +5942,6 @@ body.member-mode #onlineBar{
   </div>
 </div>
 
-
-<!-- ████████████████████████████████████████████████████████████████████
-     🏆  SECTION 07 — MAIN APP LOGIC — Social · Chat · Profile · Quiz
-         منطق التطبيق الرئيسي · النقاط · الكويز · الشبكة الاجتماعية · الملف الشخصي · الشات
-████████████████████████████████████████████████████████████████████ -->
 <script>
 /* ▼ جدول البيانات الرئيسي - المصدر الوحيد للنقاط والمنخرطين ▼ */
 const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
@@ -15032,7 +15000,9 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   const flEl = document.getElementById('mpvFollowersCount');
   const fgEl = document.getElementById('mpvFollowingCount');
   const pcEl = document.getElementById('mpvPostsCount');
-  if(flEl) flEl.innerText = followersList.length || 0;
+  // عرض عدد الأصدقاء (وليس المتابعين) في شريط الإحصاء
+  const memberFriendsCount = getFriends(memberName).length;
+  if(flEl) flEl.innerText = memberFriendsCount || 0;
   if(fgEl) fgEl.innerText = followingList.length || 0;
   if(pcEl) pcEl.innerText = memberPosts || 0;
 
@@ -15081,13 +15051,25 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   }
 
   // ملف كامل للأصدقاء
+  // النقاط الإجمالية (تظهر للجمهور في ملف الشخصي)
   const pts = (() => {
     const raw = localStorage.getItem('sklab_pts_'+normName);
     if(raw) try{ return JSON.parse(raw).total||0; }catch(e){}
     return parseInt(localStorage.getItem('nld_earned_'+normName)||'0');
   })();
+  // نقاط جدول الترتيب فقط — يُحسب منها الرصيد
+  const sheetPtsForBalance = (() => {
+    const raw = localStorage.getItem('sklab_pts_'+normName);
+    if(raw) try{
+      const parsed = JSON.parse(raw);
+      return parsed.sheet || parsed.ranking || (parsed.total - (parsed.quiz||0)) || 0;
+    }catch(e){}
+    return parseInt(localStorage.getItem('nld_sheet_pts_'+normName)||'0');
+  })();
+  const isEarlyMember = localStorage.getItem('nld_is_early_'+normName) === '1';
+  const balanceRate = isEarlyMember ? 35 : 30;
   const level = Math.floor(pts/3000)+1;
-  const balance = ((pts/50)*30).toFixed(2);
+  const balance = ((sheetPtsForBalance/50)*balanceRate).toFixed(2);
   const code = localStorage.getItem('nld_code_'+normName) || '—';
 
   // جلب التقييم الحالي لهذا العضو من طرف الصديق
@@ -19146,11 +19128,6 @@ function openCityFeature(key){
 }
 </script>
 
-
-<!-- ████████████████████████████████████████████████████████████████████
-     🛡️  SECTION 08 — ADMIN PANEL · PWA · JOIN SYSTEM · STABILITY
-         لوحة المدير · حماية الحساب · PWA · الانضمام · الاستقرار
-████████████████████████████████████████████████████████████████████ -->
 <!-- ══════════════════════════════════════════════════════
      🛡️ حماية ملف المدير yahia_nex_smart — ثبات دائم
      ══════════════════════════════════════════════════════ -->
@@ -19662,11 +19639,6 @@ function openCityFeature(key){
 </div>
 
 <script>
-
-<!-- ████████████████████████████████████████████████████████████████████
-     🔐  SECTION 09 — AUTH SYSTEM — Login · Register · Verify
-         نظام تسجيل الدخول · إنشاء الحساب · التحقق بالبريد · كلمة المرور
-████████████████████████████████████████████████████████████████████ -->
 /* ═══════════════════════════════════════════════════════════════
    🔐 نظام التسجيل وتسجيل الدخول الكامل — Connect DZ
    ═══════════════════════════════════════════════════════════════ */
@@ -21147,14 +21119,23 @@ function _updateFBProfile(){
   const followingKey = 'nld_following_'+normName;
   const allPosts = (() => { try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
   const myPostsCount = allPosts.filter(p=>p.author===name).length;
-  const followersList = (() => { try{ return JSON.parse(localStorage.getItem(followersKey)||'[]'); }catch(e){ return []; } })();
-  const followingList = (() => { try{ return JSON.parse(localStorage.getItem(followingKey)||'[]'); }catch(e){ return []; } })();
+  // عدد الأصدقاء (مخصص لكل ملف)
+  const myFriendsCount = typeof getFriends === 'function' ? getFriends(name).length : 0;
+  // المشاهدات الخاصة بهذا الملف
+  const myVisits = (() => { try{ return JSON.parse(localStorage.getItem('nld_visits_'+normName)||'[]'); }catch(e){ return []; } })();
+  const myVisitsCount = myVisits.length;
+  // التفاعلات الخاصة بمنشورات هذا الملف
+  const myPostsData = allPosts.filter(p=>p.author===name);
+  const myTotalReacts = myPostsData.reduce((s,p)=>s+Object.values(p.reactions||{}).reduce((a,b)=>a+(Array.isArray(b)?b.length:0),0),0);
+  const myTotalComments = myPostsData.reduce((s,p)=>s+((p.comments||[]).length),0);
+  const myInteractCount = myTotalReacts + myTotalComments;
+  function _fmtStat(n){ if(n>=1000) return (n/1000).toFixed(1).replace(/\.0$/,'')+'K'; return String(n); }
   const flEl = document.getElementById('fbFollowersCount');
   const fgEl = document.getElementById('fbFollowingCount');
   const pcEl = document.getElementById('fbPostsCount');
-  if(flEl) flEl.innerText = followersList.length || 0;
-  if(fgEl) fgEl.innerText = followingList.length || 0;
-  if(pcEl) pcEl.innerText = myPostsCount || 0;
+  if(flEl) flEl.innerText = myFriendsCount || 0;
+  if(fgEl) fgEl.innerText = _fmtStat(myVisitsCount);
+  if(pcEl) pcEl.innerText = _fmtStat(myInteractCount);
 
   // شعلة التقدم اليومي
   const joinTs = parseInt(localStorage.getItem('nld_join_ts_'+normName)||'0') || parseInt(localStorage.getItem('nld_join_'+normName)||'0');
@@ -21320,6 +21301,20 @@ function _updateStarsRating(name){
     totalEl.innerHTML = `
       إجمالي النجوم: <strong style="color:#f5c518;">${totalStars.toLocaleString()}</strong> / 21,000
       ${verified ? ' — <span style="color:#1877F2;font-weight:900;">✅ موثّق</span>' : ` — تحتاج ${(3000-Math.min(3000,totalStars)).toLocaleString()} نجمة للتوثيق`}`;
+  }
+
+  // معدل تقييمات الزوار لهذا الملف (خاص بكل مستخدم)
+  const visitorRatingSumEl = document.getElementById('fbVisitorRatingSum');
+  if(visitorRatingSumEl){
+    const normName2 = (name||'').replace(/\s+/g,'_');
+    const vRatings = (() => { try{ return JSON.parse(localStorage.getItem('nld_visitor_ratings_'+normName2)||'{}'); }catch(e){ return {}; } })();
+    const vVals = Object.values(vRatings).map(v=>parseInt(v)||0).filter(v=>v>0);
+    if(vVals.length > 0){
+      const vAvg = (vVals.reduce((a,b)=>a+b,0)/vVals.length).toFixed(1);
+      visitorRatingSumEl.innerHTML = `⭐ تقييم الزوار لملفك: <strong style="color:#f5c518;">${vAvg}/5</strong> (${vVals.length} شخص قيّمك)`;
+    } else {
+      visitorRatingSumEl.innerText = '⭐ لم يقيّمك أحد من الزوار بعد';
+    }
   }
 }
 
@@ -21900,11 +21895,6 @@ window.switchSocialTab = function(tab){
 (function(){
 'use strict';
 
-
-<!-- ████████████████████████████████████████████████████████████████████
-     ⚡  SECTION 10 — PERFORMANCE PATCH & CLOSING
-         تحسينات الأداء · Lazy Loading · منع تكرار الأحداث · الإغلاق
-████████████████████████████████████████████████████████████████████ -->
 /* تحسين التمرير */
 document.documentElement.style.scrollBehavior = 'smooth';
 
