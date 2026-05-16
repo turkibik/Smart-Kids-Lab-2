@@ -4655,12 +4655,16 @@ body.member-mode #onlineBar{
           </div>
         </div>
 
-        <!-- شعلة التقدم اليومي وعدد الأيام -->
+        <!-- شعلة الدخول والمداليا -->
         <div style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:12px;padding:10px 14px;margin-bottom:10px;">
-          <span id="fbStreakFlame" style="font-size:26px;">🔥</span>
-          <div>
-            <div style="font-size:13px;font-weight:900;color:#e65100;">التقدم اليومي</div>
-            <div id="fbStreakInfo" style="font-size:12px;color:#bf360c;font-weight:700;">عضو منذ ... يوم</div>
+          <span id="fbStreakFlame" style="font-size:28px;transition:all .3s;">🥉</span>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:900;color:#e65100;">🔥 نظام الشعلة</div>
+            <div id="fbStreakInfo" style="font-size:11px;color:#bf360c;font-weight:700;">جارٍ التحميل...</div>
+          </div>
+          <div style="text-align:center;background:rgba(255,255,255,0.5);border-radius:8px;padding:4px 8px;min-width:44px;">
+            <div style="font-size:8px;color:#e65100;font-weight:700;">التالي</div>
+            <div id="fbStreakNext" style="font-size:10px;font-weight:900;color:#bf360c;">45 يوم</div>
           </div>
         </div>
 
@@ -8148,13 +8152,21 @@ function confirmDeleteSavedAccount(name){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   🔥 نظام الشعل الحقيقي — يتتبع الدخول اليومي الفعلي لكل عضو
+   🔥 نظام الشعلة الحقيقي — يحسب مجموع أيام الدخول الفعلية
+   ══════════════════════════════════════════════════════════════
+   المنطق:
+   • يُحسب من أول يوم تسجيل الانخراط
+   • يُسجَّل فقط اليوم الذي دخل فيه المستخدم (كل يوم مرة)
+   • المداليا تتغير كل 45 يوم دخول فعلي:
+     0-44  → 🥉 برونزية
+     45-89 → 🥈 فضية
+     90-134→ 🥇 ذهبية
+     135+  → 💎 ماسية
+   المفتاح: nld_daily_streak_<normName> = { totalDays, lastDay, days:[] }
    ══════════════════════════════════════════════════════════════ */
 
 /**
- * يُسجّل دخول اليوم الحالي لعضو معين
- * المفتاح: nld_daily_streak_<normName>  = { count, lastDay, days:[] }
- * lastDay = 'YYYY-MM-DD' — نتحقق بالتاريخ لا بالـ timestamp لضمان عدم التأثر بالوقت
+ * يُسجّل دخول اليوم الحالي ويزيد مجموع أيام الدخول الفعلية
  */
 function _recordDailyLogin(normName){
   if(!normName) return;
@@ -8163,47 +8175,50 @@ function _recordDailyLogin(normName){
   let rec = {};
   try{ rec = JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
 
-  const lastDay = rec.lastDay || '';
-  if(lastDay === todayStr) return; // دخل اليوم بالفعل — لا نعدّ مرتين
+  // لا نعدّ نفس اليوم مرتين
+  if(rec.lastDay === todayStr) return;
 
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
-  let count = parseInt(rec.count)||0;
+  // مجموع أيام الدخول — يزيد بمقدار 1 فقط
+  let totalDays = parseInt(rec.totalDays||rec.count||0);
+  totalDays += 1;
 
-  if(lastDay === yesterday){
-    // دخل أمس ← نكمل التسلسل
-    count += 1;
-  } else if(lastDay === ''){
-    // أول دخول على الإطلاق
-    count = 1;
-  } else {
-    // انقطع التسلسل — نبدأ من الصفر
-    count = 1;
-  }
-
-  // نحتفظ بآخر 90 يوم دخل فيها
+  // نحتفظ بقائمة الأيام الفعلية (كحد أقصى 500 يوم)
   const days = Array.isArray(rec.days) ? rec.days : [];
   if(!days.includes(todayStr)) days.push(todayStr);
-  if(days.length > 90) days.splice(0, days.length - 90);
+  if(days.length > 500) days.splice(0, days.length - 500);
 
-  localStorage.setItem(KEY, JSON.stringify({ count, lastDay: todayStr, days }));
+  localStorage.setItem(KEY, JSON.stringify({ totalDays, lastDay: todayStr, days }));
 }
 
 /**
- * يُرجع عدد الأيام المتتالية الحالية لعضو
- * إذا لم يكن هناك سجيل نعود لحساب أيام منذ الانضمام (للتوافق مع القديم)
+ * يُرجع مجموع أيام الدخول الفعلية لعضو
  */
 function _getRealStreak(normName){
   if(!normName) return 0;
   const KEY = 'nld_daily_streak_' + normName;
   let rec = {};
   try{ rec = JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
-  if(rec.count && rec.count > 0) return parseInt(rec.count);
-  // fallback: أيام منذ الانضمام
-  const joinTs = parseInt(localStorage.getItem('nld_join_ts_'+normName)||'0') || parseInt(localStorage.getItem('nld_join_'+normName)||'0');
+  // totalDays = المجموع الصحيح، count = توافق مع القديم
+  const total = parseInt(rec.totalDays||rec.count||0);
+  if(total > 0) return total;
+  // fallback: نحسب من تاريخ الانضمام إذا لا يوجد سجيل
+  const joinTs = parseInt(localStorage.getItem('nld_join_ts_'+normName)||'0')
+              || parseInt(localStorage.getItem('nld_join_'+normName)||'0');
   return joinTs ? Math.max(1, Math.floor((Date.now()-joinTs)/(1000*60*60*24))) : 0;
 }
 
-/* ══ نهاية نظام الشعل الحقيقي ══ */
+/**
+ * يُرجع بيانات المدالية حسب عدد أيام الدخول
+ * كل 45 يوم دخول فعلي = ترقية في المدالية
+ */
+function _getStreakMedal(totalDays){
+  if(totalDays >= 135) return { emoji:'💎', label:'ماسية', color:'#00BFFF', glow:'rgba(0,191,255,0.7)' };
+  if(totalDays >= 90)  return { emoji:'🥇', label:'ذهبية',  color:'#FFD700', glow:'rgba(255,215,0,0.7)' };
+  if(totalDays >= 45)  return { emoji:'🥈', label:'فضية',   color:'#C0C0C0', glow:'rgba(192,192,192,0.7)' };
+  return                       { emoji:'🥉', label:'برونزية',color:'#CD7F32', glow:'rgba(205,127,50,0.7)' };
+}
+
+/* ══ نهاية نظام الشعلة الحقيقي ══ */
 
 function loginWithSavedAccount(name){
   const barCont = document.getElementById('loadingBarContainer');
@@ -15098,19 +15113,22 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   const myName = getCurrentUser();
   const normName = memberName.replace(/\s+/g,'_');
 
-  // حساب الشعل الحقيقي (أيام دخول متتالية فعلية) لهذا العضو
+  // حساب أيام الدخول الفعلية + المداليا لهذا العضو
   const memberRealStreak = typeof _getRealStreak === 'function' ? _getRealStreak(normName) : 0;
+  const memberMedal = typeof _getStreakMedal === 'function' ? _getStreakMedal(memberRealStreak) : {emoji:'🥉',label:'برونزية',color:'#CD7F32',glow:'rgba(205,127,50,0.5)'};
 
   // تحديث شارة الأيام في الأعلى
   const streakFlameEl = document.getElementById('mpvStreakFlame');
   const streakDaysEl = document.getElementById('mpvStreakDays');
   if(streakFlameEl){
-    const _sEmoji = memberRealStreak > 30 ? '🔥' : memberRealStreak > 7 ? '🌟' : '✨';
-    streakFlameEl.innerText = _sEmoji;
-    streakFlameEl.style.filter = memberRealStreak > 30 ? 'drop-shadow(0 0 6px #f97316)' : '';
-    streakFlameEl.style.animation = memberRealStreak > 7 ? 'pulse 1.5s infinite' : '';
+    streakFlameEl.innerText = memberMedal.emoji;
+    streakFlameEl.style.filter = `drop-shadow(0 0 8px ${memberMedal.glow})`;
+    streakFlameEl.style.animation = memberRealStreak >= 45 ? 'pulse 1.5s infinite' : '';
+    streakFlameEl.title = `مدالية ${memberMedal.label}`;
   }
-  if(streakDaysEl) streakDaysEl.innerText = memberRealStreak > 1 ? memberRealStreak+' يوم متتالي 🔥' : memberRealStreak === 1 ? 'يوم واحد 🌱' : 'جديد';
+  if(streakDaysEl){
+    streakDaysEl.innerHTML = `<span style="color:${memberMedal.color};font-weight:900;">${memberMedal.label}</span> · ${memberRealStreak} يوم`;
+  }
 
   // إجمالي النجوم التي حصل عليها هذا العضو
   const totalStarsKey = 'nld_total_stars_' + normName;
@@ -15171,17 +15189,28 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   if(fgEl) fgEl.innerText = followingList.length || 0;
   if(pcEl) pcEl.innerText = memberPosts || 0;
 
-  // ── حساب نسبة المشاهدة ونسبة التفاعل ──
+  // ── حساب الإحصاءات الحقيقية الشاملة ──
   (function _updateMpvStats(){
-    // المشاهدة: عدد زيارات الملف الشخصي
+    // 1️⃣ مشاهدات الملف الشخصي
     const visitsRaw = (() => { try{ return JSON.parse(localStorage.getItem('nld_visits_'+normName)||'[]'); }catch(e){ return []; } })();
-    const totalViews = visitsRaw.length;
-    // التفاعل: مجموع الإعجابات والتعليقات على منشورات العضو
+    const profileViews = visitsRaw.length;
+    // 2️⃣ مشاهدات القصص
+    const memberStoriesAll = (() => { try{ return JSON.parse(localStorage.getItem('nld_stories_'+normName)||'[]'); }catch(e){ return []; } })();
+    const storyViews = memberStoriesAll.reduce((s,st)=>s+((st.viewers||st.views||[]).length),0);
+    // 3️⃣ مشاهدات المنشورات
+    const postViewsData = (() => { try{ return JSON.parse(localStorage.getItem('nld_post_views_'+normName)||'{}'); }catch(e){ return {}; } })();
+    const postViews = Object.values(postViewsData).reduce((s,v)=>s+(parseInt(v)||0),0);
+    const totalViews = profileViews + storyViews + postViews;
+    // 4️⃣ التفاعل الكامل: ردود + تعليقات منشورات + ردود قصص
     const memberPostsData = allPosts.filter(p=>p.author===memberName);
-    const totalReacts = memberPostsData.reduce((s,p)=>s+((p.reactions||[]).length),0);
-    const totalComments = memberPostsData.reduce((s,p)=>s+((p.comments||[]).length),0);
-    const totalInteract = totalReacts + totalComments;
-    // تنسيق الأرقام بـ K
+    const postReacts = memberPostsData.reduce((s,p)=>{
+      const r = p.reactions||{};
+      if(Array.isArray(r)) return s+r.length;
+      return s+Object.values(r).reduce((a,b)=>a+(Array.isArray(b)?b.length:1),0);
+    },0);
+    const postComments = memberPostsData.reduce((s,p)=>s+((p.comments||[]).length),0);
+    const storyReacts = memberStoriesAll.reduce((s,st)=>s+Object.values(st.reactions||{}).length,0);
+    const totalInteract = postReacts + postComments + storyReacts;
     function _fmt(n){ if(n>=1000) return (n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+'K'; return String(n); }
     const viewsEl = document.getElementById('mpvViewsCount');
     const interactEl = document.getElementById('mpvInteractCount');
@@ -17564,6 +17593,22 @@ function _showStoryViewer(authorName, stories, startIdx){
     if(s.type==='image'){
       _storyTimer = setTimeout(()=>nextStory(), 5000);
     }
+
+    // ── تسجيل المشاهد في القصة (مرة واحدة لكل مشاهد) ──
+    (function _recordStoryViewer(){
+      const viewer = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+      if(!viewer || viewer==='زائر' || viewer===authorName) return;
+      const storyKey = typeof _storiesKey==='function' ? _storiesKey(authorName) : ('nld_stories_'+authorName.replace(/\s+/g,'_'));
+      try {
+        const allSt = JSON.parse(localStorage.getItem(storyKey)||'[]');
+        const target = allSt.find(st=>st.id===s.id);
+        if(target){
+          if(!Array.isArray(target.viewers)) target.viewers=[];
+          if(!target.viewers.includes(viewer)){ target.viewers.push(viewer); }
+          localStorage.setItem(storyKey, JSON.stringify(allSt));
+        }
+      }catch(e){}
+    })();
 
     // ── تشغيل الموسيقى إذا كانت موجودة ──
     const prevAudio = document.getElementById('_storyBgAudio');
@@ -21372,48 +21417,65 @@ function _updateFBProfile(){
     }
   }
 
-  // ── إحصاء خاص بهذا الملف فقط (كل ملف على حدا) ──
+  // ── إحصاء حقيقي ومنفصل لكل عضو ──
   const allPosts = (() => { try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
-  // عدد الأصدقاء الخاص بهذا المستخدم
+  // 1️⃣ عدد الأصدقاء الحقيقي
   const myFriendsCount = typeof getFriends === 'function' ? getFriends(name).length : 0;
-  // المشاهدات الخاصة بهذا الملف (nld_visits_<normName>)
+  // 2️⃣ المشاهدات الكاملة: زيارات الملف + مشاهدات القصص + مشاهدات المنشورات
   const myVisits = (() => { try{ return JSON.parse(localStorage.getItem('nld_visits_'+normName)||'[]'); }catch(e){ return []; } })();
-  const myVisitsCount = myVisits.length;
-  // التفاعلات والمنشورات الخاصة بهذا الملف فقط
+  const myProfileVisits = myVisits.length;
+  // مشاهدات القصص
+  const allStories = (() => { try{ return JSON.parse(localStorage.getItem('nld_stories_'+normName)||'[]'); }catch(e){ return []; } })();
+  const myStoryViews = allStories.reduce((s,st)=>s+((st.viewers||st.views||[]).length),0);
+  // مشاهدات المنشورات (من مفتاح nld_post_views_<normName>)
+  const myPostViewsData = (() => { try{ return JSON.parse(localStorage.getItem('nld_post_views_'+normName)||'{}'); }catch(e){ return {}; } })();
+  const myPostViews = Object.values(myPostViewsData).reduce((s,v)=>s+(parseInt(v)||0),0);
+  const myTotalViews = myProfileVisits + myStoryViews + myPostViews;
+  // 3️⃣ التفاعلات الكاملة: ردود أفعال + تعليقات على منشورات + ردود أفعال على القصص
   const myPostsData = allPosts.filter(p=>p.author===name);
   const myPostsCount = myPostsData.length;
-  const myTotalReacts = myPostsData.reduce((s,p)=>{
+  const myPostReacts = myPostsData.reduce((s,p)=>{
     const r = p.reactions||{};
     if(Array.isArray(r)) return s+r.length;
     return s+Object.values(r).reduce((a,b)=>a+(Array.isArray(b)?b.length:1),0);
   },0);
-  const myTotalComments = myPostsData.reduce((s,p)=>s+((p.comments||[]).length),0);
-  const myInteractCount = myTotalReacts + myTotalComments;
+  const myPostComments = myPostsData.reduce((s,p)=>s+((p.comments||[]).length),0);
+  const myStoryReacts = allStories.reduce((s,st)=>{
+    const r = st.reactions||{};
+    return s+Object.values(r).length;
+  },0);
+  const myInteractCount = myPostReacts + myPostComments + myStoryReacts;
   function _fmtStat(n){ if(n>=1000) return (n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+'K'; return String(n); }
-  // تحديث الخانات الأربع في شريط الإحصاء
+  // تحديث شريط الإحصاء الأربعة
   const flEl = document.getElementById('fbFollowersCount'); // أصدقاء
   const fvEl = document.getElementById('fbViewsCount');     // مشاهدات
   const pcEl = document.getElementById('fbPostsCount');     // تفاعل
   const fgEl = document.getElementById('fbFollowingCount'); // منشورات
   if(flEl) flEl.innerText = myFriendsCount || 0;
-  if(fvEl) fvEl.innerText = _fmtStat(myVisitsCount);
+  if(fvEl) fvEl.innerText = _fmtStat(myTotalViews);
   if(pcEl) pcEl.innerText = _fmtStat(myInteractCount);
   if(fgEl) fgEl.innerText = myPostsCount || 0;
 
-  // شعلة التقدم اليومي — الشعل الحقيقي (أيام متتالية فعلية)
+  // شعلة التقدم اليومي — مجموع أيام الدخول الفعلية + المداليا
   const realStreak = typeof _getRealStreak === 'function' ? _getRealStreak(normName) : 0;
+  const medal = typeof _getStreakMedal === 'function' ? _getStreakMedal(realStreak) : {emoji:'🥉',label:'برونزية',color:'#CD7F32',glow:'rgba(205,127,50,0.5)'};
   const streakFlame = document.getElementById('fbStreakFlame');
   const streakInfo = document.getElementById('fbStreakInfo');
   if(streakFlame){
-    const flameEmoji = realStreak > 30 ? '🔥' : realStreak > 7 ? '🌟' : '✨';
-    streakFlame.innerText = flameEmoji;
-    streakFlame.style.filter = realStreak > 30 ? 'drop-shadow(0 0 6px #f97316)' : '';
-    streakFlame.style.animation = realStreak > 7 ? 'pulse 1.5s infinite' : '';
+    streakFlame.innerText = medal.emoji;
+    streakFlame.style.filter = `drop-shadow(0 0 8px ${medal.glow})`;
+    streakFlame.style.animation = realStreak >= 45 ? 'pulse 1.5s infinite' : '';
+    streakFlame.title = `مدالية ${medal.label}`;
   }
   if(streakInfo){
-    if(realStreak > 1) streakInfo.innerText = `🔥 ${realStreak} يوم متتالي — استمر!`;
-    else if(realStreak === 1) streakInfo.innerText = 'أول دخول اليوم — ابدأ تسلسلك! 🌱';
-    else streakInfo.innerText = 'مرحباً بك في التطبيق!';
+    const nextLevel = realStreak < 45 ? 45 : realStreak < 90 ? 90 : realStreak < 135 ? 135 : null;
+    const nextInfo = nextLevel ? ` · ${nextLevel - realStreak} يوم للترقية` : ' · أعلى مستوى 💎';
+    streakInfo.innerHTML = `<span style="color:${medal.color};font-weight:900;">${medal.emoji} ${medal.label}</span> · <strong>${realStreak}</strong> يوم دخول${nextInfo}`;
+  }
+  const streakNextEl = document.getElementById('fbStreakNext');
+  if(streakNextEl){
+    const nextLevel = realStreak < 45 ? 45 : realStreak < 90 ? 90 : realStreak < 135 ? 135 : null;
+    streakNextEl.innerText = nextLevel ? `${nextLevel-realStreak} يوم` : '💎';
   }
 
   // شارة التوثيق على صورة الملف الشخصي
