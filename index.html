@@ -28,57 +28,47 @@
   }
 </style>
 <script>
-/* طبقة 2: JS مبكر في <head> — يعمل قبل أي عنصر DOM */
+/* ══════════════════════════════════════════════════════════
+   🔒 منع Pull-to-Refresh — نسخة مُصلَحة بمنطق صحيح
+   المنطق الصحيح:
+   - dy > 0  = المستخدم يسحب إلى الأسفل (إصبع ينزل) = pull-to-refresh
+   - dy < 0  = المستخدم يسحب إلى الأعلى (إصبع يصعد) = تمرير عادي للأعلى
+   - نمنع فقط: dy>0 (سحب أسفل) عندما لا يوجد عنصر يمكنه التمرير للأعلى
+   ══════════════════════════════════════════════════════════ */
 (function(){
 'use strict';
-/* منع touchmove الذي يتجاوز حدود الشاشة = pull-to-refresh */
-var _startY = 0;
-var _startX = 0;
+var _sy = 0; /* startY */
 
-function _onTouchStart(e){
-  if(e.touches.length === 1){
-    _startY = e.touches[0].clientY;
-    _startX = e.touches[0].clientX;
-  }
-}
+document.addEventListener('touchstart', function(e){
+  _sy = e.touches[0] ? e.touches[0].clientY : 0;
+}, {passive:true, capture:true});
 
-function _onTouchMove(e){
-  if(e.touches.length !== 1) return;
-  var dy = e.touches[0].clientY - _startY;
-  var dx = e.touches[0].clientX - _startX;
-  /* إذا كان السحب عمودياً أكثر من أفقي */
-  if(Math.abs(dy) > Math.abs(dx)){
-    /* ابحث عن أقرب عنصر قابل للتمرير */
-    var el = e.target;
-    var canScroll = false;
-    while(el && el !== document.body){
-      var st = el.scrollTop;
-      var sh = el.scrollHeight;
-      var ch = el.clientHeight;
-      var overflow = window.getComputedStyle(el).overflowY;
-      var scrollable = (overflow === 'auto' || overflow === 'scroll') && sh > ch;
-      if(scrollable){
-        /* لديه مساحة للتمرير؟ */
-        if(dy > 0 && st > 0){ canScroll = true; break; } /* تمرير للأسفل ممكن */
-        if(dy < 0 && st < sh - ch - 1){ canScroll = true; break; } /* تمرير للأعلى ممكن */
-      }
-      el = el.parentElement;
+document.addEventListener('touchmove', function(e){
+  if(!e.touches[0]) return;
+  var dy = e.touches[0].clientY - _sy; /*양수 = سحب للأسفل */
+
+  /* فقط نهتم بالسحب للأسفل (pull-to-refresh) */
+  if(dy <= 0) return;
+
+  /* ابحث عن أقرب عنصر يمكنه التمرير للأعلى (scrollTop > 0) */
+  var el = e.target;
+  while(el && el !== document.documentElement){
+    var ov = window.getComputedStyle(el).overflowY;
+    if((ov === 'auto' || ov === 'scroll') && el.scrollTop > 0){
+      /* هذا العنصر لم يصل للأعلى بعد — السحب تمرير عادي، لا نمنع */
+      return;
     }
-    if(!canScroll){
-      /* لا يوجد عنصر يمكنه التمرير = امنع الـ pull-to-refresh */
-      e.preventDefault();
-    }
+    el = el.parentElement;
   }
-}
+  /* وصلنا للأعلى أو لا يوجد عنصر scroll — هذا pull-to-refresh، نمنعه */
+  e.preventDefault();
 
-/* ✅ non-passive ضروري هنا لاستخدام preventDefault() */
-document.addEventListener('touchstart', _onTouchStart, {passive:true, capture:true});
-document.addEventListener('touchmove', _onTouchMove, {passive:false, capture:true});
+}, {passive:false, capture:true});
 })();
 </script>
 <meta name="description" content="Connect DZ - منصة الشباب الجزائري للتعلم والإبداع">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Connect DZ | Dashboard</title>
 
 <!-- PWA Manifest -->
