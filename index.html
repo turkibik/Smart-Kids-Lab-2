@@ -4571,19 +4571,23 @@ body.member-mode #onlineBar{
           <div id="fbProfileRole" style="font-size:13px;color:#65676B;margin-top:2px;font-weight:600;"></div>
         </div>
 
-        <!-- عداد الأصدقاء / المشاهدات / التفاعل -->
+        <!-- عداد الأصدقاء / المشاهدات / التفاعل / المنشورات -->
         <div style="display:flex;gap:0;margin:8px 0 10px;border-radius:12px;overflow:hidden;background:#F0F2F5;">
-          <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
-            <div id="fbFollowersCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">أصدقاء</div>
+          <div style="flex:1;padding:8px 2px;text-align:center;border-left:1px solid #E4E6EB;">
+            <div id="fbFollowersCount" style="font-size:15px;font-weight:900;color:#050505;">0</div>
+            <div style="font-size:8px;color:#65676B;font-weight:700;">أصدقاء</div>
           </div>
-          <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
-            <div id="fbFollowingCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">مشاهدة</div>
+          <div style="flex:1;padding:8px 2px;text-align:center;border-left:1px solid #E4E6EB;">
+            <div id="fbViewsCount" style="font-size:15px;font-weight:900;color:#050505;">0</div>
+            <div style="font-size:8px;color:#65676B;font-weight:700;">مشاهدات</div>
           </div>
-          <div style="flex:1;padding:8px 4px;text-align:center;">
-            <div id="fbPostsCount" style="font-size:16px;font-weight:900;color:#1877F2;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">تفاعل</div>
+          <div style="flex:1;padding:8px 2px;text-align:center;border-left:1px solid #E4E6EB;">
+            <div id="fbPostsCount" style="font-size:15px;font-weight:900;color:#1877F2;">0</div>
+            <div style="font-size:8px;color:#65676B;font-weight:700;">تفاعل</div>
+          </div>
+          <div style="flex:1;padding:8px 2px;text-align:center;">
+            <div id="fbFollowingCount" style="font-size:15px;font-weight:900;color:#00c853;">0</div>
+            <div style="font-size:8px;color:#65676B;font-weight:700;">منشورات</div>
           </div>
         </div>
 
@@ -4634,6 +4638,40 @@ body.member-mode #onlineBar{
           <div id="fbTotalStars" style="margin-top:10px;text-align:center;font-size:12px;color:#65676B;font-weight:700;"></div>
           <!-- معدل تقييم الزوار لملفك -->
           <div id="fbVisitorRatingSum" style="margin-top:8px;text-align:center;font-size:11px;color:#65676B;"></div>
+        </div>
+
+        <!-- ── محفظة النجوم للتوثيق ── -->
+        <div style="background:linear-gradient(135deg,#FFF8E1,#FFF3CD);border:1.5px solid rgba(245,197,24,0.4);border-radius:14px;padding:14px;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:13px;font-weight:900;color:#050505;">🌟 محفظة النجوم</div>
+            <div id="fbStarsWalletBadge" style="background:linear-gradient(90deg,#f5c518,#f97316);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:900;color:white;">0 ⭐</div>
+          </div>
+          <div style="font-size:11px;color:#65676B;margin-bottom:8px;">كل تقييم من أصدقائك يُضاف هنا لتوثيق حسابك</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
+            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;">
+              <div id="fbStarsWalletTotal" style="font-size:18px;font-weight:900;color:#f59e0b;">0</div>
+              <div style="font-size:9px;color:#65676B;font-weight:700;">إجمالي النجوم</div>
+            </div>
+            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;">
+              <div id="fbStarsWalletRaters" style="font-size:18px;font-weight:900;color:#1877F2;">0</div>
+              <div style="font-size:9px;color:#65676B;font-weight:700;">عدد المقيّمين</div>
+            </div>
+            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;">
+              <div id="fbStarsWalletAvg" style="font-size:18px;font-weight:900;color:#00c853;">0</div>
+              <div style="font-size:9px;color:#65676B;font-weight:700;">معدل التقييم</div>
+            </div>
+          </div>
+          <!-- شريط التقدم نحو التوثيق -->
+          <div style="margin-bottom:6px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+              <span style="font-size:10px;font-weight:700;color:#050505;">التقدم نحو التوثيق</span>
+              <span id="fbWalletProgressLabel" style="font-size:10px;color:#65676B;">0 / 150 ⭐</span>
+            </div>
+            <div style="height:6px;background:#E4E6EB;border-radius:3px;overflow:hidden;">
+              <div id="fbWalletProgressBar" style="height:100%;background:linear-gradient(90deg,#f5c518,#f97316);border-radius:3px;transition:width .6s ease;width:0%;"></div>
+            </div>
+          </div>
+          <div id="fbStarsWalletStatus" style="font-size:11px;text-align:center;color:#65676B;font-weight:700;"></div>
         </div>
 
         <!-- أزرار الإجراءات -->
@@ -15297,6 +15335,37 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
         </div>
       </div>
 
+      <!-- ── محفظة النجوم للتوثيق ── -->
+      ${(()=>{
+        const _mRats = (() => { try{ return JSON.parse(localStorage.getItem('nld_manual_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
+        const _mVals = Object.values(_mRats).map(v=>parseInt(v)||0).filter(v=>v>0);
+        const _mTotal = _mVals.reduce((a,b)=>a+b,0);
+        const _mCount = _mVals.length;
+        const _mAvg   = _mCount > 0 ? (_mTotal/_mCount).toFixed(1) : '0';
+        const _tgt    = _mTotal >= 300 ? 300 : 150;
+        const _pct    = Math.min(100,(_mTotal/_tgt)*100);
+        const _barClr = _mTotal >= 300 ? 'linear-gradient(90deg,#FFD700,#FFA000)' : 'linear-gradient(90deg,#f5c518,#f97316)';
+        const _status = _mTotal >= 300 ? '🌟 <span style="color:#f59e0b;font-weight:900;">حساب موثّق ذهبي!</span>'
+                      : _mTotal >= 150 ? '✅ <span style="color:#1877F2;font-weight:900;">حساب موثّق!</span>'
+                      : `تحتاج ${150-_mTotal} نجمة إضافية`;
+        return `<div style="background:linear-gradient(135deg,#FFF8E1,#FFF3CD);border:1.5px solid rgba(245,197,24,0.4);border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:13px;font-weight:900;color:#050505;">🌟 محفظة النجوم</div>
+            <div style="background:linear-gradient(90deg,#f5c518,#f97316);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:900;color:white;">${_mTotal.toLocaleString()} ⭐</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
+            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;"><div style="font-size:16px;font-weight:900;color:#f59e0b;">${_mTotal.toLocaleString()}</div><div style="font-size:9px;color:#65676B;font-weight:700;">إجمالي النجوم</div></div>
+            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;"><div style="font-size:16px;font-weight:900;color:#1877F2;">${_mCount.toLocaleString()}</div><div style="font-size:9px;color:#65676B;font-weight:700;">عدد المقيّمين</div></div>
+            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;"><div style="font-size:16px;font-weight:900;color:#00c853;">${_mAvg}</div><div style="font-size:9px;color:#65676B;font-weight:700;">معدل التقييم</div></div>
+          </div>
+          <div style="margin-bottom:6px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:10px;font-weight:700;color:#050505;">التقدم نحو التوثيق</span><span style="font-size:10px;color:#65676B;">${_mTotal} / ${_tgt} ⭐</span></div>
+            <div style="height:6px;background:#E4E6EB;border-radius:3px;overflow:hidden;"><div style="height:100%;background:${_barClr};border-radius:3px;width:${_pct}%;"></div></div>
+          </div>
+          <div style="font-size:11px;text-align:center;color:#65676B;font-weight:700;">${_status}</div>
+        </div>`;
+      })()}
+
       <!-- تقييمك لهذا الصديق (تقييم يدوي) -->
       <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E4E6EB;">
@@ -15431,6 +15500,9 @@ function _submitMpvVisitorRating(memberName, normName, stars){
 
   // تحديث شارة التوثيق
   if(typeof _checkVerifiedBadge === 'function') _checkVerifiedBadge(memberName, newTotal);
+
+  // ── تحديث محفظة النجوم ──
+  if(typeof _addStarsToWallet === 'function') _addStarsToWallet(normName, myName, stars, isNew, oldRating);
 
   _renderMpvVisitorRating(memberName, normName);
 }
@@ -15591,6 +15663,9 @@ function rateMember(memberName, stars){
   // تحديث إنجازات صاحب الملف (شارة التوثيق)
   _checkVerifiedBadge(memberName, newTotal);
 
+  // ── محفظة النجوم: كل تقييم يُحوَّل لنجوم توثيق ──
+  _addStarsToWallet(normMember, myName, stars, isNew, oldRating);
+
   // رسالة مختلفة لأول تقييم أو تعديل
   const hoursLeft = isNew ? 24 : Math.max(0, Math.ceil((LIMIT_24H - (now - oldTs))/3600000));
   const msg = isNew
@@ -15598,6 +15673,52 @@ function rateMember(memberName, stars){
     : `✅ تم تحديث تقييمك لـ ${memberName} إلى ${stars} نجوم — متبقي ${hoursLeft}س للتعديل`;
   showToast(msg);
 }
+
+/**
+ * ── محفظة النجوم للتوثيق ──
+ * كل تقييم نجوم يُحوَّل مباشرةً إلى نجوم في محفظة التوثيق
+ * nld_stars_wallet_{normName} → { total, transactions: [{from, stars, ts}] }
+ */
+function _addStarsToWallet(normMember, fromUser, newStars, isNew, oldStars){
+  const walletKey = 'nld_stars_wallet_' + normMember;
+  let wallet;
+  try { wallet = JSON.parse(localStorage.getItem(walletKey)||'null'); } catch(e){ wallet = null; }
+  if(!wallet || typeof wallet !== 'object'){
+    wallet = { total: 0, transactions: [] };
+  }
+
+  // القيمة الفعلية المضافة = الفرق (تقييم جديد أو تعديل)
+  const diff = newStars - (isNew ? 0 : oldStars);
+  if(diff === 0) return;
+
+  wallet.total = Math.max(0, (wallet.total || 0) + diff);
+  wallet.transactions = wallet.transactions || [];
+  wallet.transactions.unshift({
+    from   : fromUser,
+    stars  : newStars,
+    diff   : diff,
+    ts     : Date.now()
+  });
+  // نحتفظ بآخر 100 معاملة فقط
+  if(wallet.transactions.length > 100) wallet.transactions = wallet.transactions.slice(0, 100);
+
+  localStorage.setItem(walletKey, JSON.stringify(wallet));
+
+  // تحديث عنصر محفظة النجوم في الواجهة إن وُجد
+  const walletEl = document.getElementById('fbStarsWalletTotal');
+  if(walletEl) walletEl.innerText = wallet.total.toLocaleString();
+  const walletEl2 = document.getElementById('fbStarsWalletBadge');
+  if(walletEl2) walletEl2.innerText = wallet.total.toLocaleString() + ' ⭐';
+}
+
+/** قراءة محفظة النجوم لمستخدم */
+function getStarsWallet(name){
+  const normName = (name||'').replace(/\s+/g,'_');
+  const walletKey = 'nld_stars_wallet_' + normName;
+  try { return JSON.parse(localStorage.getItem(walletKey)||'null') || { total:0, transactions:[] }; }
+  catch(e){ return { total:0, transactions:[] }; }
+}
+window.getStarsWallet = getStarsWallet;
 
 /** فحص وتفعيل شارة التوثيق إذا وصل لـ 300 نجمة */
 function _checkVerifiedBadge(memberName, totalStars){
@@ -21114,28 +21235,33 @@ function _updateFBProfile(){
     }
   }
 
-  // عداد المتابعون / المتابعين / المنشورات
-  const followersKey = 'nld_followers_'+normName;
-  const followingKey = 'nld_following_'+normName;
+  // ── إحصاء خاص بهذا الملف فقط (كل ملف على حدا) ──
   const allPosts = (() => { try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
-  const myPostsCount = allPosts.filter(p=>p.author===name).length;
-  // عدد الأصدقاء (مخصص لكل ملف)
+  // عدد الأصدقاء الخاص بهذا المستخدم
   const myFriendsCount = typeof getFriends === 'function' ? getFriends(name).length : 0;
-  // المشاهدات الخاصة بهذا الملف
+  // المشاهدات الخاصة بهذا الملف (nld_visits_<normName>)
   const myVisits = (() => { try{ return JSON.parse(localStorage.getItem('nld_visits_'+normName)||'[]'); }catch(e){ return []; } })();
   const myVisitsCount = myVisits.length;
-  // التفاعلات الخاصة بمنشورات هذا الملف
+  // التفاعلات والمنشورات الخاصة بهذا الملف فقط
   const myPostsData = allPosts.filter(p=>p.author===name);
-  const myTotalReacts = myPostsData.reduce((s,p)=>s+Object.values(p.reactions||{}).reduce((a,b)=>a+(Array.isArray(b)?b.length:0),0),0);
+  const myPostsCount = myPostsData.length;
+  const myTotalReacts = myPostsData.reduce((s,p)=>{
+    const r = p.reactions||{};
+    if(Array.isArray(r)) return s+r.length;
+    return s+Object.values(r).reduce((a,b)=>a+(Array.isArray(b)?b.length:1),0);
+  },0);
   const myTotalComments = myPostsData.reduce((s,p)=>s+((p.comments||[]).length),0);
   const myInteractCount = myTotalReacts + myTotalComments;
-  function _fmtStat(n){ if(n>=1000) return (n/1000).toFixed(1).replace(/\.0$/,'')+'K'; return String(n); }
-  const flEl = document.getElementById('fbFollowersCount');
-  const fgEl = document.getElementById('fbFollowingCount');
-  const pcEl = document.getElementById('fbPostsCount');
+  function _fmtStat(n){ if(n>=1000) return (n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+'K'; return String(n); }
+  // تحديث الخانات الأربع في شريط الإحصاء
+  const flEl = document.getElementById('fbFollowersCount'); // أصدقاء
+  const fvEl = document.getElementById('fbViewsCount');     // مشاهدات
+  const pcEl = document.getElementById('fbPostsCount');     // تفاعل
+  const fgEl = document.getElementById('fbFollowingCount'); // منشورات
   if(flEl) flEl.innerText = myFriendsCount || 0;
-  if(fgEl) fgEl.innerText = _fmtStat(myVisitsCount);
+  if(fvEl) fvEl.innerText = _fmtStat(myVisitsCount);
   if(pcEl) pcEl.innerText = _fmtStat(myInteractCount);
+  if(fgEl) fgEl.innerText = myPostsCount || 0;
 
   // شعلة التقدم اليومي
   const joinTs = parseInt(localStorage.getItem('nld_join_ts_'+normName)||'0') || parseInt(localStorage.getItem('nld_join_'+normName)||'0');
@@ -21196,8 +21322,9 @@ function _updateFBProfile(){
   // بيانات التسجيل من Firebase
   _loadRegDataForProfile(name);
 
-  // النقاط والمستوى
-  const totalPts = parseInt(document.getElementById('mainPoints')?.innerText)||0;
+  // ── النقاط: تُجلب من لوحة التحكم (mainPoints) — المصدر الوحيد ──
+  const mainPtsEl = document.getElementById('mainPoints');
+  const totalPts = mainPtsEl ? (parseInt(mainPtsEl.innerText.replace(/[^\d]/g,''))||0) : (_basePoints||0);
   const lvl = Math.floor(totalPts/3000)+1;
   const ptsInLvl = totalPts % 3000;
   const pct = Math.min(100, (ptsInLvl/3000)*100);
@@ -21209,17 +21336,26 @@ function _updateFBProfile(){
   const levelPtsEl = document.getElementById('fbLevelPts');
   if(levelPtsEl) levelPtsEl.innerText = ptsInLvl.toLocaleString()+' نقطة';
 
-  // إجمالي النقاط
+  // إجمالي النقاط (من لوحة التحكم)
   const totalPtsEl = document.getElementById('fbTotalPts');
   if(totalPtsEl) totalPtsEl.innerText = totalPts.toLocaleString();
 
-  // الرصيد
+  // ── الرصيد: يُجلب من جدول الترتيب (mgStatBalance) — المصدر الوحيد ──
   const balEl = document.getElementById('fbBalance');
   const balSrc = document.getElementById('mgStatBalance');
   if(balEl && balSrc) balEl.innerText = balSrc.innerText || '0 دج';
+  else if(balEl){
+    // احتياطي: حساب الرصيد من نقاط الجدول المحلية
+    const _savedRate = window._userBalanceRate || 30;
+    const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : Math.max(0, totalPts - parseInt(localStorage.getItem('nld_earned_'+normName)||'0'));
+    balEl.innerText = ((Math.max(0,sheetPts)/50)*_savedRate).toFixed(2) + ' دج';
+  }
 
   // التوثيق (3000 نجم = توثيق)
   _updateStarsRating(name);
+
+  // ── تحديث محفظة النجوم ──
+  _updateStarsWalletUI(name);
 
   // منشورات الملف الشخصي
   _loadFBProfilePosts(name);
@@ -21318,7 +21454,44 @@ function _updateStarsRating(name){
   }
 }
 
-/* منشورات الملف الشخصي */
+/* تحديث واجهة محفظة النجوم في الملف الذاتي */
+function _updateStarsWalletUI(name){
+  const wallet = getStarsWallet ? getStarsWallet(name) : { total:0, transactions:[] };
+  const normName = (name||'').replace(/\s+/g,'_');
+
+  // إجمالي النجوم من التقييمات اليدوية (مجموع كل المقيّمين)
+  const allManual = (() => { try{ return JSON.parse(localStorage.getItem('nld_manual_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
+  const raterVals = Object.values(allManual).map(v=>parseInt(v)||0).filter(v=>v>0);
+  const raterCount = raterVals.length;
+  const raterSum   = raterVals.reduce((a,b)=>a+b,0);
+  const raterAvg   = raterCount > 0 ? (raterSum/raterCount).toFixed(1) : '0';
+
+  // walletTotal = raterSum (مجموع كل النجوم من كل المقيّمين)
+  const walletTotal = raterSum;
+
+  const setEl = (id,v)=>{ const e=document.getElementById(id); if(e) e.innerText=v; };
+  setEl('fbStarsWalletTotal',   walletTotal.toLocaleString());
+  setEl('fbStarsWalletBadge',   walletTotal.toLocaleString()+' ⭐');
+  setEl('fbStarsWalletRaters',  raterCount.toLocaleString());
+  setEl('fbStarsWalletAvg',     raterAvg);
+
+  // شريط التقدم
+  const target = walletTotal >= 300 ? 300 : 150;
+  const barPct  = Math.min(100, (walletTotal/target)*100);
+  const barEl   = document.getElementById('fbWalletProgressBar');
+  if(barEl){ barEl.style.width = barPct+'%'; barEl.style.background = walletTotal>=300 ? 'linear-gradient(90deg,#FFD700,#FFA000)' : 'linear-gradient(90deg,#f5c518,#f97316)'; }
+  const labelEl = document.getElementById('fbWalletProgressLabel');
+  if(labelEl) labelEl.innerText = walletTotal.toLocaleString()+' / '+(walletTotal>=300?300:150)+' ⭐';
+
+  const statusEl = document.getElementById('fbStarsWalletStatus');
+  if(statusEl){
+    if(walletTotal >= 300)       statusEl.innerHTML = '🌟 <span style="color:#f59e0b;font-weight:900;">حساب موثّق ذهبي!</span>';
+    else if(walletTotal >= 150)  statusEl.innerHTML = '✅ <span style="color:#1877F2;font-weight:900;">حساب موثّق!</span>';
+    else                          statusEl.innerText = `تحتاج ${(150-walletTotal)} نجمة إضافية للتوثيق الأزرق`;
+  }
+}
+
+
 function _loadFBProfilePosts(name){
   const container = document.getElementById('fbProfilePostsContainer');
   if(!container) return;
