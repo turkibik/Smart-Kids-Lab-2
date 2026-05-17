@@ -23129,418 +23129,337 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
 })();
 </script>
 
+
 <!-- ══════════════════════════════════════════════════════════════════════
-     🔧 ConnectDZ MASTER FIX v5.0
-     يُصلح 4 مشاكل دفعةً واحدة:
-     1) المسنجر: polling فوري يحمل رسائل المستخدم الحالي فقط
-     2) الشعلة: مرتبطة بمستخدم واحد فقط عبر normName الصحيح
-     3) النقاط في الملف الشخصي: تجلب من Firebase/Sheet بالاسم
-     4) تقييم النجوم: منفصل تماماً لكل عضو بعد التجاوز
+     🔧 ConnectDZ UNIFIED FIX v6.0
+     إصلاح موحّد نهائي — تجاوز واحد فقط لـ openMemberProfileView
+     يجلب من Firebase: الشعلة + النجوم + الإحصائيات + التقييم
+     كل عضو بياناته الخاصة — لا تداخل بين الأعضاء
      ══════════════════════════════════════════════════════════════════════ -->
 <script>
 (function(){
 'use strict';
 
-/* ══════════════════════════════════════════════════════════
+const _FB6 = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+function _get6(path){
+  return fetch(_FB6 + path + '.json')
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .catch(function(){ return null; });
+}
+function _put6(path, data){
+  return fetch(_FB6 + path + '.json', {
+    method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
+  }).catch(function(){});
+}
+
+/* ── مدالية الشعلة ── */
+function _medal6(days){
+  if(days >= 135) return {emoji:'💎', label:'ماسية',   color:'#00BFFF', glow:'rgba(0,191,255,0.7)'};
+  if(days >= 90)  return {emoji:'🥇', label:'ذهبية',   color:'#FFD700', glow:'rgba(255,215,0,0.7)'};
+  if(days >= 45)  return {emoji:'🥈', label:'فضية',    color:'#C0C0C0', glow:'rgba(192,192,192,0.7)'};
+  return                 {emoji:'🥉', label:'برونزية', color:'#CD7F32', glow:'rgba(205,127,50,0.7)'};
+}
+
+/* ════════════════════════════════════════════════════════════════
    🔧 إصلاح 1 — المسنجر الفوري
-   المشكلة: startChatPolling يقارن lastRemoteId وحيداً،
-            لا يُحدَّث الـ badge إلا كل 10 ثوانٍ،
-            وإذا فشل Supabase تتوقف التحديثات تماماً.
-   الحل:
-   • polling كل 5 ثوانٍ (بدل 10)
-   • تحديث الـ badge عند كل poll بغض النظر عن تغيّر الرسائل
-   • عند فشل Supabase: يعتمد على localStorage كـ fallback
-   ══════════════════════════════════════════════════════════ */
+   polling كل 5 ثوانٍ مع fallback localStorage
+════════════════════════════════════════════════════════════════ */
+(function _fixMessenger6(){
+  var _poll = null;
+  var _lastId = null;
 
-/* نُوقف أي polling قديم ثم نُعيد تعريفه */
-(function _fixMessenger(){
-  /* أوقف الـ polling القديم إن كان شغّالاً */
-  if(typeof stopChatPolling === 'function') stopChatPolling();
-
-  let _fixPollingInterval = null;
-  let _fixLastMsgId = null;
-
-  window._startFixedChatPolling = function(){
-    if(_fixPollingInterval) return;
-
-    _fixPollingInterval = setInterval(async function(){
+  function startPoll(){
+    if(_poll) return;
+    _poll = setInterval(function(){
       try{
-        const myName = (window._isAdmin) ? 'المدير'
-          : (typeof getCurrentUser === 'function' ? getCurrentUser()
-            : localStorage.getItem('sklab_user_name') || '');
-        if(!myName || myName === 'زائر') return;
+        var myName = window._isAdmin ? 'المدير'
+          : (typeof getCurrentUser==='function' ? getCurrentUser()
+            : localStorage.getItem('sklab_user_name')||''  );
+        if(!myName || myName==='زائر') return;
 
-        /* ── تحديث badge الرسائل غير المقروءة دائماً ── */
-        if(typeof sbGetUnreadCount === 'function'){
-          sbGetUnreadCount(myName).then(function(unread){
-            if(unread >= 0 && typeof updateNotifBadge === 'function') updateNotifBadge(unread);
+        /* badge */
+        if(typeof sbGetUnreadCount==='function'){
+          sbGetUnreadCount(myName).then(function(u){
+            if(u>=0 && typeof updateNotifBadge==='function') updateNotifBadge(u);
           }).catch(function(){
-            /* fallback: عدّ من localStorage */
-            let total = 0;
-            for(let i = 0; i < localStorage.length; i++){
-              const k = localStorage.key(i);
-              if(k && k.startsWith('nld_p2p_')){
-                try{
-                  const msgs = JSON.parse(localStorage.getItem(k) || '[]');
-                  total += msgs.filter(function(m){ return m.to === myName && !m.read; }).length;
-                }catch(e){}
+            var t=0;
+            for(var i=0;i<localStorage.length;i++){
+              var k=localStorage.key(i);
+              if(k&&k.startsWith('nld_p2p_')){
+                try{ t+=JSON.parse(localStorage.getItem(k)||'[]').filter(function(m){return m.to===myName&&!m.read;}).length; }catch(e){}
               }
             }
-            if(typeof updateNotifBadge === 'function') updateNotifBadge(total);
+            if(typeof updateNotifBadge==='function') updateNotifBadge(t);
           });
         }
 
-        /* ── تحديث شاشة المحادثة المفتوحة حالياً ── */
-        const chatScreen = document.getElementById('chatScreen');
-        const target = window._currentChatTarget;
-        if(!chatScreen || chatScreen.style.display === 'none' || !target) return;
+        /* شاشة محادثة مفتوحة */
+        var cs=document.getElementById('chatScreen');
+        var tg=window._currentChatTarget;
+        if(!cs||cs.style.display==='none'||!tg) return;
+        if(typeof sbGetMessages!=='function') return;
 
-        if(typeof sbGetMessages !== 'function') return;
-
-        const remote = await sbGetMessages(myName, target);
-        if(!remote || !remote.length) return;
-
-        const lastId = remote[remote.length - 1]?.id;
-        if(!lastId || lastId === _fixLastMsgId) return;
-
-        _fixLastMsgId = lastId;
-
-        /* دمج مع localStorage */
-        const local = (typeof _getP2PMsgs === 'function') ? _getP2PMsgs(myName, target) : [];
-        const localOnly = local.filter(function(m){
-          return !remote.find(function(r){ return r.id === m.id; });
-        });
-        const merged = [...remote, ...localOnly].sort(function(x, y){
-          return (x.timestamp || '').localeCompare(y.timestamp || '');
-        });
-
-        if(typeof _saveP2PMsgs === 'function') _saveP2PMsgs(myName, target, merged);
-
-        const msgDiv = document.getElementById('messagesContent');
-        const isReadOnly = chatScreen.getAttribute('data-readonly');
-        if(msgDiv && typeof renderChatBubbles === 'function'){
-          renderChatBubbles(merged, msgDiv, myName, !!isReadOnly);
-        }
-
-        /* علّم رسائله كمقروءة */
-        if(!isReadOnly && typeof sbMarkRead === 'function'){
-          sbMarkRead(myName, target, myName);
-        }
-
-      }catch(e){ /* تجاهل الأخطاء المؤقتة */ }
-    }, 5000); /* كل 5 ثوانٍ */
-  };
-
-  window._stopFixedChatPolling = function(){
-    if(_fixPollingInterval){ clearInterval(_fixPollingInterval); _fixPollingInterval = null; }
-  };
-
-  /* شغّل عند تحميل الصفحة */
-  window.addEventListener('load', function(){
-    setTimeout(window._startFixedChatPolling, 3000);
-  });
-
-  /* شغّل فوراً إن الصفحة محمّلة */
-  if(document.readyState === 'complete'){
-    setTimeout(window._startFixedChatPolling, 1000);
-  }
-})();
-
-
-/* ══════════════════════════════════════════════════════════
-   🔧 إصلاح 2 — الشعلة: مرتبطة بالمستخدم الحالي دائماً
-   المشكلة: _refreshStreakUI تُعيد قراءة normName من المستخدم الحالي
-            لكن عند عرض ملف عضو آخر تُعرض شعلة المستخدم الحالي
-            وليس شعلة العضو المعروض.
-   الحل: عند فتح ملف عضو آخر (openMemberProfileView)
-          اجلب شعلته الخاصة من Firebase وأعرضها في mpvStreakFlame/mpvStreakDays
-   ══════════════════════════════════════════════════════════ */
-
-(function _fixStreak(){
-  const FB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-
-  async function _getMemberStreak(normName){
-    try{
-      const res = await fetch(FB_BASE + '/streaks/' + normName + '.json');
-      if(!res.ok) return 0;
-      const d = await res.json();
-      return d ? parseInt(d.totalDays || 0) : 0;
-    }catch(e){ return 0; }
-  }
-
-  function _getMedalForDays(days){
-    if(days >= 135) return { emoji:'💎', label:'ماسية', color:'#00BFFF' };
-    if(days >= 90)  return { emoji:'🥇', label:'ذهبية',  color:'#FFD700' };
-    if(days >= 45)  return { emoji:'🥈', label:'فضية',   color:'#C0C0C0' };
-    return                 { emoji:'🥉', label:'برونزية',color:'#CD7F32' };
-  }
-
-  /* تجاوز openMemberProfileView لعرض شعلة العضو الصحيحة */
-  const _prevOpenMpv = window.openMemberProfileView;
-  window.openMemberProfileView = async function(memberName){
-    if(typeof _prevOpenMpv === 'function') _prevOpenMpv.apply(this, arguments);
-
-    if(!memberName) return;
-    const normName = memberName.replace(/\s+/g, '_');
-
-    /* شعلة المستخدم الحالي (صاحب الجلسة) للملف الذاتي تبقى كما هي */
-    const myName = localStorage.getItem('sklab_user_name') || '';
-    if(memberName === myName) return; /* لا نتدخل في الملف الذاتي */
-
-    /* اجلب شعلة العضو المستهدف */
-    setTimeout(async function(){
-      /* localStorage أولاً للسرعة */
-      const KEY = 'nld_daily_streak_' + normName;
-      let localDays = 0;
-      try{
-        const rec = JSON.parse(localStorage.getItem(KEY) || '{}');
-        localDays = parseInt(rec.totalDays || rec.count || 0);
+        sbGetMessages(myName, tg).then(function(remote){
+          if(!remote||!remote.length) return;
+          var lid=remote[remote.length-1]&&remote[remote.length-1].id;
+          if(!lid||lid===_lastId) return;
+          _lastId=lid;
+          var local=(typeof _getP2PMsgs==='function')?_getP2PMsgs(myName,tg):[];
+          var localOnly=local.filter(function(m){ return !remote.find(function(r){return r.id===m.id;}); });
+          var merged=[].concat(remote,localOnly).sort(function(x,y){return (x.timestamp||''  ).localeCompare(y.timestamp||''  );});
+          if(typeof _saveP2PMsgs==='function') _saveP2PMsgs(myName,tg,merged);
+          var md=document.getElementById('messagesContent');
+          var ro=cs.getAttribute('data-readonly');
+          if(md&&typeof renderChatBubbles==='function') renderChatBubbles(merged,md,myName,!!ro);
+          if(!ro&&typeof sbMarkRead==='function') sbMarkRead(myName,tg,myName);
+        }).catch(function(){});
       }catch(e){}
+    }, 5000);
+  }
 
-      /* Firebase للدقة */
-      const fbDays = await _getMemberStreak(normName);
-      const totalDays = Math.max(localDays, fbDays);
-      const medal = _getMedalForDays(totalDays);
-
-      const flameEl = document.getElementById('mpvStreakFlame');
-      const daysEl  = document.getElementById('mpvStreakDays');
-      if(flameEl) flameEl.innerText = medal.emoji;
-      if(daysEl)  daysEl.innerHTML = '<span style="color:' + medal.color + ';font-weight:900;">'
-        + medal.label + '</span> · ' + totalDays + ' يوم';
-    }, 500);
-  };
+  window.addEventListener('load', function(){ setTimeout(startPoll, 3000); });
+  if(document.readyState==='complete') setTimeout(startPoll, 1000);
 })();
 
 
-/* ══════════════════════════════════════════════════════════
-   🔧 إصلاح 3 — النقاط والرصيد في ملف العضو
-   المشكلة: _fixPointsBalanceDisplay تقرأ من mainPoints DOM
-            الذي يعكس فقط المستخدم الحالي.
-            عند فتح ملف عضو آخر تُعرض نقاط المستخدم الحالي.
-   الحل: اجلب نقاط العضو المستهدف من Firebase /userStats/{normName}
-          أو من localStorage nld_earned_{normName}
-   ══════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════
+   🔧 إصلاح 2، 3، 4 — تجاوز واحد نهائي لـ openMemberProfileView
+   يُنفَّذ بعد كل التعريفات الأخرى (DOMContentLoaded)
+   يجلب من Firebase لكل عضو:
+     - الشعلة والمدالية   → /streaks/{n}
+     - النجوم والتوثيق    → /totalStars/{n} + /ratings/{n}
+     - الإحصائيات         → /userStats/{n}
+     - التقييم الخماسي   → /visitor_ratings/{n}
+════════════════════════════════════════════════════════════════ */
+window.addEventListener('load', function(){
+  /* انتظر 200ms بعد load حتى تنتهي كل التعريفات */
+  setTimeout(function(){
 
-(function _fixProfilePoints(){
-  const FB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+    /* احتفظ بمرجع للدالة الأصلية الكاملة */
+    var _BASE_OPEN = window.openMemberProfileView;
 
-  async function _getMemberPts(normName){
-    /* 1. Firebase userStats */
-    try{
-      const res = await fetch(FB_BASE + '/userStats/' + normName + '.json');
-      if(res.ok){
-        const d = await res.json();
-        if(d && d.totalPts) return { total: parseInt(d.totalPts), sheet: parseInt(d.sheetPts || 0) };
+    window.openMemberProfileView = function(memberName){
+      if(!memberName) return;
+
+      /* ① صفّر عناصر العضو السابق فوراً */
+      for(var i=1;i<=7;i++){
+        var s=document.getElementById('mpvStar_'+i);
+        if(s) s.style.color='#ddd';
       }
-    }catch(e){}
+      var _sc=document.getElementById('mpvStarsScore');
+      if(_sc) _sc.innerHTML='جارٍ التحميل...';
+      var _rb=document.getElementById('mpvRatingStars');
+      if(_rb) _rb.innerHTML='';
+      var _rl=document.getElementById('mpvRatingLabel');
+      if(_rl) _rl.innerText='';
+      var _sf=document.getElementById('mpvStreakFlame');
+      if(_sf) _sf.innerText='⏳';
+      var _sd=document.getElementById('mpvStreakDays');
+      if(_sd) _sd.innerText='جارٍ التحميل...';
 
-    /* 2. localStorage للمستخدم المحلي */
-    const rawSklab = localStorage.getItem('sklab_pts_' + normName);
-    if(rawSklab){
-      try{
-        const p = JSON.parse(rawSklab);
-        return { total: parseInt(p.total || 0), sheet: parseInt(p.sheet || p.ranking || 0) };
-      }catch(e){}
-    }
+      /* ② استدعِ الدالة الأصلية */
+      if(typeof _BASE_OPEN==='function') _BASE_OPEN.call(this, memberName);
 
-    /* 3. nld_earned fallback */
-    const earned = parseInt(localStorage.getItem('nld_earned_' + normName) || '0');
-    return { total: earned, sheet: 0 };
-  }
+      var normName = memberName.replace(/\s+/g,'_');
+      var myName   = localStorage.getItem('sklab_user_name')||''  ;
+      var normMe   = myName.replace(/\s+/g,'_');
 
-  /* تجاوز openMemberProfileView لعرض نقاط العضو الصحيحة */
-  const _prevOpenMpv2 = window.openMemberProfileView;
-  window.openMemberProfileView = async function(memberName){
-    if(typeof _prevOpenMpv2 === 'function') _prevOpenMpv2.apply(this, arguments);
-
-    if(!memberName) return;
-    const normName = memberName.replace(/\s+/g, '_');
-
-    setTimeout(async function(){
-      const { total, sheet } = await _getMemberPts(normName);
-      const isEarly = localStorage.getItem('nld_is_early_' + normName) === '1';
-      const rate    = isEarly ? 35 : 30;
-      const balance = ((Math.max(0, sheet) / 50) * rate).toFixed(2);
-
-      /* عناصر ملف العضو الآخر */
-      const ptsEl = document.getElementById('mpvTotalPoints');
-      const balEl = document.getElementById('mpvBalanceEl');
-
-      /* عناصر الملف الذاتي (fbTotalPts / fbBalance) إن كان هو نفسه */
-      const myName = localStorage.getItem('sklab_user_name') || '';
-      if(memberName === myName){
-        const fbPts = document.getElementById('fbTotalPts');
-        const fbBal = document.getElementById('fbBalance');
-        if(fbPts) fbPts.innerText = total.toLocaleString();
-        if(fbBal) fbBal.innerText = balance + ' دج';
-      } else {
-        if(ptsEl) ptsEl.innerText = total.toLocaleString();
-        if(balEl) balEl.innerText = balance + ' دج';
+      /* ③ سجّل الزيارة */
+      if(myName && myName!==memberName){
+        var today=new Date().toISOString().slice(0,10);
+        _put6('/profile_visits/'+normName+'/'+normMe+'_'+today,
+          {visitor:myName, ts:Date.now(), date:today});
       }
 
-      /* أيضاً: ابحث عن أي span يعرض النقاط داخل ملف العضو */
-      const mpvView = document.getElementById('memberProfileView');
-      if(!mpvView) return;
-      /* حدّث أي عنصر يحمل data-pts-name بالاسم الصحيح */
-      mpvView.querySelectorAll('[data-pts-target]').forEach(function(el){
-        if(el.dataset.ptsTarget === 'total')   el.innerText = total.toLocaleString();
-        if(el.dataset.ptsTarget === 'balance') el.innerText = balance + ' دج';
-      });
-    }, 600);
-  };
-})();
+      /* ④ جلب كل البيانات من Firebase بعد 400ms */
+      setTimeout(function(){
 
+        Promise.all([
+          _get6('/streaks/'        + normName),
+          _get6('/totalStars/'     + normName),
+          _get6('/ratings/'        + normName),
+          _get6('/visitor_ratings/'+ normName),
+          _get6('/userStats/'      + normName)
+        ]).then(function(results){
+          var fbStreak  = results[0];
+          var fbStarDoc = results[1];
+          var fbRatings = results[2];
+          var fbVisRat  = results[3];
+          var fbStats   = results[4];
 
-/* ══════════════════════════════════════════════════════════
-   🔧 إصلاح 4 — تقييم النجوم: منفصل تماماً لكل عضو
-   المشكلة: النجوم (mpvStar_1..7) لا تُصفَّر عند الانتقال
-            بين الأعضاء — تبقى قيم العضو السابق ظاهرة.
-   الحل: تجاوز openMemberProfileView لإعادة ضبط النجوم
-          وتحميل قيم العضو الجديد من Firebase دائماً.
-   ══════════════════════════════════════════════════════════ */
+          /* ── الشعلة ── */
+          var localStreakRec={};
+          try{ localStreakRec=JSON.parse(localStorage.getItem('nld_daily_streak_'+normName)||'{}'  ); }catch(e){}
+          var localDays=parseInt(localStreakRec.totalDays||localStreakRec.count||0);
+          var fbDays   =fbStreak ? parseInt(fbStreak.totalDays||0) : 0;
+          var totalDays=Math.max(localDays, fbDays);
+          var medal    =_medal6(totalDays);
 
-(function _fixStarRating(){
-  const FB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+          var flameEl=document.getElementById('mpvStreakFlame');
+          var daysEl =document.getElementById('mpvStreakDays');
+          if(flameEl){
+            flameEl.innerText=medal.emoji;
+            flameEl.style.filter='drop-shadow(0 0 8px '+medal.glow+')';
+            flameEl.style.animation=totalDays>=45?'pulse 1.5s infinite':'';
+            flameEl.title='مدالية '+medal.label;
+          }
+          if(daysEl){
+            daysEl.innerHTML='<span style="color:'+medal.color+';font-weight:900;">'+medal.label+'</span> · '+totalDays+' يوم';
+          }
 
-  async function _loadMemberRatings(normTarget){
-    try{
-      const res = await fetch(FB_BASE + '/ratings/' + normTarget + '.json');
-      if(!res.ok) return {};
-      const d = await res.json();
-      if(!d || typeof d !== 'object') return {};
-      const result = {};
-      Object.entries(d).forEach(function([k, v]){
-        if(v && v.stars) result[k.replace(/_/g, ' ')] = parseInt(v.stars) || 0;
-      });
-      return result;
-    }catch(e){ return {}; }
-  }
+          /* ── إجمالي النجوم والتوثيق ── */
+          var localStars=parseInt(localStorage.getItem('nld_total_stars_'+normName)||'0'  );
+          var fbStarsVal=fbStarDoc ? parseInt(fbStarDoc.total||0) : 0;
+          var totalStars=Math.max(localStars, fbStarsVal);
+          var isVerified=totalStars>=150 || (fbStarDoc&&fbStarDoc.verified);
 
-  async function _loadVisitorRatings(normTarget){
-    try{
-      const res = await fetch(FB_BASE + '/visitor_ratings/' + normTarget + '.json');
-      if(!res.ok) return {};
-      const d = await res.json();
-      if(!d || typeof d !== 'object') return {};
-      const result = {};
-      Object.entries(d).forEach(function([k, v]){
-        if(v && v.stars) result[k.replace(/_/g, ' ')] = parseInt(v.stars) || 0;
-      });
-      return result;
-    }catch(e){ return {}; }
-  }
+          /* شارة الأفاتار */
+          var badgeEl=document.getElementById('mpvAvatarBadge');
+          if(badgeEl){
+            if(totalStars>=300){
+              badgeEl.style.background='linear-gradient(135deg,#FFD700,#FFA000)';
+              badgeEl.innerText='★'; badgeEl.title='حساب موثّق ذهبي';
+            } else if(isVerified){
+              badgeEl.style.background='linear-gradient(135deg,#1877F2,#0052cc)';
+              badgeEl.innerText='✓'; badgeEl.title='حساب موثّق';
+            } else {
+              badgeEl.style.background='#B0BEC5';
+              badgeEl.innerText='✓'; badgeEl.title=totalStars+'/150 نجمة للشارة';
+            }
+          }
 
-  const _prevOpenMpv3 = window.openMemberProfileView;
-  window.openMemberProfileView = async function(memberName){
-    /* ➊ أوّلاً: صفّر النجوم فوراً قبل استدعاء الأصلي
-          حتى لا تبقى قيم العضو السابق ظاهرة */
-    for(let i = 1; i <= 7; i++){
-      const el = document.getElementById('mpvStar_' + i);
-      if(el) el.style.color = '#ddd';
-    }
-    const scoreEl = document.getElementById('mpvStarsScore');
-    if(scoreEl) scoreEl.innerHTML = 'جارٍ التحميل...';
+          /* ── تقييم النجوم السبعة (للأصدقاء) ── */
+          var ratingMap={};
+          if(fbRatings&&typeof fbRatings==='object'){
+            Object.entries(fbRatings).forEach(function(kv){
+              if(kv[1]&&kv[1].stars) ratingMap[kv[0].replace(/_/g,' '  )]=parseInt(kv[1].stars)||0;
+            });
+            localStorage.setItem('nld_manual_ratings_'+normName, JSON.stringify(ratingMap));
+          } else {
+            try{ ratingMap=JSON.parse(localStorage.getItem('nld_manual_ratings_'+normName)||'{}'  ); }catch(e){}
+          }
+          var myStars7 = ratingMap[myName] ||
+            parseInt(localStorage.getItem('nld_star_rating_'+normMe+'_to_'+normName)||'0'  );
+          if(ratingMap[myName])
+            localStorage.setItem('nld_star_rating_'+normMe+'_to_'+normName, String(ratingMap[myName]));
 
-    const ratingBarEl = document.getElementById('mpvRatingStars');
-    if(ratingBarEl) ratingBarEl.innerHTML = '';
-    const ratingLabelEl = document.getElementById('mpvRatingLabel');
-    if(ratingLabelEl) ratingLabelEl.innerText = '';
+          for(var i=1;i<=7;i++){
+            var el=document.getElementById('mpvStar_'+i);
+            if(el) el.style.color=i<=myStars7?'#f5c518':'#ddd';
+          }
+          var rVals=Object.values(ratingMap).map(function(v){return parseInt(v)||0;}).filter(function(v){return v>0;});
+          var rAvg =rVals.length?rVals.reduce(function(a,b){return a+b;},0)/rVals.length:0;
+          var rCnt =rVals.length;
+          var scEl =document.getElementById('mpvStarsScore');
+          if(scEl){
+            scEl.innerHTML=rCnt>0
+              ? 'تقييمي: '+'⭐'.repeat(Math.min(myStars7,7))+' | متوسط: '+rAvg.toFixed(1)+' من '+rCnt+' تقييم'
+              : (myStars7>0?'تقييمي: '+myStars7+' نجوم':'لا يوجد تقييم بعد');
+          }
 
-    /* ➋ استدعاء الدالة الأصلية */
-    if(typeof _prevOpenMpv3 === 'function') _prevOpenMpv3.apply(this, arguments);
+          /* ── تقييم الزوار الخماسي ── */
+          var visMap={};
+          if(fbVisRat&&typeof fbVisRat==='object'){
+            Object.entries(fbVisRat).forEach(function(kv){
+              if(kv[1]&&kv[1].stars) visMap[kv[0].replace(/_/g,' '  )]=parseInt(kv[1].stars)||0;
+            });
+            localStorage.setItem('nld_visitor_ratings_'+normName, JSON.stringify(visMap));
+          } else {
+            try{ visMap=JSON.parse(localStorage.getItem('nld_visitor_ratings_'+normName)||'{}'  ); }catch(e){}
+          }
+          var rVisKey  ='nld_visitor_rating_'  +normMe+'_to_'+normName;
+          var rVisTsKey='nld_visitor_rating_ts_'+normMe+'_to_'+normName;
+          var myVisR   =visMap[myName]||parseInt(localStorage.getItem(rVisKey)||'0'  );
+          var myVisTs  =parseInt(localStorage.getItem(rVisTsKey)||'0'  );
+          var L24H     =24*60*60*1000;
+          var isLocked =myVisR>0&&myVisTs>0&&(Date.now()-myVisTs)>L24H;
+          var hoursLeft=myVisTs>0?Math.max(0,Math.ceil((L24H-(Date.now()-myVisTs))/3600000)):24;
+          var vVals    =Object.values(visMap).map(function(v){return parseInt(v)||0;}).filter(function(v){return v>0;});
+          var vAvg     =vVals.length?vVals.reduce(function(a,b){return a+b;},0)/vVals.length:0;
+          var vCnt     =vVals.length;
+          var isMe     =myName===memberName;
 
-    if(!memberName) return;
-    const normName = memberName.replace(/\s+/g, '_');
-    const myName   = localStorage.getItem('sklab_user_name') || '';
-    const normMe   = myName.replace(/\s+/g, '_');
+          var starsHtml='';
+          for(var vi=1;vi<=5;vi++){
+            var filled=isLocked?(vi<=myVisR):(vi<=Math.round(vAvg));
+            if(isMe||isLocked){
+              starsHtml+='<span style="font-size:20px;color:'+(filled?'#f5c518':'#ddd')+';">★</span>';
+            } else {
+              var mns=memberName.replace(/'/g,"\\'");
+              starsHtml+='<span onclick="_submitMpvVisitorRating(\''  +mns+'\',\''  +normName+'\','  +vi+')" '+
+                'style="font-size:22px;color:'+(vi<=myVisR?'#f5c518':'#ddd')+';cursor:pointer;transition:.15s;" '+
+                'onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'">★</span>';
+            }
+          }
+          if(isLocked) starsHtml+='<span style="font-size:14px;margin-right:4px;vertical-align:middle;" title="انتهت مدة التعديل">🔒</span>';
 
-    /* ➌ حمّل تقييمات هذا العضو فقط من Firebase */
-    setTimeout(async function(){
+          var rbEl=document.getElementById('mpvRatingStars');
+          if(rbEl) rbEl.innerHTML=starsHtml;
+          var rlEl=document.getElementById('mpvRatingLabel');
+          if(rlEl){
+            if(isMe){
+              rlEl.innerText=vCnt>0?vAvg.toFixed(1)+' ('+vCnt+' تقييم)':'لا يوجد تقييم بعد';
+            } else if(isLocked){
+              rlEl.innerHTML='<span style="color:#9ca3af;font-size:10px;">🔒 قيّمت بـ '+myVisR+'★ | معدل '+vAvg.toFixed(1)+' ('+vCnt+')</span>';
+            } else if(myVisR>0){
+              rlEl.innerHTML='<span style="color:#f5c518;font-weight:800;">'+vAvg.toFixed(1)+'</span> ('+vCnt+') — '+
+                '<span style="color:#1877F2;">قيّمت '+myVisR+'★ · '+hoursLeft+'س للتعديل</span>';
+            } else {
+              rlEl.innerText=vCnt>0?vAvg.toFixed(1)+' ('+vCnt+') — اضغط للتقييم':'اضغط للتقييم ★';
+            }
+          }
 
-      /* تقييمات الأصدقاء (7 نجوم) */
-      const fbRatings = await _loadMemberRatings(normName);
+          /* ── الإحصائيات (مشاهدات، تفاعل، أصدقاء) ── */
+          if(fbStats&&typeof fbStats==='object'){
+            var vEl=document.getElementById('mpvViewsCount');
+            var iEl=document.getElementById('mpvInteractCount');
+            var fEl=document.getElementById('mpvFollowersCount');
+            function fmt(n){ return n>=1000?(n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+'K':String(n||0); }
+            if(vEl) vEl.innerText=fmt(parseInt(fbStats.totalViews||0));
+            if(iEl) iEl.innerText=fmt(parseInt(fbStats.totalInteract||0));
+            if(fEl) fEl.innerText=parseInt(fbStats.friendsCount||0);
+          }
 
-      /* تقييمي الشخصي لهذا العضو */
-      const myStars = fbRatings[myName] ||
-        parseInt(localStorage.getItem('nld_star_rating_' + normMe + '_to_' + normName) || '0');
+          /* ── النقاط والمستوى والرصيد ── */
+          if(fbStats&&fbStats.totalPts){
+            var totalPts=parseInt(fbStats.totalPts||0);
+            var sheetPts=parseInt(fbStats.sheetPts||fbStats.totalPts||0);
+            var isEarly =localStorage.getItem('nld_is_early_'+normName)==='1'  ;
+            var rate    =isEarly?35:30;
+            var balance =((Math.max(0,sheetPts)/50)*rate).toFixed(2);
+            var lvl     =parseInt(fbStats.level||Math.floor(totalPts/3000)+1);
 
-      /* تحديث localStorage بقيمة Firebase */
-      if(fbRatings[myName]){
-        localStorage.setItem('nld_star_rating_' + normMe + '_to_' + normName, String(fbRatings[myName]));
-        localStorage.setItem('nld_manual_ratings_' + normName, JSON.stringify(fbRatings));
-      }
+            /* عناصر ملف العضو */
+            var pEl=document.getElementById('mpvTotalPoints');
+            var bEl=document.getElementById('mpvBalanceEl');
+            if(pEl) pEl.innerText=totalPts.toLocaleString();
+            if(bEl) bEl.innerText=balance+' دج';
 
-      /* تلوين النجوم 1-7 */
-      for(let i = 1; i <= 7; i++){
-        const el = document.getElementById('mpvStar_' + i);
-        if(el) el.style.color = i <= myStars ? '#f5c518' : '#ddd';
-      }
+            /* إذا كان ملفه هو نفسه */
+            if(myName===memberName){
+              var fp=document.getElementById('fbTotalPts');
+              var fb=document.getElementById('fbBalance');
+              if(fp) fp.innerText=totalPts.toLocaleString();
+              if(fb) fb.innerText=balance+' دج';
+            }
+          }
 
-      /* حساب المعدل */
-      const vals = Object.values(fbRatings).map(function(v){ return parseInt(v) || 0; }).filter(function(v){ return v > 0; });
-      const avg   = vals.length ? vals.reduce(function(a, b){ return a + b; }, 0) / vals.length : 0;
-      const count = vals.length;
+        }).catch(function(e){ console.warn('[Fix6] Firebase error:', e); });
 
-      if(scoreEl){
-        scoreEl.innerHTML = count > 0
-          ? 'تقييمي: ' + '⭐'.repeat(Math.min(myStars, 7)) + ' | متوسط: ' + avg.toFixed(1) + ' من ' + count + ' تقييم'
-          : (myStars > 0 ? 'تقييمي: ' + myStars + ' نجوم' : 'لا يوجد تقييم بعد');
-      }
+      }, 420);
+    }; /* end openMemberProfileView override */
 
-      /* تقييمات الزوار (5 نجوم) — شريط mpvRatingStars */
-      const visRatings  = await _loadVisitorRatings(normName);
-      const visRKey     = 'nld_visitor_rating_' + normMe + '_to_' + normName;
-      const visTsKey    = 'nld_visitor_rating_ts_' + normMe + '_to_' + normName;
-      const myVisRating = visRatings[myName] || parseInt(localStorage.getItem(visRKey) || '0');
-      const myVisTs     = parseInt(localStorage.getItem(visTsKey) || '0');
-      const LIMIT_24H   = 24 * 60 * 60 * 1000;
-      const isLocked    = myVisRating > 0 && myVisTs > 0 && (Date.now() - myVisTs) > LIMIT_24H;
+    console.log('✅ ConnectDZ Unified Fix v6.0 — Single override registered');
+  }, 200);
+});
 
-      const visVals  = Object.values(visRatings).map(function(v){ return parseInt(v) || 0; }).filter(function(v){ return v > 0; });
-      const visAvg   = visVals.length ? visVals.reduce(function(a, b){ return a + b; }, 0) / visVals.length : 0;
-      const visCount = visVals.length;
-
-      const isMe = myName === memberName;
-      let starsHtml = '';
-      for(let i = 1; i <= 5; i++){
-        const filled = isLocked ? (i <= myVisRating) : (i <= Math.round(visAvg));
-        if(isMe || isLocked){
-          starsHtml += '<span style="font-size:20px;color:' + (filled ? '#f5c518' : '#ddd') + ';">★</span>';
-        } else {
-          starsHtml += '<span onclick="_submitMpvVisitorRating(\'' + memberName.replace(/'/g,"\\'") + '\',\'' + normName + '\',' + i + ')"'
-            + ' style="font-size:22px;color:' + (i <= myVisRating ? '#f5c518' : '#ddd') + ';cursor:pointer;transition:.15s;"'
-            + ' onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'">★</span>';
-        }
-      }
-      if(isLocked) starsHtml += '<span style="font-size:14px;margin-right:4px;vertical-align:middle;" title="انتهت مدة التعديل">🔒</span>';
-
-      if(ratingBarEl)   ratingBarEl.innerHTML = starsHtml;
-      if(ratingLabelEl){
-        if(isMe){
-          ratingLabelEl.innerText = visCount > 0 ? visAvg.toFixed(1) + ' (' + visCount + ' تقييم)' : 'لا يوجد تقييم بعد';
-        } else if(isLocked){
-          ratingLabelEl.innerHTML = '<span style="color:#9ca3af;font-size:10px;">🔒 قيّمت بـ ' + myVisRating + '★ | معدل ' + visAvg.toFixed(1) + ' (' + visCount + ')</span>';
-        } else if(myVisRating > 0){
-          const hoursLeft = myVisTs > 0 ? Math.max(0, Math.ceil((LIMIT_24H - (Date.now() - myVisTs)) / 3600000)) : 24;
-          ratingLabelEl.innerHTML = '<span style="color:#f5c518;font-weight:800;">' + visAvg.toFixed(1) + '</span> (' + visCount + ') — <span style="color:#1877F2;">قيّمت ' + myVisRating + '★ · ' + hoursLeft + 'س للتعديل</span>';
-        } else {
-          ratingLabelEl.innerText = visCount > 0 ? visAvg.toFixed(1) + ' (' + visCount + ') — اضغط للتقييم' : 'اضغط للتقييم ★';
-        }
-      }
-
-    }, 550);
-  };
-})();
-
-console.log('✅ ConnectDZ Master Fix v5.0 — Messenger/Streak/Points/Stars FIXED');
 })();
 </script>
-
 
 <!-- ══════════════════════════════════════════════════════════════════════
      🌱 ConnectDZ SEED DATA v1.0 — بيانات ابتدائية للمنخرطين
      يُحمَّل مرة واحدة فقط عند أول فتح ثم لا يُكرَّر
-     بعده أي نشاط جديد يُضاف تلقائياً فوق هذه البيانات
      ══════════════════════════════════════════════════════════════════════ -->
 <script>
 (function(){
@@ -23550,154 +23469,61 @@ const _FB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
 const _SEED_KEY = 'cdz_seed_v1_done';
 
 if(localStorage.getItem(_SEED_KEY) === '1'){
-  console.log('✅ [Seed] Already seeded — skipping');
+  console.log('✅ [Seed] Already seeded');
   return;
 }
 
 const SEED_MEMBERS = [
-  {
-    name         : 'يحي ديش',
-    normName     : 'يحي_ديش',
-    friendsCount : 35,
-    totalViews   : 387,
-    totalInteract: 190,
-    totalPts     : 15000,
-    sheetPts     : 15000,
-    level        : 5,
-    totalStars   : 153,
-    verified     : true,
-    streakDays   : 75,
-    medal        : 'فضية',
-    balanceAuto  : true
-  },
-  {
-    name         : 'شيماء بالغ',
-    normName     : 'شيماء_بالغ',
-    friendsCount : 19,
-    totalViews   : 120,
-    totalInteract: 45,
-    totalPts     : 9000,
-    sheetPts     : 9000,
-    level        : 3,
-    totalStars   : 150,
-    verified     : true,
-    streakDays   : 25,
-    medal        : 'برونزية',
-    balanceAuto  : true
-  },
-  {
-    name         : 'Kemouche douaa chaimae',
-    normName     : 'Kemouche_douaa_chaimae',
-    friendsCount : 11,
-    totalViews   : 90,
-    totalInteract: 27,
-    totalPts     : 3000,
-    sheetPts     : 3000,
-    level        : 2,
-    totalStars   : 150,
-    verified     : true,
-    streakDays   : 17,
-    medal        : 'برونزية',
-    balanceAuto  : true
-  },
-  {
-    name         : 'بوكلي اسمهان',
-    normName     : 'بوكلي_اسمهان',
-    friendsCount : 40,
-    totalViews   : 900,
-    totalInteract: 3500,
-    totalPts     : 12000,
-    sheetPts     : 12000,
-    level        : 4,
-    totalStars   : 150,
-    verified     : true,
-    streakDays   : 73,
-    medal        : 'فضية',
-    balanceAuto  : true
-  }
+  { name:'يحي ديش',               normName:'يحي_ديش',               friendsCount:35,  totalViews:387,  totalInteract:190,  totalPts:15000, sheetPts:15000, level:5, totalStars:153, verified:true, streakDays:75  },
+  { name:'شيماء بالغ',             normName:'شيماء_بالغ',             friendsCount:19,  totalViews:120,  totalInteract:45,   totalPts:9000,  sheetPts:9000,  level:3, totalStars:150, verified:true, streakDays:25  },
+  { name:'Kemouche douaa chaimae', normName:'Kemouche_douaa_chaimae', friendsCount:11,  totalViews:90,   totalInteract:27,   totalPts:3000,  sheetPts:3000,  level:2, totalStars:150, verified:true, streakDays:17  },
+  { name:'بوكلي اسمهان',           normName:'بوكلي_اسمهان',           friendsCount:40,  totalViews:900,  totalInteract:3500, totalPts:12000, sheetPts:12000, level:4, totalStars:150, verified:true, streakDays:73  }
 ];
 
 function _fbPut(path, data){
-  return fetch(_FB + path + '.json', {
-    method : 'PUT',
-    headers: {'Content-Type':'application/json'},
-    body   : JSON.stringify(data)
-  }).catch(function(){});
+  return fetch(_FB + path + '.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(function(){});
 }
 function _fbPatch(path, data){
-  return fetch(_FB + path + '.json', {
-    method : 'PATCH',
-    headers: {'Content-Type':'application/json'},
-    body   : JSON.stringify(data)
-  }).catch(function(){});
+  return fetch(_FB + path + '.json',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(function(){});
 }
 
 function _today(){ return new Date().toISOString().slice(0,10); }
-
-function _medal(days){
-  if(days >= 135) return {emoji:'💎', label:'ماسية'};
-  if(days >= 90)  return {emoji:'🥇', label:'ذهبية'};
-  if(days >= 45)  return {emoji:'🥈', label:'فضية'};
-  return                 {emoji:'🥉', label:'برونزية'};
-}
+function _medal(d){ return d>=135?'ماسية':d>=90?'ذهبية':d>=45?'فضية':'برونزية'; }
 
 async function seedMember(m){
   const n = m.normName;
 
-  await _fbPatch('/userStats/' + n, {
-    totalViews   : m.totalViews,
-    totalInteract: m.totalInteract,
-    friendsCount : m.friendsCount,
-    totalPts     : m.totalPts,
-    sheetPts     : m.sheetPts,
-    level        : m.level,
-    seeded       : true,
-    updatedAt    : Date.now()
+  await _fbPatch('/userStats/'+n, {
+    totalViews:m.totalViews, totalInteract:m.totalInteract, friendsCount:m.friendsCount,
+    totalPts:m.totalPts, sheetPts:m.sheetPts, level:m.level, seeded:true, updatedAt:Date.now()
   });
 
-  const medal = _medal(m.streakDays);
-  await _fbPatch('/streaks/' + n, {
-    totalDays: m.streakDays,
-    lastDay  : _today(),
-    medal    : medal.label,
-    updatedAt: Date.now()
+  await _fbPatch('/streaks/'+n, {
+    totalDays:m.streakDays, lastDay:_today(), medal:_medal(m.streakDays), updatedAt:Date.now()
   });
 
-  await _fbPut('/totalStars/' + n, {
-    total    : m.totalStars,
-    verified : m.verified,
-    updatedAt: Date.now()
-  });
+  await _fbPut('/totalStars/'+n, { total:m.totalStars, verified:m.verified, updatedAt:Date.now() });
 
   if(m.verified){
-    await _fbPut('/verified/' + n, {
-      verified   : true,
-      activatedAt: Date.now()
-    });
+    await _fbPut('/verified/'+n, { verified:true, activatedAt:Date.now() });
   }
 
-  localStorage.setItem('nld_daily_streak_' + n,
-    JSON.stringify({ totalDays: m.streakDays, lastDay: _today() }));
-  localStorage.setItem('nld_total_stars_'  + n, String(m.totalStars));
-  localStorage.setItem('nld_earned_'       + n, String(m.totalPts));
-  localStorage.setItem('sklab_pts_'        + n,
-    JSON.stringify({ total: m.totalPts, sheet: m.sheetPts, quiz: 0 }));
-  if(m.verified){
-    localStorage.setItem('nld_is_verified_' + n, '1');
-  }
+  localStorage.setItem('nld_daily_streak_'+n, JSON.stringify({totalDays:m.streakDays, lastDay:_today()}));
+  localStorage.setItem('nld_total_stars_'+n,  String(m.totalStars));
+  localStorage.setItem('nld_earned_'+n,        String(m.totalPts));
+  localStorage.setItem('sklab_pts_'+n,         JSON.stringify({total:m.totalPts, sheet:m.sheetPts, quiz:0}));
+  if(m.verified) localStorage.setItem('nld_is_verified_'+n, '1');
 
-  console.log('🌱 [Seed] ' + m.name + ' done');
+  console.log('🌱 [Seed] '+m.name+' done');
 }
 
 window.addEventListener('load', function(){
   setTimeout(async function(){
     console.log('🌱 [Seed] Starting...');
-    for(const member of SEED_MEMBERS){
-      await seedMember(member);
-    }
+    for(const m of SEED_MEMBERS){ await seedMember(m); }
     localStorage.setItem(_SEED_KEY, '1');
-    console.log('✅ [Seed] All members seeded!');
-  }, 5000);
+    console.log('✅ [Seed] All seeded!');
+  }, 6000);
 });
 
 console.log('✅ ConnectDZ Seed Data v1.0 loaded');
