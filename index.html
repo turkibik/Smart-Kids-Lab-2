@@ -23129,5 +23129,412 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
 })();
 </script>
 
+<!-- ══════════════════════════════════════════════════════════════════════
+     🔧 ConnectDZ MASTER FIX v5.0
+     يُصلح 4 مشاكل دفعةً واحدة:
+     1) المسنجر: polling فوري يحمل رسائل المستخدم الحالي فقط
+     2) الشعلة: مرتبطة بمستخدم واحد فقط عبر normName الصحيح
+     3) النقاط في الملف الشخصي: تجلب من Firebase/Sheet بالاسم
+     4) تقييم النجوم: منفصل تماماً لكل عضو بعد التجاوز
+     ══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ══════════════════════════════════════════════════════════
+   🔧 إصلاح 1 — المسنجر الفوري
+   المشكلة: startChatPolling يقارن lastRemoteId وحيداً،
+            لا يُحدَّث الـ badge إلا كل 10 ثوانٍ،
+            وإذا فشل Supabase تتوقف التحديثات تماماً.
+   الحل:
+   • polling كل 5 ثوانٍ (بدل 10)
+   • تحديث الـ badge عند كل poll بغض النظر عن تغيّر الرسائل
+   • عند فشل Supabase: يعتمد على localStorage كـ fallback
+   ══════════════════════════════════════════════════════════ */
+
+/* نُوقف أي polling قديم ثم نُعيد تعريفه */
+(function _fixMessenger(){
+  /* أوقف الـ polling القديم إن كان شغّالاً */
+  if(typeof stopChatPolling === 'function') stopChatPolling();
+
+  let _fixPollingInterval = null;
+  let _fixLastMsgId = null;
+
+  window._startFixedChatPolling = function(){
+    if(_fixPollingInterval) return;
+
+    _fixPollingInterval = setInterval(async function(){
+      try{
+        const myName = (window._isAdmin) ? 'المدير'
+          : (typeof getCurrentUser === 'function' ? getCurrentUser()
+            : localStorage.getItem('sklab_user_name') || '');
+        if(!myName || myName === 'زائر') return;
+
+        /* ── تحديث badge الرسائل غير المقروءة دائماً ── */
+        if(typeof sbGetUnreadCount === 'function'){
+          sbGetUnreadCount(myName).then(function(unread){
+            if(unread >= 0 && typeof updateNotifBadge === 'function') updateNotifBadge(unread);
+          }).catch(function(){
+            /* fallback: عدّ من localStorage */
+            let total = 0;
+            for(let i = 0; i < localStorage.length; i++){
+              const k = localStorage.key(i);
+              if(k && k.startsWith('nld_p2p_')){
+                try{
+                  const msgs = JSON.parse(localStorage.getItem(k) || '[]');
+                  total += msgs.filter(function(m){ return m.to === myName && !m.read; }).length;
+                }catch(e){}
+              }
+            }
+            if(typeof updateNotifBadge === 'function') updateNotifBadge(total);
+          });
+        }
+
+        /* ── تحديث شاشة المحادثة المفتوحة حالياً ── */
+        const chatScreen = document.getElementById('chatScreen');
+        const target = window._currentChatTarget;
+        if(!chatScreen || chatScreen.style.display === 'none' || !target) return;
+
+        if(typeof sbGetMessages !== 'function') return;
+
+        const remote = await sbGetMessages(myName, target);
+        if(!remote || !remote.length) return;
+
+        const lastId = remote[remote.length - 1]?.id;
+        if(!lastId || lastId === _fixLastMsgId) return;
+
+        _fixLastMsgId = lastId;
+
+        /* دمج مع localStorage */
+        const local = (typeof _getP2PMsgs === 'function') ? _getP2PMsgs(myName, target) : [];
+        const localOnly = local.filter(function(m){
+          return !remote.find(function(r){ return r.id === m.id; });
+        });
+        const merged = [...remote, ...localOnly].sort(function(x, y){
+          return (x.timestamp || '').localeCompare(y.timestamp || '');
+        });
+
+        if(typeof _saveP2PMsgs === 'function') _saveP2PMsgs(myName, target, merged);
+
+        const msgDiv = document.getElementById('messagesContent');
+        const isReadOnly = chatScreen.getAttribute('data-readonly');
+        if(msgDiv && typeof renderChatBubbles === 'function'){
+          renderChatBubbles(merged, msgDiv, myName, !!isReadOnly);
+        }
+
+        /* علّم رسائله كمقروءة */
+        if(!isReadOnly && typeof sbMarkRead === 'function'){
+          sbMarkRead(myName, target, myName);
+        }
+
+      }catch(e){ /* تجاهل الأخطاء المؤقتة */ }
+    }, 5000); /* كل 5 ثوانٍ */
+  };
+
+  window._stopFixedChatPolling = function(){
+    if(_fixPollingInterval){ clearInterval(_fixPollingInterval); _fixPollingInterval = null; }
+  };
+
+  /* شغّل عند تحميل الصفحة */
+  window.addEventListener('load', function(){
+    setTimeout(window._startFixedChatPolling, 3000);
+  });
+
+  /* شغّل فوراً إن الصفحة محمّلة */
+  if(document.readyState === 'complete'){
+    setTimeout(window._startFixedChatPolling, 1000);
+  }
+})();
+
+
+/* ══════════════════════════════════════════════════════════
+   🔧 إصلاح 2 — الشعلة: مرتبطة بالمستخدم الحالي دائماً
+   المشكلة: _refreshStreakUI تُعيد قراءة normName من المستخدم الحالي
+            لكن عند عرض ملف عضو آخر تُعرض شعلة المستخدم الحالي
+            وليس شعلة العضو المعروض.
+   الحل: عند فتح ملف عضو آخر (openMemberProfileView)
+          اجلب شعلته الخاصة من Firebase وأعرضها في mpvStreakFlame/mpvStreakDays
+   ══════════════════════════════════════════════════════════ */
+
+(function _fixStreak(){
+  const FB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+  async function _getMemberStreak(normName){
+    try{
+      const res = await fetch(FB_BASE + '/streaks/' + normName + '.json');
+      if(!res.ok) return 0;
+      const d = await res.json();
+      return d ? parseInt(d.totalDays || 0) : 0;
+    }catch(e){ return 0; }
+  }
+
+  function _getMedalForDays(days){
+    if(days >= 135) return { emoji:'💎', label:'ماسية', color:'#00BFFF' };
+    if(days >= 90)  return { emoji:'🥇', label:'ذهبية',  color:'#FFD700' };
+    if(days >= 45)  return { emoji:'🥈', label:'فضية',   color:'#C0C0C0' };
+    return                 { emoji:'🥉', label:'برونزية',color:'#CD7F32' };
+  }
+
+  /* تجاوز openMemberProfileView لعرض شعلة العضو الصحيحة */
+  const _prevOpenMpv = window.openMemberProfileView;
+  window.openMemberProfileView = async function(memberName){
+    if(typeof _prevOpenMpv === 'function') _prevOpenMpv.apply(this, arguments);
+
+    if(!memberName) return;
+    const normName = memberName.replace(/\s+/g, '_');
+
+    /* شعلة المستخدم الحالي (صاحب الجلسة) للملف الذاتي تبقى كما هي */
+    const myName = localStorage.getItem('sklab_user_name') || '';
+    if(memberName === myName) return; /* لا نتدخل في الملف الذاتي */
+
+    /* اجلب شعلة العضو المستهدف */
+    setTimeout(async function(){
+      /* localStorage أولاً للسرعة */
+      const KEY = 'nld_daily_streak_' + normName;
+      let localDays = 0;
+      try{
+        const rec = JSON.parse(localStorage.getItem(KEY) || '{}');
+        localDays = parseInt(rec.totalDays || rec.count || 0);
+      }catch(e){}
+
+      /* Firebase للدقة */
+      const fbDays = await _getMemberStreak(normName);
+      const totalDays = Math.max(localDays, fbDays);
+      const medal = _getMedalForDays(totalDays);
+
+      const flameEl = document.getElementById('mpvStreakFlame');
+      const daysEl  = document.getElementById('mpvStreakDays');
+      if(flameEl) flameEl.innerText = medal.emoji;
+      if(daysEl)  daysEl.innerHTML = '<span style="color:' + medal.color + ';font-weight:900;">'
+        + medal.label + '</span> · ' + totalDays + ' يوم';
+    }, 500);
+  };
+})();
+
+
+/* ══════════════════════════════════════════════════════════
+   🔧 إصلاح 3 — النقاط والرصيد في ملف العضو
+   المشكلة: _fixPointsBalanceDisplay تقرأ من mainPoints DOM
+            الذي يعكس فقط المستخدم الحالي.
+            عند فتح ملف عضو آخر تُعرض نقاط المستخدم الحالي.
+   الحل: اجلب نقاط العضو المستهدف من Firebase /userStats/{normName}
+          أو من localStorage nld_earned_{normName}
+   ══════════════════════════════════════════════════════════ */
+
+(function _fixProfilePoints(){
+  const FB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+  async function _getMemberPts(normName){
+    /* 1. Firebase userStats */
+    try{
+      const res = await fetch(FB_BASE + '/userStats/' + normName + '.json');
+      if(res.ok){
+        const d = await res.json();
+        if(d && d.totalPts) return { total: parseInt(d.totalPts), sheet: parseInt(d.sheetPts || 0) };
+      }
+    }catch(e){}
+
+    /* 2. localStorage للمستخدم المحلي */
+    const rawSklab = localStorage.getItem('sklab_pts_' + normName);
+    if(rawSklab){
+      try{
+        const p = JSON.parse(rawSklab);
+        return { total: parseInt(p.total || 0), sheet: parseInt(p.sheet || p.ranking || 0) };
+      }catch(e){}
+    }
+
+    /* 3. nld_earned fallback */
+    const earned = parseInt(localStorage.getItem('nld_earned_' + normName) || '0');
+    return { total: earned, sheet: 0 };
+  }
+
+  /* تجاوز openMemberProfileView لعرض نقاط العضو الصحيحة */
+  const _prevOpenMpv2 = window.openMemberProfileView;
+  window.openMemberProfileView = async function(memberName){
+    if(typeof _prevOpenMpv2 === 'function') _prevOpenMpv2.apply(this, arguments);
+
+    if(!memberName) return;
+    const normName = memberName.replace(/\s+/g, '_');
+
+    setTimeout(async function(){
+      const { total, sheet } = await _getMemberPts(normName);
+      const isEarly = localStorage.getItem('nld_is_early_' + normName) === '1';
+      const rate    = isEarly ? 35 : 30;
+      const balance = ((Math.max(0, sheet) / 50) * rate).toFixed(2);
+
+      /* عناصر ملف العضو الآخر */
+      const ptsEl = document.getElementById('mpvTotalPoints');
+      const balEl = document.getElementById('mpvBalanceEl');
+
+      /* عناصر الملف الذاتي (fbTotalPts / fbBalance) إن كان هو نفسه */
+      const myName = localStorage.getItem('sklab_user_name') || '';
+      if(memberName === myName){
+        const fbPts = document.getElementById('fbTotalPts');
+        const fbBal = document.getElementById('fbBalance');
+        if(fbPts) fbPts.innerText = total.toLocaleString();
+        if(fbBal) fbBal.innerText = balance + ' دج';
+      } else {
+        if(ptsEl) ptsEl.innerText = total.toLocaleString();
+        if(balEl) balEl.innerText = balance + ' دج';
+      }
+
+      /* أيضاً: ابحث عن أي span يعرض النقاط داخل ملف العضو */
+      const mpvView = document.getElementById('memberProfileView');
+      if(!mpvView) return;
+      /* حدّث أي عنصر يحمل data-pts-name بالاسم الصحيح */
+      mpvView.querySelectorAll('[data-pts-target]').forEach(function(el){
+        if(el.dataset.ptsTarget === 'total')   el.innerText = total.toLocaleString();
+        if(el.dataset.ptsTarget === 'balance') el.innerText = balance + ' دج';
+      });
+    }, 600);
+  };
+})();
+
+
+/* ══════════════════════════════════════════════════════════
+   🔧 إصلاح 4 — تقييم النجوم: منفصل تماماً لكل عضو
+   المشكلة: النجوم (mpvStar_1..7) لا تُصفَّر عند الانتقال
+            بين الأعضاء — تبقى قيم العضو السابق ظاهرة.
+   الحل: تجاوز openMemberProfileView لإعادة ضبط النجوم
+          وتحميل قيم العضو الجديد من Firebase دائماً.
+   ══════════════════════════════════════════════════════════ */
+
+(function _fixStarRating(){
+  const FB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+  async function _loadMemberRatings(normTarget){
+    try{
+      const res = await fetch(FB_BASE + '/ratings/' + normTarget + '.json');
+      if(!res.ok) return {};
+      const d = await res.json();
+      if(!d || typeof d !== 'object') return {};
+      const result = {};
+      Object.entries(d).forEach(function([k, v]){
+        if(v && v.stars) result[k.replace(/_/g, ' ')] = parseInt(v.stars) || 0;
+      });
+      return result;
+    }catch(e){ return {}; }
+  }
+
+  async function _loadVisitorRatings(normTarget){
+    try{
+      const res = await fetch(FB_BASE + '/visitor_ratings/' + normTarget + '.json');
+      if(!res.ok) return {};
+      const d = await res.json();
+      if(!d || typeof d !== 'object') return {};
+      const result = {};
+      Object.entries(d).forEach(function([k, v]){
+        if(v && v.stars) result[k.replace(/_/g, ' ')] = parseInt(v.stars) || 0;
+      });
+      return result;
+    }catch(e){ return {}; }
+  }
+
+  const _prevOpenMpv3 = window.openMemberProfileView;
+  window.openMemberProfileView = async function(memberName){
+    /* ➊ أوّلاً: صفّر النجوم فوراً قبل استدعاء الأصلي
+          حتى لا تبقى قيم العضو السابق ظاهرة */
+    for(let i = 1; i <= 7; i++){
+      const el = document.getElementById('mpvStar_' + i);
+      if(el) el.style.color = '#ddd';
+    }
+    const scoreEl = document.getElementById('mpvStarsScore');
+    if(scoreEl) scoreEl.innerHTML = 'جارٍ التحميل...';
+
+    const ratingBarEl = document.getElementById('mpvRatingStars');
+    if(ratingBarEl) ratingBarEl.innerHTML = '';
+    const ratingLabelEl = document.getElementById('mpvRatingLabel');
+    if(ratingLabelEl) ratingLabelEl.innerText = '';
+
+    /* ➋ استدعاء الدالة الأصلية */
+    if(typeof _prevOpenMpv3 === 'function') _prevOpenMpv3.apply(this, arguments);
+
+    if(!memberName) return;
+    const normName = memberName.replace(/\s+/g, '_');
+    const myName   = localStorage.getItem('sklab_user_name') || '';
+    const normMe   = myName.replace(/\s+/g, '_');
+
+    /* ➌ حمّل تقييمات هذا العضو فقط من Firebase */
+    setTimeout(async function(){
+
+      /* تقييمات الأصدقاء (7 نجوم) */
+      const fbRatings = await _loadMemberRatings(normName);
+
+      /* تقييمي الشخصي لهذا العضو */
+      const myStars = fbRatings[myName] ||
+        parseInt(localStorage.getItem('nld_star_rating_' + normMe + '_to_' + normName) || '0');
+
+      /* تحديث localStorage بقيمة Firebase */
+      if(fbRatings[myName]){
+        localStorage.setItem('nld_star_rating_' + normMe + '_to_' + normName, String(fbRatings[myName]));
+        localStorage.setItem('nld_manual_ratings_' + normName, JSON.stringify(fbRatings));
+      }
+
+      /* تلوين النجوم 1-7 */
+      for(let i = 1; i <= 7; i++){
+        const el = document.getElementById('mpvStar_' + i);
+        if(el) el.style.color = i <= myStars ? '#f5c518' : '#ddd';
+      }
+
+      /* حساب المعدل */
+      const vals = Object.values(fbRatings).map(function(v){ return parseInt(v) || 0; }).filter(function(v){ return v > 0; });
+      const avg   = vals.length ? vals.reduce(function(a, b){ return a + b; }, 0) / vals.length : 0;
+      const count = vals.length;
+
+      if(scoreEl){
+        scoreEl.innerHTML = count > 0
+          ? 'تقييمي: ' + '⭐'.repeat(Math.min(myStars, 7)) + ' | متوسط: ' + avg.toFixed(1) + ' من ' + count + ' تقييم'
+          : (myStars > 0 ? 'تقييمي: ' + myStars + ' نجوم' : 'لا يوجد تقييم بعد');
+      }
+
+      /* تقييمات الزوار (5 نجوم) — شريط mpvRatingStars */
+      const visRatings  = await _loadVisitorRatings(normName);
+      const visRKey     = 'nld_visitor_rating_' + normMe + '_to_' + normName;
+      const visTsKey    = 'nld_visitor_rating_ts_' + normMe + '_to_' + normName;
+      const myVisRating = visRatings[myName] || parseInt(localStorage.getItem(visRKey) || '0');
+      const myVisTs     = parseInt(localStorage.getItem(visTsKey) || '0');
+      const LIMIT_24H   = 24 * 60 * 60 * 1000;
+      const isLocked    = myVisRating > 0 && myVisTs > 0 && (Date.now() - myVisTs) > LIMIT_24H;
+
+      const visVals  = Object.values(visRatings).map(function(v){ return parseInt(v) || 0; }).filter(function(v){ return v > 0; });
+      const visAvg   = visVals.length ? visVals.reduce(function(a, b){ return a + b; }, 0) / visVals.length : 0;
+      const visCount = visVals.length;
+
+      const isMe = myName === memberName;
+      let starsHtml = '';
+      for(let i = 1; i <= 5; i++){
+        const filled = isLocked ? (i <= myVisRating) : (i <= Math.round(visAvg));
+        if(isMe || isLocked){
+          starsHtml += '<span style="font-size:20px;color:' + (filled ? '#f5c518' : '#ddd') + ';">★</span>';
+        } else {
+          starsHtml += '<span onclick="_submitMpvVisitorRating(\'' + memberName.replace(/'/g,"\\'") + '\',\'' + normName + '\',' + i + ')"'
+            + ' style="font-size:22px;color:' + (i <= myVisRating ? '#f5c518' : '#ddd') + ';cursor:pointer;transition:.15s;"'
+            + ' onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'">★</span>';
+        }
+      }
+      if(isLocked) starsHtml += '<span style="font-size:14px;margin-right:4px;vertical-align:middle;" title="انتهت مدة التعديل">🔒</span>';
+
+      if(ratingBarEl)   ratingBarEl.innerHTML = starsHtml;
+      if(ratingLabelEl){
+        if(isMe){
+          ratingLabelEl.innerText = visCount > 0 ? visAvg.toFixed(1) + ' (' + visCount + ' تقييم)' : 'لا يوجد تقييم بعد';
+        } else if(isLocked){
+          ratingLabelEl.innerHTML = '<span style="color:#9ca3af;font-size:10px;">🔒 قيّمت بـ ' + myVisRating + '★ | معدل ' + visAvg.toFixed(1) + ' (' + visCount + ')</span>';
+        } else if(myVisRating > 0){
+          const hoursLeft = myVisTs > 0 ? Math.max(0, Math.ceil((LIMIT_24H - (Date.now() - myVisTs)) / 3600000)) : 24;
+          ratingLabelEl.innerHTML = '<span style="color:#f5c518;font-weight:800;">' + visAvg.toFixed(1) + '</span> (' + visCount + ') — <span style="color:#1877F2;">قيّمت ' + myVisRating + '★ · ' + hoursLeft + 'س للتعديل</span>';
+        } else {
+          ratingLabelEl.innerText = visCount > 0 ? visAvg.toFixed(1) + ' (' + visCount + ') — اضغط للتقييم' : 'اضغط للتقييم ★';
+        }
+      }
+
+    }, 550);
+  };
+})();
+
+console.log('✅ ConnectDZ Master Fix v5.0 — Messenger/Streak/Points/Stars FIXED');
+})();
+</script>
+
 </body>
 </html>
