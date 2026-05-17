@@ -14342,17 +14342,29 @@ function viewMemberProfile(memberName){
   const myName = getCurrentUser();
   _mpvCurrentUser = memberName;
 
-  // تسجيل الزيارة وإشعار صاحب الملف
+  // تسجيل الزيارة في localStorage + Firebase
   if(myName && myName !== memberName){
     const visits = JSON.parse(localStorage.getItem(_profileVisitsKey(memberName))||'[]');
-    // تجنب التكرار في نفس الجلسة
-    const lastVisit = visits.find(v=>v.visitor===myName);
     const now = Date.now();
-    if(!lastVisit || (now - lastVisit.ts) > 3600000){ // كل ساعة
+    const lastVisit = visits.find(v=>v.visitor===myName);
+    if(!lastVisit || (now - lastVisit.ts) > 3600000){
       visits.unshift({ visitor: myName, ts: now });
       if(visits.length>100) visits.splice(100);
       localStorage.setItem(_profileVisitsKey(memberName), JSON.stringify(visits));
       addSocialNotif(memberName, `${myName} زار ملفك الشخصي 👀`, '👀');
+      // ✅ تسجيل الزيارة في Firebase
+      (async()=>{
+        try{
+          const normN = memberName.replace(/\s+/g,'_');
+          const res = await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/${normN}.json`);
+          const cur = await res.json();
+          const curViews = parseInt((cur&&cur.totalViews)||0);
+          await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/${normN}.json`,{
+            method:'PATCH',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({totalViews:curViews+1,updatedAt:Date.now()})
+          });
+        }catch(e){}
+      })();
     }
   }
 
@@ -14382,22 +14394,17 @@ function viewMemberProfile(memberName){
     const myFriends = getFriends(myName);
     const isFriend = myFriends.includes(memberName);
     if(isFriend){
-      // جلب نقاط الكويز المكتسبة
       const memberQuizPts = parseInt(localStorage.getItem('nld_earned_'+memberName.replace(/\s+/g,'_'))||'0');
-      // جلب نقاط الجدول الحقيقية من localStorage (مخزّنة عند آخر تحديث)
       const memberSheetPts = parseInt(localStorage.getItem('nld_sheet_pts_'+memberName.replace(/\s+/g,'_'))||'0');
       const memberTotalPts = memberSheetPts + memberQuizPts;
       const LEVEL_PTS = 3000;
       const memberLevel = Math.floor(memberTotalPts/LEVEL_PTS)+1;
       const memberPosts = getSocialPosts().filter(p=>p.author===memberName).length;
       const memberFriends = getFriends(memberName).length;
-      // العمر من localStorage
       const memberAge = localStorage.getItem('nld_age_'+memberName.replace(/\s+/g,'_'))||'';
-      // حساب الرصيد: يعتمد على ترتيب العضو في الجدول
       const memberIsEarly = localStorage.getItem('nld_is_early_'+memberName.replace(/\s+/g,'_'))==='1';
       const memberRate = memberIsEarly ? 35 : 30;
       const memberBalance = ((memberSheetPts/50)*memberRate).toFixed(0);
-      // حساب الترتيب التقريبي من localStorage
       let rank = '—';
       try{
         const allPts = [];
@@ -14439,7 +14446,7 @@ function viewMemberProfile(memberName){
             </div>
             <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
               <div style="font-size:20px;margin-bottom:3px;">👥</div>
-              <div style="font-size:15px;font-weight:900;color:#050505;">${memberFriends}</div>
+              <div style="font-size:15px;font-weight:900;color:#050505;" id="mpvFriendsCount1">${memberFriends}</div>
               <div style="font-size:10px;color:#65676B;">الأصدقاء</div>
             </div>
             <div style="background:linear-gradient(135deg,rgba(0,200,100,0.12),rgba(0,150,80,0.08));border:1px solid rgba(0,200,100,0.3);border-radius:10px;padding:10px;text-align:center;">
@@ -14450,7 +14457,6 @@ function viewMemberProfile(memberName){
           </div>
         </div>`;
     } else {
-      // غير أصدقاء: نعرض عدد المنشورات فقط (بدون رصيد أو نقاط خاصة)
       const memberPosts2 = getSocialPosts().filter(p=>p.author===memberName).length;
       const memberFriends2 = getFriends(memberName).length;
       extInfo.innerHTML = `
@@ -14464,7 +14470,7 @@ function viewMemberProfile(memberName){
             </div>
             <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
               <div style="font-size:18px;margin-bottom:3px;">👥</div>
-              <div style="font-size:15px;font-weight:900;color:#050505;">${memberFriends2}</div>
+              <div style="font-size:15px;font-weight:900;color:#050505;" id="mpvFriendsCount2">${memberFriends2}</div>
               <div style="font-size:10px;color:#65676B;">الأصدقاء</div>
             </div>
           </div>
@@ -14478,6 +14484,9 @@ function viewMemberProfile(memberName){
 
   // منشورات العضو
   renderMpvPosts(memberName);
+
+  // ✅ جلب الإحصائيات الحقيقية من Firebase وتحديث الواجهة
+  setTimeout(function(){ _loadAndDisplayProfileStats(memberName); }, 400);
 }
 
 function updateMpvFriendBtn(memberName){
@@ -15063,7 +15072,7 @@ const _origViewMemberProfile = viewMemberProfile;
 function viewMemberProfile(memberName){
   const myName = getCurrentUser();
 
-  // تسجيل الزيارة وإشعار صاحب الملف
+  // تسجيل الزيارة في localStorage + Firebase
   if(myName && myName !== memberName){
     const visits = JSON.parse(localStorage.getItem(_profileVisitsKey(memberName))||'[]');
     const now = Date.now();
@@ -15073,6 +15082,19 @@ function viewMemberProfile(memberName){
       if(visits.length>100) visits.splice(100);
       localStorage.setItem(_profileVisitsKey(memberName), JSON.stringify(visits));
       addSocialNotif(memberName, `${myName} زار ملفك الشخصي 👀`, '👀');
+      // ✅ تسجيل الزيارة في Firebase
+      (async()=>{
+        try{
+          const normN = memberName.replace(/\s+/g,'_');
+          const res = await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/${normN}.json`);
+          const cur = await res.json();
+          const curViews = parseInt((cur&&cur.totalViews)||0);
+          await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/${normN}.json`,{
+            method:'PATCH',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({totalViews:curViews+1,updatedAt:Date.now()})
+          });
+        }catch(e){}
+      })();
     }
   }
 
@@ -15104,6 +15126,9 @@ function viewMemberProfile(memberName){
 
   updateMpvFriendBtn(memberName);
   renderMpvPosts(memberName, true);
+
+  // ✅ جلب الإحصائيات الحقيقية من Firebase وتحديث الواجهة
+  setTimeout(function(){ _loadAndDisplayProfileStats(memberName); }, 400);
 }
 
 async function _renderMpvExtendedInfo(memberName, canSeeAll){
@@ -15189,19 +15214,16 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   if(fgEl) fgEl.innerText = followingList.length || 0;
   if(pcEl) pcEl.innerText = memberPosts || 0;
 
-  // ── حساب الإحصاءات الحقيقية الشاملة ──
+  // ── حساب الإحصاءات الحقيقية الشاملة — يُحدَّث لاحقاً من Firebase ──
   (function _updateMpvStats(){
-    // 1️⃣ مشاهدات الملف الشخصي
+    // قيم أولية من localStorage كـ fallback
     const visitsRaw = (() => { try{ return JSON.parse(localStorage.getItem('nld_visits_'+normName)||'[]'); }catch(e){ return []; } })();
     const profileViews = visitsRaw.length;
-    // 2️⃣ مشاهدات القصص
     const memberStoriesAll = (() => { try{ return JSON.parse(localStorage.getItem('nld_stories_'+normName)||'[]'); }catch(e){ return []; } })();
     const storyViews = memberStoriesAll.reduce((s,st)=>s+((st.viewers||st.views||[]).length),0);
-    // 3️⃣ مشاهدات المنشورات
     const postViewsData = (() => { try{ return JSON.parse(localStorage.getItem('nld_post_views_'+normName)||'{}'); }catch(e){ return {}; } })();
     const postViews = Object.values(postViewsData).reduce((s,v)=>s+(parseInt(v)||0),0);
     const totalViews = profileViews + storyViews + postViews;
-    // 4️⃣ التفاعل الكامل: ردود + تعليقات منشورات + ردود قصص
     const memberPostsData = allPosts.filter(p=>p.author===memberName);
     const postReacts = memberPostsData.reduce((s,p)=>{
       const r = p.reactions||{};
@@ -22929,6 +22951,181 @@ window.addEventListener('load', ()=>{
 });
 
 console.log('✅ ConnectDZ Fixes v3.0 Loaded — Ratings/Stats/Streak/Points (Unified)');
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ✅ إصلاح إحصائيات الملف الشخصي — Firebase-powered v4.0
+     المشكلة: localStorage لا يشارك بيانات الأعضاء بين الأجهزة
+     الحل: جلب وحفظ الإحصائيات في Firebase /userStats/{normName}
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+const _FB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+/* ── جلب إحصائيات عضو من Firebase ── */
+async function _fbGetStats(normName){
+  try{
+    const res = await fetch(`${_FB_BASE}/userStats/${normName}.json`);
+    if(!res.ok) return null;
+    return await res.json();
+  }catch(e){ return null; }
+}
+
+/* ── حفظ إحصائيات عضو في Firebase ── */
+async function _fbPatchStats(normName, data){
+  try{
+    await fetch(`${_FB_BASE}/userStats/${normName}.json`,{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({...data, updatedAt:Date.now()})
+    });
+  }catch(e){}
+}
+
+/* ── جلب عدد الأصدقاء من Firebase ── */
+async function _fbGetFriendsCount(normName){
+  try{
+    const res = await fetch(`${_FB_BASE}/friends/${normName}.json`);
+    if(!res.ok) return null;
+    const data = await res.json();
+    if(!data) return 0;
+    if(Array.isArray(data)) return data.length;
+    if(typeof data==='object') return Object.keys(data).length;
+    return 0;
+  }catch(e){ return null; }
+}
+
+/* ══════════════════════════════════════════════════════
+   الدالة الرئيسية: جلب وعرض إحصائيات الملف من Firebase
+   تُستدعى بعد 400ms من فتح أي ملف شخصي
+   ══════════════════════════════════════════════════════ */
+window._loadAndDisplayProfileStats = async function(memberName){
+  const normName = memberName.replace(/\s+/g,'_');
+
+  function _fmt(n){ if(n>=1000) return (n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+'K'; return String(n||0); }
+
+  const viewsEl    = document.getElementById('mpvViewsCount');
+  const interactEl = document.getElementById('mpvInteractCount');
+  const friendsEl  = document.getElementById('mpvFollowersCount');
+
+  /* عرض "..." أثناء التحميل */
+  if(viewsEl)    viewsEl.innerText    = '…';
+  if(interactEl) interactEl.innerText = '…';
+  if(friendsEl)  friendsEl.innerText  = '…';
+
+  /* جلب من Firebase */
+  const [fbStats, fbFriends] = await Promise.all([
+    _fbGetStats(normName),
+    _fbGetFriendsCount(normName)
+  ]);
+
+  let totalViews = 0, totalInteract = 0, friendsCount = 0;
+
+  if(fbStats){
+    totalViews    = parseInt(fbStats.totalViews    || 0);
+    totalInteract = parseInt(fbStats.totalInteract || 0);
+    friendsCount  = parseInt(fbStats.friendsCount  || 0);
+  } else {
+    /* Fallback: احسب من localStorage (لبيانات المستخدم نفسه فقط) */
+    const allPosts = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
+    const visits   = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_visits_'+normName)||'[]'); }catch(e){ return []; } })();
+    const stories  = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_stories_'+normName)||'[]'); }catch(e){ return []; } })();
+    const pvData   = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_post_views_'+normName)||'{}'); }catch(e){ return {}; } })();
+
+    totalViews = visits.length
+      + stories.reduce((s,st)=>s+((st.viewers||st.views||[]).length),0)
+      + Object.values(pvData).reduce((s,v)=>s+(parseInt(v)||0),0);
+
+    const myPosts = allPosts.filter(p=>p.author===memberName);
+    const postReacts = myPosts.reduce((s,p)=>{
+      const r=p.reactions||{};
+      if(Array.isArray(r)) return s+r.length;
+      return s+Object.values(r).reduce((a,b)=>a+(Array.isArray(b)?b.length:1),0);
+    },0);
+    totalInteract = postReacts
+      + myPosts.reduce((s,p)=>s+((p.comments||[]).length),0)
+      + stories.reduce((s,st)=>s+Object.values(st.reactions||{}).length,0);
+
+    /* ارفع للـ Firebase حتى يراها الآخرون */
+    if(totalViews > 0 || totalInteract > 0){
+      _fbPatchStats(normName,{ totalViews, totalInteract });
+    }
+  }
+
+  /* عدد الأصدقاء */
+  if(fbFriends !== null){
+    friendsCount = fbFriends;
+  } else if(fbStats && fbStats.friendsCount){
+    friendsCount = parseInt(fbStats.friendsCount);
+  } else if(typeof getFriends==='function'){
+    friendsCount = getFriends(memberName).length;
+  }
+
+  /* تحديث الواجهة */
+  if(viewsEl)    viewsEl.innerText    = _fmt(totalViews);
+  if(interactEl) interactEl.innerText = _fmt(totalInteract);
+  if(friendsEl)  friendsEl.innerText  = friendsCount || 0;
+
+  /* تحديث عدد الأصدقاء في بطاقة الأصدقاء أيضاً إن وجدت */
+  const fc1 = document.getElementById('mpvFriendsCount1');
+  const fc2 = document.getElementById('mpvFriendsCount2');
+  if(fc1) fc1.innerText = friendsCount || 0;
+  if(fc2) fc2.innerText = friendsCount || 0;
+
+  console.log(`✅ [Stats] ${memberName}: views=${totalViews} interact=${totalInteract} friends=${friendsCount}`);
+};
+
+/* ══════════════════════════════════════════════════════
+   عند تحميل التطبيق: زامن إحصائيات المستخدم الحالي
+   حتى يراها الأعضاء الآخرين عند فتح ملفه
+   ══════════════════════════════════════════════════════ */
+window.addEventListener('load', function(){
+  setTimeout(async function(){
+    const myName = localStorage.getItem('sklab_user_name')||'';
+    if(!myName || myName==='زائر') return;
+    const normName = myName.replace(/\s+/g,'_');
+
+    const allPosts = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
+    const visits   = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_visits_'+normName)||'[]'); }catch(e){ return []; } })();
+    const stories  = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_stories_'+normName)||'[]'); }catch(e){ return []; } })();
+    const pvData   = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_post_views_'+normName)||'{}'); }catch(e){ return {}; } })();
+
+    const totalViews = visits.length
+      + stories.reduce((s,st)=>s+((st.viewers||st.views||[]).length),0)
+      + Object.values(pvData).reduce((s,v)=>s+(parseInt(v)||0),0);
+
+    const myPosts = allPosts.filter(p=>p.author===myName);
+    const postReacts = myPosts.reduce((s,p)=>{
+      const r=p.reactions||{};
+      if(Array.isArray(r)) return s+r.length;
+      return s+Object.values(r).reduce((a,b)=>a+(Array.isArray(b)?b.length:1),0);
+    },0);
+    const totalInteract = postReacts
+      + myPosts.reduce((s,p)=>s+((p.comments||[]).length),0)
+      + stories.reduce((s,st)=>s+Object.values(st.reactions||{}).length,0);
+
+    const friendsCount = (typeof getFriends==='function') ? getFriends(myName).length : 0;
+
+    /* لا تنقص القيم الموجودة في Firebase */
+    const fbCurrent  = await _fbGetStats(normName);
+    const fbViews    = parseInt((fbCurrent&&fbCurrent.totalViews)    || 0);
+    const fbInteract = parseInt((fbCurrent&&fbCurrent.totalInteract) || 0);
+
+    await _fbPatchStats(normName, {
+      totalViews    : Math.max(totalViews,    fbViews),
+      totalInteract : Math.max(totalInteract, fbInteract),
+      friendsCount  : friendsCount,
+      lastSync      : Date.now()
+    });
+
+    console.log(`✅ [Stats] Synced ${myName} → Firebase`);
+  }, 4000);
+});
+
+console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loaded');
 })();
 </script>
 
