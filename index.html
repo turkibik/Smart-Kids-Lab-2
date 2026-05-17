@@ -4747,8 +4747,8 @@ body.member-mode #onlineBar{
 
         <!-- أزرار الإجراءات -->
         <div style="display:flex;gap:8px;margin-bottom:14px;">
-          <button onclick="_openMyProfileAsOthers()" style="flex:1;padding:9px;background:#1877F2;border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;">👁️ كما يراني الآخرون</button>
-          <button onclick="openFBFriendsFromProfile()" style="flex:1;padding:9px;background:#F0F2F5;border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#050505;cursor:pointer;">👥 الأصدقاء</button>
+          <button onclick="showProfileEditMenu()" style="flex:1;padding:9px;background:#E4E6EB;border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#050505;cursor:pointer;">✏️ تعديل الملف</button>
+          <button onclick="showBalanceModal()" style="flex:1;padding:9px;background:linear-gradient(135deg,#00c853,#1877F2);border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;">💰 رصيدي</button>
         </div>
 
         <!-- منشورات الملف الشخصي -->
@@ -4971,8 +4971,8 @@ body.member-mode #onlineBar{
 
     <!-- Action Buttons -->
     <div style="display:flex;gap:8px;margin-bottom:12px;">
-      <button onclick="showBalanceModal()" style="flex:1;padding:8px;background:#1877F2;border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 8px rgba(24,119,242,0.35);">💰 رصيدك</button>
-      <button onclick="showProfileEditMenu()" style="flex:1;padding:8px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">✏️ تعديل الملف</button>
+      <button onclick="_openMyProfileAsOthers()" style="flex:1;padding:8px;background:#1877F2;border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 8px rgba(24,119,242,0.35);">👁️ كما يراني الآخرون</button>
+      <button onclick="openFBFriendsFromProfile()" style="flex:1;padding:8px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">👥 الأصدقاء</button>
     </div>
 
     <!-- Quick Stats Bar -->
@@ -8647,6 +8647,34 @@ function processEntry(val,type){
             break;
           }
         }
+        // ── حفظ تاريخ الانخراط من الجدول (أول عمود أو عمود Timestamp) ──
+        (function _saveJoinDateFromRow(rowCols, memberName){
+          const normKey = memberName.replace(/\s+/g,'_');
+          if(localStorage.getItem('nld_join_ts_'+normKey)) return; // موجود مسبقاً
+          // تحقق من أول عمود (غالباً Timestamp)
+          const tsStr = rowCols[0]||'';
+          let joinTs = 0;
+          if(tsStr){
+            // YYYY-MM-DD HH:MM:SS أو DD/MM/YYYY
+            const m1 = tsStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            const m2 = tsStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if(m1) joinTs = new Date(parseInt(m1[3]),parseInt(m1[2])-1,parseInt(m1[1])).getTime();
+            else if(m2) joinTs = new Date(parseInt(m2[1]),parseInt(m2[2])-1,parseInt(m2[3])).getTime();
+            else joinTs = Date.parse(tsStr)||0;
+          }
+          if(joinTs > 0){
+            localStorage.setItem('nld_join_ts_'+normKey, String(joinTs));
+            // حفظ نص التاريخ أيضاً
+            const dateStr = new Date(joinTs).toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
+            localStorage.setItem('nld_joined_'+normKey, dateStr);
+            localStorage.setItem('cdz_join_date_cache_'+normKey, JSON.stringify({joinTs, ts: Date.now()}));
+          } else {
+            // Fallback: الوقت الحالي كأول دخول
+            if(!localStorage.getItem('nld_join_ts_'+normKey)){
+              localStorage.setItem('nld_join_ts_'+normKey, String(Date.now()));
+            }
+          }
+        })(c, name);
         localStorage.setItem("sklab_user_name",name);
         renderApp(name,pts,true, resolveEarned(name));
         return;
@@ -8695,6 +8723,26 @@ function processEntry(val,type){
             }
           }
         }
+        // ── حفظ تاريخ الانخراط من smartUrl (عمود Timestamp أو أول عمود) ──
+        (function _saveJoinDateFromSmart(rowCols, memberName){
+          const normKey = memberName.replace(/\s+/g,'_');
+          if(localStorage.getItem('nld_join_ts_'+normKey)) return;
+          const tsStr = rowCols[0]||'';
+          let joinTs = 0;
+          if(tsStr){
+            const m1 = tsStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            const m2 = tsStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if(m1) joinTs = new Date(parseInt(m1[3]),parseInt(m1[2])-1,parseInt(m1[1])).getTime();
+            else if(m2) joinTs = new Date(parseInt(m2[1]),parseInt(m2[2])-1,parseInt(m2[3])).getTime();
+            else joinTs = Date.parse(tsStr)||0;
+          }
+          if(joinTs > 0){
+            localStorage.setItem('nld_join_ts_'+normKey, String(joinTs));
+            const dateStr = new Date(joinTs).toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
+            localStorage.setItem('nld_joined_'+normKey, dateStr);
+            localStorage.setItem('cdz_join_date_cache_'+normKey, JSON.stringify({joinTs, ts: Date.now()}));
+          }
+        })(cols, nameCol);
         localStorage.setItem("sklab_user_name",nameCol);
         renderApp(nameCol,pts,true, resolveEarned(nameCol));
         return;
@@ -23529,6 +23577,393 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
 })();
 
 console.log('✅ ConnectDZ Master Fix v5.0 — Messenger/Streak/Points/Stars FIXED');
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     🔥 ConnectDZ Streak v6.0 — نظام الشعلة الشامل المحسّن
+     ✅ يجلب تاريخ التسجيل من Google Sheets (smartUrl / dataUrl)
+     ✅ 24 ساعة = يوم واحد إضافي (دخول آلي دقيق)
+     ✅ الشعلة محسوبة بشكل منفرد لكل عضو
+     ✅ الخصوصية: كل عضو له بياناته الخاصة (لا تخلط)
+     ✅ عزل صور الملفات الشخصية (مفاتيح فريدة لكل عضو)
+     ✅ ملفي الشخصي = عرض كما يراني الآخرون (بدون رصيد/تعديل)
+     ✅ النقاط: من لوحة التحكم | الرصيد: من جدول الترتيب
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ══════════════════════════════════════════════════════════
+   📅 جلب تاريخ التسجيل من Google Sheets وحساب الشعلة
+   المنطق: كل 24 ساعة منذ تاريخ التسجيل = يوم شعلة
+   ══════════════════════════════════════════════════════════ */
+
+const _SHEETS_JOIN_CACHE_KEY = 'cdz_join_date_cache_';
+const _STREAK_MS_PER_DAY = 24 * 60 * 60 * 1000; // 24 ساعة بالضبط
+
+/* تحويل نص التاريخ إلى timestamp — يدعم تنسيقات متعددة */
+function _parseDateToTs(dateStr){
+  if(!dateStr) return 0;
+  // تنسيق DD/MM/YYYY أو D/M/YYYY
+  const m1 = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m1) return new Date(parseInt(m1[3]), parseInt(m1[2])-1, parseInt(m1[1])).getTime();
+  // تنسيق YYYY-MM-DD
+  const m2 = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m2) return new Date(parseInt(m2[1]), parseInt(m2[2])-1, parseInt(m2[3])).getTime();
+  // محاولة parse مباشر
+  const ts = Date.parse(dateStr);
+  return isNaN(ts) ? 0 : ts;
+}
+
+/* حساب عدد الأيام بدقة 24 ساعة منذ تاريخ التسجيل */
+function _calcStreakDays(joinTs){
+  if(!joinTs || joinTs <= 0) return 0;
+  const now = Date.now();
+  if(now < joinTs) return 0;
+  return Math.floor((now - joinTs) / _STREAK_MS_PER_DAY);
+}
+
+/* جلب تاريخ التسجيل من Sheets للعضو وتخزينه */
+async function _fetchJoinDateFromSheets(memberName){
+  const normKey = memberName.replace(/\s+/g,'_');
+  const cacheKey = _SHEETS_JOIN_CACHE_KEY + normKey;
+
+  // تحقق من الكاش أولاً (تحديث كل 6 ساعات)
+  const cached = (() => { try{ return JSON.parse(localStorage.getItem(cacheKey)||'null'); }catch(e){ return null; } })();
+  if(cached && cached.ts && (Date.now() - cached.ts) < 6*60*60*1000){
+    return cached.joinTs || 0;
+  }
+
+  const norm = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+  const nameLower = norm(memberName);
+
+  function csvParse(line){
+    const res=[]; let cur=''; let q=false;
+    for(let i=0;i<=line.length;i++){
+      const ch=line[i];
+      if(ch==='"'){q=!q;}
+      else if((ch===','||ch===undefined)&&!q){res.push(cur.replace(/^"|"$/g,'').trim());cur='';}
+      else{cur+=ch||'';}
+    }
+    return res;
+  }
+
+  let foundJoinTs = 0;
+
+  // 1️⃣ جلب من smartUrl (جدول "انظم إلينا") — فيه تاريخ الانخراط الرسمي
+  try{
+    const smartUrlVal = (typeof smartUrl !== 'undefined') ? smartUrl : null;
+    if(smartUrlVal){
+      const t = await fetch(smartUrlVal).then(r=>r.text());
+      const rows = t.split('\n');
+      // الصف الأول = رؤوس الأعمدة
+      const headers = csvParse(rows[0]||'');
+      // إيجاد فهرس عمود تاريخ الانخراط
+      const dateColIdx = headers.findIndex(h =>
+        h.includes('تاريخ') && (h.includes('انخراط') || h.includes('تسجيل') || h.includes('Timestamp'))
+      );
+      for(let i=1;i<rows.length;i++){
+        if(!rows[i].trim()) continue;
+        const c = csvParse(rows[i]);
+        const rowName = norm(c[2]||'');
+        if(rowName === nameLower){
+          // جرب عمود التاريخ المحدد
+          let dateStr = dateColIdx >= 0 ? (c[dateColIdx]||'') : '';
+          // إذا لم يوجد، جرب عمود Timestamp (عادةً أول عمود)
+          if(!dateStr && c[0]) dateStr = c[0];
+          const ts = _parseDateToTs(dateStr);
+          if(ts > 0){ foundJoinTs = ts; break; }
+        }
+      }
+    }
+  }catch(e){}
+
+  // 2️⃣ إذا لم يوجد، جرب dataUrl (الجدول الرئيسي)
+  if(!foundJoinTs){
+    try{
+      const dataUrlVal = (typeof dataUrl !== 'undefined') ? dataUrl : null;
+      if(dataUrlVal){
+        const t = await fetch(dataUrlVal).then(r=>r.text());
+        const rows = t.split('\n');
+        const headers = csvParse(rows[0]||'');
+        const dateColIdx = headers.findIndex(h =>
+          h.includes('تاريخ') && (h.includes('انخراط') || h.includes('تسجيل'))
+        );
+        for(let i=1;i<rows.length;i++){
+          if(!rows[i].trim()) continue;
+          const c = csvParse(rows[i]);
+          const rowName = norm(c[2]||'');
+          if(rowName === nameLower){
+            const dateStr = dateColIdx >= 0 ? (c[dateColIdx]||'') : '';
+            const ts = _parseDateToTs(dateStr);
+            if(ts > 0){ foundJoinTs = ts; break; }
+          }
+        }
+      }
+    }catch(e){}
+  }
+
+  // 3️⃣ Fallback: استخدم nld_join_ts إن وجد
+  if(!foundJoinTs){
+    foundJoinTs = parseInt(localStorage.getItem('nld_join_ts_'+normKey)||'0')
+               || parseInt(localStorage.getItem('nld_join_'+normKey)||'0');
+  }
+
+  // حفظ في الكاش
+  if(foundJoinTs > 0){
+    localStorage.setItem(cacheKey, JSON.stringify({ joinTs: foundJoinTs, ts: Date.now() }));
+    // حفظ في المفاتيح القياسية أيضاً
+    if(!localStorage.getItem('nld_join_ts_'+normKey)){
+      localStorage.setItem('nld_join_ts_'+normKey, String(foundJoinTs));
+    }
+  }
+
+  return foundJoinTs;
+}
+
+/* ══ حساب الشعلة الحقيقية بدقة 24 ساعة لكل عضو ══ */
+async function _computeRealStreak(memberName){
+  const normKey = memberName.replace(/\s+/g,'_');
+  const joinTs = await _fetchJoinDateFromSheets(memberName);
+  if(!joinTs) return _getRealStreak ? _getRealStreak(normKey) : 0;
+
+  const daysSince = _calcStreakDays(joinTs);
+
+  // تحديث localStorage بالقيمة الصحيحة
+  const KEY = 'nld_daily_streak_' + normKey;
+  let rec = {};
+  try{ rec = JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
+  const currentTotal = parseInt(rec.totalDays||rec.count||0);
+  const newTotal = Math.max(currentTotal, daysSince);
+
+  if(newTotal > currentTotal){
+    rec.totalDays = newTotal;
+    if(!rec.lastDay) rec.lastDay = new Date().toISOString().slice(0,10);
+    localStorage.setItem(KEY, JSON.stringify(rec));
+  }
+
+  return newTotal;
+}
+
+/* ══ تحديث عرض الشعلة في ملفي الشخصي ══ */
+async function _refreshMyStreakDisplay(myName){
+  if(!myName || myName === 'زائر') return;
+  const normKey = myName.replace(/\s+/g,'_');
+
+  // حساب الشعلة من تاريخ التسجيل
+  const streakDays = await _computeRealStreak(myName);
+  const medal = typeof _getStreakMedal === 'function' ? _getStreakMedal(streakDays)
+    : { emoji:'🥉', label:'برونزية', color:'#CD7F32', glow:'rgba(205,127,50,0.5)' };
+
+  // تحديث عناصر الشعلة في الملف الشخصي (fbProfile)
+  const sf = document.getElementById('fbStreakFlame');
+  const si = document.getElementById('fbStreakInfo');
+  const sn = document.getElementById('fbStreakNext');
+  if(sf){
+    sf.innerText = medal.emoji;
+    sf.style.filter = `drop-shadow(0 0 10px ${medal.glow})`;
+    sf.style.animation = streakDays >= 45 ? 'pulse 1.5s infinite' : '';
+    sf.title = `${medal.label} — ${streakDays} يوم عضوية`;
+  }
+  if(si){
+    const nextLevel = streakDays < 45 ? 45 : streakDays < 90 ? 90 : streakDays < 135 ? 135 : null;
+    const nextInfo = nextLevel ? ` · ${nextLevel - streakDays} يوم للترقية` : ' · 💎 أعلى مستوى';
+    si.innerHTML = `<span style="color:${medal.color};font-weight:900;">${medal.emoji} ${medal.label}</span> · <strong>${streakDays}</strong> يوم${nextInfo}`;
+  }
+  if(sn){
+    const nextLevel = streakDays < 45 ? 45 : streakDays < 90 ? 90 : streakDays < 135 ? 135 : null;
+    sn.innerText = nextLevel ? `${nextLevel - streakDays} يوم` : '💎';
+  }
+
+  // تحديث شارة الشعلة في ملف العضو (mpvStreakBadge) عند عرض ملفي
+  const mpvFlame = document.getElementById('mpvStreakFlame');
+  const mpvDays = document.getElementById('mpvStreakDays');
+  if(mpvFlame){ mpvFlame.innerText = medal.emoji; }
+  if(mpvDays){ mpvDays.innerHTML = `<span style="color:${medal.color};font-weight:900;">${medal.label}</span> · ${streakDays} يوم`; }
+}
+
+/* ══ تسجيل الدخول اليومي الآلي — كل 24 ساعة = يوم جديد ══ */
+async function _autoRecordDailyLogin(myName){
+  if(!myName || myName === 'زائر') return;
+  const normKey = myName.replace(/\s+/g,'_');
+  const todayStr = new Date().toISOString().slice(0,10);
+  const KEY = 'nld_daily_streak_' + normKey;
+
+  let rec = {};
+  try{ rec = JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
+
+  // لا تسجل اليوم مرتين
+  if(rec.lastDay === todayStr) return;
+
+  // جلب تاريخ التسجيل واحتساب الأيام
+  const joinTs = await _fetchJoinDateFromSheets(myName);
+  const daysSince = joinTs ? _calcStreakDays(joinTs) : (parseInt(rec.totalDays||0) + 1);
+
+  const currentTotal = parseInt(rec.totalDays||rec.count||0);
+  const newTotal = Math.max(currentTotal + 1, daysSince);
+
+  const days = Array.isArray(rec.days) ? rec.days : [];
+  if(!days.includes(todayStr)) days.push(todayStr);
+  if(days.length > 500) days.splice(0, days.length - 500);
+
+  rec = { totalDays: newTotal, lastDay: todayStr, days };
+  localStorage.setItem(KEY, JSON.stringify(rec));
+
+  // مزامنة Firebase
+  try{
+    await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/streaks/${normKey}.json`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ totalDays: newTotal, lastDay: todayStr, updatedAt: Date.now() })
+    });
+  }catch(e){}
+
+  // تحديث العرض
+  _refreshMyStreakDisplay(myName);
+}
+
+/* ══ عزل صور الملفات الشخصية — مفتاح فريد لكل عضو ══ */
+/* نتأكد أن getProfilePhoto و handleProfilePhotoUpload يستخدمان مفتاحاً فريداً بالاسم الكامل */
+const _origGetProfilePhoto = window.getProfilePhoto;
+window.getProfilePhoto = function(name){
+  if(!name) return null;
+  // مفتاح فريد: nld_photo_<اسم_منظم>
+  const key = 'nld_photo_' + name.replace(/\s+/g,'_');
+  const photo = localStorage.getItem(key);
+  if(photo) return photo;
+  // Fallback للمفتاح القديم إذا وُجد
+  if(typeof _origGetProfilePhoto === 'function'){
+    const old = _origGetProfilePhoto(name);
+    if(old){
+      // ترحيل للمفتاح الجديد
+      localStorage.setItem(key, old);
+      return old;
+    }
+  }
+  return null;
+};
+
+/* ══ ملفي الشخصي = عرض كما يراني الآخرون ══ */
+/* عند فتح "كما يراني الآخرون" — يُعرض نفس ملف العضو الآخر لكن بياناتي */
+const _origOpenDigitalCard = window.openMyFullProfile;
+window.openMyFullProfile = function(){
+  const myName = (typeof getCurrentUser === 'function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
+  if(!myName) return;
+
+  // فتح نافذة الملف الشخصي
+  const el = document.getElementById('digitalCard');
+  if(el){ el.style.display='flex'; el.style.flexDirection='column'; }
+
+  // جلب وتحديث الشعلة
+  _refreshMyStreakDisplay(myName);
+
+  // استدعاء الدالة الأصلية
+  if(typeof _origOpenDigitalCard === 'function') _origOpenDigitalCard();
+};
+
+/* ══ عداد النقاط: من لوحة التحكم | الرصيد: من جدول الترتيب ══ */
+function _syncPointsFromDashboard(myName){
+  if(!myName || myName==='زائر') return;
+  const normKey = myName.replace(/\s+/g,'_');
+
+  // النقاط الإجمالية = _basePoints (من لوحة التحكم)
+  const totalPts = (typeof window._basePoints !== 'undefined') ? window._basePoints : 0;
+
+  // نقاط جدول الترتيب = _sheetPtsCache (للرصيد)
+  const sheetPts = (typeof window._sheetPtsCache !== 'undefined') ? window._sheetPtsCache : 0;
+
+  // تحديث fbTotalPts (نقاط لوحة التحكم)
+  const ptsEl = document.getElementById('fbTotalPts');
+  if(ptsEl) ptsEl.innerText = totalPts.toLocaleString();
+
+  // تحديث fbBalance (من جدول الترتيب)
+  const isEarly = localStorage.getItem('nld_is_early_'+normKey) === '1';
+  const rate = isEarly ? 35 : 30;
+  const balance = ((Math.max(0, sheetPts)/50)*rate).toFixed(2);
+  const balEl = document.getElementById('fbBalance');
+  if(balEl) balEl.innerText = balance + ' دج';
+}
+
+/* ══ خصوصية الإحصائيات — كل عضو له بياناته المنفردة ══ */
+/* منع تسرب إحصائيات عضو إلى عضو آخر في ملفات العرض */
+const _origViewMpvProfile = window.viewMemberProfile;
+window.viewMemberProfile = async function(memberName){
+  if(!memberName) return;
+
+  // إعادة ضبط عناصر الملف الشخصي قبل التحميل
+  const elementsToReset = [
+    'mpvAvatar','mpvName','mpvFollowersCount','mpvViewsCount',
+    'mpvInteractCount','mpvHeaderPts','mpvHeaderBalance','mpvHeaderLevel',
+    'mpvStreakFlame','mpvStreakDays','mpvExtendedInfo','mpvPersonalInfoGrid'
+  ];
+  elementsToReset.forEach(id => {
+    const el = document.getElementById(id);
+    if(el && id !== 'mpvAvatar' && id !== 'mpvExtendedInfo' && id !== 'mpvPersonalInfoGrid'){
+      if(id === 'mpvStreakFlame') el.innerText = '⏳';
+      else if(id === 'mpvStreakDays') el.innerText = 'جارٍ...';
+      else el.innerText = '—';
+    }
+  });
+
+  // إعادة ضبط صورة الأفاتار بأيقونة محايدة
+  const avatarEl = document.getElementById('mpvAvatar');
+  if(avatarEl) avatarEl.innerHTML = typeof getLeaderIcon==='function' ? getLeaderIcon(memberName) : '👑';
+
+  // تحميل صورة العضو الصحيحة (مفتاح فريد بالاسم)
+  const memberPhoto = window.getProfilePhoto ? window.getProfilePhoto(memberName) : null;
+  if(avatarEl && memberPhoto){
+    avatarEl.innerHTML = `<img src="${memberPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+  }
+
+  // استدعاء الدالة الأصلية
+  if(typeof _origViewMpvProfile === 'function') await _origViewMpvProfile(memberName);
+
+  // تحديث الشعلة للعضو المعروض (شخصي ومنفرد)
+  setTimeout(async () => {
+    const normKey = memberName.replace(/\s+/g,'_');
+    const memberStreak = await _computeRealStreak(memberName);
+    const medal = typeof _getStreakMedal === 'function' ? _getStreakMedal(memberStreak)
+      : { emoji:'🥉', label:'برونزية', color:'#CD7F32', glow:'rgba(205,127,50,0.5)' };
+
+    const flameEl = document.getElementById('mpvStreakFlame');
+    const daysEl = document.getElementById('mpvStreakDays');
+    if(flameEl){ flameEl.innerText = medal.emoji; flameEl.style.filter = `drop-shadow(0 0 8px ${medal.glow})`; }
+    if(daysEl){ daysEl.innerHTML = `<span style="color:${medal.color};font-weight:900;">${medal.label}</span> · ${memberStreak} يوم`; }
+  }, 800);
+};
+
+/* ══ تشغيل عند كل دخول للتطبيق ══ */
+window.addEventListener('load', function(){
+  setTimeout(async function(){
+    const myName = localStorage.getItem('sklab_user_name')||'';
+    if(!myName || myName==='زائر') return;
+
+    // تسجيل الدخول اليومي الآلي
+    await _autoRecordDailyLogin(myName);
+
+    // تحديث عرض الشعلة
+    await _refreshMyStreakDisplay(myName);
+
+    // مزامنة النقاط
+    _syncPointsFromDashboard(myName);
+
+  }, 2000);
+});
+
+/* ══ تحديث عند فتح تبويب "صفحتي" ══ */
+const _origSwitchSocialTabStreak = window.switchSocialTab;
+window.switchSocialTab = function(tab){
+  if(typeof _origSwitchSocialTabStreak === 'function') _origSwitchSocialTabStreak.apply(this, arguments);
+  if(tab === 'myprofile'){
+    const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
+    if(myName){
+      setTimeout(() => _refreshMyStreakDisplay(myName), 300);
+      setTimeout(() => _syncPointsFromDashboard(myName), 400);
+    }
+  }
+};
+
+console.log('✅ ConnectDZ Streak v6.0 — شعلة من الشيتس + خصوصية + عزل الصور');
 })();
 </script>
 
