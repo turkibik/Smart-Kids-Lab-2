@@ -4157,38 +4157,24 @@ body.member-mode #onlineBar{
 
       <div style="height:1px;background:#E4E6EB;margin:8px 0;"></div>
 
-      <!-- جدول الترتيب -->
-      <div onclick="closeProfileDropdown();setTimeout(()=>{showModal('rankingCard');loadRanking();},200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#f5a623,#e8870a);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🏆</div>
-        <div><div style="font-size:14px;font-weight:900;color:#050505;">جدول الترتيب</div><div style="font-size:11px;color:#65676B;">ترتيب الأعضاء حسب النقاط والمستوى</div></div>
+      <!-- لوحة التحكم -->
+      <div onclick="closeProfileDropdown();setTimeout(()=>{hideSocialHomeForDashboard();},200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#f5a623,#e8870a);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📊</div>
+        <div><div style="font-size:14px;font-weight:900;color:#050505;">لوحة التحكم</div><div style="font-size:11px;color:#65676B;">ميزات التطبيق الكاملة</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
-      <!-- جدول تحديد المستوى — إجمالي النقاط -->
-      <div onclick="closeProfileDropdown();setTimeout(()=>openLevelScheduleModal(),200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📊</div>
-        <div><div style="font-size:14px;font-weight:900;color:#050505;">جدول تحديد المستوى</div><div style="font-size:11px;color:#65676B;">ترتيب أعلى عضو • إجمالي النقاط • المستوى</div></div>
-        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
-      </div>
-
-      <!-- المنخرطون -->
-      <div onclick="closeProfileDropdown();setTimeout(()=>{showModal('membersCard');loadMembers();},200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👥</div>
-        <div><div style="font-size:14px;font-weight:900;color:#050505;">المنخرطون</div><div style="font-size:11px;color:#65676B;">قائمة جميع الأعضاء المنخرطين</div></div>
+      <!-- لوحة البيانات والتفاعل -->
+      <div onclick="closeProfileDropdown();setTimeout(()=>openDataInteractionPanel(),200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📈</div>
+        <div><div style="font-size:14px;font-weight:900;color:#050505;">لوحة البيانات والتفاعل</div><div style="font-size:11px;color:#65676B;">إحصائياتك ونقاطك ومستواك</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
       <!-- النشاطات -->
-      <div onclick="closeProfileDropdown();setTimeout(()=>{showModal('activitiesCard');loadActivities();},200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🏅</div>
-        <div><div style="font-size:14px;font-weight:900;color:#050505;">النشاطات</div><div style="font-size:11px;color:#65676B;">جميع النشاطات بالتفصيل</div></div>
-        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
-      </div>
-
-      <!-- البطاقة البنكية -->
-      <div onclick="closeProfileDropdown();setTimeout(()=>openBankCardModal(),200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#0d5bda);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">💳</div>
-        <div><div style="font-size:14px;font-weight:900;color:#050505;">البطاقة البنكية</div><div style="font-size:11px;color:#65676B;">رصيدك القابل للسحب</div></div>
+      <div onclick="closeProfileDropdown();setTimeout(()=>{showModal('activitiesCard');},200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🏅</div>
+        <div><div style="font-size:14px;font-weight:900;color:#050505;">النشاطات</div><div style="font-size:11px;color:#65676B;">سجل نشاطاتك وإنجازاتك</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
@@ -4208,7 +4194,23 @@ body.member-mode #onlineBar{
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
-      <!-- مساحة بديلة عن اللغة وخصوصية الظهور المحذوفتين -->
+      <!-- اللغة -->
+      <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🌐</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#050505;">اللغة</div><div id="pdCurrentLang" style="font-size:11px;color:#65676B;">العربية 🇩🇿</div></div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span onclick="setAppLang('ar',true);closeProfileDropdown();" style="font-size:18px;cursor:pointer;border-radius:6px;padding:2px;" title="العربية">🇩🇿</span>
+          <span onclick="setAppLang('en',true);closeProfileDropdown();" style="font-size:18px;cursor:pointer;border-radius:6px;padding:2px;" title="English">🇬🇧</span>
+          <span onclick="setAppLang('fr',true);closeProfileDropdown();" style="font-size:18px;cursor:pointer;border-radius:6px;padding:2px;" title="Français">🇫🇷</span>
+        </div>
+      </div>
+
+      <!-- خصوصية الظهور -->
+      <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#fc4a1a,#f7b733);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👁️</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#050505;">خصوصية الظهور</div><div style="font-size:11px;color:#65676B;">تحكم من يراك</div></div>
+        <div id="pdVisibilityToggle" onclick="toggleProfileVisibility()" style="width:44px;height:24px;border-radius:12px;background:#1877F2;cursor:pointer;position:relative;transition:.3s;flex-shrink:0;">
+          <div style="position:absolute;top:2px;right:2px;width:20px;height:20px;background:white;border-radius:50%;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,0.3);"></div>
         </div>
       </div>
 
@@ -4242,66 +4244,31 @@ body.member-mode #onlineBar{
     </div>
     <!-- Menu Items -->
     <div style="padding:8px 0;">
-      <!-- اجمع النقاط -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>grantEarlyBirdPoints&&grantEarlyBirdPoints('collect_visit',5,true,'جمع النقاط'),200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f5a623,#e8870a);display:flex;align-items:center;justify-content:center;font-size:18px;">⭐</div>
-        <div><div style="font-size:14px;font-weight:800;color:#050505;">اجمع النقاط</div><div style="font-size:11px;color:#65676B;">حقق نقاطاً وارتقِ في الترتيب</div></div>
-        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      <!-- الإعدادات والخصوصية -->
+      <div onclick="openSideMenuItem('settings')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:18px;">⚙️</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">الإعدادات والخصوصية</div><div style="font-size:11px;color:#65676B;">تحكم في حسابك وبياناتك</div></div>
       </div>
 
-      <!-- معرض الصور -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>openSideMenuItem('social_pages'),200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;">🖼️</div>
-        <div><div style="font-size:14px;font-weight:800;color:#050505;">معرض الصور</div><div style="font-size:11px;color:#65676B;">صور وذكريات الأعضاء</div></div>
+      <!-- المجموعات -->
+      <div onclick="openSideMenuItem('groups')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:18px;">👥</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">المجموعات</div><div style="font-size:11px;color:#65676B;">انضم إلى مجموعات الأعضاء</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
-
-      <!-- عالم المدينة -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>{ebPointsCity&&ebPointsCity();showCityWorldModal&&showCityWorldModal();},200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:18px;">🕌</div>
-        <div><div style="font-size:14px;font-weight:800;color:#050505;">عالم المدينة</div><div style="font-size:11px;color:#65676B;">المدينة الإسلامية والتراث</div></div>
-        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
-      </div>
-
-      <!-- الرياضة -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>openSportsSection&&openSportsSection(),200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#43e97b,#38f9d7);display:flex;align-items:center;justify-content:center;font-size:18px;">⚽</div>
-        <div><div style="font-size:14px;font-weight:800;color:#050505;">الرياضة</div><div style="font-size:11px;color:#65676B;">أخبار ونتائج رياضية</div></div>
-        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
-      </div>
-
-      <!-- القانون الجزائري -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>openAlgerianLaw&&openAlgerianLaw(),200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0f9b0f,#e52d27);display:flex;align-items:center;justify-content:center;font-size:18px;">⚖️</div>
-        <div><div style="font-size:14px;font-weight:800;color:#050505;">القانون الجزائري</div><div style="font-size:11px;color:#65676B;">أبرز أحكام القانون للمواطن</div></div>
-        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
-      </div>
-
-      <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
-
-      <!-- شاهد واربح -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>showWatchAndWinModal&&showWatchAndWinModal(),200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f7971e,#ffd200);display:flex;align-items:center;justify-content:center;font-size:18px;">🎬</div>
-        <div><div style="font-size:14px;font-weight:800;color:#050505;">شاهد واربح</div><div style="font-size:11px;color:#65676B;">شاهد المحتوى واكسب نقاطاً</div></div>
-        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
-      </div>
-
       <!-- الصفحات -->
       <div onclick="openSideMenuItem('social_pages')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:18px;">📄</div>
         <div><div style="font-size:14px;font-weight:800;color:#050505;">الصفحات</div><div style="font-size:11px;color:#65676B;">تابع صفحاتك المفضلة</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
-
       <!-- الألعاب -->
       <div onclick="openSideMenuItem('games')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:18px;">🎮</div>
         <div><div style="font-size:14px;font-weight:800;color:#050505;">الألعاب</div><div style="font-size:11px;color:#65676B;">العب وتسلى مع الأعضاء</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
-
       <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
-
       <!-- Smart Kids Lab -->
       <div onclick="openSideMenuItem('smart_kids')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#00c6ff,#0072ff);display:flex;align-items:center;justify-content:center;font-size:18px;">🧠</div>
@@ -4309,28 +4276,57 @@ body.member-mode #onlineBar{
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
-      <!-- قاعة الشباب بودغن -->
+      <!-- القاعة متعددة الخدمات للشباب بودغن -->
       <div onclick="openSideMenuItem('youth_hall')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:18px;">🏛️</div>
         <div><div style="font-size:14px;font-weight:800;color:#050505;">قاعة الشباب بودغن</div><div style="font-size:11px;color:#65676B;">القاعة متعددة الخدمات</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
-
       <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
-
-      <!-- من نحن -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>showWhoWeAreModal&&showWhoWeAreModal(),200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#0d5bda);display:flex;align-items:center;justify-content:center;font-size:18px;">🏛️</div>
-        <div><div style="font-size:14px;font-weight:800;color:#050505;">من نحن</div><div style="font-size:11px;color:#65676B;">تعرف على منصة Connect DZ</div></div>
-        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      <!-- اللغة -->
+      <div onclick="toggleSideLanguagePanel()" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:18px;">🌐</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">اللغة</div><div id="sideCurrentLangLabel" style="font-size:11px;color:#65676B;">العربية 🇩🇿</div></div>
+        <div id="sideLangChevron" style="font-size:18px;color:#BCC0C4;">›</div>
       </div>
-
-      <!-- الصفحة الرئيسية -->
+      <!-- Language Sub-panel -->
+      <div id="sideLangPanel" style="display:none;background:#F7F8FA;padding:6px 14px 10px;margin:0 14px;border-radius:12px;margin-bottom:6px;">
+        <div onclick="setSideLang('ar')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='transparent'">
+          <span style="font-size:22px;">🇩🇿</span>
+          <span style="font-size:13px;font-weight:800;color:#050505;">العربية</span>
+          <span id="sideLangCheck_ar" style="margin-right:auto;color:#1877F2;font-size:16px;font-weight:900;display:none;">✓</span>
+        </div>
+        <div onclick="setSideLang('en')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='transparent'">
+          <span style="font-size:22px;">🇬🇧</span>
+          <span style="font-size:13px;font-weight:800;color:#050505;">English</span>
+          <span id="sideLangCheck_en" style="margin-right:auto;color:#1877F2;font-size:16px;font-weight:900;display:none;">✓</span>
+        </div>
+        <div onclick="setSideLang('es')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='transparent'">
+          <span style="font-size:22px;">🇪🇸</span>
+          <span style="font-size:13px;font-weight:800;color:#050505;">Español</span>
+          <span id="sideLangCheck_es" style="margin-right:auto;color:#1877F2;font-size:16px;font-weight:900;display:none;">✓</span>
+        </div>
+        <div onclick="setSideLang('zh')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='transparent'">
+          <span style="font-size:22px;">🇨🇳</span>
+          <span style="font-size:13px;font-weight:800;color:#050505;">中文</span>
+          <span id="sideLangCheck_zh" style="margin-right:auto;color:#1877F2;font-size:16px;font-weight:900;display:none;">✓</span>
+        </div>
+      </div>
+      <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
+      <!-- العودة إلى التطبيق -->
       <div onclick="closeSocialSideMenu();" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F8FF'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#00c853,#e53935);display:flex;align-items:center;justify-content:center;font-size:18px;">🏠</div>
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#0d5bda);display:flex;align-items:center;justify-content:center;font-size:18px;">🏠</div>
         <div>
-          <div style="font-size:14px;font-weight:800;color:#050505;">الصفحة الرئيسية</div>
-          <div style="font-size:11px;color:#65676B;">العودة للرئيسية</div>
+          <div style="font-size:14px;font-weight:800;color:#1877F2;">العودة إلى التطبيق</div>
+          <div style="font-size:11px;color:#65676B;">الرجوع للواجهة الرئيسية</div>
+        </div>
+      </div>
+      <!-- الرجوع إلى لوحة القيادة -->
+      <div onclick="closeSocialSideMenu();setTimeout(()=>{ document.getElementById('socialHomeCard').style.display='none'; },200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#FFF8F0'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f5a623,#e8870a);display:flex;align-items:center;justify-content:center;font-size:18px;">📊</div>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#e8870a;">الرجوع إلى لوحة القيادة</div>
+          <div style="font-size:11px;color:#65676B;">العودة للوحة التحكم الرئيسية</div>
         </div>
       </div>
     </div>
@@ -4866,22 +4862,18 @@ body.member-mode #onlineBar{
     <div id="mpvPostsCount" style="display:none;">0</div>
     <div id="mpvFollowingCount" style="display:none;">0</div>
     <!-- النقاط والرصيد والمستوى -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-bottom:10px;">
-      <div style="background:#EEF4FF;border-radius:10px;padding:7px 3px;text-align:center;">
-        <div id="mpvHeaderPts" style="font-size:14px;font-weight:900;color:#1877F2;">0</div>
-        <div style="font-size:8px;color:#65676B;font-weight:700;">إجمالي النقاط</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
+      <div style="background:#EEF4FF;border-radius:10px;padding:8px 4px;text-align:center;">
+        <div id="mpvHeaderPts" style="font-size:15px;font-weight:900;color:#1877F2;">0</div>
+        <div style="font-size:9px;color:#65676B;font-weight:700;">نقطة</div>
       </div>
-      <div style="background:#FFF3CD;border-radius:10px;padding:7px 3px;text-align:center;">
-        <div id="mpvHeaderRankPts" style="font-size:14px;font-weight:900;color:#e8870a;">0</div>
-        <div style="font-size:8px;color:#65676B;font-weight:700;">نقاط الترتيب</div>
+      <div style="background:#F0FFF4;border-radius:10px;padding:8px 4px;text-align:center;">
+        <div id="mpvHeaderBalance" style="font-size:14px;font-weight:900;color:#00c853;">0 دج</div>
+        <div style="font-size:9px;color:#65676B;font-weight:700;">الرصيد</div>
       </div>
-      <div style="background:#F0FFF4;border-radius:10px;padding:7px 3px;text-align:center;">
-        <div id="mpvHeaderBalance" style="font-size:12px;font-weight:900;color:#00c853;">0 دج</div>
-        <div style="font-size:8px;color:#65676B;font-weight:700;">الرصيد</div>
-      </div>
-      <div style="background:#FFF8E1;border-radius:10px;padding:7px 3px;text-align:center;">
-        <div id="mpvHeaderLevel" style="font-size:14px;font-weight:900;color:#f59e0b;">1</div>
-        <div style="font-size:8px;color:#65676B;font-weight:700;">المستوى</div>
+      <div style="background:#FFF8E1;border-radius:10px;padding:8px 4px;text-align:center;">
+        <div id="mpvHeaderLevel" style="font-size:15px;font-weight:900;color:#f59e0b;">1</div>
+        <div style="font-size:9px;color:#65676B;font-weight:700;">المستوى</div>
       </div>
     </div>
     <div style="font-size:11px;color:#65676B;margin-bottom:12px;">عضو القادة المستقبليين • الجزائر 🇩🇿</div>
@@ -5063,11 +5055,6 @@ body.member-mode #onlineBar{
               <div style="font-size:10px;color:#65676B;">إجمالي النقاط</div>
             </div>
             <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
-              <div style="font-size:20px;margin-bottom:3px;">📊</div>
-              <div id="ppInfoRankPoints" style="font-size:16px;font-weight:900;color:#e8870a;">0</div>
-              <div style="font-size:10px;color:#65676B;">صافي نقاط الترتيب</div>
-            </div>
-            <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
               <div style="font-size:20px;margin-bottom:3px;">⭐</div>
               <div id="ppInfoLevel" style="font-size:16px;font-weight:900;color:#1877F2;">1</div>
               <div style="font-size:10px;color:#65676B;">المستوى الحالي</div>
@@ -5077,10 +5064,10 @@ body.member-mode #onlineBar{
               <div id="ppInfoBalance" style="font-size:14px;font-weight:900;color:#00c853;">0 دج</div>
               <div style="font-size:10px;color:#65676B;">رصيد قابل للسحب</div>
             </div>
-            <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;grid-column:1/-1;">
+            <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
               <div style="font-size:20px;margin-bottom:3px;">🎯</div>
               <div id="ppInfoQuiz" style="font-size:16px;font-weight:900;color:#a855f7;">0</div>
-              <div style="font-size:10px;color:#65676B;">نقاط الكويز (تُضاف للإجمالي فقط)</div>
+              <div style="font-size:10px;color:#65676B;">نقاط الكويز</div>
             </div>
           </div>
         </div>
@@ -5295,73 +5282,6 @@ body.member-mode #onlineBar{
     <div class="modal-title">🏅 النشاطات</div>
     <div id="activitiesInfo" style="max-height:370px;overflow-y:auto;"></div>
     <button class="modal-close" onclick="hideModal('activitiesCard')">رجوع</button>
-  </div>
-</div>
-
-<!-- MODAL: جدول تحديد المستوى -->
-<div class="modal" id="levelScheduleModal">
-  <div class="modal-content" style="max-height:88vh;overflow-y:auto;">
-    <div class="modal-handle"></div>
-    <div class="modal-title" style="font-size:16px;">📊 جدول تحديد المستوى</div>
-    <div style="font-size:11px;color:#65676B;text-align:center;margin-bottom:12px;">ترتيب أعلى عضو • إجمالي النقاط • المستوى</div>
-    <div id="levelScheduleList" style="display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto;"></div>
-    <button class="modal-close" onclick="hideModal('levelScheduleModal')">رجوع</button>
-  </div>
-</div>
-
-<!-- MODAL: البطاقة البنكية -->
-<div class="modal" id="bankCardModal">
-  <div class="modal-content">
-    <div class="modal-handle"></div>
-    <div class="modal-title">💳 البطاقة البنكية</div>
-    <!-- بطاقة بنكية مرئية -->
-    <div style="background:linear-gradient(135deg,#1877F2,#0d5bda,#0040c1);border-radius:20px;padding:22px 20px;margin-bottom:16px;box-shadow:0 12px 32px rgba(24,119,242,0.4);position:relative;overflow:hidden;">
-      <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.07);"></div>
-      <div style="position:absolute;bottom:-30px;left:-10px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-        <div style="font-size:13px;font-weight:900;color:rgba(255,255,255,0.8);letter-spacing:1px;">CONNECT DZ</div>
-        <div style="font-size:24px;">💳</div>
-      </div>
-      <div style="font-size:22px;font-weight:900;color:white;letter-spacing:3px;margin-bottom:18px;text-align:center;">•••• •••• •••• <span id="bankCardLastDigits">0000</span></div>
-      <div style="display:flex;justify-content:space-between;align-items:flex-end;">
-        <div>
-          <div style="font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:1px;margin-bottom:3px;">اسم العضو</div>
-          <div id="bankCardName" style="font-size:13px;font-weight:900;color:white;">…</div>
-        </div>
-        <div style="text-align:left;">
-          <div style="font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:1px;margin-bottom:3px;">الرصيد</div>
-          <div id="bankCardBalance" style="font-size:18px;font-weight:900;color:#ffd200;">0 دج</div>
-        </div>
-      </div>
-    </div>
-    <!-- تفاصيل الرصيد -->
-    <div style="background:#F7F8FA;border-radius:14px;padding:14px;margin-bottom:10px;">
-      <div style="font-size:12px;font-weight:900;color:#050505;margin-bottom:10px;">💰 تفاصيل الرصيد</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
-          <div style="font-size:18px;margin-bottom:3px;">🏆</div>
-          <div id="bankCardTotalPoints" style="font-size:15px;font-weight:900;color:#050505;">0</div>
-          <div style="font-size:9px;color:#65676B;">إجمالي النقاط</div>
-        </div>
-        <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
-          <div style="font-size:18px;margin-bottom:3px;">📊</div>
-          <div id="bankCardRankPoints" style="font-size:15px;font-weight:900;color:#1877F2;">0</div>
-          <div style="font-size:9px;color:#65676B;">نقاط جدول الترتيب</div>
-        </div>
-        <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
-          <div style="font-size:18px;margin-bottom:3px;">⭐</div>
-          <div id="bankCardLevel" style="font-size:15px;font-weight:900;color:#f59e0b;">1</div>
-          <div style="font-size:9px;color:#65676B;">المستوى</div>
-        </div>
-        <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
-          <div style="font-size:18px;margin-bottom:3px;">💰</div>
-          <div id="bankCardBalanceDetail" style="font-size:14px;font-weight:900;color:#00c853;">0 دج</div>
-          <div style="font-size:9px;color:#65676B;">قابل للسحب</div>
-        </div>
-      </div>
-    </div>
-    <div style="font-size:11px;color:#65676B;text-align:center;padding:6px 0;">الرصيد يُحسب من نقاط جدول الترتيب فقط</div>
-    <button class="modal-close" onclick="hideModal('bankCardModal')">رجوع</button>
   </div>
 </div>
 
@@ -7268,9 +7188,6 @@ function updateProfilePageData(name){
   setTxt('ppInfoLevel', lv);
   setTxt('ppInfoBalance', bal+' دج');
   setTxt('ppInfoQuiz', quizPts.toLocaleString());
-  // صافي نقاط جدول الترتيب (من الجدول الرئيسي فقط، بدون الكويز)
-  const rankOnlyPts = Math.max(0, pts - quizPts);
-  setTxt('ppInfoRankPoints', rankOnlyPts.toLocaleString());
   setTxt('cpName', name);
 
   // Progress bar
@@ -15529,11 +15446,9 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   const hPtsEl = document.getElementById('mpvHeaderPts');
   const hBalEl = document.getElementById('mpvHeaderBalance');
   const hLvlEl = document.getElementById('mpvHeaderLevel');
-  const hRankPtsEl = document.getElementById('mpvHeaderRankPts');
   if(hPtsEl) hPtsEl.innerText = pts.toLocaleString();
   if(hBalEl) hBalEl.innerText = balance + ' دج';
   if(hLvlEl) hLvlEl.innerText = level;
-  if(hRankPtsEl) hRankPtsEl.innerText = pts.toLocaleString(); // نقاط جدول الترتيب
 
   infoEl.innerHTML=`
     <div style="margin:10px 16px;display:flex;flex-direction:column;gap:10px;">
@@ -23210,109 +23125,8 @@ window.addEventListener('load', function(){
   }, 4000);
 });
 
-/* ══════════════════════════════════════════════════════
-   💳 البطاقة البنكية — openBankCardModal
-   ══════════════════════════════════════════════════════ */
-window.openBankCardModal = function(){
-  const modal = document.getElementById('bankCardModal');
-  if(modal){ modal.style.display='flex'; document.body.style.overflow='hidden'; }
-  const name = localStorage.getItem('sklab_user_name')||'عضو';
-  const nameEl = document.getElementById('bankCardName');
-  if(nameEl) nameEl.innerText = name;
-  // آخر أربعة أرقام من الاسم (هاش بسيط)
-  const code = name.split('').reduce((a,c)=>a+c.charCodeAt(0),0) % 9999;
-  const lastDigits = document.getElementById('bankCardLastDigits');
-  if(lastDigits) lastDigits.innerText = String(code).padStart(4,'0');
-  // النقاط والرصيد
-  const pts = parseInt(localStorage.getItem('nld_pts_'+name.replace(/\s+/g,'_'))||localStorage.getItem('cachedUserPoints')||0);
-  const balEl = document.getElementById('bankCardBalance');
-  const balDetail = document.getElementById('bankCardBalanceDetail');
-  const rankPtsEl = document.getElementById('bankCardRankPoints');
-  const totalPtsEl = document.getElementById('bankCardTotalPoints');
-  const lvlEl = document.getElementById('bankCardLevel');
-  if(totalPtsEl) totalPtsEl.innerText = pts.toLocaleString();
-  // الرصيد من mgStatBalance
-  const balStr = (document.getElementById('mgStatBalance')||{}).innerText||'0 دج';
-  if(balEl) balEl.innerText = balStr;
-  if(balDetail) balDetail.innerText = balStr;
-  // نقاط الترتيب
-  const rankPts = parseInt((document.getElementById('ppStatLevel')||{}).dataset&&0)||pts;
-  if(rankPtsEl) rankPtsEl.innerText = pts.toLocaleString();
-  // المستوى
-  const level = parseInt((document.getElementById('mgStatLevel')||document.getElementById('ppStatLevel')||{}).innerText||1);
-  if(lvlEl) lvlEl.innerText = isNaN(level)?1:level;
-};
-
-/* ══════════════════════════════════════════════════════
-   📊 جدول تحديد المستوى — openLevelScheduleModal
-   ══════════════════════════════════════════════════════ */
-window.openLevelScheduleModal = function(){
-  const modal = document.getElementById('levelScheduleModal');
-  if(modal){ modal.style.display='flex'; document.body.style.overflow='hidden'; }
-  const list = document.getElementById('levelScheduleList');
-  if(!list) return;
-  list.innerHTML = '<div style="text-align:center;color:#65676B;padding:20px;">⏳ جارٍ تحميل البيانات...</div>';
-  // جلب بيانات جدول الترتيب من rankingInfo إن وُجدت، أو من Firebase
-  const FB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-  const rankingUrl = window._rankingSheetUrl || 'https://docs.google.com/spreadsheets/d/1aBcDe/gviz/tq?tqx=out:json';
-  // استخدام بيانات الترتيب الموجودة إن كانت محملة
-  function renderLevelList(members){
-    if(!members||!members.length){
-      list.innerHTML='<div style="text-align:center;color:#65676B;padding:20px;">لا توجد بيانات بعد</div>';
-      return;
-    }
-    const levelColors = ['#B0BEC5','#1877F2','#00c853','#f59e0b','#e53935','#9c27b0'];
-    const levelNames = ['مبتدئ','ناشط','متقدم','مميز','نخبة','بطل'];
-    list.innerHTML = members.map((m,i)=>{
-      const pts = parseInt(m.points||m.nqta||m.total||0);
-      // حساب المستوى من النقاط
-      let lvl = 1;
-      if(pts>=5000) lvl=5; else if(pts>=3000) lvl=4; else if(pts>=1500) lvl=3; else if(pts>=700) lvl=2; else if(pts>=200) lvl=1; else lvl=1;
-      const color = levelColors[Math.min(lvl,5)];
-      const lname = levelNames[Math.min(lvl,5)];
-      const medals = ['🥇','🥈','🥉'];
-      const rank = i+1;
-      return `<div style="display:flex;align-items:center;gap:10px;background:${i<3?'linear-gradient(135deg,rgba(245,197,24,0.08),rgba(229,45,39,0.05))':'white'};border:1px solid ${i<3?'rgba(245,197,24,0.25)':'#E4E6EB'};border-radius:12px;padding:10px 12px;">
-        <div style="width:32px;text-align:center;font-size:${rank<=3?'20px':'14px'};font-weight:900;color:${rank<=3?'#f59e0b':'#65676B'};flex-shrink:0;">${rank<=3?medals[rank-1]:rank}</div>
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:900;color:#050505;">${m.name||m.ism||'—'}</div>
-          <div style="font-size:10px;color:${color};font-weight:800;">${lname} — المستوى ${lvl}</div>
-        </div>
-        <div style="text-align:left;">
-          <div style="font-size:14px;font-weight:900;color:#1877F2;">${pts.toLocaleString()}</div>
-          <div style="font-size:9px;color:#65676B;">نقطة</div>
-        </div>
-      </div>`;
-    }).join('');
-  }
-  // محاولة أخذ البيانات من الترتيب المحمّل
-  try {
-    const cached = window._rankingDataCache;
-    if(cached && cached.length){ renderLevelList(cached); return; }
-  } catch(e){}
-  // fallback: جلب من Firebase
-  fetch(`${FB}/ranking.json`).then(r=>r.json()).then(data=>{
-    if(!data){ list.innerHTML='<div style="text-align:center;color:#65676B;padding:20px;">لا توجد بيانات</div>'; return; }
-    let arr = Array.isArray(data)?data:Object.values(data);
-    arr = arr.filter(Boolean).sort((a,b)=>parseInt(b.points||b.nqta||0)-parseInt(a.points||a.nqta||0));
-    renderLevelList(arr);
-  }).catch(()=>{
-    list.innerHTML='<div style="text-align:center;color:#65676B;padding:20px;">تعذّر تحميل البيانات. تأكد من الاتصال.</div>';
-  });
-};
-
-/* ══════════════════════════════════════════════════════
-   🏅 فتح نافذة النشاطات بكل التفاصيل (مثل أيقونة النشاطات)
-   ══════════════════════════════════════════════════════ */
-window.openActivitiesWithDetails = function(){
-  showModal('activitiesCard');
-  if(typeof loadActivities==='function') loadActivities();
-};
-
-window.showWatchAndWinModal = function(){ showModal('watchEarnModal'); };
-
-console.log('✅ BankCard + LevelSchedule + Activities v1.0 Loaded');
-
+console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loaded');
+})();
 </script>
 
 </body>
