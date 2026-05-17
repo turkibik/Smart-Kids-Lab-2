@@ -23536,5 +23536,173 @@ console.log('✅ ConnectDZ Master Fix v5.0 — Messenger/Streak/Points/Stars FIX
 })();
 </script>
 
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     🌱 ConnectDZ SEED DATA v1.0 — بيانات ابتدائية للمنخرطين
+     يُحمَّل مرة واحدة فقط عند أول فتح ثم لا يُكرَّر
+     بعده أي نشاط جديد يُضاف تلقائياً فوق هذه البيانات
+     ══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+const _FB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+const _SEED_KEY = 'cdz_seed_v1_done';
+
+if(localStorage.getItem(_SEED_KEY) === '1'){
+  console.log('✅ [Seed] Already seeded — skipping');
+  return;
+}
+
+const SEED_MEMBERS = [
+  {
+    name         : 'يحي ديش',
+    normName     : 'يحي_ديش',
+    friendsCount : 35,
+    totalViews   : 387,
+    totalInteract: 190,
+    totalPts     : 15000,
+    sheetPts     : 15000,
+    level        : 5,
+    totalStars   : 153,
+    verified     : true,
+    streakDays   : 75,
+    medal        : 'فضية',
+    balanceAuto  : true
+  },
+  {
+    name         : 'شيماء بالغ',
+    normName     : 'شيماء_بالغ',
+    friendsCount : 19,
+    totalViews   : 120,
+    totalInteract: 45,
+    totalPts     : 9000,
+    sheetPts     : 9000,
+    level        : 3,
+    totalStars   : 150,
+    verified     : true,
+    streakDays   : 25,
+    medal        : 'برونزية',
+    balanceAuto  : true
+  },
+  {
+    name         : 'Kemouche douaa chaimae',
+    normName     : 'Kemouche_douaa_chaimae',
+    friendsCount : 11,
+    totalViews   : 90,
+    totalInteract: 27,
+    totalPts     : 3000,
+    sheetPts     : 3000,
+    level        : 2,
+    totalStars   : 150,
+    verified     : true,
+    streakDays   : 17,
+    medal        : 'برونزية',
+    balanceAuto  : true
+  },
+  {
+    name         : 'بوكلي اسمهان',
+    normName     : 'بوكلي_اسمهان',
+    friendsCount : 40,
+    totalViews   : 900,
+    totalInteract: 3500,
+    totalPts     : 12000,
+    sheetPts     : 12000,
+    level        : 4,
+    totalStars   : 150,
+    verified     : true,
+    streakDays   : 73,
+    medal        : 'فضية',
+    balanceAuto  : true
+  }
+];
+
+function _fbPut(path, data){
+  return fetch(_FB + path + '.json', {
+    method : 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body   : JSON.stringify(data)
+  }).catch(function(){});
+}
+function _fbPatch(path, data){
+  return fetch(_FB + path + '.json', {
+    method : 'PATCH',
+    headers: {'Content-Type':'application/json'},
+    body   : JSON.stringify(data)
+  }).catch(function(){});
+}
+
+function _today(){ return new Date().toISOString().slice(0,10); }
+
+function _medal(days){
+  if(days >= 135) return {emoji:'💎', label:'ماسية'};
+  if(days >= 90)  return {emoji:'🥇', label:'ذهبية'};
+  if(days >= 45)  return {emoji:'🥈', label:'فضية'};
+  return                 {emoji:'🥉', label:'برونزية'};
+}
+
+async function seedMember(m){
+  const n = m.normName;
+
+  await _fbPatch('/userStats/' + n, {
+    totalViews   : m.totalViews,
+    totalInteract: m.totalInteract,
+    friendsCount : m.friendsCount,
+    totalPts     : m.totalPts,
+    sheetPts     : m.sheetPts,
+    level        : m.level,
+    seeded       : true,
+    updatedAt    : Date.now()
+  });
+
+  const medal = _medal(m.streakDays);
+  await _fbPatch('/streaks/' + n, {
+    totalDays: m.streakDays,
+    lastDay  : _today(),
+    medal    : medal.label,
+    updatedAt: Date.now()
+  });
+
+  await _fbPut('/totalStars/' + n, {
+    total    : m.totalStars,
+    verified : m.verified,
+    updatedAt: Date.now()
+  });
+
+  if(m.verified){
+    await _fbPut('/verified/' + n, {
+      verified   : true,
+      activatedAt: Date.now()
+    });
+  }
+
+  localStorage.setItem('nld_daily_streak_' + n,
+    JSON.stringify({ totalDays: m.streakDays, lastDay: _today() }));
+  localStorage.setItem('nld_total_stars_'  + n, String(m.totalStars));
+  localStorage.setItem('nld_earned_'       + n, String(m.totalPts));
+  localStorage.setItem('sklab_pts_'        + n,
+    JSON.stringify({ total: m.totalPts, sheet: m.sheetPts, quiz: 0 }));
+  if(m.verified){
+    localStorage.setItem('nld_is_verified_' + n, '1');
+  }
+
+  console.log('🌱 [Seed] ' + m.name + ' done');
+}
+
+window.addEventListener('load', function(){
+  setTimeout(async function(){
+    console.log('🌱 [Seed] Starting...');
+    for(const member of SEED_MEMBERS){
+      await seedMember(member);
+    }
+    localStorage.setItem(_SEED_KEY, '1');
+    console.log('✅ [Seed] All members seeded!');
+  }, 5000);
+});
+
+console.log('✅ ConnectDZ Seed Data v1.0 loaded');
+})();
+</script>
+
 </body>
 </html>
