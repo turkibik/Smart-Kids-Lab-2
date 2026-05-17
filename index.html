@@ -14342,29 +14342,17 @@ function viewMemberProfile(memberName){
   const myName = getCurrentUser();
   _mpvCurrentUser = memberName;
 
-  // تسجيل الزيارة في localStorage + Firebase
+  // تسجيل الزيارة وإشعار صاحب الملف
   if(myName && myName !== memberName){
     const visits = JSON.parse(localStorage.getItem(_profileVisitsKey(memberName))||'[]');
-    const now = Date.now();
+    // تجنب التكرار في نفس الجلسة
     const lastVisit = visits.find(v=>v.visitor===myName);
-    if(!lastVisit || (now - lastVisit.ts) > 3600000){
+    const now = Date.now();
+    if(!lastVisit || (now - lastVisit.ts) > 3600000){ // كل ساعة
       visits.unshift({ visitor: myName, ts: now });
       if(visits.length>100) visits.splice(100);
       localStorage.setItem(_profileVisitsKey(memberName), JSON.stringify(visits));
       addSocialNotif(memberName, `${myName} زار ملفك الشخصي 👀`, '👀');
-      // ✅ تسجيل الزيارة في Firebase
-      (async()=>{
-        try{
-          const normN = memberName.replace(/\s+/g,'_');
-          const res = await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/${normN}.json`);
-          const cur = await res.json();
-          const curViews = parseInt((cur&&cur.totalViews)||0);
-          await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/${normN}.json`,{
-            method:'PATCH',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({totalViews:curViews+1,updatedAt:Date.now()})
-          });
-        }catch(e){}
-      })();
     }
   }
 
@@ -14394,17 +14382,22 @@ function viewMemberProfile(memberName){
     const myFriends = getFriends(myName);
     const isFriend = myFriends.includes(memberName);
     if(isFriend){
+      // جلب نقاط الكويز المكتسبة
       const memberQuizPts = parseInt(localStorage.getItem('nld_earned_'+memberName.replace(/\s+/g,'_'))||'0');
+      // جلب نقاط الجدول الحقيقية من localStorage (مخزّنة عند آخر تحديث)
       const memberSheetPts = parseInt(localStorage.getItem('nld_sheet_pts_'+memberName.replace(/\s+/g,'_'))||'0');
       const memberTotalPts = memberSheetPts + memberQuizPts;
       const LEVEL_PTS = 3000;
       const memberLevel = Math.floor(memberTotalPts/LEVEL_PTS)+1;
       const memberPosts = getSocialPosts().filter(p=>p.author===memberName).length;
       const memberFriends = getFriends(memberName).length;
+      // العمر من localStorage
       const memberAge = localStorage.getItem('nld_age_'+memberName.replace(/\s+/g,'_'))||'';
+      // حساب الرصيد: يعتمد على ترتيب العضو في الجدول
       const memberIsEarly = localStorage.getItem('nld_is_early_'+memberName.replace(/\s+/g,'_'))==='1';
       const memberRate = memberIsEarly ? 35 : 30;
       const memberBalance = ((memberSheetPts/50)*memberRate).toFixed(0);
+      // حساب الترتيب التقريبي من localStorage
       let rank = '—';
       try{
         const allPts = [];
@@ -14446,7 +14439,7 @@ function viewMemberProfile(memberName){
             </div>
             <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
               <div style="font-size:20px;margin-bottom:3px;">👥</div>
-              <div style="font-size:15px;font-weight:900;color:#050505;" id="mpvFriendsCount1">${memberFriends}</div>
+              <div style="font-size:15px;font-weight:900;color:#050505;">${memberFriends}</div>
               <div style="font-size:10px;color:#65676B;">الأصدقاء</div>
             </div>
             <div style="background:linear-gradient(135deg,rgba(0,200,100,0.12),rgba(0,150,80,0.08));border:1px solid rgba(0,200,100,0.3);border-radius:10px;padding:10px;text-align:center;">
@@ -14457,6 +14450,7 @@ function viewMemberProfile(memberName){
           </div>
         </div>`;
     } else {
+      // غير أصدقاء: نعرض عدد المنشورات فقط (بدون رصيد أو نقاط خاصة)
       const memberPosts2 = getSocialPosts().filter(p=>p.author===memberName).length;
       const memberFriends2 = getFriends(memberName).length;
       extInfo.innerHTML = `
@@ -14470,7 +14464,7 @@ function viewMemberProfile(memberName){
             </div>
             <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
               <div style="font-size:18px;margin-bottom:3px;">👥</div>
-              <div style="font-size:15px;font-weight:900;color:#050505;" id="mpvFriendsCount2">${memberFriends2}</div>
+              <div style="font-size:15px;font-weight:900;color:#050505;">${memberFriends2}</div>
               <div style="font-size:10px;color:#65676B;">الأصدقاء</div>
             </div>
           </div>
@@ -14484,9 +14478,6 @@ function viewMemberProfile(memberName){
 
   // منشورات العضو
   renderMpvPosts(memberName);
-
-  // ✅ جلب الإحصائيات الحقيقية من Firebase وتحديث الواجهة
-  setTimeout(function(){ _loadAndDisplayProfileStats(memberName); }, 400);
 }
 
 function updateMpvFriendBtn(memberName){
@@ -15072,7 +15063,7 @@ const _origViewMemberProfile = viewMemberProfile;
 function viewMemberProfile(memberName){
   const myName = getCurrentUser();
 
-  // تسجيل الزيارة في localStorage + Firebase
+  // تسجيل الزيارة وإشعار صاحب الملف
   if(myName && myName !== memberName){
     const visits = JSON.parse(localStorage.getItem(_profileVisitsKey(memberName))||'[]');
     const now = Date.now();
@@ -15082,19 +15073,6 @@ function viewMemberProfile(memberName){
       if(visits.length>100) visits.splice(100);
       localStorage.setItem(_profileVisitsKey(memberName), JSON.stringify(visits));
       addSocialNotif(memberName, `${myName} زار ملفك الشخصي 👀`, '👀');
-      // ✅ تسجيل الزيارة في Firebase
-      (async()=>{
-        try{
-          const normN = memberName.replace(/\s+/g,'_');
-          const res = await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/${normN}.json`);
-          const cur = await res.json();
-          const curViews = parseInt((cur&&cur.totalViews)||0);
-          await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/${normN}.json`,{
-            method:'PATCH',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({totalViews:curViews+1,updatedAt:Date.now()})
-          });
-        }catch(e){}
-      })();
     }
   }
 
@@ -15126,9 +15104,6 @@ function viewMemberProfile(memberName){
 
   updateMpvFriendBtn(memberName);
   renderMpvPosts(memberName, true);
-
-  // ✅ جلب الإحصائيات الحقيقية من Firebase وتحديث الواجهة
-  setTimeout(function(){ _loadAndDisplayProfileStats(memberName); }, 400);
 }
 
 async function _renderMpvExtendedInfo(memberName, canSeeAll){
@@ -15214,16 +15189,19 @@ async function _renderMpvExtendedInfo(memberName, canSeeAll){
   if(fgEl) fgEl.innerText = followingList.length || 0;
   if(pcEl) pcEl.innerText = memberPosts || 0;
 
-  // ── حساب الإحصاءات الحقيقية الشاملة — يُحدَّث لاحقاً من Firebase ──
+  // ── حساب الإحصاءات الحقيقية الشاملة ──
   (function _updateMpvStats(){
-    // قيم أولية من localStorage كـ fallback
+    // 1️⃣ مشاهدات الملف الشخصي
     const visitsRaw = (() => { try{ return JSON.parse(localStorage.getItem('nld_visits_'+normName)||'[]'); }catch(e){ return []; } })();
     const profileViews = visitsRaw.length;
+    // 2️⃣ مشاهدات القصص
     const memberStoriesAll = (() => { try{ return JSON.parse(localStorage.getItem('nld_stories_'+normName)||'[]'); }catch(e){ return []; } })();
     const storyViews = memberStoriesAll.reduce((s,st)=>s+((st.viewers||st.views||[]).length),0);
+    // 3️⃣ مشاهدات المنشورات
     const postViewsData = (() => { try{ return JSON.parse(localStorage.getItem('nld_post_views_'+normName)||'{}'); }catch(e){ return {}; } })();
     const postViews = Object.values(postViewsData).reduce((s,v)=>s+(parseInt(v)||0),0);
     const totalViews = profileViews + storyViews + postViews;
+    // 4️⃣ التفاعل الكامل: ردود + تعليقات منشورات + ردود قصص
     const memberPostsData = allPosts.filter(p=>p.author===memberName);
     const postReacts = memberPostsData.reduce((s,p)=>{
       const r = p.reactions||{};
@@ -22338,16 +22316,26 @@ console.log('✅ Connect DZ Stability Patch Loaded');
 </script>
 
 <!-- ══════════════════════════════════════════════════════════════
-     🔧 ConnectDZ FIXES v3.0 — Firebase-backed Ratings / Stats / Streak / Points
-     الإصلاحات الأربعة المُوحَّدة:
-     1) تقييم النجوم: مخزون في Firebase تحت /ratings/{member}/{rater} — خاص لكل عضو
-     2) الإحصائيات: مشاهدات/أصدقاء/تفاعل حقيقية تُقرأ من Firebase لكل عضو على حدة
-     3) النقاط = الإجمالي الكلي ، الرصيد = مرتبط بجدول الترتيب فقط
-     4) نظام الشعلة: يُحسب من أول يوم دخل المنخرط — يزامن Firebase /streaks/{normName}
+     🔧 ConnectDZ FIXES v2.0 — Firebase-backed Ratings / Stats / Streak
+     الإصلاحات الأربعة:
+     1) تقييم النجوم: منفصل لكل عضو + حفظ/جلب Firebase
+     2) الإحصائيات: مشاهدات/أصدقاء/تفاعل حقيقية من Firebase
+     3) النقاط/الرصيد: النقاط = إجمالي القيمة، الرصيد = مرتبط بجدول الترتيب
+     4) نظام الشعلة: يحسب من تاريخ التسجيل الفعلي + يزامن Firebase
      ══════════════════════════════════════════════════════════════ -->
 <script>
 (function(){
 'use strict';
+
+/* ════════════════════════════════════════════════════════
+   🔗 مرجع Firebase — ينتظر تهيئة firebase SDK
+════════════════════════════════════════════════════════ */
+function _getDB(){
+  if(window.firebase && firebase.apps && firebase.apps.length){
+    return firebase.database();
+  }
+  return null;
+}
 
 const _FBURL = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
 
@@ -22376,6 +22364,158 @@ function _fbPatch(path, data){
   }).catch(()=>{});
 }
 
+/* ════════════════════════════════════════════════════════
+   ⭐ إصلاح 1: تقييم النجوم — منفصل لكل عضو + Firebase
+════════════════════════════════════════════════════════
+
+   المشكلة: عند الانتقال بين ملفات الأعضاء كانت النجوم تُعرض
+   من المتغير الأخير بدلاً من قراءة مفتاح هذا العضو تحديداً.
+
+   الإصلاح:
+   - rateMember() تحفظ في Firebase: /ratings/{normMember}/{normMe}
+   - _renderMpvVisitorRating() و initRatingBar() تقرأ من Firebase أولاً
+   - عند فتح ملف عضو: يُعاد تهيئة شريط النجوم من Firebase
+════════════════════════════════════════════════════════ */
+
+/* حفظ تقييم في Firebase */
+async function _saveRatingToFirebase(raterName, targetName, stars){
+  const normRater  = raterName.replace(/\s+/g,'_');
+  const normTarget = targetName.replace(/\s+/g,'_');
+  const path = `/ratings/${normTarget}/${normRater}`;
+  await _fbPut(path, { stars: stars, ts: Date.now(), rater: raterName });
+}
+
+/* قراءة كل تقييمات عضو من Firebase */
+async function _getRatingsFromFirebase(targetName){
+  const normTarget = targetName.replace(/\s+/g,'_');
+  const data = await _fbGet(`/ratings/${normTarget}`);
+  if(!data || typeof data !== 'object') return {};
+  // تحويل إلى { raterName: stars }
+  const result = {};
+  Object.entries(data).forEach(([normRater, val]) => {
+    if(val && val.stars) result[normRater.replace(/_/g,' ')] = parseInt(val.stars)||0;
+  });
+  return result;
+}
+
+/* حساب معدل التقييم من مجموعة تقييمات */
+function _calcAvgRating(ratingsMap){
+  const vals = Object.values(ratingsMap).map(v=>parseInt(v)||0).filter(v=>v>0);
+  if(!vals.length) return {avg:0, count:0};
+  return { avg: vals.reduce((a,b)=>a+b,0)/vals.length, count: vals.length };
+}
+
+/* ── تجاوز rateMember لتحفظ في Firebase وتُحدِّث الواجهة بشكل منفصل ── */
+window._originalRateMember = window.rateMember;
+window.rateMember = async function(memberName, stars){
+  const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
+  if(!myName || myName === memberName) return;
+
+  const normMember = memberName.replace(/\s+/g,'_');
+  const normMe     = myName.replace(/\s+/g,'_');
+
+  const ratingKey  = 'nld_star_rating_' + normMe + '_to_' + normMember;
+  const tsKey      = 'nld_star_rating_ts_' + normMe + '_to_' + normMember;
+  const oldRating  = parseInt(localStorage.getItem(ratingKey)||'0');
+  const oldTs      = parseInt(localStorage.getItem(tsKey)||'0');
+  const now        = Date.now();
+  const LIMIT_24H  = 24 * 60 * 60 * 1000;
+
+  if(oldRating > 0 && oldTs > 0 && (now - oldTs) > LIMIT_24H){
+    if(typeof showToast==='function') showToast('🔒 انتهت مدة تعديل التقييم (24 ساعة من أول تقييم)');
+    return;
+  }
+
+  const isNew = oldRating === 0;
+
+  /* حفظ محلي */
+  localStorage.setItem(ratingKey, String(stars));
+  if(isNew) localStorage.setItem(tsKey, String(now));
+
+  /* تحديث قاموس التقييمات المحلي */
+  const allManual = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_manual_ratings_'+normMember)||'{}'); }catch(e){ return {}; } })();
+  allManual[myName] = stars;
+  localStorage.setItem('nld_manual_ratings_'+normMember, JSON.stringify(allManual));
+
+  /* ✅ حفظ في Firebase */
+  await _saveRatingToFirebase(myName, memberName, stars);
+
+  /* تحديث الواجهة فوراً */
+  for(let i=1;i<=7;i++){
+    const el=document.getElementById('mpvStar_'+i);
+    if(el) el.style.color = i<=stars ? '#f5c518' : '#ddd';
+  }
+
+  /* إعادة حساب المعدل من Firebase */
+  const allRatings = await _getRatingsFromFirebase(memberName);
+  const {avg, count} = _calcAvgRating(allRatings);
+  const newTotal = Object.values(allRatings).map(v=>parseInt(v)||0).reduce((a,b)=>a+b,0);
+  localStorage.setItem('nld_total_stars_'+normMember, String(newTotal));
+
+  if(isNew && typeof addSocialNotif==='function')
+    addSocialNotif(memberName, `${myName} قيّم ملفك الشخصي بـ ${stars} نجوم ⭐`, '⭐');
+
+  if(typeof _checkVerifiedBadge==='function') _checkVerifiedBadge(memberName, newTotal);
+  if(typeof _addStarsToWallet==='function') _addStarsToWallet(normMember, myName, stars, isNew, oldRating);
+
+  const hoursLeft = isNew ? 24 : Math.max(0, Math.ceil((LIMIT_24H-(now-oldTs))/3600000));
+  const msg = isNew
+    ? `✅ قيّمت ${memberName} بـ ${stars} نجوم — يمكنك التعديل خلال 24 ساعة`
+    : `✅ تم تحديث تقييمك لـ ${memberName} إلى ${stars} نجوم — متبقي ${hoursLeft}س للتعديل`;
+  if(typeof showToast==='function') showToast(msg);
+
+  /* تحديث شريط التقييم في واجهة ملف العضو */
+  _refreshVisitorRatingBar(memberName, normMember);
+};
+
+/* ── تجاوز _submitMpvVisitorRating لتحفظ في Firebase ── */
+window._submitMpvVisitorRating = async function(memberName, normName, stars){
+  const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
+  if(!myName || myName === memberName) return;
+
+  const rKey  = 'nld_visitor_rating_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
+  const tsKey = 'nld_visitor_rating_ts_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
+  const oldRating = parseInt(localStorage.getItem(rKey)||'0');
+  const oldTs     = parseInt(localStorage.getItem(tsKey)||'0');
+  const now       = Date.now();
+  const LIMIT_24H = 24 * 60 * 60 * 1000;
+
+  if(oldRating > 0 && oldTs > 0 && (now - oldTs) > LIMIT_24H){
+    if(typeof showToast==='function') showToast('🔒 انتهت مدة تعديل التقييم (24 ساعة)');
+    return;
+  }
+
+  const isNew = oldRating === 0;
+  localStorage.setItem(rKey, String(stars));
+  if(isNew) localStorage.setItem(tsKey, String(now));
+
+  const allRatings = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_visitor_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
+  allRatings[myName] = stars;
+  localStorage.setItem('nld_visitor_ratings_'+normName, JSON.stringify(allRatings));
+
+  /* ✅ حفظ في Firebase تحت مسار منفصل للزوار */
+  await _fbPut(`/visitor_ratings/${normName}/${myName.replace(/\s+/g,'_')}`, { stars, ts: Date.now(), rater: myName });
+
+  const allVals = Object.values(allRatings).map(v=>parseInt(v)||0).filter(v=>v>0);
+  const newTotal = allVals.reduce((a,b)=>a+b,0);
+  localStorage.setItem('nld_total_stars_'+normName, String(newTotal));
+
+  const hoursLeft = isNew ? 24 : Math.max(0, Math.ceil((LIMIT_24H-(now-oldTs))/3600000));
+  const msg = isNew
+    ? `✅ قيّمت ${memberName} بـ ${stars} نجوم — يمكنك التعديل خلال 24 ساعة`
+    : `✅ تم تحديث تقييمك لـ ${memberName} إلى ${stars} نجوم (متبقي ${hoursLeft}س)`;
+  if(typeof showToast==='function') showToast(msg);
+
+  if(isNew && typeof addSocialNotif==='function')
+    addSocialNotif(memberName, `${myName} قيّم ملفك بـ ${stars} نجوم ⭐`, '⭐');
+
+  if(typeof _checkVerifiedBadge==='function') _checkVerifiedBadge(memberName, newTotal);
+  if(typeof _addStarsToWallet==='function') _addStarsToWallet(normName, myName, stars, isNew, oldRating);
+
+  /* تحديث عرض شريط النجوم الخماسي فوراً */
+  _refreshVisitorRatingBar(memberName, normName);
+};
+
 /* ── دالة تحديث شريط النجوم من Firebase (تُحلّ مشكلة الانتقال بين الأعضاء) ── */
 async function _refreshVisitorRatingBar(memberName, normName){
   const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
@@ -22388,8 +22528,10 @@ async function _refreshVisitorRatingBar(memberName, normName){
     Object.entries(fbData).forEach(([k,v])=>{
       if(v && v.stars) allRatings[k.replace(/_/g,' ')] = parseInt(v.stars)||0;
     });
+    /* تحديث localStorage من Firebase */
     localStorage.setItem('nld_visitor_ratings_'+normName, JSON.stringify(allRatings));
   } else {
+    /* fallback إلى localStorage */
     try{ Object.assign(allRatings, JSON.parse(localStorage.getItem('nld_visitor_ratings_'+normName)||'{}')); }catch(e){}
   }
 
@@ -22437,15 +22579,54 @@ async function _refreshVisitorRatingBar(memberName, normName){
   }
 }
 
+/* ── عند فتح ملف عضو: أعِد تحميل تقييماته من Firebase ── */
+const _origOpenMpv = window.openMemberProfileView;
+window.openMemberProfileView = async function(memberName){
+  /* استدعاء الأصلي أولاً */
+  if(typeof _origOpenMpv==='function') _origOpenMpv.apply(this, arguments);
+
+  /* بعد 300ms: حدّث شريط النجوم من Firebase */
+  setTimeout(async ()=>{
+    const normName = (memberName||'').replace(/\s+/g,'_');
+    await _refreshVisitorRatingBar(memberName, normName);
+
+    /* وأيضاً تحديث شريط النجوم السبع (rateMember) من Firebase */
+    const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
+    if(myName){
+      const normMe = myName.replace(/\s+/g,'_');
+      const fbRatings = await _getRatingsFromFirebase(memberName);
+      const myFbStars = fbRatings[myName] || parseInt(localStorage.getItem('nld_star_rating_'+normMe+'_to_'+normName)||'0');
+      /* تحديث مفاتيح localStorage من Firebase */
+      if(fbRatings[myName]){
+        localStorage.setItem('nld_star_rating_'+normMe+'_to_'+normName, String(fbRatings[myName]));
+      }
+      for(let i=1;i<=7;i++){
+        const el=document.getElementById('mpvStar_'+i);
+        if(el) el.style.color = i<=myFbStars ? '#f5c518' : '#ddd';
+      }
+    }
+  }, 350);
+};
+
+
 /* ════════════════════════════════════════════════════════
-   📊 الإحصائيات الحقيقية — يجمع من Firebase لكل عضو على حدة
+   📊 إصلاح 2: الإحصائيات الحقيقية — يجمع من Firebase لكل عضو
+════════════════════════════════════════════════════════
+
+   المشكلة: كانت المشاهدات والأصدقاء تُقرأ من localStorage الجهاز
+   فقط، فتظهر نفس الأرقام لجميع الأعضاء أو أرقام صغيرة.
+
+   الإصلاح:
+   - كل زيارة لملف عضو تُسجَّل في Firebase: /profile_visits/{normName}
+   - الأصدقاء يُجمعون من Firebase: /friends/{normName}
+   - التفاعلات تُجمع من المنشورات في Firebase (موجودة بالفعل)
 ════════════════════════════════════════════════════════ */
 
 /* تسجيل زيارة لملف عضو في Firebase */
 async function _recordProfileVisit(targetName, visitorName){
   if(!targetName || !visitorName || targetName===visitorName) return;
-  const normTarget  = targetName.replace(/\s+/g,'_');
-  const normVisitor = visitorName.replace(/\s+/g,'_');
+  const normTarget = targetName.replace(/\s+/g,'_');
+  const normVisitor= visitorName.replace(/\s+/g,'_');
   const today = new Date().toISOString().slice(0,10);
   const visitKey = `${normVisitor}_${today}`;
   await _fbPut(`/profile_visits/${normTarget}/${visitKey}`, { visitor: visitorName, ts: Date.now(), date: today });
@@ -22459,60 +22640,83 @@ async function _getProfileVisitCount(targetName){
   return Object.keys(data).length;
 }
 
-/* جلب عدد الأصدقاء من Firebase أو localStorage */
-async function _getFriendsCount(memberName){
+/* جلب عدد الأصدقاء من Firebase */
+async function _getFriendsCountFromFirebase(memberName){
   const normName = memberName.replace(/\s+/g,'_');
-  const localCount = (typeof getFriends==='function') ? getFriends(memberName).length : 0;
+  /* أولاً جرب مفتاح الأصدقاء المحلي */
+  const localFriends = (typeof getFriends==='function') ? getFriends(memberName).length : 0;
+  /* ثم جرب Firebase */
   const fbData = await _fbGet(`/friends/${normName}`);
   if(fbData && typeof fbData==='object'){
     const fbCount = Object.keys(fbData).filter(k=>fbData[k]===true||fbData[k]===1).length;
-    return Math.max(localCount, fbCount);
+    return Math.max(localFriends, fbCount);
   }
-  return localCount;
+  return localFriends;
 }
 
-function _fmtStat(n){ if(n>=1000) return (n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+'K'; return String(n); }
-
-/* تحديث إحصائيات ملف عضو آخر (MPV) */
-async function _updateMpvStats(memberName){
+/* ── تحديث إحصائيات ملف عضو (MPV) من Firebase ── */
+async function _updateMpvStatsFromFirebase(memberName){
   const normName = memberName.replace(/\s+/g,'_');
 
-  const fbVisits   = await _getProfileVisitCount(memberName);
+  /* زيارات الملف من Firebase */
+  const fbVisits = await _getProfileVisitCount(memberName);
   const localVisits = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_visits_'+normName)||'[]').length; }catch(e){ return 0; } })();
   const totalProfileViews = Math.max(fbVisits, localVisits);
 
-  const friendsCount = await _getFriendsCount(memberName);
+  /* الأصدقاء */
+  const friendsCount = await _getFriendsCountFromFirebase(memberName);
 
+  /* مشاهدات القصص */
   const allStories = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_stories_'+normName)||'[]'); }catch(e){ return []; } })();
   const storyViews = allStories.reduce((s,st)=>s+((st.viewers||st.views||[]).length),0);
+
+  /* مشاهدات المنشورات */
   const postViewsData = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_post_views_'+normName)||'{}'); }catch(e){ return {}; } })();
   const postViews = Object.values(postViewsData).reduce((s,v)=>s+(parseInt(v)||0),0);
+
   const totalViews = totalProfileViews + storyViews + postViews;
 
+  /* التفاعلات */
   const allPosts = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
-  const memberPosts = allPosts.filter(p=>p.author===memberName);
-  const postReacts = memberPosts.reduce((s,p)=>{
+  const memberPostsData = allPosts.filter(p=>p.author===memberName);
+  const postReacts = memberPostsData.reduce((s,p)=>{
     const r=p.reactions||{};
     if(Array.isArray(r)) return s+r.length;
     return s+Object.values(r).reduce((a,b)=>a+(Array.isArray(b)?b.length:1),0);
   },0);
-  const postComments = memberPosts.reduce((s,p)=>s+((p.comments||[]).length),0);
-  const storyReacts  = allStories.reduce((s,st)=>s+Object.values(st.reactions||{}).length,0);
+  const postComments = memberPostsData.reduce((s,p)=>s+((p.comments||[]).length),0);
+  const storyReacts = allStories.reduce((s,st)=>s+Object.values(st.reactions||{}).length,0);
   const totalInteract = postReacts + postComments + storyReacts;
 
+  function _fmt(n){ if(n>=1000) return (n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+'K'; return String(n); }
+
+  /* تحديث الواجهة */
   const viewsEl    = document.getElementById('mpvViewsCount');
   const interactEl = document.getElementById('mpvInteractCount');
   const friendsEl  = document.getElementById('mpvFollowersCount');
-  if(viewsEl)    viewsEl.innerText    = _fmtStat(totalViews);
-  if(interactEl) interactEl.innerText = _fmtStat(totalInteract);
+  if(viewsEl)    viewsEl.innerText    = _fmt(totalViews);
+  if(interactEl) interactEl.innerText = _fmt(totalInteract);
   if(friendsEl)  friendsEl.innerText  = friendsCount || 0;
 }
 
-/* تحديث إحصائيات الملف الشخصي الخاص */
-async function _updateMyProfileStats(myName){
+/* ── تسجيل الزيارة + تحديث الإحصائيات عند فتح ملف عضو ── */
+const _origOpenMpv2 = window.openMemberProfileView;
+window.openMemberProfileView = async function(memberName){
+  if(typeof _origOpenMpv2==='function') _origOpenMpv2.apply(this, arguments);
+
+  const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
+  if(myName && memberName !== myName){
+    await _recordProfileVisit(memberName, myName);
+  }
+
+  setTimeout(()=> _updateMpvStatsFromFirebase(memberName), 400);
+};
+
+/* ── تحديث إحصائيات الملف الشخصي الخاص (myprofile) ── */
+async function _updateMyProfileStatsFromFirebase(myName){
   const normName = (myName||'').replace(/\s+/g,'_');
 
-  const fbVisits    = await _getProfileVisitCount(myName);
+  const fbVisits = await _getProfileVisitCount(myName);
   const localVisits = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_visits_'+normName)||'[]').length; }catch(e){ return 0; } })();
   const totalProfileViews = Math.max(fbVisits, localVisits);
 
@@ -22525,11 +22729,20 @@ async function _updateMyProfileStats(myName){
   const myTotalViews = totalProfileViews + storyViews + postViews;
 
   const allPosts = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
-  const myPosts  = allPosts.filter(p=>p.author===myName);
-  const myPostReacts   = myPosts.reduce((s,p)=>{ const r=p.reactions||{}; if(Array.isArray(r)) return s+r.length; return s+Object.values(r).reduce((a,b)=>a+(Array.isArray(b)?b.length:1),0); },0);
-  const myPostComments = myPosts.reduce((s,p)=>s+((p.comments||[]).length),0);
-  const myStoryReacts  = allStories.reduce((s,st)=>s+Object.values(st.reactions||{}).length,0);
+  const myPostsData = allPosts.filter(p=>p.author===myName);
+  const myPostReacts = myPostsData.reduce((s,p)=>{
+    const r=p.reactions||{};
+    if(Array.isArray(r)) return s+r.length;
+    return s+Object.values(r).reduce((a,b)=>a+(Array.isArray(b)?b.length:1),0);
+  },0);
+  const myPostComments = myPostsData.reduce((s,p)=>s+((p.comments||[]).length),0);
+  const myStoryReacts = allStories.reduce((s,st)=>{
+    const r=st.reactions||{};
+    return s+Object.values(r).length;
+  },0);
   const myInteractCount = myPostReacts + myPostComments + myStoryReacts;
+
+  function _fmtStat(n){ if(n>=1000) return (n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+'K'; return String(n); }
 
   const flEl = document.getElementById('fbFollowersCount');
   const fvEl = document.getElementById('fbViewsCount');
@@ -22538,220 +22751,67 @@ async function _updateMyProfileStats(myName){
   if(flEl) flEl.innerText = friendsCount || 0;
   if(fvEl) fvEl.innerText = _fmtStat(myTotalViews);
   if(pcEl) pcEl.innerText = _fmtStat(myInteractCount);
-  if(fgEl) fgEl.innerText = myPosts.length || 0;
+  if(fgEl) fgEl.innerText = myPostsData.length || 0;
 }
 
-/* ════════════════════════════════════════════════════════
-   ⭐ تقييم النجوم — منفصل لكل عضو + حفظ Firebase
-════════════════════════════════════════════════════════ */
-
-/* حفظ تقييم في Firebase */
-async function _saveRatingToFirebase(raterName, targetName, stars){
-  const normRater  = raterName.replace(/\s+/g,'_');
-  const normTarget = targetName.replace(/\s+/g,'_');
-  await _fbPut(`/ratings/${normTarget}/${normRater}`, { stars, ts: Date.now(), rater: raterName });
-}
-
-/* قراءة كل تقييمات عضو من Firebase */
-async function _getRatingsFromFirebase(targetName){
-  const normTarget = targetName.replace(/\s+/g,'_');
-  const data = await _fbGet(`/ratings/${normTarget}`);
-  if(!data || typeof data !== 'object') return {};
-  const result = {};
-  Object.entries(data).forEach(([normRater, val]) => {
-    if(val && val.stars) result[normRater.replace(/_/g,' ')] = parseInt(val.stars)||0;
-  });
-  return result;
-}
-
-function _calcAvgRating(ratingsMap){
-  const vals = Object.values(ratingsMap).map(v=>parseInt(v)||0).filter(v=>v>0);
-  if(!vals.length) return {avg:0, count:0};
-  return { avg: vals.reduce((a,b)=>a+b,0)/vals.length, count: vals.length };
-}
-
-/* تجاوز rateMember — حفظ في Firebase ومنفصل لكل عضو */
-window._originalRateMember = window.rateMember;
-window.rateMember = async function(memberName, stars){
-  const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
-  if(!myName || myName === memberName) return;
-
-  const normMember = memberName.replace(/\s+/g,'_');
-  const normMe     = myName.replace(/\s+/g,'_');
-  const ratingKey  = 'nld_star_rating_' + normMe + '_to_' + normMember;
-  const tsKey      = 'nld_star_rating_ts_' + normMe + '_to_' + normMember;
-  const oldRating  = parseInt(localStorage.getItem(ratingKey)||'0');
-  const oldTs      = parseInt(localStorage.getItem(tsKey)||'0');
-  const now        = Date.now();
-  const LIMIT_24H  = 24 * 60 * 60 * 1000;
-
-  if(oldRating > 0 && oldTs > 0 && (now - oldTs) > LIMIT_24H){
-    if(typeof showToast==='function') showToast('🔒 انتهت مدة تعديل التقييم (24 ساعة من أول تقييم)');
-    return;
+/* تشغيل تحديث الإحصائيات عند فتح تبويب "صفحتي" */
+const _origSwitchTab3 = window.switchSocialTab;
+window.switchSocialTab = function(tab){
+  if(typeof _origSwitchTab3==='function') _origSwitchTab3.apply(this, arguments);
+  if(tab==='myprofile'){
+    const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
+    if(myName) setTimeout(()=> _updateMyProfileStatsFromFirebase(myName), 300);
   }
-
-  const isNew = oldRating === 0;
-  localStorage.setItem(ratingKey, String(stars));
-  if(isNew) localStorage.setItem(tsKey, String(now));
-
-  /* تحديث قاموس التقييمات المحلي */
-  const allManual = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_manual_ratings_'+normMember)||'{}'); }catch(e){ return {}; } })();
-  allManual[myName] = stars;
-  localStorage.setItem('nld_manual_ratings_'+normMember, JSON.stringify(allManual));
-
-  /* حفظ في Firebase */
-  await _saveRatingToFirebase(myName, memberName, stars);
-
-  /* تحديث النجوم في الواجهة فوراً — خاص بهذا العضو فقط */
-  for(let i=1;i<=7;i++){
-    const el=document.getElementById('mpvStar_'+i);
-    if(el) el.style.color = i<=stars ? '#f5c518' : '#ddd';
-  }
-
-  /* إعادة حساب المعدل من Firebase */
-  const allRatings = await _getRatingsFromFirebase(memberName);
-  const {avg, count} = _calcAvgRating(allRatings);
-  const newTotal = Object.values(allRatings).map(v=>parseInt(v)||0).reduce((a,b)=>a+b,0);
-  localStorage.setItem('nld_total_stars_'+normMember, String(newTotal));
-
-  if(isNew && typeof addSocialNotif==='function')
-    addSocialNotif(memberName, `${myName} قيّم ملفك الشخصي بـ ${stars} نجوم ⭐`, '⭐');
-
-  if(typeof _checkVerifiedBadge==='function') _checkVerifiedBadge(memberName, newTotal);
-  if(typeof _addStarsToWallet==='function') _addStarsToWallet(normMember, myName, stars, isNew, oldRating);
-
-  const hoursLeft = isNew ? 24 : Math.max(0, Math.ceil((LIMIT_24H-(now-oldTs))/3600000));
-  const msg = isNew
-    ? `✅ قيّمت ${memberName} بـ ${stars} نجوم — يمكنك التعديل خلال 24 ساعة`
-    : `✅ تم تحديث تقييمك لـ ${memberName} إلى ${stars} نجوم — متبقي ${hoursLeft}س للتعديل`;
-  if(typeof showToast==='function') showToast(msg);
-
-  /* تحديث شريط التقييم الخماسي */
-  _refreshVisitorRatingBar(memberName, normMember);
 };
 
-/* تجاوز _submitMpvVisitorRating — حفظ في Firebase */
-window._submitMpvVisitorRating = async function(memberName, normName, stars){
-  const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
-  if(!myName || myName === memberName) return;
-
-  const rKey  = 'nld_visitor_rating_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
-  const tsKey = 'nld_visitor_rating_ts_' + myName.replace(/\s+/g,'_') + '_to_' + normName;
-  const oldRating = parseInt(localStorage.getItem(rKey)||'0');
-  const oldTs     = parseInt(localStorage.getItem(tsKey)||'0');
-  const now       = Date.now();
-  const LIMIT_24H = 24 * 60 * 60 * 1000;
-
-  if(oldRating > 0 && oldTs > 0 && (now - oldTs) > LIMIT_24H){
-    if(typeof showToast==='function') showToast('🔒 انتهت مدة تعديل التقييم (24 ساعة)');
-    return;
-  }
-
-  const isNew = oldRating === 0;
-  localStorage.setItem(rKey, String(stars));
-  if(isNew) localStorage.setItem(tsKey, String(now));
-
-  const allRatings = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_visitor_ratings_'+normName)||'{}'); }catch(e){ return {}; } })();
-  allRatings[myName] = stars;
-  localStorage.setItem('nld_visitor_ratings_'+normName, JSON.stringify(allRatings));
-
-  await _fbPut(`/visitor_ratings/${normName}/${myName.replace(/\s+/g,'_')}`, { stars, ts: Date.now(), rater: myName });
-
-  const allVals = Object.values(allRatings).map(v=>parseInt(v)||0).filter(v=>v>0);
-  const newTotal = allVals.reduce((a,b)=>a+b,0);
-  localStorage.setItem('nld_total_stars_'+normName, String(newTotal));
-
-  const hoursLeft = isNew ? 24 : Math.max(0, Math.ceil((LIMIT_24H-(now-oldTs))/3600000));
-  const msg = isNew
-    ? `✅ قيّمت ${memberName} بـ ${stars} نجوم — يمكنك التعديل خلال 24 ساعة`
-    : `✅ تم تحديث تقييمك لـ ${memberName} إلى ${stars} نجوم (متبقي ${hoursLeft}س)`;
-  if(typeof showToast==='function') showToast(msg);
-
-  if(isNew && typeof addSocialNotif==='function')
-    addSocialNotif(memberName, `${myName} قيّم ملفك بـ ${stars} نجوم ⭐`, '⭐');
-
-  if(typeof _checkVerifiedBadge==='function') _checkVerifiedBadge(memberName, newTotal);
-  if(typeof _addStarsToWallet==='function') _addStarsToWallet(normName, myName, stars, isNew, oldRating);
-
-  _refreshVisitorRatingBar(memberName, normName);
-};
 
 /* ════════════════════════════════════════════════════════
-   🔁 openMemberProfileView — تجاوز واحد موحد (يحل مشكلة التعريف المزدوج)
-   يجمع: تسجيل الزيارة + تحديث الإحصائيات + تحديث النجوم
+   💰 إصلاح 3: النقاط = إجمالي الرصيد الكلي، الرصيد = مرتبط بجدول الترتيب
+════════════════════════════════════════════════════════
+
+   الوضع الحالي:
+   - النقاط تعرض "مجموع النقاط" → صحيح لكن نريد التأكيد أنه الإجمالي الفعلي
+   - الرصيد يُجلب من mgStatBalance (جدول الترتيب) → صحيح لكن يحتاج fallback حقيقي
+
+   الإصلاح:
+   - النقاط: يجمع نقاط الكويز المكتسبة + نقاط الجدول (الأكبر)
+   - الرصيد: يُحسب دائماً من نقاط جدول الترتيب فقط (لا من النقاط المحلية)
 ════════════════════════════════════════════════════════ */
-const _origOpenMpvUnified = window.openMemberProfileView;
-window.openMemberProfileView = async function(memberName){
-  /* استدعاء الأصلي */
-  if(typeof _origOpenMpvUnified==='function') _origOpenMpvUnified.apply(this, arguments);
 
-  const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
-  const normName = (memberName||'').replace(/\s+/g,'_');
-
-  /* 1️⃣ تسجيل الزيارة */
-  if(myName && memberName !== myName){
-    _recordProfileVisit(memberName, myName);
-  }
-
-  /* 2️⃣ بعد 350ms: تحديث الإحصائيات الحقيقية */
-  setTimeout(async ()=>{
-    await _updateMpvStats(memberName);
-  }, 350);
-
-  /* 3️⃣ بعد 400ms: تحديث شريط النجوم الخماسي من Firebase */
-  setTimeout(async ()=>{
-    await _refreshVisitorRatingBar(memberName, normName);
-  }, 400);
-
-  /* 4️⃣ بعد 450ms: تحديث نجوم التقييم السبع (mpvStar_1..7) من Firebase */
-  setTimeout(async ()=>{
-    if(!myName) return;
-    const normMe = myName.replace(/\s+/g,'_');
-    const fbRatings = await _getRatingsFromFirebase(memberName);
-    const myFbStars = fbRatings[myName] || parseInt(localStorage.getItem('nld_star_rating_'+normMe+'_to_'+normName)||'0');
-    if(fbRatings[myName]){
-      localStorage.setItem('nld_star_rating_'+normMe+'_to_'+normName, String(fbRatings[myName]));
-    }
-    for(let i=1;i<=7;i++){
-      const el=document.getElementById('mpvStar_'+i);
-      if(el) el.style.color = i<=myFbStars ? '#f5c518' : '#ddd';
-    }
-    /* تحديث شريط المعدل أيضاً */
-    const {avg, count} = _calcAvgRating(fbRatings);
-    const scoreEl = document.getElementById('mpvStarsScore');
-    if(scoreEl && count>0){
-      scoreEl.innerHTML = 'تقييمي: ' + '⭐'.repeat(myFbStars) + ' | متوسط: ' + avg.toFixed(1) + ' من ' + count + ' تقييم';
-    }
-  }, 450);
-};
-
-/* ════════════════════════════════════════════════════════
-   💰 النقاط = الإجمالي الكلي ، الرصيد = جدول الترتيب فقط
-════════════════════════════════════════════════════════ */
+/* تحديث عرض النقاط والرصيد بشكل منفصل وصحيح */
 function _fixPointsBalanceDisplay(){
   const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
   if(!myName) return;
   const normName = myName.replace(/\s+/g,'_');
 
+  /* ── النقاط الإجمالية: من mainPoints (المصدر الرئيسي) ── */
   const mainPtsEl = document.getElementById('mainPoints');
   let totalPts = 0;
-  if(mainPtsEl) totalPts = parseInt(mainPtsEl.innerText.replace(/[^\d]/g,''))||0;
+  if(mainPtsEl){
+    totalPts = parseInt(mainPtsEl.innerText.replace(/[^\d]/g,''))||0;
+  }
+  /* إذا كان mainPoints صفر، جرب localStorage */
   if(totalPts === 0){
     const localEarned = parseInt(localStorage.getItem('nld_earned_'+normName)||'0');
     const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
     totalPts = Math.max(localEarned, sheetPts);
   }
 
+  /* تحديث عرض النقاط في ملف المستخدم */
   const fbTotalPtsEl = document.getElementById('fbTotalPts');
   if(fbTotalPtsEl) fbTotalPtsEl.innerText = totalPts.toLocaleString();
 
-  const balEl  = document.getElementById('fbBalance');
-  const balSrc = document.getElementById('mgStatBalance');
+  /* ── الرصيد: يُحسب من نقاط جدول الترتيب حصراً ── */
+  const balEl   = document.getElementById('fbBalance');
+  const balSrc  = document.getElementById('mgStatBalance');
+
   if(balEl){
     let balText = '';
     if(balSrc && balSrc.innerText && balSrc.innerText !== '0 دج'){
+      /* المصدر الرئيسي: من جدول الترتيب */
       balText = balSrc.innerText;
     } else {
+      /* حساب من نقاط الجدول مباشرة */
       const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
       const rate = window._userBalanceRate || 30;
       balText = ((Math.max(0, sheetPts)/50)*rate).toFixed(2) + ' دج';
@@ -22759,8 +22819,9 @@ function _fixPointsBalanceDisplay(){
     balEl.innerText = balText;
   }
 
+  /* تحديث في لوحة الإحصاء السريعة (mgStatBalance) أيضاً */
   const mgBal = document.getElementById('mgStatBalance');
-  if(mgBal && mgBal !== balSrc){
+  if(mgBal && balSrc !== mgBal){
     const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
     const rate = window._userBalanceRate || 30;
     if(!mgBal.innerText || mgBal.innerText==='0 دج'){
@@ -22769,6 +22830,7 @@ function _fixPointsBalanceDisplay(){
   }
 }
 
+/* تشغيل الإصلاح عند الفتح وعند تحديث النقاط */
 window.addEventListener('load', ()=>{ setTimeout(_fixPointsBalanceDisplay, 2000); });
 const _origUpdatePts = window._refreshPointsInBackground;
 window._refreshPointsInBackground = function(name){
@@ -22776,15 +22838,22 @@ window._refreshPointsInBackground = function(name){
   setTimeout(_fixPointsBalanceDisplay, 1500);
 };
 
+
 /* ════════════════════════════════════════════════════════
-   🔥 نظام الشعلة — يحسب من أول يوم دخل المنخرط
-   المنطق الصحيح:
-   • كل فتح للتطبيق = يوم دخول جديد (إذا لم يُسجَّل اليوم من قبل)
-   • يُزامن مع Firebase /streaks/{normName}
-   • عند أول دخول: يقرأ تاريخ الانخراط من Google Sheet أو nld_join_ts
-     ويحسب كم يوم مرّ منذ ذلك التاريخ كرصيد أولي (كل يوم = يوم دخول محتمل)
+   🔥 إصلاح 4: نظام الشعلة — يحسب من تاريخ التسجيل الفعلي + Firebase
+════════════════════════════════════════════════════════
+
+   المشكلة:
+   - الشعلة تُخزَّن في localStorage فقط، إذا مسح المستخدم الكاشّ تصفّرت
+   - لا تُحسب الأيام المنقضية قبل تثبيت التطبيق الجديد
+
+   الإصلاح:
+   - _recordDailyLogin() تحفظ في Firebase: /streaks/{normName}
+   - عند الفتح: يُجلب سجيل الدخول من Firebase ويُدمج مع المحلي
+   - إذا لم يوجد سجل، يُحسب من تاريخ الانخراط في جدول التسجيل
 ════════════════════════════════════════════════════════ */
 
+/* حفظ تسجيل الدخول اليومي في Firebase */
 async function _syncStreakToFirebase(normName, streakData){
   await _fbPatch(`/streaks/${normName}`, {
     totalDays: streakData.totalDays,
@@ -22793,117 +22862,110 @@ async function _syncStreakToFirebase(normName, streakData){
   });
 }
 
+/* جلب بيانات الشعلة من Firebase */
 async function _getStreakFromFirebase(normName){
   return await _fbGet(`/streaks/${normName}`);
 }
 
-/* تجاوز _recordDailyLogin لتزامن Firebase وحساب الرصيد الأولي */
+/* ── تجاوز _recordDailyLogin لتزامن Firebase ── */
 const _origRecordLogin = window._recordDailyLogin;
 window._recordDailyLogin = async function(normName){
   if(!normName) return;
 
-  /* تحديث localStorage أولاً */
+  /* أولاً: استدعاء الأصلي (يحدّث localStorage) */
   if(typeof _origRecordLogin==='function') _origRecordLogin(normName);
 
   const KEY = 'nld_daily_streak_' + normName;
   let rec = {};
   try{ rec = JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
 
-  /* جلب بيانات Firebase */
+  /* ثانياً: دمج مع Firebase */
   const fbData = await _getStreakFromFirebase(normName);
-  const fbTotal = fbData ? parseInt(fbData.totalDays||0) : 0;
-  const localTotal = parseInt(rec.totalDays||rec.count||0);
+  if(fbData && typeof fbData==='object'){
+    const fbTotal = parseInt(fbData.totalDays||0);
+    const localTotal = parseInt(rec.totalDays||rec.count||0);
 
-  /* استخدم الأكبر */
-  if(fbTotal > localTotal){
-    rec.totalDays = fbTotal;
-    rec.lastDay   = fbData.lastDay || rec.lastDay;
-    localStorage.setItem(KEY, JSON.stringify(rec));
-  }
-
-  /* حساب الرصيد الأولي إذا كان السجل لا يزال صغيراً */
-  const todayStr = new Date().toISOString().slice(0,10);
-  let finalTotal = parseInt(rec.totalDays||rec.count||1);
-
-  /* نبحث عن تاريخ الانخراط من أكثر من مصدر */
-  const joinTs1 = parseInt(localStorage.getItem('nld_join_ts_'+normName)||'0');
-  const joinTs2 = parseInt(localStorage.getItem('nld_join_'+normName)||'0');
-  const joinTs  = joinTs1 || joinTs2;
-
-  if(joinTs > 0){
-    const daysSinceJoin = Math.max(1, Math.floor((Date.now()-joinTs)/(1000*60*60*24)));
-    /* الرصيد الأولي = كل الأيام منذ الانخراط (افتراض: المنخرط دخل كل يوم)
-       لكن نحدّه بـ 200 يوم إذا لم يوجد سجل Firebase حقيقي */
-    const initialCredit = fbTotal > 0 ? daysSinceJoin : Math.min(daysSinceJoin, 200);
-    if(initialCredit > finalTotal){
-      finalTotal = initialCredit;
+    if(fbTotal > localTotal){
+      /* Firebase أحدث وأكبر — استخدمه */
+      rec.totalDays = fbTotal;
+      rec.lastDay   = fbData.lastDay || rec.lastDay;
+      localStorage.setItem(KEY, JSON.stringify(rec));
     }
   }
 
-  /* حفظ النتيجة النهائية */
-  rec.totalDays = finalTotal;
-  if(!rec.lastDay) rec.lastDay = todayStr;
-  localStorage.setItem(KEY, JSON.stringify(rec));
-  window['__fbStreak_'+normName] = finalTotal;
-
-  await _syncStreakToFirebase(normName, { totalDays: finalTotal, lastDay: rec.lastDay });
+  /* ثالثاً: حفظ القيمة المُدمجة في Firebase */
+  const todayStr = new Date().toISOString().slice(0,10);
+  const finalRec = { totalDays: parseInt(rec.totalDays||rec.count||1), lastDay: rec.lastDay||todayStr };
+  await _syncStreakToFirebase(normName, finalRec);
 };
 
-/* تجاوز _getRealStreak لتجلب من Firebase */
+/* ── تجاوز _getRealStreak لتجلب من Firebase عند الحاجة ── */
 const _origGetStreak = window._getRealStreak;
 window._getRealStreak = function(normName){
   if(!normName) return 0;
+
+  /* أولاً: قيمة localStorage المحلية */
   const localVal = typeof _origGetStreak==='function' ? _origGetStreak(normName) : 0;
-  const fbVal = parseInt(window['__fbStreak_'+normName]||'0');
+
+  /* ثانياً: قيمة Firebase المُخزَّنة مؤقتاً في window */
+  const fbCacheKey = '__fbStreak_'+normName;
+  const fbVal = parseInt(window[fbCacheKey]||'0');
+
+  /* الأكبر هو الصحيح */
   return Math.max(localVal, fbVal);
 };
 
-/* تحميل الشعلة من Firebase عند فتح الصفحة */
-async function _loadStreakFromFirebase(){
+/* ── تحميل الشعلة من Firebase عند فتح الصفحة ── */
+async function _loadAllStreaksFromFirebase(){
   const myName = localStorage.getItem('sklab_user_name')||'';
   if(!myName || myName==='زائر') return;
   const normName = myName.replace(/\s+/g,'_');
 
   const fbData = await _getStreakFromFirebase(normName);
-  const KEY = 'nld_daily_streak_' + normName;
-  let rec = {};
-  try{ rec = JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
+  if(fbData && typeof fbData==='object'){
+    const fbTotal = parseInt(fbData.totalDays||0);
+    window['__fbStreak_'+normName] = fbTotal;
 
-  const fbTotal    = fbData ? parseInt(fbData.totalDays||0) : 0;
-  const localTotal = parseInt(rec.totalDays||rec.count||0);
+    /* دمج مع localStorage */
+    const KEY = 'nld_daily_streak_' + normName;
+    let rec = {};
+    try{ rec = JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
+    const localTotal = parseInt(rec.totalDays||rec.count||0);
 
-  /* حساب الأيام منذ الانخراط */
-  const joinTs1 = parseInt(localStorage.getItem('nld_join_ts_'+normName)||'0');
-  const joinTs2 = parseInt(localStorage.getItem('nld_join_'+normName)||'0');
-  const joinTs  = joinTs1 || joinTs2;
-  let daysSinceJoin = 0;
-  if(joinTs > 0) daysSinceJoin = Math.max(1, Math.floor((Date.now()-joinTs)/(1000*60*60*24)));
-
-  /* الرصيد الأولي الصحيح */
-  const initialCredit = fbTotal > 0 ? daysSinceJoin : (daysSinceJoin > 0 ? Math.min(daysSinceJoin, 200) : 0);
-  const realTotal = Math.max(fbTotal, localTotal, initialCredit);
-
-  if(realTotal > 0){
-    rec.totalDays = realTotal;
-    if(fbData && fbData.lastDay) rec.lastDay = fbData.lastDay;
-    localStorage.setItem(KEY, JSON.stringify(rec));
-    window['__fbStreak_'+normName] = realTotal;
-
-    /* إذا Firebase أقل من الحساب الصحيح، حدّثه */
-    if(realTotal > fbTotal){
-      await _syncStreakToFirebase(normName, { totalDays: realTotal, lastDay: rec.lastDay || new Date().toISOString().slice(0,10) });
+    if(fbTotal > localTotal){
+      rec.totalDays = fbTotal;
+      if(fbData.lastDay) rec.lastDay = fbData.lastDay;
+      localStorage.setItem(KEY, JSON.stringify(rec));
     }
-  }
 
-  _refreshStreakUI(myName);
+    /* إذا كان السجل صفراً والمنخرط مسجل، احسب من تاريخ الانخراط */
+    const joinTs = parseInt(localStorage.getItem('nld_join_ts_'+normName)||'0');
+    if((fbTotal === 0 || localTotal === 0) && joinTs > 0){
+      const daysSinceJoin = Math.max(1, Math.floor((Date.now()-joinTs)/(1000*60*60*24)));
+      /* نفترض أنه دخل على الأقل مرة واحدة كل يوم */
+      const estimatedStreak = Math.min(daysSinceJoin, 30); /* نأخذ بحذر حتى 30 يوم كأساس */
+      if(estimatedStreak > Math.max(fbTotal, localTotal)){
+        const todayStr = new Date().toISOString().slice(0,10);
+        rec.totalDays = estimatedStreak;
+        rec.lastDay   = todayStr;
+        localStorage.setItem(KEY, JSON.stringify(rec));
+        window['__fbStreak_'+normName] = estimatedStreak;
+        await _syncStreakToFirebase(normName, { totalDays: estimatedStreak, lastDay: todayStr });
+      }
+    }
+
+    /* تحديث الواجهة إذا كانت ظاهرة */
+    _refreshStreakUI(myName);
+  }
 }
 
-/* تحديث عرض الشعلة في الواجهة */
+/* ── تحديث عرض الشعلة في الواجهة ── */
 function _refreshStreakUI(myName){
   const normName = (myName||'').replace(/\s+/g,'_');
   const realStreak = (typeof _getRealStreak==='function') ? _getRealStreak(normName) : 0;
   const medal = (typeof _getStreakMedal==='function') ? _getStreakMedal(realStreak) : {emoji:'🥉',label:'برونزية',color:'#CD7F32',glow:'rgba(205,127,50,0.5)'};
 
+  /* شعلة صفحتي */
   const sf = document.getElementById('fbStreakFlame');
   const si = document.getElementById('fbStreakInfo');
   const sn = document.getElementById('fbStreakNext');
@@ -22919,213 +22981,32 @@ function _refreshStreakUI(myName){
   }
 }
 
-/* تشغيل عند فتح التطبيق */
-window.addEventListener('load', ()=>{
-  setTimeout(_loadStreakFromFirebase, 1500);
-  setTimeout(_fixPointsBalanceDisplay, 2000);
-});
+/* تشغيل تحميل الشعلة عند فتح التطبيق */
+window.addEventListener('load', ()=>{ setTimeout(_loadAllStreaksFromFirebase, 1500); });
 
-/* تحديث الشعلة والإحصائيات عند فتح تبويب "صفحتي" */
-const _origSwitchTabFinal = window.switchSocialTab;
+/* تحديث الشعلة عند فتح تبويب "صفحتي" */
+const _origSwitchTab4 = window.switchSocialTab;
 window.switchSocialTab = function(tab){
-  if(typeof _origSwitchTabFinal==='function') _origSwitchTabFinal.apply(this, arguments);
+  if(typeof _origSwitchTab4==='function') _origSwitchTab4.apply(this, arguments);
   if(tab==='myprofile'){
     const myName = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
-    if(myName){
-      setTimeout(()=> _refreshStreakUI(myName), 200);
-      setTimeout(()=> _updateMyProfileStats(myName), 300);
-      setTimeout(()=> _fixPointsBalanceDisplay(), 400);
-    }
+    if(myName) setTimeout(()=> _refreshStreakUI(myName), 200);
   }
 };
 
-/* تسجيل الدخول اليومي عند فتح التطبيق */
+/* ── تسجيل الدخول عند فتح التطبيق للمستخدم الحالي ── */
 window.addEventListener('load', ()=>{
   const myName = localStorage.getItem('sklab_user_name')||'';
   if(myName && myName!=='زائر'){
     const normName = myName.replace(/\s+/g,'_');
-    setTimeout(()=>{
+    setTimeout(()=> {
+      /* سجّل دخول اليوم */
       if(typeof _recordDailyLogin==='function') _recordDailyLogin(normName);
     }, 2500);
   }
 });
 
-console.log('✅ ConnectDZ Fixes v3.0 Loaded — Ratings/Stats/Streak/Points (Unified)');
-})();
-</script>
-
-<!-- ═══════════════════════════════════════════════════════════════
-     ✅ إصلاح إحصائيات الملف الشخصي — Firebase-powered v4.0
-     المشكلة: localStorage لا يشارك بيانات الأعضاء بين الأجهزة
-     الحل: جلب وحفظ الإحصائيات في Firebase /userStats/{normName}
-     ═══════════════════════════════════════════════════════════════ -->
-<script>
-(function(){
-'use strict';
-
-const _FB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-
-/* ── جلب إحصائيات عضو من Firebase ── */
-async function _fbGetStats(normName){
-  try{
-    const res = await fetch(`${_FB_BASE}/userStats/${normName}.json`);
-    if(!res.ok) return null;
-    return await res.json();
-  }catch(e){ return null; }
-}
-
-/* ── حفظ إحصائيات عضو في Firebase ── */
-async function _fbPatchStats(normName, data){
-  try{
-    await fetch(`${_FB_BASE}/userStats/${normName}.json`,{
-      method:'PATCH',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({...data, updatedAt:Date.now()})
-    });
-  }catch(e){}
-}
-
-/* ── جلب عدد الأصدقاء من Firebase ── */
-async function _fbGetFriendsCount(normName){
-  try{
-    const res = await fetch(`${_FB_BASE}/friends/${normName}.json`);
-    if(!res.ok) return null;
-    const data = await res.json();
-    if(!data) return 0;
-    if(Array.isArray(data)) return data.length;
-    if(typeof data==='object') return Object.keys(data).length;
-    return 0;
-  }catch(e){ return null; }
-}
-
-/* ══════════════════════════════════════════════════════
-   الدالة الرئيسية: جلب وعرض إحصائيات الملف من Firebase
-   تُستدعى بعد 400ms من فتح أي ملف شخصي
-   ══════════════════════════════════════════════════════ */
-window._loadAndDisplayProfileStats = async function(memberName){
-  const normName = memberName.replace(/\s+/g,'_');
-
-  function _fmt(n){ if(n>=1000) return (n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+'K'; return String(n||0); }
-
-  const viewsEl    = document.getElementById('mpvViewsCount');
-  const interactEl = document.getElementById('mpvInteractCount');
-  const friendsEl  = document.getElementById('mpvFollowersCount');
-
-  /* عرض "..." أثناء التحميل */
-  if(viewsEl)    viewsEl.innerText    = '…';
-  if(interactEl) interactEl.innerText = '…';
-  if(friendsEl)  friendsEl.innerText  = '…';
-
-  /* جلب من Firebase */
-  const [fbStats, fbFriends] = await Promise.all([
-    _fbGetStats(normName),
-    _fbGetFriendsCount(normName)
-  ]);
-
-  let totalViews = 0, totalInteract = 0, friendsCount = 0;
-
-  if(fbStats){
-    totalViews    = parseInt(fbStats.totalViews    || 0);
-    totalInteract = parseInt(fbStats.totalInteract || 0);
-    friendsCount  = parseInt(fbStats.friendsCount  || 0);
-  } else {
-    /* Fallback: احسب من localStorage (لبيانات المستخدم نفسه فقط) */
-    const allPosts = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
-    const visits   = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_visits_'+normName)||'[]'); }catch(e){ return []; } })();
-    const stories  = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_stories_'+normName)||'[]'); }catch(e){ return []; } })();
-    const pvData   = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_post_views_'+normName)||'{}'); }catch(e){ return {}; } })();
-
-    totalViews = visits.length
-      + stories.reduce((s,st)=>s+((st.viewers||st.views||[]).length),0)
-      + Object.values(pvData).reduce((s,v)=>s+(parseInt(v)||0),0);
-
-    const myPosts = allPosts.filter(p=>p.author===memberName);
-    const postReacts = myPosts.reduce((s,p)=>{
-      const r=p.reactions||{};
-      if(Array.isArray(r)) return s+r.length;
-      return s+Object.values(r).reduce((a,b)=>a+(Array.isArray(b)?b.length:1),0);
-    },0);
-    totalInteract = postReacts
-      + myPosts.reduce((s,p)=>s+((p.comments||[]).length),0)
-      + stories.reduce((s,st)=>s+Object.values(st.reactions||{}).length,0);
-
-    /* ارفع للـ Firebase حتى يراها الآخرون */
-    if(totalViews > 0 || totalInteract > 0){
-      _fbPatchStats(normName,{ totalViews, totalInteract });
-    }
-  }
-
-  /* عدد الأصدقاء */
-  if(fbFriends !== null){
-    friendsCount = fbFriends;
-  } else if(fbStats && fbStats.friendsCount){
-    friendsCount = parseInt(fbStats.friendsCount);
-  } else if(typeof getFriends==='function'){
-    friendsCount = getFriends(memberName).length;
-  }
-
-  /* تحديث الواجهة */
-  if(viewsEl)    viewsEl.innerText    = _fmt(totalViews);
-  if(interactEl) interactEl.innerText = _fmt(totalInteract);
-  if(friendsEl)  friendsEl.innerText  = friendsCount || 0;
-
-  /* تحديث عدد الأصدقاء في بطاقة الأصدقاء أيضاً إن وجدت */
-  const fc1 = document.getElementById('mpvFriendsCount1');
-  const fc2 = document.getElementById('mpvFriendsCount2');
-  if(fc1) fc1.innerText = friendsCount || 0;
-  if(fc2) fc2.innerText = friendsCount || 0;
-
-  console.log(`✅ [Stats] ${memberName}: views=${totalViews} interact=${totalInteract} friends=${friendsCount}`);
-};
-
-/* ══════════════════════════════════════════════════════
-   عند تحميل التطبيق: زامن إحصائيات المستخدم الحالي
-   حتى يراها الأعضاء الآخرين عند فتح ملفه
-   ══════════════════════════════════════════════════════ */
-window.addEventListener('load', function(){
-  setTimeout(async function(){
-    const myName = localStorage.getItem('sklab_user_name')||'';
-    if(!myName || myName==='زائر') return;
-    const normName = myName.replace(/\s+/g,'_');
-
-    const allPosts = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; } })();
-    const visits   = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_visits_'+normName)||'[]'); }catch(e){ return []; } })();
-    const stories  = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_stories_'+normName)||'[]'); }catch(e){ return []; } })();
-    const pvData   = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_post_views_'+normName)||'{}'); }catch(e){ return {}; } })();
-
-    const totalViews = visits.length
-      + stories.reduce((s,st)=>s+((st.viewers||st.views||[]).length),0)
-      + Object.values(pvData).reduce((s,v)=>s+(parseInt(v)||0),0);
-
-    const myPosts = allPosts.filter(p=>p.author===myName);
-    const postReacts = myPosts.reduce((s,p)=>{
-      const r=p.reactions||{};
-      if(Array.isArray(r)) return s+r.length;
-      return s+Object.values(r).reduce((a,b)=>a+(Array.isArray(b)?b.length:1),0);
-    },0);
-    const totalInteract = postReacts
-      + myPosts.reduce((s,p)=>s+((p.comments||[]).length),0)
-      + stories.reduce((s,st)=>s+Object.values(st.reactions||{}).length,0);
-
-    const friendsCount = (typeof getFriends==='function') ? getFriends(myName).length : 0;
-
-    /* لا تنقص القيم الموجودة في Firebase */
-    const fbCurrent  = await _fbGetStats(normName);
-    const fbViews    = parseInt((fbCurrent&&fbCurrent.totalViews)    || 0);
-    const fbInteract = parseInt((fbCurrent&&fbCurrent.totalInteract) || 0);
-
-    await _fbPatchStats(normName, {
-      totalViews    : Math.max(totalViews,    fbViews),
-      totalInteract : Math.max(totalInteract, fbInteract),
-      friendsCount  : friendsCount,
-      lastSync      : Date.now()
-    });
-
-    console.log(`✅ [Stats] Synced ${myName} → Firebase`);
-  }, 4000);
-});
-
-console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loaded');
+console.log('✅ ConnectDZ Fixes v2.0 Loaded — Ratings/Stats/Streak/Points');
 })();
 </script>
 
