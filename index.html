@@ -13508,18 +13508,7 @@ function refreshSocialNotifBadge(){
 }
 
 /* ─── فتح / إغلاق الصفحة الاجتماعية ─── */
-function showSocialHome(){
-  const el = document.getElementById('socialHomeCard');
-  if(el){ el.style.display='flex'; }
-  const name = getCurrentUser();
-  if(!name) return;
-  // مزامنة الأفاتار
-  syncSocialAvatar(name);
-  const scpNameEl = document.getElementById('scpName');
-  if(scpNameEl) scpNameEl.innerText = name;
-  switchSocialTab('home');
-  refreshSocialNotifBadge();
-}
+/* showSocialHome الكاملة معرّفة لاحقاً (تشمل badge المسنجر والقصص) */
 
 function hideSocialHome(){
   const el = document.getElementById('socialHomeCard');
@@ -14382,155 +14371,9 @@ function _renderMpvStars(memberName){
 })();
 
 let _mpvCurrentUser = null;
+/* viewMemberProfile الكاملة معرّفة لاحقاً (تشمل الأصدقاء + Firebase) */
 function viewMemberProfile(memberName){
-  const myName = getCurrentUser();
   _mpvCurrentUser = memberName;
-
-  // تسجيل الزيارة في localStorage + Firebase
-  if(myName && myName !== memberName){
-    const visits = JSON.parse(localStorage.getItem(_profileVisitsKey(memberName))||'[]');
-    const now = Date.now();
-    const lastVisit = visits.find(v=>v.visitor===myName);
-    if(!lastVisit || (now - lastVisit.ts) > 3600000){
-      visits.unshift({ visitor: myName, ts: now });
-      if(visits.length>100) visits.splice(100);
-      localStorage.setItem(_profileVisitsKey(memberName), JSON.stringify(visits));
-      addSocialNotif(memberName, `${myName} زار ملفك الشخصي 👀`, '👀');
-      // ✅ تسجيل الزيارة في Firebase
-      (async()=>{
-        try{
-          const normN = memberName.replace(/\s+/g,'_');
-          const res = await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/${normN}.json`);
-          const cur = await res.json();
-          const curViews = parseInt((cur&&cur.totalViews)||0);
-          await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/${normN}.json`,{
-            method:'PATCH',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({totalViews:curViews+1,updatedAt:Date.now()})
-          });
-        }catch(e){}
-      })();
-    }
-  }
-
-  const el = document.getElementById('memberProfileView');
-  if(el) el.style.display = 'flex';
-
-  // بيانات الأفاتار والغلاف
-  const photo = typeof getProfilePhoto==='function' ? getProfilePhoto(memberName) : null;
-  const avatarEl = document.getElementById('mpvAvatar');
-  if(avatarEl){
-    if(photo){ avatarEl.innerHTML=`<img loading="lazy" src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`; }
-    else{ avatarEl.innerHTML = typeof getLeaderIcon==='function'?getLeaderIcon(memberName):'👑'; }
-  }
-  const cover = localStorage.getItem('nld_cover_'+memberName.replace(/\s+/g,'_'));
-  const coverImg = document.getElementById('mpvCoverImg');
-  if(coverImg){ coverImg.style.backgroundImage = cover ? 'url('+cover+')' : ''; }
-
-  const nameEl = document.getElementById('mpvName');
-  if(nameEl) nameEl.innerText = getDisplayName(memberName);
-
-  // ── شارة المدير أو التوثيق ──
-  _updateMpvAdminBadge(memberName);
-
-  // عرض معلومات الملف الشخصي الكاملة للأصدقاء فقط
-  const extInfo = document.getElementById('mpvExtendedInfo');
-  if(extInfo && myName){
-    const myFriends = getFriends(myName);
-    const isFriend = myFriends.includes(memberName);
-    if(isFriend){
-      const memberQuizPts = parseInt(localStorage.getItem('nld_earned_'+memberName.replace(/\s+/g,'_'))||'0');
-      const memberSheetPts = parseInt(localStorage.getItem('nld_sheet_pts_'+memberName.replace(/\s+/g,'_'))||'0');
-      const memberTotalPts = memberSheetPts + memberQuizPts;
-      const LEVEL_PTS = 3000;
-      const memberLevel = Math.floor(memberTotalPts/LEVEL_PTS)+1;
-      const memberPosts = getSocialPosts().filter(p=>p.author===memberName).length;
-      const memberFriends = getFriends(memberName).length;
-      const memberAge = localStorage.getItem('nld_age_'+memberName.replace(/\s+/g,'_'))||'';
-      const memberIsEarly = localStorage.getItem('nld_is_early_'+memberName.replace(/\s+/g,'_'))==='1';
-      const memberRate = memberIsEarly ? 35 : 30;
-      const memberBalance = ((memberSheetPts/50)*memberRate).toFixed(0);
-      let rank = '—';
-      try{
-        const allPts = [];
-        for(let i=0;i<localStorage.length;i++){
-          const k=localStorage.key(i);
-          if(k&&k.startsWith('nld_earned_')&&k!=='nld_earned_'+memberName.replace(/\s+/g,'_')){
-            const p=parseInt(localStorage.getItem(k)||'0');
-            if(p>memberTotalPts) allPts.push(p);
-          }
-        }
-        rank = (allPts.length+1).toString();
-      }catch(e){}
-      extInfo.innerHTML = `
-        <div style="background:white;padding:14px 16px;border-bottom:8px solid #F0F2F5;">
-          <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:10px;">📊 ملف ${getDisplayName(memberName)}</div>
-          ${memberAge ? `<div style="display:flex;align-items:center;gap:8px;background:#F0F2F5;border-radius:10px;padding:10px 12px;margin-bottom:10px;"><span style="font-size:18px;">🎂</span><span style="font-size:13px;font-weight:700;color:#050505;">العمر: <strong>${memberAge} سنة</strong></span></div>` : ''}
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;">
-            <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
-              <div style="font-size:20px;margin-bottom:3px;">🏆</div>
-              <div style="font-size:15px;font-weight:900;color:#050505;">${memberTotalPts.toLocaleString()}</div>
-              <div style="font-size:10px;color:#65676B;">النقاط</div>
-            </div>
-            <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
-              <div style="font-size:20px;margin-bottom:3px;">⭐</div>
-              <div style="font-size:15px;font-weight:900;color:#1877F2;">${memberLevel}</div>
-              <div style="font-size:10px;color:#65676B;">المستوى</div>
-            </div>
-            <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
-              <div style="font-size:20px;margin-bottom:3px;">🥇</div>
-              <div style="font-size:15px;font-weight:900;color:#f5c518;">#${rank}</div>
-              <div style="font-size:10px;color:#65676B;">الترتيب</div>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
-            <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
-              <div style="font-size:20px;margin-bottom:3px;">📝</div>
-              <div style="font-size:15px;font-weight:900;color:#050505;">${memberPosts}</div>
-              <div style="font-size:10px;color:#65676B;">المنشورات</div>
-            </div>
-            <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
-              <div style="font-size:20px;margin-bottom:3px;">👥</div>
-              <div style="font-size:15px;font-weight:900;color:#050505;" id="mpvFriendsCount1">${memberFriends}</div>
-              <div style="font-size:10px;color:#65676B;">الأصدقاء</div>
-            </div>
-            <div style="background:linear-gradient(135deg,rgba(0,200,100,0.12),rgba(0,150,80,0.08));border:1px solid rgba(0,200,100,0.3);border-radius:10px;padding:10px;text-align:center;">
-              <div style="font-size:20px;margin-bottom:3px;">💰</div>
-              <div style="font-size:13px;font-weight:900;color:#16a34a;">${memberBalance} <span style="font-size:9px;">دج</span></div>
-              <div style="font-size:10px;color:#65676B;">الرصيد</div>
-            </div>
-          </div>
-        </div>`;
-    } else {
-      const memberPosts2 = getSocialPosts().filter(p=>p.author===memberName).length;
-      const memberFriends2 = getFriends(memberName).length;
-      extInfo.innerHTML = `
-        <div style="background:white;padding:14px 16px;border-bottom:8px solid #F0F2F5;">
-          <div style="font-size:12px;color:#65676B;text-align:center;margin-bottom:10px;">أضفه كصديق لرؤية معلوماته الكاملة 👥</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
-              <div style="font-size:18px;margin-bottom:3px;">📝</div>
-              <div style="font-size:15px;font-weight:900;color:#050505;">${memberPosts2}</div>
-              <div style="font-size:10px;color:#65676B;">المنشورات</div>
-            </div>
-            <div style="background:#F0F2F5;border-radius:10px;padding:10px;text-align:center;">
-              <div style="font-size:18px;margin-bottom:3px;">👥</div>
-              <div style="font-size:15px;font-weight:900;color:#050505;" id="mpvFriendsCount2">${memberFriends2}</div>
-              <div style="font-size:10px;color:#65676B;">الأصدقاء</div>
-            </div>
-          </div>
-        </div>`;
-    }
-  }
-  updateMpvFriendBtn(memberName);
-
-  // عرض شريط النجوم
-  setTimeout(function(){ _renderMpvStars(memberName); }, 600);
-
-  // منشورات العضو
-  renderMpvPosts(memberName);
-
-  // ✅ جلب الإحصائيات الحقيقية من Firebase وتحديث الواجهة
-  setTimeout(function(){ _loadAndDisplayProfileStats(memberName); }, 400);
 }
 
 function updateMpvFriendBtn(memberName){
@@ -16607,8 +16450,7 @@ function handleSocialSearch(q){
   feed.innerHTML = posts.slice().reverse().map(p=>renderSocialPostCard(p)).join('');
 }
 
-// Override showSocialHome to also update messenger badge
-const _origShowSocialHome = showSocialHome;
+// showSocialHome — النسخة الكاملة مع badge المسنجر والقصص
 function showSocialHome(){
   const el = document.getElementById('socialHomeCard');
   if(el){ el.style.display='flex'; }
@@ -22777,48 +22619,80 @@ function _fixPointsBalanceDisplay(){
   if(!myName) return;
   const normName = myName.replace(/\s+/g,'_');
 
+  /* ── النقاط الإجمالية: من لوحة التحكم أولاً ── */
   const mainPtsEl = document.getElementById('mainPoints');
   let totalPts = 0;
   if(mainPtsEl) totalPts = parseInt(mainPtsEl.innerText.replace(/[^\d]/g,''))||0;
   if(totalPts === 0){
+    /* fallback: من localStorage */
     const localEarned = parseInt(localStorage.getItem('nld_earned_'+normName)||'0');
     const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
-    totalPts = Math.max(localEarned, sheetPts);
+    const skPts = (() => { try{ const r=localStorage.getItem('sklab_pts_'+normName); return r?JSON.parse(r).total||0:0; }catch(e){ return 0; } })();
+    totalPts = Math.max(localEarned, sheetPts, skPts);
   }
 
+  /* ── تحديث fbTotalPts ── */
   const fbTotalPtsEl = document.getElementById('fbTotalPts');
-  if(fbTotalPtsEl) fbTotalPtsEl.innerText = totalPts.toLocaleString();
+  if(fbTotalPtsEl && totalPts > 0) fbTotalPtsEl.innerText = totalPts.toLocaleString();
 
+  /* ── شريط المستوى ── */
+  const lvl = Math.floor(totalPts/3000)+1;
+  const ptsInLvl = totalPts % 3000;
+  const pct = Math.min(100, (ptsInLvl/3000)*100);
+  const levelBarEl = document.getElementById('fbLevelBar');
+  if(levelBarEl) levelBarEl.style.width = pct+'%';
+  const levelBadgeEl = document.getElementById('fbLevelBadge');
+  if(levelBadgeEl) levelBadgeEl.innerText = '🚀 '+lvl;
+  const levelPtsEl = document.getElementById('fbLevelPts');
+  if(levelPtsEl) levelPtsEl.innerText = ptsInLvl.toLocaleString()+' نقطة';
+
+  /* ── الرصيد: من mgStatBalance أو حساب مباشر ── */
   const balEl  = document.getElementById('fbBalance');
   const balSrc = document.getElementById('mgStatBalance');
   if(balEl){
     let balText = '';
-    if(balSrc && balSrc.innerText && balSrc.innerText !== '0 دج'){
+    if(balSrc && balSrc.innerText && balSrc.innerText !== '0 دج' && balSrc.innerText !== '--'){
       balText = balSrc.innerText;
     } else {
       const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
       const rate = window._userBalanceRate || 30;
-      balText = ((Math.max(0, sheetPts)/50)*rate).toFixed(2) + ' دج';
+      const calcBal = ((Math.max(0, sheetPts)/50)*rate).toFixed(2);
+      balText = calcBal + ' دج';
     }
-    balEl.innerText = balText;
+    if(balText && balText !== '0.00 دج') balEl.innerText = balText;
   }
 
   const mgBal = document.getElementById('mgStatBalance');
-  if(mgBal && mgBal !== balSrc){
+  if(mgBal && (!mgBal.innerText || mgBal.innerText==='0 دج' || mgBal.innerText==='--')){
     const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
     const rate = window._userBalanceRate || 30;
-    if(!mgBal.innerText || mgBal.innerText==='0 دج'){
-      mgBal.innerText = ((Math.max(0,sheetPts)/50)*rate).toFixed(2) + ' دج';
-    }
+    const calcBal = ((Math.max(0,sheetPts)/50)*rate).toFixed(2);
+    if(parseFloat(calcBal) > 0) mgBal.innerText = calcBal + ' دج';
   }
 }
 
-window.addEventListener('load', ()=>{ setTimeout(_fixPointsBalanceDisplay, 2000); });
+window.addEventListener('load', ()=>{
+  setTimeout(_fixPointsBalanceDisplay, 2000);
+  setTimeout(_fixPointsBalanceDisplay, 5000); // محاولة ثانية بعد تحميل جدول الترتيب
+});
 const _origUpdatePts = window._refreshPointsInBackground;
 window._refreshPointsInBackground = function(name){
   if(typeof _origUpdatePts==='function') _origUpdatePts.apply(this, arguments);
+  setTimeout(_fixPointsBalanceDisplay, 500);
   setTimeout(_fixPointsBalanceDisplay, 1500);
 };
+
+/* ✅ تحديث فوري للنقاط والرصيد عند فتح تبويب صفحتي */
+(function(){
+  const _origTabForPts = window.switchSocialTab;
+  window.switchSocialTab = function(tab){
+    if(typeof _origTabForPts==='function') _origTabForPts.apply(this, arguments);
+    if(tab === 'myprofile'){
+      setTimeout(_fixPointsBalanceDisplay, 100);
+      setTimeout(_fixPointsBalanceDisplay, 800);
+    }
+  };
+})();
 
 /* ════════════════════════════════════════════════════════
    🔥 نظام الشعلة — يحسب من أول يوم دخل المنخرط
@@ -23272,7 +23146,7 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
         }
 
       }catch(e){ /* تجاهل الأخطاء المؤقتة */ }
-    }, 5000); /* كل 5 ثوانٍ */
+    }, 2000); /* كل 2 ثانية للاستجابة الفورية */
   };
 
   window._stopFixedChatPolling = function(){
@@ -23867,21 +23741,44 @@ function _syncPointsFromDashboard(myName){
   const normKey = myName.replace(/\s+/g,'_');
 
   // النقاط الإجمالية = _basePoints (من لوحة التحكم)
-  const totalPts = (typeof window._basePoints !== 'undefined') ? window._basePoints : 0;
+  const mainPtsEl = document.getElementById('mainPoints');
+  let totalPts = (typeof window._basePoints !== 'undefined') ? window._basePoints : 0;
+  if(totalPts === 0 && mainPtsEl) totalPts = parseInt(mainPtsEl.innerText.replace(/[^\d]/g,''))||0;
+  if(totalPts === 0){
+    // fallback: sklab_pts أو nld_earned
+    const skRaw = localStorage.getItem('sklab_pts_'+normKey);
+    if(skRaw) try{ totalPts = JSON.parse(skRaw).total||0; }catch(e){}
+    if(totalPts === 0) totalPts = parseInt(localStorage.getItem('nld_earned_'+normKey)||'0');
+  }
 
   // نقاط جدول الترتيب = _sheetPtsCache (للرصيد)
-  const sheetPts = (typeof window._sheetPtsCache !== 'undefined') ? window._sheetPtsCache : 0;
+  const sheetPts = (typeof window._sheetPtsCache !== 'undefined' && window._sheetPtsCache >= 0) ? window._sheetPtsCache : 0;
 
   // تحديث fbTotalPts (نقاط لوحة التحكم)
   const ptsEl = document.getElementById('fbTotalPts');
-  if(ptsEl) ptsEl.innerText = totalPts.toLocaleString();
+  if(ptsEl && totalPts > 0) ptsEl.innerText = totalPts.toLocaleString();
+
+  // تحديث شريط المستوى
+  const lvl = Math.floor(totalPts/3000)+1;
+  const ptsInLvl = totalPts % 3000;
+  const pct = Math.min(100, (ptsInLvl/3000)*100);
+  const lBar = document.getElementById('fbLevelBar');
+  if(lBar) lBar.style.width = pct+'%';
+  const lBadge = document.getElementById('fbLevelBadge');
+  if(lBadge) lBadge.innerText = '🚀 '+lvl;
+  const lPts = document.getElementById('fbLevelPts');
+  if(lPts) lPts.innerText = ptsInLvl.toLocaleString()+' نقطة';
 
   // تحديث fbBalance (من جدول الترتيب)
   const isEarly = localStorage.getItem('nld_is_early_'+normKey) === '1';
   const rate = isEarly ? 35 : 30;
   const balance = ((Math.max(0, sheetPts)/50)*rate).toFixed(2);
   const balEl = document.getElementById('fbBalance');
-  if(balEl) balEl.innerText = balance + ' دج';
+  if(balEl && parseFloat(balance) > 0) balEl.innerText = balance + ' دج';
+  else if(balEl && !balEl.innerText){
+    // إذا لم تكن هناك قيمة، أعرض 0 على الأقل
+    balEl.innerText = '0.00 دج';
+  }
 }
 
 /* ══ خصوصية الإحصائيات — كل عضو له بياناته المنفردة ══ */
