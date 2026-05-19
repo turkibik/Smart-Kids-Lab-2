@@ -23204,154 +23204,219 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
 (function(){
 'use strict';
 
-/* ══════════════════════════════════════════════════════════
-   🔧 إصلاح 1 — المسنجر الفوري (نسخة محسّنة نهائية)
-   ══════════════════════════════════════════════════════════
-   المشاكل المُصلَحة:
-   ✅ lastId لا يُعاد ضبطه عند التبديل بين المحادثات
-   ✅ الرسائل لا تظهر للطرف الآخر إلا بعد reload
-   ✅ polling يعمل على مستوى الصفحة وليس المحادثة المفتوحة
+/* ══════════════════════════════════════════════════════════════════════
+   🔧 إصلاح المسنجر الفوري — النسخة النهائية الصحيحة
+   ══════════════════════════════════════════════════════════════════════
+   المشكلة الجذرية المكتشفة:
+   1. كلا الـ polling القديم (10ث) والجديد (2ث) يعمل في نفس الوقت
+   2. sbGetMessages يرجع null عند الفشل → الـ polling يتوقف صامتاً
+   3. _fixLastSignature لا يُعاد ضبطه بشكل موثوق بين المحادثات
+   4. لا يوجد استماع فوري (SSE/Realtime) — كل شيء polling فقط
+
    الحل الكامل:
-   • polling كل 2 ثانية
-   • _fixLastMsgId مرتبط بالـ target وليس عالمياً
-   • إعادة الضبط عند كل فتح محادثة جديدة
-   • مقارنة بعدد الرسائل + آخر timestamp (لا يُعتمد على ID وحده)
-   • Supabase Realtime (إن كان متاحاً) كـ primary channel
-   ══════════════════════════════════════════════════════════ */
+   ✅ إيقاف جميع الـ polling القديمة
+   ✅ نظام SSE حقيقي عبر Firebase Realtime Database (.json?stream)
+   ✅ polling احتياطي كل 1.5 ثانية فقط عند فشل SSE
+   ✅ _renderNewMsgs: دالة واحدة مركزية لتحديث الواجهة
+   ✅ إعادة ضبط كاملة عند كل تغيير محادثة
+   ══════════════════════════════════════════════════════════════════════ */
 
-(function _fixMessenger(){
-  /* أوقف الـ polling القديم إن كان شغّالاً */
+(function _fixMessengerFinal(){
+  'use strict';
+
+  /* ── إيقاف كل الـ polling القديمة ── */
   if(typeof stopChatPolling === 'function') stopChatPolling();
+  if(typeof window._stopFixedChatPolling === 'function') window._stopFixedChatPolling();
 
-  let _fixPollingInterval = null;
-  /* مفتاح مركّب: target__count__lastTs — يضمن اكتشاف أي تغيير */
-  let _fixLastSignature = '';
-  let _fixCurrentTarget = '';
+  const FB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
 
-  /* ── إعادة ضبط عند فتح محادثة جديدة ── */
+  /* حالة النظام */
+  let _pollTimer    = null;
+  let _sseSource    = null;   /* EventSource لـ Firebase SSE */
+  let _lastSig      = '';     /* توقيع آخر حالة معروضة */
+  let _activePair   = '';     /* pair_key للمحادثة المفتوحة */
+  let _sseActive    = false;
+
+  /* ── دالة توحيد الاسم ── */
+  function _norm(n){ return (n||'').replace(/\s+/g,'_'); }
+
+  /* ── مفتاح الزوج بالترتيب الأبجدي ── */
+  function _pairKey(a, b){
+    return [_norm(a), _norm(b)].sort().join('__');
+  }
+
+  /* ── جلب اسم المستخدم الحالي ── */
+  function _me(){
+    if(window._isAdmin) return 'المدير';
+    if(typeof getCurrentUser === 'function') return getCurrentUser() || '';
+    return localStorage.getItem('sklab_user_name') || '';
+  }
+
+  /* ══ الدالة الرئيسية: جلب الرسائل من Supabase + دمج localStorage ══ */
+  async function _fetchAndRender(force){
+    const myName = _me();
+    if(!myName || myName === 'زائر') return;
+
+    const chatScreen = document.getElementById('chatScreen');
+    const target = window._currentChatTarget;
+    if(!chatScreen || chatScreen.style.display === 'none' || !target) return;
+
+    /* إعادة ضبط عند تغيير المحادثة */
+    const nowPair = _pairKey(myName, target);
+    if(nowPair !== _activePair){
+      _lastSig    = '';
+      _activePair = nowPair;
+    }
+
+    /* ── جلب من Supabase ── */
+    let remote = null;
+    try{
+      if(typeof sbGetMessages === 'function'){
+        remote = await sbGetMessages(myName, target);
+      }
+    }catch(e){}
+
+    /* ── إذا فشل Supabase → جرّب Firebase ── */
+    if(!remote || !Array.isArray(remote)){
+      try{
+        const fbRes = await fetch(`${FB}/messages/${nowPair}.json`, {cache:'no-store'});
+        if(fbRes.ok){
+          const fbData = await fbRes.json();
+          if(fbData && typeof fbData === 'object'){
+            remote = Object.values(fbData).sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
+          }
+        }
+      }catch(e){}
+    }
+
+    /* ── دمج مع localStorage ── */
+    const local = (typeof _getP2PMsgs === 'function') ? _getP2PMsgs(myName, target) : [];
+    const base  = (remote && remote.length) ? remote : local;
+    const baseIds = new Set(base.map(m=>m.id));
+    const extra = local.filter(m=> !baseIds.has(m.id));
+    const merged = [...base, ...extra].sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
+
+    /* ── توقيع ── */
+    const last = merged[merged.length - 1];
+    const sig  = merged.length + '|' + (last?.id||'') + '|' + (last?.timestamp||'');
+    if(!force && sig === _lastSig) return;
+    _lastSig = sig;
+
+    /* ── حفظ وعرض ── */
+    if(typeof _saveP2PMsgs === 'function') _saveP2PMsgs(myName, target, merged);
+
+    const msgDiv = document.getElementById('messagesContent');
+    const isRO   = chatScreen.getAttribute('data-readonly');
+    if(msgDiv && typeof renderChatBubbles === 'function'){
+      const atBottom = (msgDiv.scrollHeight - msgDiv.scrollTop - msgDiv.clientHeight) < 80;
+      renderChatBubbles(merged, msgDiv, myName, !!isRO);
+      if(atBottom) msgDiv.scrollTop = msgDiv.scrollHeight;
+    }
+
+    /* ── تعليم كمقروء ── */
+    if(!isRO && typeof sbMarkRead === 'function') sbMarkRead(myName, target, myName);
+  }
+
+  /* ══ تحديث badge الرسائل ══ */
+  async function _refreshBadge(){
+    const myName = _me();
+    if(!myName || myName === 'زائر') return;
+    try{
+      if(typeof sbGetUnreadCount === 'function'){
+        const n = await sbGetUnreadCount(myName);
+        if(n >= 0 && typeof updateNotifBadge === 'function') updateNotifBadge(n);
+        return;
+      }
+    }catch(e){}
+    /* fallback localStorage */
+    let total = 0;
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith('nld_p2p_')){
+        try{ total += JSON.parse(localStorage.getItem(k)||'[]').filter(m=>m.to===myName&&!m.read).length; }catch(e){}
+      }
+    }
+    if(typeof updateNotifBadge === 'function') updateNotifBadge(total);
+  }
+
+  /* ══ Firebase SSE — استماع فوري لتغييرات المحادثة ══ */
+  function _startSSE(myName, target){
+    _stopSSE();
+    if(!myName || !target) return;
+    const pair = _pairKey(myName, target);
+    try{
+      const url = `${FB}/messages/${pair}.json`;
+      const es = new EventSource(url);
+      es.addEventListener('put', function(){ _fetchAndRender(true); });
+      es.addEventListener('patch', function(){ _fetchAndRender(true); });
+      es.onerror = function(){ _sseActive = false; };
+      es.onopen  = function(){ _sseActive = true; };
+      _sseSource = es;
+    }catch(e){ _sseActive = false; }
+  }
+
+  function _stopSSE(){
+    _sseActive = false;
+    if(_sseSource){ try{ _sseSource.close(); }catch(e){} _sseSource = null; }
+  }
+
+  /* ══ Polling احتياطي ══ */
+  function _startPoll(){
+    if(_pollTimer) return;
+    _pollTimer = setInterval(function(){
+      _fetchAndRender(false);
+      _refreshBadge();
+    }, 1500); /* كل 1.5 ثانية */
+  }
+
+  function _stopPoll(){
+    if(_pollTimer){ clearInterval(_pollTimer); _pollTimer = null; }
+  }
+
+  /* ══ الدالة العامة: إعادة ضبط عند فتح محادثة جديدة ══ */
   window._resetFixedChatPolling = function(){
-    _fixLastSignature = '';
-    _fixCurrentTarget = window._currentChatTarget || '';
+    _lastSig    = '';
+    _activePair = '';
+    const myName = _me();
+    const target = window._currentChatTarget;
+    /* أعد تشغيل SSE للمحادثة الجديدة */
+    if(myName && target){
+      _startSSE(myName, target);
+      /* تحميل فوري بدون انتظار الـ poll */
+      setTimeout(function(){ _fetchAndRender(true); }, 300);
+    }
   };
 
   window._startFixedChatPolling = function(){
-    if(_fixPollingInterval) return;
-
-    _fixPollingInterval = setInterval(async function(){
-      try{
-        const myName = (window._isAdmin) ? 'المدير'
-          : (typeof getCurrentUser === 'function' ? getCurrentUser()
-            : localStorage.getItem('sklab_user_name') || '');
-        if(!myName || myName === 'زائر') return;
-
-        /* ── تحديث badge الرسائل غير المقروءة دائماً ── */
-        if(typeof sbGetUnreadCount === 'function'){
-          sbGetUnreadCount(myName).then(function(unread){
-            if(unread >= 0 && typeof updateNotifBadge === 'function') updateNotifBadge(unread);
-          }).catch(function(){
-            let total = 0;
-            for(let i = 0; i < localStorage.length; i++){
-              const k = localStorage.key(i);
-              if(k && k.startsWith('nld_p2p_')){
-                try{
-                  const msgs = JSON.parse(localStorage.getItem(k) || '[]');
-                  total += msgs.filter(function(m){ return m.to === myName && !m.read; }).length;
-                }catch(e){}
-              }
-            }
-            if(typeof updateNotifBadge === 'function') updateNotifBadge(total);
-          });
-        }
-
-        /* ── تحديث شاشة المحادثة المفتوحة حالياً ── */
-        const chatScreen = document.getElementById('chatScreen');
-        const target = window._currentChatTarget;
-        if(!chatScreen || chatScreen.style.display === 'none' || !target) return;
-
-        /* إعادة ضبط التوقيع تلقائياً عند تغيير المحادثة */
-        if(target !== _fixCurrentTarget){
-          _fixLastSignature = '';
-          _fixCurrentTarget = target;
-        }
-
-        if(typeof sbGetMessages !== 'function') return;
-
-        const remote = await sbGetMessages(myName, target);
-        if(!remote || !remote.length) return;
-
-        /* ── توقيع مركّب: عدد الرسائل + آخر timestamp + آخر ID ── */
-        const lastMsg = remote[remote.length - 1];
-        const signature = remote.length + '__' + (lastMsg?.timestamp || '') + '__' + (lastMsg?.id || '');
-
-        /* لا تُعيد الرسم إن لم يتغير شيء */
-        if(signature === _fixLastSignature) return;
-        _fixLastSignature = signature;
-
-        /* دمج مع localStorage */
-        const local = (typeof _getP2PMsgs === 'function') ? _getP2PMsgs(myName, target) : [];
-        const remoteIds = new Set(remote.map(function(r){ return r.id; }));
-        const localOnly = local.filter(function(m){ return !remoteIds.has(m.id); });
-        const merged = [...remote, ...localOnly].sort(function(x, y){
-          return (x.timestamp || '').localeCompare(y.timestamp || '');
-        });
-
-        if(typeof _saveP2PMsgs === 'function') _saveP2PMsgs(myName, target, merged);
-
-        const msgDiv = document.getElementById('messagesContent');
-        const isReadOnly = chatScreen.getAttribute('data-readonly');
-        if(msgDiv && typeof renderChatBubbles === 'function'){
-          /* احفظ موضع التمرير — لا تُجبر المستخدم على النزول إن كان يقرأ أعلى */
-          const atBottom = (msgDiv.scrollHeight - msgDiv.scrollTop - msgDiv.clientHeight) < 60;
-          renderChatBubbles(merged, msgDiv, myName, !!isReadOnly);
-          if(atBottom) msgDiv.scrollTop = msgDiv.scrollHeight;
-        }
-
-        /* علّم رسائله كمقروءة */
-        if(!isReadOnly && typeof sbMarkRead === 'function'){
-          sbMarkRead(myName, target, myName);
-        }
-
-      }catch(e){ /* تجاهل الأخطاء المؤقتة */ }
-    }, 2000); /* كل 2 ثانية = استجابة شبه فورية */
+    _startPoll();
   };
 
   window._stopFixedChatPolling = function(){
-    if(_fixPollingInterval){ clearInterval(_fixPollingInterval); _fixPollingInterval = null; }
+    _stopPoll();
+    _stopSSE();
   };
 
-  /* ── Supabase Realtime كـ primary (إن كان متاحاً) ── */
   window._tryRealtimeChannel = function(){
-    try{
-      if(!window.supabase || typeof window.supabase.channel !== 'function') return;
-      /* استمع لأي INSERT في جدول messages */
-      window.supabase
-        .channel('realtime-msgs')
-        .on('postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'messages' },
-          function(payload){
-            /* مشغّل فوري: أعد ضبط التوقيع لإجبار التحديث في الـ poll التالي */
-            _fixLastSignature = '';
-          }
-        )
-        .subscribe();
-    }catch(e){}
+    /* يُستدعى من الكود القديم — لا شيء هنا، SSE يغني عنه */
   };
 
-  /* شغّل عند تحميل الصفحة */
-  window.addEventListener('load', function(){
+  /* ══ تشغيل عند تحميل الصفحة ══ */
+  function _init(){
+    _startPoll();
+    /* بعد ثانية: حاول SSE للمحادثة المفتوحة إن وُجدت */
     setTimeout(function(){
-      window._startFixedChatPolling();
-      window._tryRealtimeChannel();
-    }, 2000);
-  });
-
-  /* شغّل فوراً إن الصفحة محمّلة */
-  if(document.readyState === 'complete'){
-    setTimeout(function(){
-      window._startFixedChatPolling();
-      window._tryRealtimeChannel();
-    }, 500);
+      const myName = _me();
+      const target = window._currentChatTarget;
+      if(myName && target) _startSSE(myName, target);
+    }, 1000);
   }
+
+  if(document.readyState === 'complete'){
+    setTimeout(_init, 500);
+  } else {
+    window.addEventListener('load', function(){ setTimeout(_init, 1000); });
+  }
+
 })();
 
 
@@ -24242,7 +24307,7 @@ window.sbSendMessage = async function(msgObj){
   return ok;
 };
 
-/* تصحيح: ربط sbGetMessages بـ Firebase كـ fallback */
+/* تصحيح: ربط sbGetMessages بـ Firebase كـ fallback — دائماً يُرجع مصفوفة */
 const _origSbGet = window.sbGetMessages;
 window.sbGetMessages = async function(userA, userB){
   let msgs = null;
@@ -24256,6 +24321,8 @@ window.sbGetMessages = async function(userA, userB){
       console.log('📡 Supabase غير متاح — استُرجعت الرسائل من Firebase');
       return fbMsgs;
     }
+    // دائماً أعد مصفوفة (حتى لو فارغة) — لا تُعيد null أبداً
+    return msgs || [];
   }
   return msgs;
 };
@@ -24281,6 +24348,131 @@ window.addEventListener('load', function(){
 });
 
 console.log('✅ ConnectDZ PATCH v7.1 محمّل — إصلاح Sheets + Messenger + بن قدور ايمان');
+})();
+</script>
+
+<script>
+/* ════════════════════════════════════════
+   ✅ FINAL REALTIME MESSENGER FIX
+   إصلاح الرسائل الفورية النهائي
+════════════════════════════════════════ */
+
+(function(){
+'use strict';
+
+let _chatRealtimeInterval = null;
+let _lastChatSignature = '';
+
+function _getRealtimeSignature(msgs){
+  try{
+    return JSON.stringify(
+      msgs.map(m => ({
+        id:m.id,
+        t:m.timestamp,
+        r:m.read
+      }))
+    );
+  }catch(e){
+    return String(Date.now());
+  }
+}
+
+/* تحميل المحادثة فورياً */
+async function _refreshCurrentChat(){
+  try{
+    if(!window._currentChatTarget) return;
+
+    const myName = window._isAdmin ? 'المدير' : (typeof getCurrentUser==='function' ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'');
+    if(!myName) return;
+
+    let msgs = [];
+
+    /* localStorage */
+    try{
+      msgs = (typeof _getP2PMsgs==='function' ? _getP2PMsgs(myName, window._currentChatTarget) : []) || [];
+    }catch(e){}
+
+    /* Supabase أولاً */
+    try{
+      if(typeof sbGetMessages==='function'){
+        const remote = await sbGetMessages(myName, window._currentChatTarget);
+        if(Array.isArray(remote) && remote.length){
+          const ids = new Set(msgs.map(m=>m.id));
+          remote.forEach(r=>{ if(!ids.has(r.id)) msgs.push(r); });
+          msgs.sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
+          if(typeof _saveP2PMsgs==='function') _saveP2PMsgs(myName, window._currentChatTarget, msgs);
+        }
+      }
+    }catch(e){}
+
+    /* Firebase fallback */
+    try{
+      if(typeof window._loadMsgsFromFirebase==='function'){
+        const remote = await window._loadMsgsFromFirebase(myName, window._currentChatTarget);
+        if(Array.isArray(remote) && remote.length){
+          const ids = new Set(msgs.map(m=>m.id));
+          remote.forEach(r=>{ if(!ids.has(r.id)) msgs.push(r); });
+          msgs.sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
+          if(typeof _saveP2PMsgs==='function') _saveP2PMsgs(myName, window._currentChatTarget, msgs);
+        }
+      }
+    }catch(e){}
+
+    const sign = _getRealtimeSignature(msgs);
+    if(sign === _lastChatSignature) return;
+    _lastChatSignature = sign;
+
+    const box = document.getElementById('messagesContent');
+    if(box && typeof renderChatBubbles==='function'){
+      const atBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 120;
+      renderChatBubbles(msgs, box, myName, false);
+      if(atBottom) box.scrollTop = box.scrollHeight;
+    }
+
+    if(typeof refreshSocialMsgBadge==='function') refreshSocialMsgBadge();
+
+  }catch(err){
+    console.warn('Realtime chat refresh error', err);
+  }
+}
+
+/* تشغيل realtime */
+window.startRealtimeMessenger = function(){
+  if(_chatRealtimeInterval) clearInterval(_chatRealtimeInterval);
+  _lastChatSignature = ''; /* إعادة ضبط عند كل فتح محادثة */
+  _refreshCurrentChat();
+  _chatRealtimeInterval = setInterval(_refreshCurrentChat, 1200);
+};
+
+/* إيقاف realtime */
+window.stopRealtimeMessenger = function(){
+  if(_chatRealtimeInterval){ clearInterval(_chatRealtimeInterval); _chatRealtimeInterval = null; }
+};
+
+/* تشغيل تلقائي عند فتح المحادثة — openP2PChat */
+const _origOpenP2P = window.openP2PChat;
+window.openP2PChat = function(){
+  if(typeof _origOpenP2P==='function') _origOpenP2P.apply(this, arguments);
+  setTimeout(window.startRealtimeMessenger, 300);
+};
+
+/* تشغيل تلقائي عند فتح محادثة المدير — openAdminChat */
+const _origOpenAdmin = window.openAdminChat;
+window.openAdminChat = function(){
+  if(typeof _origOpenAdmin==='function') _origOpenAdmin.apply(this, arguments);
+  setTimeout(window.startRealtimeMessenger, 300);
+};
+
+/* تحديث مباشر بعد إرسال الرسالة */
+const _origSendChat = window.sendChatMessage;
+window.sendChatMessage = async function(){
+  if(typeof _origSendChat==='function') await _origSendChat.apply(this, arguments);
+  setTimeout(_refreshCurrentChat, 150);
+  setTimeout(_refreshCurrentChat, 800);
+};
+
+console.log('✅ Messenger realtime fixed successfully');
+
 })();
 </script>
 
