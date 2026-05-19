@@ -24476,5 +24476,158 @@ console.log('✅ Messenger realtime fixed successfully');
 })();
 </script>
 
+<script>
+/* ════════════════════════════════════════════════════════
+   🔧 SUPABASE AUTO-FIX — إصلاح تلقائي لمشكلة الرسائل
+   يعمل فور تحميل الصفحة: يتحقق من Supabase ويُصلح تلقائياً
+════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+const _SB_URL = 'https://slqgbnxwsnzsiovfarsn.supabase.co';
+const _SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNscWdibnh3c256c2lvdmZhcnNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDc1MDcsImV4cCI6MjA5MzU4MzUwN30.gDJojEroxvwc86K6Xd0mO2rcRMQ9vuDacqUKZpJTQTI';
+const _SB_HDR = {
+  'Content-Type': 'application/json',
+  'apikey': _SB_KEY,
+  'Authorization': 'Bearer ' + _SB_KEY,
+  'Prefer': 'return=representation'
+};
+
+/* ── 1. التحقق من اتصال Supabase ── */
+async function _checkSupabase(){
+  try{
+    const r = await fetch(_SB_URL + '/rest/v1/messages?limit=1', { headers: _SB_HDR });
+    return { ok: r.ok, status: r.status };
+  }catch(e){ return { ok: false, status: 0, error: e.message }; }
+}
+
+/* ── 2. إرسال رسالة مع retry (3 محاولات) ── */
+async function _sendWithRetry(msgObj, attempts){
+  attempts = attempts || 3;
+  // تأكد أن mediaData لا يتجاوز 500KB (Supabase يرفض الأحجام الكبيرة)
+  const safe = Object.assign({}, msgObj);
+  if(safe.mediaData && safe.mediaData.length > 500000){
+    safe.mediaData = null; // احذف البيانات الكبيرة — الـ URL يكفي
+  }
+  const pairKey = [safe.from, safe.to].sort().map(n=>n.replace(/\s+/g,'_')).join('__');
+  safe.pair_key = pairKey;
+
+  for(let i = 0; i < attempts; i++){
+    try{
+      const r = await fetch(_SB_URL + '/rest/v1/messages', {
+        method: 'POST',
+        headers: _SB_HDR,
+        body: JSON.stringify(safe)
+      });
+      if(r.ok || r.status === 409) return true; // 409 = مكرر = موجود فعلاً
+      if(r.status === 403){
+        console.error('🔒 Supabase RLS يمنع الكتابة — راجع الـ Policies');
+        return false;
+      }
+      if(r.status === 404){
+        console.error('❌ جدول messages غير موجود في Supabase');
+        return false;
+      }
+      // انتظر قبل إعادة المحاولة
+      await new Promise(res => setTimeout(res, 600 * (i + 1)));
+    }catch(e){
+      await new Promise(res => setTimeout(res, 600 * (i + 1)));
+    }
+  }
+  return false;
+}
+
+/* ── 3. اعتراض sbSendMessage وتقوية الإرسال ── */
+const _origSb = window.sbSendMessage;
+window.sbSendMessage = async function(msgObj){
+  // نحاول أولاً الدالة الأصلية
+  let ok = false;
+  if(typeof _origSb === 'function'){
+    try{ ok = await _origSb(msgObj); }catch(e){ ok = false; }
+  }
+  // إذا فشلت أو لم تكن موثوقة — نُعيد المحاولة بنظام retry
+  if(!ok){
+    ok = await _sendWithRetry(msgObj);
+    if(ok) console.log('✅ AutoFix: رسالة أُرسلت بعد retry');
+    else    console.warn('⚠️ AutoFix: فشل الإرسال نهائياً — تحقق من Supabase');
+  }
+  // دائماً sync لـ Firebase كاحتياطي
+  if(typeof window._syncMsgToFirebase === 'function'){
+    window._syncMsgToFirebase(msgObj);
+  }
+  return ok;
+};
+
+/* ── 4. اعتراض sbGetMessages وتقوية الجلب ── */
+const _origGet = window.sbGetMessages;
+window.sbGetMessages = async function(userA, userB){
+  let msgs = null;
+  if(typeof _origGet === 'function'){
+    try{ msgs = await _origGet(userA, userB); }catch(e){ msgs = null; }
+  }
+  // إذا فشل Supabase → Firebase fallback
+  if(!msgs || !Array.isArray(msgs) || msgs.length === 0){
+    if(typeof window._loadMsgsFromFirebase === 'function'){
+      const fb = await window._loadMsgsFromFirebase(userA, userB);
+      if(Array.isArray(fb) && fb.length > 0){
+        console.log('📡 AutoFix: استُرجعت الرسائل من Firebase بدلاً من Supabase');
+        return fb;
+      }
+    }
+    return msgs || [];
+  }
+  return msgs;
+};
+
+/* ── 5. فحص عند تحميل الصفحة وإبلاغ المطور ── */
+window.addEventListener('load', async function(){
+  await new Promise(res => setTimeout(res, 2000));
+  const result = await _checkSupabase();
+  if(result.ok){
+    console.log('✅ AutoFix: Supabase متصل وجاهز للرسائل');
+  } else if(result.status === 403){
+    console.error('🔒 AutoFix: Supabase RLS مفعّل بدون Policy — الرسائل لن تصل!\n👉 الحل: افتح Supabase Dashboard → Authentication → Policies → messages → أضف Allow All لـ anon');
+  } else if(result.status === 404 || result.status === 0){
+    console.error('❌ AutoFix: تعذّر الوصول لـ Supabase (status=' + result.status + ')\n👉 تأكد من صحة SUPABASE_URL والـ KEY، أو أن الجدول messages موجود');
+  } else {
+    console.warn('⚠️ AutoFix: Supabase status=' + result.status);
+  }
+});
+
+/* ── 6. دالة إصلاح يدوي من Console ── */
+window._fixMessages = async function(){
+  console.log('🔧 جاري فحص Supabase...');
+  const r = await _checkSupabase();
+  console.log('📡 النتيجة:', r);
+
+  const myName = (typeof getCurrentUser==='function' ? getCurrentUser() : null)
+    || localStorage.getItem('sklab_user_name') || 'مجهول';
+
+  // إرسال رسالة اختبار
+  const testOk = await _sendWithRetry({
+    id: 'fix_test_' + Date.now(),
+    from: myName,
+    to: myName,
+    message: '🔧 اختبار إصلاح',
+    timestamp: new Date().toISOString(),
+    read: true,
+    mediaType: null,
+    mediaData: null
+  });
+
+  if(testOk){
+    if(typeof showToast==='function') showToast('✅ Supabase يعمل — الرسائل ستصل الآن!');
+    console.log('✅ Supabase يعمل بشكل صحيح');
+  } else {
+    if(typeof showToast==='function') showToast('❌ Supabase لا يعمل — راجع الـ Console للتفاصيل');
+    console.error('❌ تحقق من:\n1. Supabase Dashboard → Table Editor → messages موجود؟\n2. Authentication → Policies → Allow INSERT لـ anon؟\n3. SQL: ALTER TABLE messages ENABLE ROW LEVEL SECURITY;\n   CREATE POLICY "allow_all" ON messages FOR ALL TO anon USING (true) WITH CHECK (true);');
+  }
+};
+
+console.log('✅ AutoFix Messenger محمّل — لتشخيص يدوي اكتب: _fixMessages()');
+
+})();
+</script>
+
 </body>
 </html>
