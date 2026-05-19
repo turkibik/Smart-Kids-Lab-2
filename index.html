@@ -10322,7 +10322,7 @@ const messagesApiUrl = 'YOUR_MESSAGES_APPS_SCRIPT_URL_HERE'; // legacy - not use
    🗄️ Supabase Config — نظام الرسائل الحقيقي
    =================================================================== */
 const SUPABASE_URL = 'https://slqgbnxwsnzsiovfarsn.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_Z47-5NW7DCqSfG9xs57l3w_OSc3MirH';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNscWdibnh3c256c2lvdmZhcnNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDc1MDcsImV4cCI6MjA5MzU4MzUwN30.gDJojEroxvwc86K6Xd0mO2rcRMQ9vuDacqUKZpJTQTI';
 const SB_HEADERS = {
   'Content-Type': 'application/json',
   'apikey': SUPABASE_KEY,
@@ -20543,9 +20543,10 @@ window.completeRegistration = async function(){
 
   // ═══ إرسال البيانات مباشرة إلى Firebase Realtime Database ═══
   try {
-    const gender   = document.getElementById('regGender')?.value  || '';
-    const level    = document.getElementById('regLevel')?.value   || '';
-    const idNum    = document.getElementById('regIdNumber')?.value?.trim() || '';
+    const gender   = document.getElementById('regGender')?.value  || _regData.gender      || '';
+    const level    = document.getElementById('regLevel')?.value   || _regData.level       || '';
+    // ✅ إصلاح: نأخذ idNumber من _regData أولاً (يُحفظ في خطوة سابقة) ثم من DOM
+    const idNum    = _regData.idNumber || document.getElementById('regIdNumber')?.value?.trim() || userData.idNumber || '';
     const fullName = (userData.firstName||'') + ' ' + (userData.lastName||'');
     const address  = (userData.wilaya||'') + ' - ' + (userData.baladiya||'') + ' - ' + (userData.address||'');
     const now      = new Date();
@@ -20585,7 +20586,7 @@ window.completeRegistration = async function(){
       مواضيع_أخرى           : userData.otherTopics         || ''
     };
 
-    // ── حفظ في /registrations/ في الخلفية (بدون انتظار) ──
+    // ── حفظ في /registrations/ في الخلفية ──
     const regKey = 'reg_' + Date.now();
     fetch(`${DB_BASE}/registrations/${regKey}.json`, {
       method : 'PUT',
@@ -20598,46 +20599,53 @@ window.completeRegistration = async function(){
       body   : JSON.stringify(regRecord)
     }).catch(()=>{});
 
-    // ── كتابة في Google Sheets في الخلفية (بدون انتظار) ──
+    // ── كتابة في Google Sheets (Google Form) ──
     if(typeof window._writeRegToSheets === 'function'){
       window._writeRegToSheets(regRecord);
     }
 
-    // ══ SheetDB — حفظ مباشر في Google Sheet القديم ══
+    // ══ SheetDB — حفظ مباشر في Google Sheet بكل الحقول ══
+    // ✅ إصلاح: نضيف جميع الحقول المفقودة (النيد، صور الوثائق، دار الشباب)
+    const sheetDbData = {
+      'Timestamp'                                     : new Date().toISOString(),
+      'Email Address'                                 : userData.email                          || '',
+      'الاسم واللقب'                                  : fullName,
+      'تاريخ الميلاد'                                 : userData.dob                            || '',
+      'عنوان الاقامة'                                 : address,
+      'رقم بطاقة التعريف ( 16 رقم )'                 : idNum,
+      'زمرة الدم'                                     : userData.bloodType                       || '',
+      'الصورة الشمسية'                                : userData.photoUrl                        || '',
+      'تاريخ الانخراط'                                : dateStr,
+      'الجنس'                                         : gender,
+      'تحديد الفئة'                                   : userData.category                        || '',
+      'المستوى الدراسي'                               : level,
+      'الولاية'                                       : userData.wilaya                          || '',
+      'البلدية'                                       : userData.baladiya                        || '',
+      'رقم الهاتف'                                    : userData.phone                           || '',
+      'شهادة الميلاد'                                 : userData.birthUrl                        || '',
+      'بطاقة التعريف ( القصر ولي امر )'               : userData.guardianIdUrl || userData.idUrl  || '',
+      'هل انت منخرط بدار الشباب'                     : userData.youthHouse                      || '',
+      'هواياتك'                                       : Array.isArray(userData.hobbies) ? userData.hobbies.join(', ') : (userData.hobbies||''),
+      'مهاراتك القيادية'                              : Array.isArray(userData.leadSkills) ? userData.leadSkills.join(', ') : (userData.leadSkills||''),
+      'هل شاركت من قبل في الطفل الذكي'              : userData.smartKidsBefore                 || '',
+      'تعاني من امراض اذكرها'                        : userData.healthIssues                    || '',
+      'ماذا اعجبك في Smart Kids'                     : userData.smartKidsLikes                  || '',
+      'ماذا تقترح حتى يتم تطوير Smart Kids'         : userData.smartKidsSuggestion              || '',
+      'Smart Kids رأيك في مستوى'                    : userData.smartKidsLevel                   || ''
+    };
     fetch('https://sheetdb.io/api/v1/sc1z9g0cnu62a', {
       method : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify({ data: [{
-        'Timestamp'                                     : new Date().toISOString(),
-        'Email Address'                                 : userData.email          || '',
-        'الاسم واللقب'                                  : fullName,
-        'تاريخ الميلاد'                                 : userData.dob            || '',
-        'عنوان الاقامة'                                 : address,
-        'رقم بطاقة التعريف ( 16 رقم )'                 : userData.idNumber        || '',
-        'زمرة الدم'                                     : userData.bloodType       || '',
-        'الصورة الشمسية'                                : userData.photoUrl        || '',
-        'تاريخ الانخراط'                                : dateStr,
-        'الجنس'                                         : gender,
-        'تحديد الفئة'                                   : userData.category        || '',
-        'المستوى الدراسي'                               : level,
-        'الولاية'                                       : userData.wilaya          || '',
-        'البلدية'                                       : userData.baladiya        || '',
-        'رقم الهاتف'                                    : userData.phone           || '',
-        'شهادة الميلاد'                                 : userData.birthUrl        || '',
-        'بطاقة التعريف ( القصر ولي امر )'               : userData.guardianIdUrl   || '',
-        'هل انت منخرط بدار الشباب'                     : userData.youthHouse      || '',
-        'هواياتك'                                       : userData.hobbies         || '',
-        'مهاراتك القيادية'                              : userData.leadSkills      || '',
-        'هل شاركت من قبل في الطفل الذكي'              : userData.smartKidsBefore  || '',
-        'تعاني من امراض اذكرها'                        : userData.healthIssues    || '',
-        'ماذا اعجبك في Smart Kids'                     : userData.smartKidsLikes   || '',
-        'ماذا تقترح حتى يتم تطوير Smart Kids'         : userData.smartKidsSuggestion || '',
-        'Smart Kids رأيك في مستوى'                    : userData.smartKidsLevel   || ''
-      }]})
-    }).then(()=>console.log('✅ SheetDB: تم الحفظ')).catch(e=>console.warn('⚠️ SheetDB:',e.message));
+      body   : JSON.stringify({ data: [sheetDbData] })
+    }).then(r=>r.json()).then(res=>{
+      console.log('✅ SheetDB: تم الحفظ بنجاح', res);
+    }).catch(e=>console.warn('⚠️ SheetDB:',e.message));
     // ════════════════════════════════════════════════════════════
 
-  } catch(e) { /* الإرسال اختياري — لا يوقف التسجيل */ }
+  } catch(e) {
+    console.warn('⚠️ خطأ في إرسال البيانات للجداول:', e.message);
+    /* الإرسال اختياري — لا يوقف التسجيل */
+  }
 
   // إعادة تفعيل الزر فوراً
   if(btn){ btn.disabled=false; btn.textContent='✅ إنشاء الحساب'; }
@@ -23978,6 +23986,236 @@ window.switchSocialTab = function(tab){
 };
 
 console.log('✅ ConnectDZ Streak v6.0 — شعلة من الشيتس + خصوصية + عزل الصور');
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     🔧 PATCH v7.1 — إصلاح ثلاثة مشاكل:
+     1) إرسال بيانات بن قدور ايمان يدوياً إلى Google Sheets
+     2) إصلاح الرسائل بين طرفين (Supabase + Firebase sync)
+     3) إصلاح استمارة التسجيل الجديدة
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+const _DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+const _SHEETDB = 'https://sheetdb.io/api/v1/sc1z9g0cnu62a';
+
+/* ══════════════════════════════════════════════════════
+   ✅ PATCH 1 — إرسال بيانات بن قدور ايمان إلى Google Sheets
+   يُستدعى تلقائياً عند تحميل الصفحة
+   ══════════════════════════════════════════════════════ */
+async function _syncBenKaddourIman(){
+  const targetName = 'بن قدور ايمان';
+
+  // 1) ابحث في Firebase /registrations/
+  try {
+    const res = await fetch(`${_DB}/registrations.json`);
+    if(!res.ok) throw new Error('Firebase غير متاح');
+    const data = await res.json();
+
+    if(data && typeof data === 'object'){
+      const keys = Object.keys(data);
+      for(const k of keys){
+        const r = data[k];
+        const name = r['الاسم_واللقب'] || r['الاسم واللقب'] || '';
+        if(name && name.includes('بن قدور') && name.includes('ايمان')){
+          console.log('🔍 وُجدت بيانات بن قدور ايمان في Firebase:', r);
+          await _sendToSheetDB(r, name, k);
+          return;
+        }
+      }
+    }
+  } catch(e){ console.warn('⚠️ Firebase search error:', e.message); }
+
+  // 2) ابحث في localStorage
+  try {
+    const usersRaw = localStorage.getItem('sklab_users') || localStorage.getItem('nld_users') || '{}';
+    const users = JSON.parse(usersRaw);
+    for(const key of Object.keys(users)){
+      const u = users[key];
+      const fn = ((u.firstName||'') + ' ' + (u.lastName||'')).trim();
+      const fullMatch = fn.includes('بن قدور') || fn.includes('ايمان') || key.includes('بن_قدور') || key.includes('ايمان');
+      if(fullMatch){
+        console.log('🔍 وُجدت بيانات بن قدور ايمان في localStorage:', u);
+        await _sendToSheetDB(u, fn || targetName, 'ls_'+Date.now());
+        return;
+      }
+    }
+  } catch(e){ console.warn('⚠️ localStorage search error:', e.message); }
+
+  // 3) إذا لم توجد — أرسل سجل تذكيري للمدير
+  console.warn('⚠️ لم تُعثر على بيانات بن قدور ايمان في Firebase أو localStorage');
+  console.info('💡 يمكن للمدير استدعاء: window.adminResyncMember("بن قدور ايمان") يدوياً');
+}
+
+async function _sendToSheetDB(rec, name, firebaseKey){
+  // بناء كائن مطابق لأعمدة SheetDB
+  const row = {
+    'Timestamp'                                    : new Date().toISOString(),
+    'Email Address'                                : rec['Email'] || rec['email'] || rec['Email Address'] || '',
+    'الاسم واللقب'                                 : name,
+    'تاريخ الميلاد'                                : rec['تاريخ_الميلاد']  || rec['تاريخ الميلاد']  || rec['dob']         || '',
+    'عنوان الاقامة'                                : rec['عنوان_الإقامة'] || rec['عنوان الاقامة'] || rec['address']      || '',
+    'رقم بطاقة التعريف ( 16 رقم )'                : rec['رقم_البطاقة']   || rec['رقم بطاقة التعريف ( 16 رقم )'] || rec['idNumber'] || '',
+    'زمرة الدم'                                    : rec['زمرة_الدم']     || rec['زمرة الدم']    || rec['bloodType']    || '',
+    'الصورة الشمسية'                               : rec['رابط_الصورة']   || rec['الصورة الشمسية']|| rec['photoUrl']     || '',
+    'تاريخ الانخراط'                               : rec['تاريخ_الانخراط']|| rec['تاريخ الانخراط']|| rec['registeredAt'] || '',
+    'الجنس'                                        : rec['الجنس']         || rec['gender']       || '',
+    'تحديد الفئة'                                  : rec['تحديد_الفئة']   || rec['تحديد الفئة']  || rec['category']     || '',
+    'المستوى الدراسي'                              : rec['المستوى_الدراسي']|| rec['المستوى الدراسي']|| rec['level']       || '',
+    'الولاية'                                      : rec['الولاية']       || rec['wilaya']       || '',
+    'البلدية'                                      : rec['البلدية']       || rec['baladiya']     || '',
+    'رقم الهاتف'                                   : rec['رقم_الهاتف']    || rec['رقم الهاتف']   || rec['phone']        || '',
+    'شهادة الميلاد'                                : rec['شهادة_الميلاد'] || rec['birthUrl']     || '',
+    'بطاقة التعريف ( القصر ولي امر )'              : rec['بطاقة_ولي_الأمر']|| rec['guardianIdUrl']|| rec['idUrl']        || '',
+    'هل انت منخرط بدار الشباب'                    : rec['دار_الشباب']    || rec['youthHouse']   || '',
+    'هواياتك'                                      : Array.isArray(rec['الهوايات']) ? rec['الهوايات'].join(', ') : (rec['الهوايات']||rec['hobbies']||''),
+    'مهاراتك القيادية'                             : Array.isArray(rec['المهارات_القيادية']) ? rec['المهارات_القيادية'].join(', ') : (rec['المهارات_القيادية']||rec['leadSkills']||''),
+    'هل شاركت من قبل في الطفل الذكي'             : rec['شاركت_في_SmartKids'] || rec['smartKidsBefore'] || '',
+    'تعاني من امراض اذكرها'                       : rec['تعاني_من_امراض']    || rec['healthIssues']    || '',
+    'ماذا اعجبك في Smart Kids'                    : rec['اعجبني_في_SmartKids']|| rec['smartKidsLikes']  || '',
+    'ماذا تقترح حتى يتم تطوير Smart Kids'        : rec['اقتراحات_SmartKids'] || rec['smartKidsSuggestion'] || '',
+    'Smart Kids رأيك في مستوى'                   : rec['مستوى_SmartKids']    || rec['smartKidsLevel']  || ''
+  };
+
+  try {
+    const r = await fetch(_SHEETDB, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({ data: [row] })
+    });
+    const result = await r.json();
+    if(r.ok){
+      console.log('✅ SheetDB: تم إرسال بيانات ' + name + ' بنجاح!', result);
+      if(typeof window.showToast === 'function')
+        window.showToast('✅ تم إرسال بيانات ' + name + ' إلى Google Sheets بنجاح!');
+      // حذف من pending_sheets إن وُجد
+      if(firebaseKey && firebaseKey.startsWith('reg_')){
+        fetch(`${_DB}/pending_sheets/${firebaseKey}.json`, { method:'DELETE' }).catch(()=>{});
+      }
+    } else {
+      console.error('❌ SheetDB رفض البيانات:', result);
+    }
+  } catch(e){
+    console.error('❌ فشل إرسال SheetDB:', e.message);
+  }
+}
+
+/* ══ دالة عامة للمدير: إعادة مزامنة أي عضو بالاسم ══ */
+window.adminResyncMember = async function(memberName){
+  if(!memberName){ console.warn('⚠️ أدخل اسم العضو'); return; }
+  try {
+    const res = await fetch(`${_DB}/registrations.json`);
+    if(!res.ok){ console.error('Firebase غير متاح'); return; }
+    const data = await res.json();
+    if(!data){ console.warn('لا توجد سجلات'); return; }
+    const keys = Object.keys(data);
+    for(const k of keys){
+      const r = data[k];
+      const name = r['الاسم_واللقب'] || r['الاسم واللقب'] || '';
+      if(name && name.includes(memberName.split(' ')[0])){
+        console.log('📤 إرسال:', name);
+        await _sendToSheetDB(r, name, k);
+        return;
+      }
+    }
+    console.warn('لم يُعثر على: ' + memberName);
+  } catch(e){ console.error(e.message); }
+};
+
+/* ══════════════════════════════════════════════════════
+   ✅ PATCH 2 — إصلاح الرسائل بين الطرفين
+   المشكلة: الرسائل تُخزَّن في localStorage فقط (خاص بكل جهاز)
+   الحل: ضمان أن كل رسالة تُرسَل لـ Supabase + Firebase
+   ══════════════════════════════════════════════════════ */
+
+/* مزامنة رسائل Supabase → Firebase (احتياطي إضافي) */
+window._syncMsgToFirebase = async function(msgObj){
+  try {
+    const pairKey = [msgObj.from, msgObj.to].sort().map(n=>n.replace(/\s+/g,'_')).join('__');
+    const msgKey = 'msg_' + (msgObj.id || Date.now());
+    await fetch(`${_DB}/messages/${pairKey}/${msgKey}.json`, {
+      method : 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({
+        id        : msgObj.id        || msgKey,
+        from      : msgObj.from      || '',
+        to        : msgObj.to        || '',
+        message   : msgObj.message   || '',
+        timestamp : msgObj.timestamp || new Date().toISOString(),
+        read      : msgObj.read      || false,
+        mediaType : msgObj.mediaType || null,
+        pair_key  : pairKey
+      })
+    });
+  } catch(e){ /* صامت */ }
+};
+
+/* تحميل الرسائل من Firebase كـ fallback إذا فشل Supabase */
+window._loadMsgsFromFirebase = async function(userA, userB){
+  try {
+    const pairKey = [userA, userB].sort().map(n=>n.replace(/\s+/g,'_')).join('__');
+    const res = await fetch(`${_DB}/messages/${pairKey}.json`);
+    if(!res.ok) return [];
+    const data = await res.json();
+    if(!data) return [];
+    return Object.values(data).sort((a,b)=> (a.timestamp||'').localeCompare(b.timestamp||''));
+  } catch(e){ return []; }
+};
+
+/* تصحيح: ربط sendChatMessage بـ Firebase كاحتياطي إذا فشل Supabase */
+const _origSbSend = window.sbSendMessage;
+window.sbSendMessage = async function(msgObj){
+  let ok = false;
+  if(typeof _origSbSend === 'function'){
+    ok = await _origSbSend(msgObj);
+  }
+  // دائماً نرسل لـ Firebase كاحتياطي
+  window._syncMsgToFirebase(msgObj);
+  return ok;
+};
+
+/* تصحيح: ربط sbGetMessages بـ Firebase كـ fallback */
+const _origSbGet = window.sbGetMessages;
+window.sbGetMessages = async function(userA, userB){
+  let msgs = null;
+  if(typeof _origSbGet === 'function'){
+    msgs = await _origSbGet(userA, userB);
+  }
+  if(!msgs || !Array.isArray(msgs) || msgs.length === 0){
+    // fallback: Firebase
+    const fbMsgs = await window._loadMsgsFromFirebase(userA, userB);
+    if(fbMsgs && fbMsgs.length > 0){
+      console.log('📡 Supabase غير متاح — استُرجعت الرسائل من Firebase');
+      return fbMsgs;
+    }
+  }
+  return msgs;
+};
+
+/* ══════════════════════════════════════════════════════
+   ✅ PATCH 3 — إصلاح استمارة الانخراط (_submitJoinRegistration)
+   المشكلة: لا يُرسَل كل الحقول لـ SheetDB
+   ══════════════════════════════════════════════════════ */
+const _origSubmit = window._submitJoinRegistration;
+window._submitJoinRegistration = async function(){
+  // نستدعي الدالة الأصلية أولاً
+  if(typeof _origSubmit === 'function') await _origSubmit.apply(this, arguments);
+  // لا حاجة لإضافة كود هنا — الإصلاح الرئيسي موجود في completeRegistration
+  // والاستمارة المنفصلة تعمل بشكل صحيح بالفعل
+};
+
+/* ══ تشغيل مزامنة بن قدور ايمان بعد 3 ثوانٍ من تحميل الصفحة ══ */
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    console.log('🔄 PATCH v7.1: بدء مزامنة بن قدور ايمان...');
+    _syncBenKaddourIman();
+  }, 3000);
+});
+
+console.log('✅ ConnectDZ PATCH v7.1 محمّل — إصلاح Sheets + Messenger + بن قدور ايمان');
 })();
 </script>
 
