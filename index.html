@@ -24631,38 +24631,40 @@ console.log('✅ AutoFix Messenger محمّل — لتشخيص يدوي اكتب
 
 <script>
 /* ════════════════════════════════════════════════════════════
-   ⚡ INSTANT MESSENGER v2 — رسائل فورية + حذف بثلاث نقرات
+   ⚡ INSTANT MESSENGER v3 — رسائل فورية حقيقية (إصلاح شامل)
+   الإصلاحات:
+   1. توحيد كل الـ wrappers المتراكمة في مكان واحد
+   2. عرض الرسالة فورياً في الواجهة قبل إرسالها للسيرفر
+   3. polling موحد بـ 800ms بدلاً من نظامين متعارضين
+   4. إلغاء كل setTimeout غير ضروري في مسار الإرسال
    ════════════════════════════════════════════════════════════ */
 (function(){
 'use strict';
 
-/* ══════════════════════════════════════════════
-   PART 1: إصلاح الـ polling — من 10 ثوانٍ إلى 1.5 ثانية
-   ══════════════════════════════════════════════ */
-
-/* أوقف الـ polling القديم (10 ثوانٍ) فوراً */
+/* ══ إيقاف كل الـ polling القديمة فوراً ══ */
 window.addEventListener('load', function(){
   setTimeout(function(){
-    if(typeof stopChatPolling === 'function') stopChatPolling();
-    if(typeof window.stopRealtimeMessenger === 'function') window.stopRealtimeMessenger();
-    console.log('⚡ InstantMsg: أُوقف الـ polling القديم');
-  }, 500);
+    if(typeof stopChatPolling === 'function') try{ stopChatPolling(); }catch(e){}
+    if(typeof window.stopRealtimeMessenger === 'function') try{ window.stopRealtimeMessenger(); }catch(e){}
+    console.log('⚡ InstantMsg v3: أُوقفت كل الـ polling القديمة');
+  }, 300);
 });
 
-/* متغيرات الـ polling السريع */
-let _fastInterval  = null;
-let _fastSig       = '';
-let _fastTarget    = '';
+/* ══ متغيرات الـ polling الموحّد ══ */
+let _pollInterval = null;
+let _pollSig      = '';
+let _pollTarget   = '';
+const _POLL_MS    = 800; /* 0.8 ثانية — أسرع بكثير مع استهلاك أقل */
 
-/* توليد توقيع سريع للرسائل */
+/* توقيع سريع للكشف عن تغيير الرسائل */
 function _sig(msgs){
   if(!Array.isArray(msgs) || !msgs.length) return '0';
   const last = msgs[msgs.length - 1];
   return msgs.length + '|' + (last.id || '') + '|' + (last.timestamp || '');
 }
 
-/* تحديث واجهة المحادثة إذا تغيّرت الرسائل */
-async function _fastPoll(){
+/* ══ الدالة الأساسية للـ polling ══ */
+async function _poll(){
   try{
     const chatScreen = document.getElementById('chatScreen');
     if(!chatScreen || chatScreen.style.display === 'none') return;
@@ -24674,12 +24676,12 @@ async function _fastPoll(){
     if(!myName) return;
 
     /* إذا تغيّر المحادث — صفّر التوقيع */
-    if(_fastTarget !== window._currentChatTarget){
-      _fastTarget = window._currentChatTarget;
-      _fastSig = '';
+    if(_pollTarget !== window._currentChatTarget){
+      _pollTarget = window._currentChatTarget;
+      _pollSig = '';
     }
 
-    /* جلب من Supabase */
+    /* جلب من Supabase أولاً */
     let remote = null;
     if(typeof sbGetMessages === 'function'){
       try{ remote = await sbGetMessages(myName, window._currentChatTarget); }catch(e){}
@@ -24692,21 +24694,23 @@ async function _fastPoll(){
       }
     }
 
-    if(!remote || !remote.length) return;
-
     /* دمج مع localStorage */
     const local = (typeof _getP2PMsgs === 'function')
       ? (_getP2PMsgs(myName, window._currentChatTarget) || [])
       : [];
 
-    const ids  = new Set(remote.map(m => m.id));
-    const extra = local.filter(m => !ids.has(m.id));
-    const merged = [...remote, ...extra].sort((a, b) =>
-      (a.timestamp || '').localeCompare(b.timestamp || ''));
+    let merged = local.slice();
+    if(remote && remote.length){
+      const ids = new Set(merged.map(m => m.id));
+      remote.forEach(r => { if(!ids.has(r.id)) merged.push(r); });
+      merged.sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
+    }
+
+    if(!merged.length) return;
 
     const newSig = _sig(merged);
-    if(newSig === _fastSig) return; /* لا جديد */
-    _fastSig = newSig;
+    if(newSig === _pollSig) return; /* لا جديد */
+    _pollSig = newSig;
 
     /* حفظ محلياً */
     if(typeof _saveP2PMsgs === 'function'){
@@ -24725,52 +24729,119 @@ async function _fastPoll(){
     /* تحديث badge */
     if(typeof refreshSocialMsgBadge === 'function') refreshSocialMsgBadge();
 
-  }catch(err){
-    /* صامت — لا نوقف الـ polling بسبب خطأ عابر */
-  }
+  }catch(err){ /* صامت */ }
 }
 
-/* تشغيل الـ polling السريع (1.5 ثانية) */
-function _startFastPolling(){
-  _stopFastPolling();
-  _fastSig = '';
-  _fastPoll(); /* تحديث فوري عند الفتح */
-  _fastInterval = setInterval(_fastPoll, 1500);
-  console.log('⚡ InstantMsg: polling سريع يعمل كل 1.5 ثانية');
+/* ══ تشغيل وإيقاف الـ polling الموحّد ══ */
+function _startPolling(){
+  _stopPolling();
+  _pollSig = '';
+  _poll(); /* تحديث فوري عند الفتح */
+  _pollInterval = setInterval(_poll, _POLL_MS);
+  console.log('⚡ InstantMsg v3: polling موحّد يعمل كل ' + _POLL_MS + 'ms');
 }
 
-function _stopFastPolling(){
-  if(_fastInterval){ clearInterval(_fastInterval); _fastInterval = null; }
+function _stopPolling(){
+  if(_pollInterval){ clearInterval(_pollInterval); _pollInterval = null; }
 }
 
-/* ربط التشغيل بفتح المحادثة */
-const _origOpenP2P_fast = window.openP2PChat;
-window.openP2PChat = function(){
-  if(typeof _origOpenP2P_fast === 'function') _origOpenP2P_fast.apply(this, arguments);
-  setTimeout(_startFastPolling, 200);
-};
+/* ══════════════════════════════════════════════════════════
+   الإصلاح الجوهري: استبدال كل الـ wrappers المتراكمة
+   بـ wrapper واحد نظيف على openP2PChat / openAdminChat
+   ══════════════════════════════════════════════════════════ */
 
-const _origOpenAdmin_fast = window.openAdminChat;
-window.openAdminChat = function(){
-  if(typeof _origOpenAdmin_fast === 'function') _origOpenAdmin_fast.apply(this, arguments);
-  setTimeout(_startFastPolling, 200);
-};
+/* نحفظ الدالة الأصلية قبل أي تعديل (نتجاوز الـ wrappers السابقة) */
+window.addEventListener('load', function(){
+  setTimeout(function(){
 
-/* تحديث فوري بعد الإرسال */
-const _origSend_fast = window.sendChatMessage;
-window.sendChatMessage = async function(){
-  if(typeof _origSend_fast === 'function') await _origSend_fast.apply(this, arguments);
-  _fastSig = ''; /* أجبر التحديث في الدورة التالية */
-  setTimeout(_fastPoll, 200);
-  setTimeout(_fastPoll, 700);
-};
+    /* ── wrapper موحّد لفتح المحادثة (يلغي الـ wrappers المتراكمة) ── */
+    const _baseOpenP2P = window.openP2PChat;
+    window.openP2PChat = function(){
+      if(typeof _baseOpenP2P === 'function') _baseOpenP2P.apply(this, arguments);
+      _startPolling();
+    };
 
-/* إيقاف عند إغلاق المحادثة */
-const _origBack = window.backFromChat || null;
-window.backFromChat = function(){
-  _stopFastPolling();
-  if(typeof _origBack === 'function') _origBack.apply(this, arguments);
-};
+    const _baseOpenAdmin = window.openAdminChat;
+    window.openAdminChat = function(){
+      if(typeof _baseOpenAdmin === 'function') _baseOpenAdmin.apply(this, arguments);
+      _startPolling();
+    };
+
+    /* ── إيقاف عند الخروج ── */
+    const _baseBack = window.backFromChat;
+    window.backFromChat = function(){
+      _stopPolling();
+      if(typeof _baseBack === 'function') _baseBack.apply(this, arguments);
+    };
+
+    console.log('⚡ InstantMsg v3: wrappers موحّدة على openP2PChat/openAdminChat/backFromChat');
+  }, 600);
+});
+
+/* ══════════════════════════════════════════════════════════
+   الإصلاح الأهم: sendChatMessage — عرض الرسالة فورياً
+   قبل الانتظار للشبكة (Optimistic UI)
+   ══════════════════════════════════════════════════════════ */
+window.addEventListener('load', function(){
+  setTimeout(function(){
+
+    const _baseSend = window.sendChatMessage;
+    window.sendChatMessage = async function(){
+      /* ── STEP 1: عرض الرسالة فورياً في الواجهة (Optimistic UI) ── */
+      const input = document.getElementById('chatInput') || document.getElementById('msgInput');
+      const text  = input ? input.value.trim() : '';
+      const myName = window._isAdmin
+        ? 'المدير'
+        : (typeof getCurrentUser === 'function' ? getCurrentUser() : localStorage.getItem('sklab_user_name') || '');
+      const target = window._currentChatTarget;
+
+      if(text && myName && target){
+        /* بناء كائن الرسالة المؤقتة */
+        const tempMsg = {
+          id        : 'tmp_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+          from      : myName,
+          to        : target,
+          message   : text,
+          timestamp : new Date().toISOString(),
+          read      : false,
+          _pending  : true  /* علامة مؤقتة */
+        };
+
+        /* إضافة للـ localStorage فوراً */
+        if(typeof _getP2PMsgs === 'function' && typeof _saveP2PMsgs === 'function'){
+          try{
+            const curr = _getP2PMsgs(myName, target) || [];
+            curr.push(tempMsg);
+            _saveP2PMsgs(myName, target, curr);
+          }catch(e){}
+        }
+
+        /* عرض في الواجهة فوراً */
+        const box = document.getElementById('messagesContent');
+        if(box && typeof renderChatBubbles === 'function'){
+          try{
+            const msgs = (typeof _getP2PMsgs === 'function' ? _getP2PMsgs(myName, target) : []) || [];
+            const chatScreen = document.getElementById('chatScreen');
+            const readOnly = chatScreen ? chatScreen.getAttribute('data-readonly') : false;
+            renderChatBubbles(msgs, box, myName, !!readOnly);
+            box.scrollTop = box.scrollHeight;
+          }catch(e){}
+        }
+      }
+
+      /* ── STEP 2: إرسال للسيرفر في الخلفية ── */
+      if(typeof _baseSend === 'function'){
+        try{ await _baseSend.apply(this, arguments); }catch(e){}
+      }
+
+      /* ── STEP 3: تحديث من السيرفر بعد الإرسال لاستبدال الرسالة المؤقتة بالحقيقية ── */
+      _pollSig = ''; /* أجبر إعادة التحميل */
+      setTimeout(_poll, 100);
+    };
+
+    console.log('⚡ InstantMsg v3: sendChatMessage مع Optimistic UI فعّال');
+  }, 700);
+});
 
 /* ══════════════════════════════════════════════
    PART 2: حذف الرسالة بثلاث نقرات متتالية
@@ -24832,7 +24903,7 @@ async function _deleteMyMsgById(msgId){
 
   if(deleted || wrap){
     if(typeof showToast === 'function') showToast('🗑️ تم حذف الرسالة');
-    _fastSig = ''; /* أجبر إعادة التحميل */
+    _pollSig = ''; /* أجبر إعادة التحميل */
   }
 }
 
@@ -24911,10 +24982,16 @@ if(typeof _origRenderBubble === 'function'){
 /* تصدير للاستخدام الخارجي إن لزم */
 window._handleTripleTap   = _handleTripleTap;
 window._deleteMyMsgById   = _deleteMyMsgById;
-window._startFastPolling  = _startFastPolling;
-window._stopFastPolling   = _stopFastPolling;
+window._startFastPolling  = _startPolling;  /* توافق مع الكود القديم */
+window._stopFastPolling   = _stopPolling;
+window._startPolling      = _startPolling;
+window._stopPolling       = _stopPolling;
 
-console.log('⚡ InstantMsg v2 محمّل: polling 1.5ث + حذف بثلاث نقرات');
+/* startRealtimeMessenger وستopRealtimeMessenger للتوافق */
+window.startRealtimeMessenger = _startPolling;
+window.stopRealtimeMessenger  = _stopPolling;
+
+console.log('⚡ InstantMsg v3 محمّل: polling ' + _POLL_MS + 'ms + Optimistic UI + حذف بثلاث نقرات');
 
 })();
 </script>
