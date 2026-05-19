@@ -3368,12 +3368,12 @@ body.member-mode #onlineBar{
 #pwaIOSGuide .ios-close-btn:hover{background:rgba(255,255,255,0.12);}
 
 /* ═══════════════════════════════════════════════════
-   🔵 واجهة تسجيل الدخول — Facebook-Style (أبيض)
+   🌿 واجهة تسجيل الدخول — Connect DZ New Design
    ═══════════════════════════════════════════════════ */
 .login{
-  background:#f0f2f5 !important;
+  background:linear-gradient(160deg,#c8e6c9 0%,#dcedc8 40%,#f9fbe7 70%,#fce4ec 100%) !important;
   display:flex;flex-direction:column;align-items:center;
-  justify-content:center;padding:20px 16px 40px;
+  justify-content:flex-start;padding:40px 18px 40px;
   min-height:100vh;
   width:100vw;
   min-width:100%;
@@ -3381,90 +3381,153 @@ body.member-mode #onlineBar{
   margin:0;
   position:relative;
   overflow-x:hidden;
+  overflow-y:auto;
 }
-.fb-app-brand{text-align:center;margin-bottom:20px;}
+/* شعار التطبيق العلوي */
+.fb-app-brand{
+  text-align:center;
+  margin-bottom:22px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.fb-app-logo-leaf{
+  font-size:52px;
+  filter:drop-shadow(0 4px 12px rgba(0,150,60,0.3));
+  margin-bottom:2px;
+  line-height:1;
+}
 .fb-app-name{
-  display:block;font-size:42px;font-weight:900;letter-spacing:-1.5px;
-  background:linear-gradient(90deg,#00c853,#e53935);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  margin-bottom:6px;
+  display:block;font-size:44px;font-weight:900;letter-spacing:-1px;
+  font-family:'Tajawal',sans-serif;
+  line-height:1;margin-bottom:4px;
 }
-.fb-app-tagline{display:block;font-size:13px;color:#606770;font-weight:600;line-height:1.5;}
+.fb-app-name .cdz-connect{color:#2e7d32;}
+.fb-app-name .cdz-dz{color:#b71c1c;}
+.fb-app-tagline{
+  display:block;font-size:14px;color:#5d4037;font-weight:600;line-height:1.5;
+  opacity:0.85;
+}
+/* البطاقة الرئيسية */
 .fb-login-card{
-  background:#fff;border-radius:18px;
-  box-shadow:0 2px 12px rgba(0,0,0,0.12),0 6px 32px rgba(0,0,0,0.07);
-  padding:24px 20px 20px;width:100%;max-width:400px;
+  background:#fff;border-radius:24px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.10),0 1px 4px rgba(0,0,0,0.06);
+  padding:22px 20px 20px;width:100%;max-width:420px;
   animation:cardRise .4s cubic-bezier(.22,.68,0,1.1) both;
 }
-.fb-login-title{font-size:20px;font-weight:900;color:#1c1e21;text-align:center;margin:0 0 18px;}
-.fb-input{
-  width:100%;padding:14px 16px;border:1.5px solid #dddfe2;border-radius:10px;
-  font-family:'Tajawal',sans-serif;font-size:15px;font-weight:500;
-  color:#1c1e21;background:#fff;outline:none;
-  transition:border-color .18s,box-shadow .18s;text-align:right;
-  box-sizing:border-box;display:block;margin-bottom:10px;
+/* تبويبات تسجيل الدخول / إنشاء حساب */
+.fb-login-tabs{
+  display:flex;background:#f0f0f0;border-radius:14px;padding:4px;
+  margin-bottom:22px;gap:4px;
 }
-.fb-input:focus{border-color:#00c853;box-shadow:0 0 0 3px rgba(0,200,83,0.12);}
-.fb-input::placeholder{color:#a0a3a7;font-weight:400;}
-.fb-forgot{text-align:center;margin:-4px 0 16px;}
-.fb-forgot a{font-size:13px;color:#00a040;font-weight:700;cursor:pointer;text-decoration:none;}
+.fb-tab-btn{
+  flex:1;padding:11px 8px;border:none;border-radius:10px;
+  font-family:'Tajawal',sans-serif;font-size:15px;font-weight:800;
+  cursor:pointer;transition:all .2s ease;background:transparent;color:#888;
+}
+.fb-tab-btn.active{
+  background:#2e7d32;color:#fff;
+  box-shadow:0 2px 12px rgba(46,125,50,0.35);
+}
+.fb-tab-btn:not(.active):hover{background:#e0e0e0;color:#444;}
+/* عنوان الدخول */
+.fb-login-title{font-size:19px;font-weight:900;color:#1c1e21;text-align:center;margin:0 0 16px;}
+/* حقول الإدخال */
+.fb-input-wrapper{position:relative;margin-bottom:12px;}
+.fb-input-label{
+  display:flex;align-items:center;gap:6px;justify-content:flex-end;
+  font-size:13px;font-weight:800;color:#333;margin-bottom:6px;text-align:right;
+}
+.fb-input-label-icon{font-size:16px;}
+.fb-input{
+  width:100%;padding:14px 16px;border:1.5px solid #e0e0e0;border-radius:12px;
+  font-family:'Tajawal',sans-serif;font-size:15px;font-weight:500;
+  color:#1c1e21;background:#fafafa;outline:none;
+  transition:border-color .18s,box-shadow .18s,background .18s;text-align:right;
+  box-sizing:border-box;display:block;
+}
+.fb-input:focus{border-color:#2e7d32;box-shadow:0 0 0 3px rgba(46,125,50,0.13);background:#fff;}
+.fb-input::placeholder{color:#b0b0b0;font-weight:400;}
+/* حقل كلمة المرور مع أيقونة العين */
+.fb-pw-wrapper{position:relative;}
+.fb-pw-wrapper .fb-input{padding-left:44px;}
+.fb-pw-toggle{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;font-size:18px;
+  color:#999;padding:0;line-height:1;
+}
+/* رابط نسيت كلمة المرور */
+.fb-forgot{text-align:right;margin:0 0 14px;padding-right:2px;}
+.fb-forgot a{font-size:13px;color:#2e7d32;font-weight:700;cursor:pointer;text-decoration:none;}
 .fb-forgot a:hover{text-decoration:underline;}
+/* أزرار الدخول والتسجيل */
 .fb-login-btn{
-  width:100%;padding:14px;border:none;border-radius:10px;
-  background:linear-gradient(135deg,#00b09b,#00c853);
-  color:#fff;font-family:'Tajawal',sans-serif;font-size:16px;font-weight:900;
+  width:100%;padding:15px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,#43a047,#2e7d32);
+  color:#fff;font-family:'Tajawal',sans-serif;font-size:17px;font-weight:900;
   cursor:pointer;letter-spacing:.3px;
-  box-shadow:0 4px 16px rgba(0,200,83,0.35);
+  box-shadow:0 4px 18px rgba(46,125,50,0.4);
   transition:transform .15s,box-shadow .15s;margin-bottom:4px;
 }
-.fb-login-btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(0,200,83,0.45);}
+.fb-login-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(46,125,50,0.5);}
 .fb-login-btn:active{transform:translateY(0);}
 .fb-login-btn.loading{opacity:.75;pointer-events:none;}
 .fb-register-btn{
-  width:100%;padding:13px;border:2px solid #00c853;border-radius:10px;
-  background:#fff;color:#00a040;
-  font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;
-  cursor:pointer;transition:opacity .2s ease, transform .2s ease;display:block;
+  width:100%;padding:14px;border:2px dashed #2e7d32;border-radius:14px;
+  background:#fff;color:#2e7d32;
+  font-family:'Tajawal',sans-serif;font-size:16px;font-weight:900;
+  cursor:pointer;transition:all .2s ease;display:flex;align-items:center;justify-content:center;gap:8px;
 }
-.fb-register-btn:hover{background:#f0fff5;box-shadow:0 2px 12px rgba(0,200,83,0.15);}
-.fb-divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
-.fb-divider::before,.fb-divider::after{content:'';flex:1;height:1px;background:#dddfe2;}
-.fb-divider span{font-size:12px;color:#606770;font-weight:700;}
+.fb-register-btn:hover{background:#e8f5e9;box-shadow:0 2px 12px rgba(46,125,50,0.15);}
+/* الفاصل */
+.fb-divider{display:flex;align-items:center;gap:10px;margin:14px 0;}
+.fb-divider::before,.fb-divider::after{content:'';flex:1;height:1px;background:#e8e8e8;}
+.fb-divider span{font-size:12px;color:#aaa;font-weight:700;}
+/* الحسابات المحفوظة */
 #savedAccountsSection{margin-bottom:4px;}
-.saved-acc-label{font-size:11px;font-weight:700;color:#606770;text-align:center;margin-bottom:8px;letter-spacing:1px;}
+.saved-acc-label{font-size:11px;font-weight:700;color:#888;text-align:center;margin-bottom:8px;letter-spacing:1px;}
 .saved-acc-list{display:flex;flex-direction:column;gap:8px;}
 .saved-acc-card{
-  display:flex;align-items:center;gap:12px;background:#f0f2f5;
-  border:1.5px solid #dddfe2;border-radius:12px;padding:10px 14px;
-  cursor:pointer;transition:opacity .2s ease, transform .2s ease;
+  display:flex;align-items:center;gap:12px;background:#f8f9fa;
+  border:1.5px solid #e8e8e8;border-radius:14px;padding:10px 14px;
+  cursor:pointer;transition:all .2s ease;
 }
-.saved-acc-card:hover{background:#e7f8ef;border-color:#00c853;transform:translateY(-1px);}
+.saved-acc-card:hover{background:#e8f5e9;border-color:#2e7d32;transform:translateY(-1px);box-shadow:0 3px 10px rgba(46,125,50,0.12);}
 .saved-acc-avatar{
   width:44px;height:44px;border-radius:50%;
-  background:linear-gradient(135deg,#00c853,#00b09b);
+  background:linear-gradient(135deg,#43a047,#2e7d32);
   border:2px solid #fff;display:flex;align-items:center;justify-content:center;
-  font-size:20px;flex-shrink:0;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.12);
+  font-size:20px;flex-shrink:0;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.10);
 }
 .saved-acc-avatar img{width:100%;height:100%;object-fit:cover;}
 .saved-acc-name{flex:1;font-size:14px;font-weight:800;color:#1c1e21;}
-.saved-acc-arrow{font-size:18px;color:#00c853;}
+.saved-acc-arrow{font-size:18px;color:#2e7d32;}
+/* زر إضافة حساب */
 .fb-add-acc-btn{
-  width:100%;padding:10px;border:1.5px dashed #b0b3b8;border-radius:10px;
-  background:#fff;color:#606770;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;
-  cursor:pointer;transition:opacity .2s ease, transform .2s ease;margin-top:6px;display:block;
+  width:100%;padding:12px;border:1.5px dashed #b0b0b0;border-radius:12px;
+  background:#fff;color:#666;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .2s ease;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:6px;
 }
-.fb-add-acc-btn:hover{border-color:#00c853;color:#00a040;background:#f0fff5;}
+.fb-add-acc-btn:hover{border-color:#2e7d32;color:#2e7d32;background:#f0fff4;}
+/* زر الزائر */
 .guest-entry-btn{
   display:flex;align-items:center;justify-content:center;gap:8px;
-  width:100%;padding:12px;background:#f0f2f5;
-  border:1.5px solid #dddfe2;border-radius:10px;cursor:pointer;
+  width:100%;padding:12px;background:#f5f5f5;
+  border:1.5px solid #e0e0e0;border-radius:12px;cursor:pointer;
   font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;
-  color:#606770;transition:opacity .2s ease, transform .2s ease;margin-top:6px;
+  color:#666;transition:all .2s ease;margin-top:6px;
 }
-.guest-entry-btn:hover{border-color:#b0b3b8;background:#e4e6eb;color:#1c1e21;}
+.guest-entry-btn:hover{border-color:#999;background:#eeeeee;color:#333;}
 .login-divider{display:flex;align-items:center;gap:10px;margin:12px 0;}
-.login-divider-line{flex:1;height:1px;background:#dddfe2;}
-.login-divider-text{font-size:11px;color:#606770;font-weight:700;}
+.login-divider-line{flex:1;height:1px;background:#e8e8e8;}
+.login-divider-text{font-size:11px;color:#aaa;font-weight:700;}
+/* الفوتر */
+.login-footer{
+  margin-top:18px;text-align:center;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-size:12px;color:#666;font-weight:600;
+}
+.login-footer .lf-sep{color:#ccc;}
+.login-footer a{color:#2e7d32;font-weight:700;text-decoration:none;}
+.login-footer-sub{margin-top:6px;font-size:11px;color:#999;text-align:center;}
 /* ═══════════════════════════════════════════════════
    📋 صفحة التسجيل الكاملة
    ═══════════════════════════════════════════════════ */
@@ -3713,329 +3776,6 @@ body.member-mode #onlineBar{
 
 })();
 </script>
-<style id="new-auth-style">
-/* ═══ واجهة تسجيل الدخول الجديدة ═══ */
-
-/* ═══ override كامل لـ #login — الواجهة الجديدة ═══ */
-#login {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  max-width: 100vw !important;
-  height: 100vh !important;
-  min-height: 100vh !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  background: linear-gradient(135deg, #e8f5e9 0%, #f0fff4 30%, #fff 60%, #fef9f9 80%, #fce4e4 100%) !important;
-  z-index: 9999 !important;
-  opacity: 1 !important;
-  transform: none !important;
-  animation: none !important;
-  padding: 0 !important;
-  padding-top: 0 !important;
-}
-#login ~ #app { display: none !important; }
-#login[style*="display:none"] ~ #app,
-#login[style*="display: none"] ~ #app { display: block !important; }
-
-  :root {
-    --green: #1a7a3c;
-    --green-light: #27ae60;
-    --green-glow: rgba(26,122,60,0.3);
-    --red: #c0392b;
-    --red-light: #e74c3c;
-    --white: #ffffff;
-    --fog: rgba(255,255,255,0.82);
-    --fog2: rgba(255,255,255,0.55);
-    --black: #1a1a1a;
-    --gray: #6b7280;
-    --input-bg: rgba(255,255,255,0.75);
-    --shadow: 0 8px 32px rgba(26,122,60,0.13);
-    --radius: 16px;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    font-family: 'Tajawal', 'Cairo', sans-serif;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #e8f5e9 0%, #f0fff4 30%, #fff 60%, #fef9f9 80%, #fce4e4 100%);
-    position: relative;
-    overflow-x: hidden;
-  }
-  body::before {
-    content:'';
-    position:fixed; inset:0;
-    background: radial-gradient(ellipse at 20% 30%, rgba(26,122,60,0.08) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 70%, rgba(192,57,43,0.06) 0%, transparent 60%);
-    pointer-events:none; z-index:0;
-  }
-
-  /* Frosted blobs */
-  .blob {
-    position:fixed; border-radius:50%; filter:blur(60px); opacity:0.18; pointer-events:none; z-index:0;
-    animation: blobFloat 8s ease-in-out infinite alternate;
-  }
-  .blob1 { width:400px;height:400px; background:var(--green-light); top:-80px; right:-80px; }
-  .blob2 { width:300px;height:300px; background:var(--red-light); bottom:-60px; left:-60px; animation-delay:3s; }
-  .blob3 { width:200px;height:200px; background:#a8d8a8; top:50%; left:10%; animation-delay:5s; }
-  @keyframes blobFloat { from{transform:translateY(0) scale(1);} to{transform:translateY(30px) scale(1.07);} }
-
-  /* Main container */
-  .auth-wrap {
-    position:relative; z-index:1;
-    min-height:100vh;
-    display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-    padding: 20px 16px 40px;
-  }
-
-  /* Header logo */
-  .logo-header {
-    display:flex; flex-direction:column; align-items:center; margin-bottom:18px; margin-top:10px;
-    animation: fadeDown 0.7s ease;
-  }
-  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px);} to{opacity:1;transform:translateY(0);} }
-  .logo-title {
-    font-size:2.5rem; font-weight:900; letter-spacing:2px;
-    background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 40%, var(--red) 100%);
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-    text-shadow: none; line-height:1.1;
-  }
-  .logo-sub { font-size:0.78rem; color:var(--gray); letter-spacing:3px; font-weight:500; margin-top:2px; }
-  .logo-icon { font-size:2.2rem; margin-bottom:4px; animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.12);} }
-
-  /* Card */
-  .card {
-    width:100%; max-width:440px;
-    background: var(--fog);
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
-    border-radius: 24px;
-    border: 1.5px solid rgba(255,255,255,0.7);
-    box-shadow: 0 20px 60px rgba(26,122,60,0.10), 0 2px 8px rgba(0,0,0,0.06);
-    padding: 28px 28px 22px;
-    animation: fadeUp 0.7s ease;
-    transition: all 0.4s ease;
-  }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(30px);} to{opacity:1;transform:translateY(0);} }
-
-  /* Tabs */
-  .tabs { display:flex; background:rgba(255,255,255,0.5); border-radius:12px; padding:4px; margin-bottom:22px; gap:4px; }
-  .tab-btn {
-    flex:1; padding:10px 8px; border:none; background:transparent; border-radius:10px;
-    font-family:'Tajawal',sans-serif; font-size:0.95rem; font-weight:700; cursor:pointer;
-    color:var(--gray); transition:all 0.3s ease; position:relative; overflow:hidden;
-  }
-  .tab-btn.active {
-    background: linear-gradient(135deg, var(--green), var(--green-light));
-    color:white; box-shadow:0 4px 15px var(--green-glow);
-  }
-  .tab-btn:not(.active):hover { background:rgba(26,122,60,0.08); color:var(--green); }
-
-  /* Form */
-  .form-section { display:none; animation: fadeIn 0.4s ease; }
-  .form-section.active { display:block; }
-  @keyframes fadeIn { from{opacity:0;transform:translateX(10px);} to{opacity:1;transform:translateX(0);} }
-
-  .field-group { margin-bottom:14px; }
-  .field-label { font-size:0.82rem; font-weight:700; color:var(--green); margin-bottom:5px; display:block; }
-  .field-input {
-    width:100%; padding:11px 14px; border-radius:12px;
-    border:1.5px solid rgba(26,122,60,0.18); background:var(--input-bg);
-    font-family:'Tajawal',sans-serif; font-size:0.95rem; color:var(--black);
-    outline:none; transition:all 0.3s ease; backdrop-filter:blur(6px);
-  }
-  .field-input:focus { border-color:var(--green-light); box-shadow:0 0 0 3px var(--green-glow); background:rgba(255,255,255,0.9); }
-  .field-input::placeholder { color:#aaa; }
-  .field-input.error { border-color:var(--red-light); box-shadow:0 0 0 3px rgba(231,76,60,0.15); }
-
-  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .field-row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
-
-  .pass-wrap { position:relative; }
-  .pass-toggle { position:absolute; left:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:1rem; color:var(--gray); }
-
-  /* Forgot password */
-  .forgot-link { display:block; text-align:left; font-size:0.8rem; color:var(--green); font-weight:600; margin-top:-8px; margin-bottom:12px; cursor:pointer; text-decoration:none; }
-  .forgot-link:hover { color:var(--red); }
-
-  /* Submit button */
-  .btn-submit {
-    width:100%; padding:13px; border:none; border-radius:14px; cursor:pointer;
-    font-family:'Tajawal',sans-serif; font-size:1rem; font-weight:800; letter-spacing:1px;
-    background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 50%, #2ecc71 100%);
-    color:white; box-shadow:0 6px 20px var(--green-glow);
-    transition:all 0.3s ease; position:relative; overflow:hidden;
-    margin-top:8px;
-  }
-  .btn-submit::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.15) 50%,transparent 100%); transform:translateX(-100%); transition:transform 0.5s ease; }
-  .btn-submit:hover { transform:translateY(-2px); box-shadow:0 10px 30px var(--green-glow); }
-  .btn-submit:hover::before { transform:translateX(100%); }
-  .btn-submit:active { transform:translateY(0); }
-
-  /* Section title */
-  .section-title {
-    font-size:0.88rem; font-weight:800; color:var(--green); text-align:center;
-    padding:8px 16px; background:rgba(26,122,60,0.07); border-radius:8px;
-    margin: 16px 0 12px; border-right:3px solid var(--green-light);
-    text-align:right;
-  }
-
-  /* Alert */
-  .alert {
-    padding:10px 14px; border-radius:10px; font-size:0.82rem; font-weight:600; margin-bottom:12px;
-    display:none; align-items:center; gap:8px;
-  }
-  .alert.info { background:rgba(26,122,60,0.1); color:var(--green); border:1px solid rgba(26,122,60,0.2); display:flex; }
-  .alert.warning { background:rgba(255,165,0,0.1); color:#b7760a; border:1px solid rgba(255,165,0,0.25); display:flex; }
-  .alert.error-msg { background:rgba(231,76,60,0.1); color:var(--red); border:1px solid rgba(231,76,60,0.2); display:flex; }
-  .alert.success { background:rgba(46,204,113,0.1); color:#1a7a3c; border:1px solid rgba(46,204,113,0.3); display:flex; }
-
-  /* Saved accounts */
-  .saved-accounts { margin-bottom:16px; }
-  .saved-title { font-size:0.8rem; color:var(--gray); margin-bottom:8px; font-weight:600; }
-  .account-item {
-    display:flex; align-items:center; gap:10px; padding:9px 12px;
-    background:rgba(255,255,255,0.7); border-radius:12px; margin-bottom:7px;
-    border:1px solid rgba(26,122,60,0.12); cursor:pointer; transition:all 0.25s;
-    position:relative;
-  }
-  .account-item:hover { background:rgba(26,122,60,0.07); border-color:var(--green-light); }
-  .account-avatar {
-    width:40px; height:40px; border-radius:50%; object-fit:cover;
-    border:2px solid var(--green-light); background:linear-gradient(135deg,var(--green),var(--green-light));
-    display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:1rem;
-    flex-shrink:0;
-  }
-  .account-info { flex:1; }
-  .account-name { font-size:0.88rem; font-weight:700; color:var(--black); }
-  .account-email { font-size:0.75rem; color:var(--gray); }
-  .account-del { background:none; border:none; cursor:pointer; color:var(--red-light); font-size:1rem; padding:4px; border-radius:6px; transition:background 0.2s; }
-  .account-del:hover { background:rgba(231,76,60,0.1); }
-
-  .divider { display:flex; align-items:center; gap:10px; margin:14px 0; }
-  .divider::before,.divider::after { content:''; flex:1; height:1px; background:rgba(26,122,60,0.15); }
-  .divider-text { font-size:0.75rem; color:var(--gray); white-space:nowrap; }
-
-  /* Add account btn */
-  .btn-add-account {
-    width:100%; padding:11px; border:2px dashed rgba(26,122,60,0.3); border-radius:12px;
-    background:rgba(26,122,60,0.04); color:var(--green); font-family:'Tajawal',sans-serif;
-    font-size:0.9rem; font-weight:700; cursor:pointer; transition:all 0.3s;
-    display:flex; align-items:center; justify-content:center; gap:6px;
-  }
-  .btn-add-account:hover { background:rgba(26,122,60,0.1); border-color:var(--green); }
-
-  /* Select & checkbox */
-  .field-select {
-    width:100%; padding:11px 14px; border-radius:12px;
-    border:1.5px solid rgba(26,122,60,0.18); background:var(--input-bg);
-    font-family:'Tajawal',sans-serif; font-size:0.95rem; color:var(--black);
-    outline:none; transition:all 0.3s ease; cursor:pointer; appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231a7a3c' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat:no-repeat; background-position:left 12px center;
-  }
-  .field-select:focus { border-color:var(--green-light); box-shadow:0 0 0 3px var(--green-glow); }
-
-  .checkbox-group { display:flex; align-items:center; gap:8px; padding:8px 0; }
-  .checkbox-group input[type=checkbox] { width:18px; height:18px; accent-color:var(--green); cursor:pointer; }
-  .checkbox-group label { font-size:0.88rem; color:var(--black); cursor:pointer; font-weight:500; }
-
-  /* Photo upload */
-  .photo-upload {
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    border:2px dashed rgba(26,122,60,0.3); border-radius:16px; padding:20px;
-    cursor:pointer; transition:all 0.3s; background:rgba(26,122,60,0.03);
-    position:relative; overflow:hidden;
-  }
-  .photo-upload:hover { border-color:var(--green-light); background:rgba(26,122,60,0.07); }
-  .photo-upload input { position:absolute; inset:0; opacity:0; cursor:pointer; }
-  .photo-preview { width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--green-light); margin-bottom:8px; display:none; }
-  .photo-icon { font-size:2.5rem; margin-bottom:6px; }
-  .photo-text { font-size:0.8rem; color:var(--gray); font-weight:600; }
-
-  /* Progress bar */
-  .progress-bar { height:4px; background:rgba(26,122,60,0.1); border-radius:4px; margin-bottom:16px; overflow:hidden; }
-  .progress-fill { height:100%; background:linear-gradient(90deg,var(--green),var(--green-light)); border-radius:4px; transition:width 0.5s ease; }
-
-  /* Footer */
-  .app-footer {
-    text-align:center; padding:20px 0 8px;
-    display:flex; flex-direction:column; align-items:center; gap:4px;
-  }
-  .footer-brand { display:flex; gap:16px; align-items:center; }
-  .brand-name { font-size:0.85rem; font-weight:800; }
-  .brand1 { color:var(--green); }
-  .brand2 { color:var(--red); }
-  .footer-dev { font-size:0.72rem; color:var(--gray); font-weight:500; letter-spacing:1px; margin-top:2px; }
-
-  /* Verification badge */
-  .verify-badge {
-    display:inline-flex; align-items:center; gap:5px; padding:5px 12px;
-    background:rgba(26,122,60,0.1); border-radius:20px; font-size:0.78rem;
-    color:var(--green); font-weight:700; margin:6px 0; border:1px solid rgba(26,122,60,0.2);
-  }
-  .verify-badge.pending { background:rgba(255,165,0,0.1); color:#b7760a; border-color:rgba(255,165,0,0.3); }
-
-  /* Scroll for register form */
-  .register-form { max-height:65vh; overflow-y:auto; padding-left:4px; scrollbar-width:thin; scrollbar-color:rgba(26,122,60,0.3) transparent; }
-  .register-form::-webkit-scrollbar { width:4px; }
-  .register-form::-webkit-scrollbar-thumb { background:rgba(26,122,60,0.3); border-radius:4px; }
-
-  /* Animate validation */
-  @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
-  .shake { animation:shake 0.4s ease; }
-
-  /* Loading spinner */
-  .spinner { width:20px;height:20px; border:2px solid rgba(255,255,255,0.4); border-top-color:white; border-radius:50%; animation:spin 0.7s linear infinite; display:inline-block; vertical-align:middle; margin-left:8px; }
-  @keyframes spin { to{transform:rotate(360deg);} }
-
-  /* Wilayas selector */
-  .blood-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:4px; }
-  .blood-btn {
-    padding:7px 4px; border:1.5px solid rgba(26,122,60,0.2); border-radius:8px;
-    background:rgba(255,255,255,0.6); font-family:'Tajawal',sans-serif; font-size:0.82rem;
-    cursor:pointer; transition:all 0.2s; font-weight:700; color:var(--black);
-    text-align:center;
-  }
-  .blood-btn.selected { background:var(--red); color:white; border-color:var(--red); }
-  .blood-btn:hover:not(.selected) { border-color:var(--red-light); background:rgba(231,76,60,0.07); }
-
-  .gender-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px; }
-  .gender-btn {
-    padding:10px; border:1.5px solid rgba(26,122,60,0.2); border-radius:10px;
-    background:rgba(255,255,255,0.6); font-family:'Tajawal',sans-serif; font-size:0.88rem;
-    cursor:pointer; transition:all 0.2s; font-weight:700; color:var(--black); display:flex;
-    align-items:center; justify-content:center; gap:6px;
-  }
-  .gender-btn.selected { background:linear-gradient(135deg,var(--green),var(--green-light)); color:white; border-color:var(--green); }
-
-  .star-rating { display:flex; gap:4px; flex-direction:row-reverse; justify-content:flex-end; }
-  .star-rating input { display:none; }
-  .star-rating label { font-size:1.5rem; cursor:pointer; color:#ddd; transition:color 0.2s; }
-  .star-rating input:checked ~ label,
-  .star-rating label:hover,
-  .star-rating label:hover ~ label { color:#f1c40f; }
-
-  /* Modal overlay */
-  .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:none;align-items:center;justify-content:center;padding:16px; }
-  .modal-overlay.open { display:flex; animation:fadeIn 0.3s ease; }
-  .modal-box { background:white;border-radius:20px;padding:28px;max-width:360px;width:100%;text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
-  .modal-icon { font-size:3rem;margin-bottom:12px; }
-  .modal-title { font-size:1.1rem;font-weight:800;color:var(--black);margin-bottom:8px; }
-  .modal-text { font-size:0.85rem;color:var(--gray);margin-bottom:20px;line-height:1.6; }
-  .modal-btn { padding:10px 28px;background:linear-gradient(135deg,var(--green),var(--green-light));color:white;border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer; }
-
-  @media(max-width:400px){
-    .card{padding:20px 16px 16px;}
-    .field-row{grid-template-columns:1fr;}
-    .field-row3{grid-template-columns:1fr 1fr;}
-  }
-
-</style>
 </head>
 <body>
 
@@ -4161,798 +3901,146 @@ body.member-mode #onlineBar{
 <!-- LOADING -->
 <div id="loadingBarContainer"><div id="loadingBar"></div></div>
 
-<!-- ===== LOGIN — New Auth UI ===== -->
-<div id="login" class="new-auth-page">
-<div class="blob blob1"></div>
-<div class="blob blob2"></div>
-<div class="blob blob3"></div>
+<!-- ===== LOGIN — Connect DZ New Design ===== -->
+<div class="login" id="login">
 
-<div class="auth-wrap">
-
-  <!-- Logo -->
-  <div class="logo-header">
-    <div class="logo-icon">🌿</div>
-    <div class="logo-title">Connect DZ</div>
-    <div class="logo-sub">منصة الشباب الجزائري</div>
-  </div>
-
-  <!-- Main Card -->
-  <div class="card" id="mainCard">
-
-    <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('login')">تسجيل الدخول</button>
-      <button class="tab-btn" onclick="switchTab('register')">إنشاء حساب</button>
+  <!-- زر تبديل اللغة -->
+  <div id="loginLangBadge" style="position:absolute;top:14px;left:14px;z-index:20;">
+    <div onclick="document.getElementById('loginLangDropdown').classList.toggle('open')" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,0.15);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:5px 12px;cursor:pointer;transition:opacity .2s ease, transform .2s ease;font-size:12px;font-weight:700;color:#2e7d32;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+      <span id="loginLangFlag" style="font-size:15px;">🇩🇿</span>
+      <span id="loginLangName" style="font-size:11px;font-weight:700;color:#2e7d32;">AR</span>
+      <span style="font-size:9px;opacity:0.7;color:#2e7d32;">▾</span>
     </div>
-
-    <!-- ========= LOGIN SECTION ========= -->
-    <div class="form-section active" id="loginSection">
-
-      <!-- Saved accounts -->
-      <div class="saved-accounts" id="savedAccountsWrap" style="display:none;">
-        <div class="saved-title">📱 الحسابات المحفوظة</div>
-        <div id="savedAccountsList"></div>
-        <div class="divider"><span class="divider-text">أو تسجيل الدخول بحساب آخر</span></div>
-      </div>
-
-      <div id="loginAlert" class="alert"></div>
-
-      <div class="field-group">
-        <label class="field-label">📧 البريد الإلكتروني</label>
-        <input type="email" id="loginEmail" class="field-input" placeholder="example@email.com" dir="ltr">
-      </div>
-
-      <div class="field-group">
-        <label class="field-label">🔒 كلمة المرور</label>
-        <div class="pass-wrap">
-          <input type="password" id="loginPass" class="field-input" placeholder="••••••••" dir="ltr">
-          <button class="pass-toggle" onclick="togglePass('loginPass', this)">👁️</button>
-        </div>
-      </div>
-
-      <a class="forgot-link" onclick="showForgotModal()">هل نسيت كلمة المرور؟</a>
-
-      <button class="btn-submit" onclick="doLogin()">
-        <span id="loginBtnText">تسجيل الدخول</span>
-      </button>
-
-      <div style="margin-top:14px; text-align:center;">
-        <button class="btn-add-account" onclick="switchTab('register')">
-          ➕ إضافة حساب جديد
-        </button>
-      </div>
-    </div>
-
-    <!-- ========= REGISTER SECTION ========= -->
-    <div class="form-section" id="registerSection">
-
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill" style="width:0%"></div>
-      </div>
-
-      <div id="registerAlert" class="alert"></div>
-
-      <div class="register-form" id="registerForm">
-
-        <!-- Photo -->
-        <div class="section-title">📸 الصورة الشمسية</div>
-        <div class="field-group">
-          <label class="photo-upload" id="photoUploadArea">
-            <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto(this)">
-            <img id="photoPreview" class="photo-preview" src="" alt="صورة">
-            <div class="photo-icon" id="photoIcon">📷</div>
-            <div class="photo-text" id="photoText">انقر لرفع صورتك الشمسية</div>
-          </label>
-        </div>
-
-        <!-- Personal Info -->
-        <div class="section-title">👤 المعلومات الشخصية</div>
-        <div class="field-row">
-          <div class="field-group">
-            <label class="field-label">الاسم</label>
-            <input type="text" id="fName" class="field-input" placeholder="محمد">
-          </div>
-          <div class="field-group">
-            <label class="field-label">اللقب</label>
-            <input type="text" id="lName" class="field-input" placeholder="بن علي">
-          </div>
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">📅 تاريخ الميلاد</label>
-          <input type="date" id="birthDate" class="field-input">
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">🏠 عنوان الإقامة</label>
-          <input type="text" id="address" class="field-input" placeholder="حي، شارع، رقم...">
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">🪪 رقم بطاقة التعريف (16 رقم)</label>
-          <input type="text" id="idCard" class="field-input" placeholder="0000 0000 0000 0000" maxlength="19" dir="ltr" oninput="formatID(this)">
-        </div>
-
-        <!-- Blood type -->
-        <div class="field-group">
-          <label class="field-label">🩸 زمرة الدم</label>
-          <div class="blood-grid">
-            <button class="blood-btn" onclick="selectBlood(this,'A+')">A+</button>
-            <button class="blood-btn" onclick="selectBlood(this,'A-')">A-</button>
-            <button class="blood-btn" onclick="selectBlood(this,'B+')">B+</button>
-            <button class="blood-btn" onclick="selectBlood(this,'B-')">B-</button>
-            <button class="blood-btn" onclick="selectBlood(this,'O+')">O+</button>
-            <button class="blood-btn" onclick="selectBlood(this,'O-')">O-</button>
-            <button class="blood-btn" onclick="selectBlood(this,'AB+')">AB+</button>
-            <button class="blood-btn" onclick="selectBlood(this,'AB-')">AB-</button>
-          </div>
-          <input type="hidden" id="bloodType">
-        </div>
-
-        <!-- Gender -->
-        <div class="field-group">
-          <label class="field-label">⚧ الجنس</label>
-          <div class="gender-grid">
-            <button class="gender-btn" onclick="selectGender(this,'ذكر')">👦 ذكر</button>
-            <button class="gender-btn" onclick="selectGender(this,'أنثى')">👧 أنثى</button>
-          </div>
-          <input type="hidden" id="gender">
-        </div>
-
-        <!-- Category -->
-        <div class="field-group">
-          <label class="field-label">🏷️ تحديد الفئة</label>
-          <select id="category" class="field-select">
-            <option value="">-- اختر الفئة --</option>
-            <option value="أطفال">🧒 أطفال (أقل من 15 سنة)</option>
-            <option value="شباب">🧑 شباب (15-30 سنة)</option>
-            <option value="رائد">👨 رائد (30-40 سنة)</option>
-            <option value="رائد تنفيذي">🧑‍💼 رائد تنفيذي (فوق 40 سنة)</option>
-          </select>
-        </div>
-
-        <!-- Education -->
-        <div class="field-group">
-          <label class="field-label">🎓 المستوى الدراسي</label>
-          <select id="education" class="field-select">
-            <option value="">-- اختر المستوى --</option>
-            <option>ابتدائي</option>
-            <option>متوسط</option>
-            <option>ثانوي</option>
-            <option>جامعي</option>
-            <option>دراسات عليا</option>
-            <option>تكوين مهني</option>
-          </select>
-        </div>
-
-        <!-- Location -->
-        <div class="section-title">📍 موقع الإقامة</div>
-        <div class="field-row">
-          <div class="field-group">
-            <label class="field-label">الولاية</label>
-            <select id="wilaya" class="field-select" onchange="loadBaladiyas()">
-              <option value="">-- الولاية --</option>
-            </select>
-          </div>
-          <div class="field-group">
-            <label class="field-label">البلدية</label>
-            <select id="baladiya" class="field-select">
-              <option value="">-- البلدية --</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">📞 رقم الهاتف</label>
-          <input type="tel" id="phone" class="field-input" placeholder="0555 000 000" maxlength="12" dir="ltr">
-        </div>
-
-        <!-- Social Info -->
-        <div class="section-title">ℹ️ معلومات إضافية</div>
-
-        <div class="field-group">
-          <label class="field-label">🏠 هل أنت منخرط في دار الشباب؟</label>
-          <div class="gender-grid">
-            <button class="gender-btn" onclick="selectYN(this,'darYes','نعم')">✅ نعم</button>
-            <button class="gender-btn" onclick="selectYN(this,'darYes','لا')">❌ لا</button>
-          </div>
-          <input type="hidden" id="darYes">
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">🎨 هوايتك</label>
-          <input type="text" id="hobby" class="field-input" placeholder="الرياضة، الرسم، القراءة...">
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">🌟 مهاراتك القيادية</label>
-          <input type="text" id="skills" class="field-input" placeholder="التنظيم، التواصل، الإبداع...">
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">🤝 هل شاركت معنا من قبل؟</label>
-          <div class="gender-grid">
-            <button class="gender-btn" onclick="selectYN(this,'sharedBefore','نعم')">✅ نعم</button>
-            <button class="gender-btn" onclick="selectYN(this,'sharedBefore','لا')">❌ لا</button>
-          </div>
-          <input type="hidden" id="sharedBefore">
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">⭐ هل أعجبك البرنامج؟</label>
-          <div class="star-rating">
-            <input type="radio" id="s5" name="rating" value="5"><label for="s5">★</label>
-            <input type="radio" id="s4" name="rating" value="4"><label for="s4">★</label>
-            <input type="radio" id="s3" name="rating" value="3"><label for="s3">★</label>
-            <input type="radio" id="s2" name="rating" value="2"><label for="s2">★</label>
-            <input type="radio" id="s1" name="rating" value="1"><label for="s1">★</label>
-          </div>
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">🏥 هل تعاني من مرض معين؟</label>
-          <input type="text" id="disease" class="field-input" placeholder="اكتب المرض أو اترك الخانة فارغة">
-        </div>
-
-        <!-- Account -->
-        <div class="section-title">🔐 بيانات الحساب</div>
-
-        <div class="field-group">
-          <label class="field-label">📧 البريد الإلكتروني</label>
-          <input type="email" id="regEmail" class="field-input" placeholder="example@email.com" dir="ltr" oninput="updateProgress()">
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">🔒 كلمة المرور</label>
-          <div class="pass-wrap">
-            <input type="password" id="regPass" class="field-input" placeholder="كلمة مرور قوية" dir="ltr" oninput="checkPassStrength(this.value); updateProgress()">
-            <button class="pass-toggle" onclick="togglePass('regPass', this)">👁️</button>
-          </div>
-          <div id="passStrengthBar" style="height:3px;border-radius:3px;margin-top:4px;transition:all 0.3s;"></div>
-          <div id="passStrengthText" style="font-size:0.75rem;margin-top:2px;"></div>
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">🔒 تأكيد كلمة المرور</label>
-          <div class="pass-wrap">
-            <input type="password" id="regPassConfirm" class="field-input" placeholder="أعد كتابة كلمة المرور" dir="ltr" oninput="checkPassMatch()">
-            <button class="pass-toggle" onclick="togglePass('regPassConfirm', this)">👁️</button>
-          </div>
-          <div id="passMatchText" style="font-size:0.75rem;margin-top:2px;"></div>
-        </div>
-
-        <div class="checkbox-group">
-          <input type="checkbox" id="agreeTerms">
-          <label for="agreeTerms">أوافق على شروط الاستخدام وسياسة الخصوصية</label>
-        </div>
-
-        <button class="btn-submit" onclick="doRegister()">
-          <span id="regBtnText">إنشاء الحساب ✨</span>
-        </button>
-
-        <div style="height:16px;"></div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Footer -->
-  <div class="app-footer">
-    <div class="footer-brand">
-      <span class="brand-name brand1">Next Leaders DZ</span>
-      <span style="color:#ccc;">|</span>
-      <span class="brand-name brand2">Smart Kids Lab</span>
-    </div>
-    <div class="footer-dev">إعداد وبرمجة Yahia Dich</div>
-  </div>
-
-</div>
-
-<!-- Forgot Password Modal -->
-<div class="modal-overlay" id="forgotModal">
-  <div class="modal-box">
-    <div class="modal-icon">🔑</div>
-    <div class="modal-title">استعادة كلمة المرور</div>
-    <div class="modal-text">أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور</div>
-    <input type="email" id="forgotEmail" class="field-input" placeholder="بريدك الإلكتروني" dir="ltr" style="margin-bottom:14px;">
-    <div style="display:flex;gap:10px;justify-content:center;">
-      <button class="modal-btn" onclick="sendReset()">إرسال</button>
-      <button class="modal-btn" style="background:linear-gradient(135deg,#ccc,#999);" onclick="closeForgot()">إلغاء</button>
+    <div id="loginLangDropdown" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,0.08);border-radius:14px;padding:8px;box-shadow:0 16px 40px rgba(0,0,0,0.15);z-index:9999;min-width:160px;animation:fadeUp .18s ease;" class="">
+      <div onclick="setAppLang('ar',true);updateLoginLangBadge('ar');document.getElementById('loginLangDropdown').classList.remove('open')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:700;color:#333;transition:.15s;" onmouseover="this.style.background='#f0f9f0'" onmouseout="this.style.background='transparent'"><span>🇩🇿</span> العربية</div>
+      <div onclick="setAppLang('en',true);updateLoginLangBadge('en');document.getElementById('loginLangDropdown').classList.remove('open')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:700;color:#333;transition:.15s;" onmouseover="this.style.background='#f0f9f0'" onmouseout="this.style.background='transparent'"><span>🇬🇧</span> English</div>
+      <div onclick="setAppLang('es',true);updateLoginLangBadge('es');document.getElementById('loginLangDropdown').classList.remove('open')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:700;color:#333;transition:.15s;" onmouseover="this.style.background='#f0f9f0'" onmouseout="this.style.background='transparent'"><span>🇪🇸</span> Español</div>
+      <div onclick="setAppLang('zh',true);updateLoginLangBadge('zh');document.getElementById('loginLangDropdown').classList.remove('open')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:700;color:#333;transition:.15s;" onmouseover="this.style.background='#f0f9f0'" onmouseout="this.style.background='transparent'"><span>🇨🇳</span> 中文</div>
     </div>
   </div>
-</div>
 
-<!-- Success Modal -->
-<div class="modal-overlay" id="successModal">
-  <div class="modal-box">
-    <div class="modal-icon">🎉</div>
-    <div class="modal-title">تم التسجيل بنجاح!</div>
-    <div class="modal-text" id="successModalText">مرحباً بك في Connect DZ! تم حفظ حسابك. يُرجى تغيير كلمة المرور إلى كلمة مرور حقيقية من إعدادات حسابك.</div>
-    <button class="modal-btn" onclick="afterRegister()">ابدأ الآن 🚀</button>
+  <!-- الشعار -->
+  <div class="fb-app-brand">
+    <div class="fb-app-logo-leaf">🌿</div>
+    <span class="fb-app-name"><span class="cdz-connect">Connect</span> <span class="cdz-dz">DZ</span></span>
+    <span class="fb-app-tagline">منصة الشباب الجزائري</span>
   </div>
+
+  <!-- البطاقة الرئيسية -->
+  <div class="fb-login-card">
+
+    <!-- تبويبات تسجيل الدخول / إنشاء حساب -->
+    <div class="fb-login-tabs">
+      <button class="fb-tab-btn active" id="tabLoginBtn" onclick="switchLoginTab('login')">تسجيل الدخول</button>
+      <button class="fb-tab-btn" id="tabRegisterBtn" onclick="openFbRegister()">إنشاء حساب</button>
+    </div>
+
+    <!-- ─── منطقة المستخدم العائد: الحسابات المحفوظة ─── -->
+    <div id="savedAccountsSection" style="display:none;">
+      <div class="saved-acc-label" id="savedAccLabel">الدخول بحساب محفوظ</div>
+      <div class="saved-acc-list" id="savedAccList"></div>
+      <div class="fb-divider"><span>أو</span></div>
+    </div>
+
+    <!-- Hidden legacy email input -->
+    <input type="hidden" id="loginEmail" value="">
+
+    <!-- ─── منطقة تسجيل الدخول ─── -->
+    <div id="newUserLoginSection">
+      <div id="authFields">
+        <!-- حقل البريد الإلكتروني -->
+        <div class="fb-input-wrapper">
+          <div class="fb-input-label">
+            <span>البريد الإلكتروني</span>
+            <span class="fb-input-label-icon">📧</span>
+          </div>
+          <input type="text" id="fbEmailPhone" class="fb-input"
+            placeholder="example@email.com"
+            onkeydown="if(event.key==='Enter')document.getElementById('fbPassword').focus()">
+        </div>
+        <!-- حقل كلمة المرور -->
+        <div class="fb-input-wrapper">
+          <div class="fb-input-label">
+            <span>كلمة المرور</span>
+            <span class="fb-input-label-icon">🔒</span>
+          </div>
+          <div class="fb-pw-wrapper">
+            <input type="password" id="fbPassword" class="fb-input"
+              placeholder="••••••••"
+              onkeydown="if(event.key==='Enter')fbDoLogin()">
+            <button class="fb-pw-toggle" type="button" onclick="togglePasswordVisibility('fbPassword',this)" tabindex="-1">👁</button>
+          </div>
+        </div>
+        <!-- نسيت كلمة المرور -->
+        <div class="fb-forgot">
+          <a onclick="openForgotPassword()">هل نسيت كلمة المرور؟</a>
+        </div>
+      </div>
+      <button class="fb-login-btn" id="mainAuthBtn" onclick="fbDoLogin()">تسجيل الدخول</button>
+    </div>
+
+    <!-- ─── إضافة حساب جديد ─── -->
+    <div id="fbAddAccount" style="margin-top:10px;">
+      <div class="fb-divider" id="addAccDivider"><span>أو</span></div>
+      <button class="fb-add-acc-btn" id="addAccountBtn" onclick="showAddAccountFields()">+ إضافة حساب جديد</button>
+    </div>
+
+    <!-- ─── نموذج إضافة حساب (مخفي) ─── -->
+    <div id="addAccountFields" style="display:none;margin-top:10px;">
+      <div class="fb-input-wrapper">
+        <div class="fb-input-label"><span>البريد الإلكتروني</span><span class="fb-input-label-icon">📧</span></div>
+        <input type="text" id="fbEmailPhone2" class="fb-input"
+          placeholder="example@email.com"
+          onkeydown="if(event.key==='Enter')document.getElementById('fbPassword2').focus()">
+      </div>
+      <div class="fb-input-wrapper">
+        <div class="fb-input-label"><span>كلمة المرور</span><span class="fb-input-label-icon">🔒</span></div>
+        <div class="fb-pw-wrapper">
+          <input type="password" id="fbPassword2" class="fb-input"
+            placeholder="••••••••"
+            onkeydown="if(event.key==='Enter')fbDoLogin2()">
+          <button class="fb-pw-toggle" type="button" onclick="togglePasswordVisibility('fbPassword2',this)" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <div class="fb-forgot"><a onclick="openForgotPassword()">هل نسيت كلمة المرور؟</a></div>
+      <button class="fb-login-btn" onclick="fbDoLogin2()" style="margin-top:4px;">تسجيل الدخول</button>
+      <div style="text-align:center;margin-top:10px;"><span onclick="hideAddAccountFields()" style="font-size:13px;color:#888;cursor:pointer;font-weight:700;">إلغاء</span></div>
+    </div>
+
+    <!-- زر إنشاء حساب الكبير -->
+    <div class="fb-divider" style="margin-top:14px;"><span>أو</span></div>
+    <button class="fb-register-btn" onclick="openFbRegister()">➕ إنشاء حساب جديد</button>
+
+    <!-- Hidden legacy switch button -->
+    <div id="switchAcc" onclick="clearSavedData()" style="display:none;text-align:center;margin-top:10px;font-size:12px;color:#888;cursor:pointer;">تغيير الحساب</div>
+  </div>
+
+  <!-- فوتر الصفحة -->
+  <div class="login-footer">
+    <span style="color:#7b3f00;font-weight:700;">Smart Kids Lab</span>
+    <span class="lf-sep">|</span>
+    <span style="color:#2e7d32;font-weight:700;">Next Leaders DZ</span>
+  </div>
+  <div class="login-footer-sub">إعداد وبرمجة Yahia Dich</div>
+
 </div>
 
 <script>
-// ===== FIREBASE CONFIG =====
-const FB_URL = 'https://connectdz-49fab-default-rtdb.firebaseio.com/appdata';
-
-// ===== WILAYAS =====
-const WILAYAS = ["أدرار","الشلف","الأغواط","أم البواقي","باتنة","بجاية","بسكرة","بشار","البليدة","البويرة","تمنراست","تبسة","تلمسان","تيارت","تيزي وزو","الجزائر","الجلفة","جيجل","سطيف","سعيدة","سكيكدة","سيدي بلعباس","عنابة","قالمة","قسنطينة","المدية","مستغانم","المسيلة","معسكر","ورقلة","وهران","البيض","إليزي","برج بوعريريج","بومرداس","الطارف","تندوف","تيسمسيلت","الوادي","خنشلة","سوق أهراس","تيبازة","ميلة","عين الدفلى","النعامة","عين تيموشنت","غرداية","غليزان","المغير","المنيعة","أولاد جلال","برج باجي مختار","بني عباس","تيميمون","تقرت","جانت","عين صالح","عين قزام"];
-
-window.onload = function() {
-  // Load wilayas
-  const sel = document.getElementById('wilaya');
-  WILAYAS.forEach((w,i) => {
-    const opt = document.createElement('option');
-    opt.value = w; opt.textContent = `${i+1}. ${w}`;
-    sel.appendChild(opt);
-  });
-  // Load saved accounts
-  loadSavedAccounts();
-};
-
-function loadBaladiyas() {
-  const w = document.getElementById('wilaya').value;
-  const b = document.getElementById('baladiya');
-  b.innerHTML = '<option value="">-- البلدية --</option>';
-  if(w) {
-    ['المدينة','الحامة','الشفة','واد السلام','المركز','الجنوب','الشمال','وسط البلد'].forEach(bl=>{
-      const o=document.createElement('option'); o.value=bl; o.textContent=bl; b.appendChild(o);
-    });
-  }
+/* ── تبديل رؤية كلمة المرور ── */
+function togglePasswordVisibility(inputId, btn){
+  var inp = document.getElementById(inputId);
+  if(!inp) return;
+  if(inp.type==='password'){ inp.type='text'; btn.textContent='🙈'; }
+  else { inp.type='password'; btn.textContent='👁'; }
 }
-
-// ===== TABS =====
-function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.form-section').forEach(s=>s.classList.remove('active'));
-  if(tab==='login') {
-    document.querySelector('.tabs .tab-btn:first-child').classList.add('active');
-    document.getElementById('loginSection').classList.add('active');
-  } else {
-    document.querySelector('.tabs .tab-btn:last-child').classList.add('active');
-    document.getElementById('registerSection').classList.add('active');
-  }
-}
-
-// ===== PASSWORD =====
-function togglePass(id, btn) {
-  const inp = document.getElementById(id);
-  if(inp.type==='password') { inp.type='text'; btn.textContent='🙈'; }
-  else { inp.type='password'; btn.textContent='👁️'; }
-}
-
-function checkPassStrength(val) {
-  const bar = document.getElementById('passStrengthBar');
-  const txt = document.getElementById('passStrengthText');
-  let score=0;
-  if(val.length>=8) score++;
-  if(/[A-Z]/.test(val)) score++;
-  if(/[0-9]/.test(val)) score++;
-  if(/[^A-Za-z0-9]/.test(val)) score++;
-  const levels = [
-    {w:'0%',c:'transparent',t:''},
-    {w:'25%',c:'#e74c3c',t:'ضعيفة'},
-    {w:'50%',c:'#e67e22',t:'متوسطة'},
-    {w:'75%',c:'#f1c40f',t:'جيدة'},
-    {w:'100%',c:'#27ae60',t:'قوية 💪'}
-  ];
-  const l = levels[score];
-  bar.style.width=l.w; bar.style.background=l.c;
-  txt.textContent=l.t; txt.style.color=l.c;
-}
-
-function checkPassMatch() {
-  const p1=document.getElementById('regPass').value;
-  const p2=document.getElementById('regPassConfirm').value;
-  const txt=document.getElementById('passMatchText');
-  if(!p2) {txt.textContent='';return;}
-  if(p1===p2) {txt.textContent='✅ كلمتا المرور متطابقتان'; txt.style.color='#27ae60';}
-  else {txt.textContent='❌ كلمتا المرور غير متطابقتين'; txt.style.color='#e74c3c';}
-}
-
-// ===== SELECTORS =====
-function selectBlood(btn, val) {
-  document.querySelectorAll('.blood-btn').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
-  document.getElementById('bloodType').value = val;
-}
-
-function selectGender(btn, val) {
-  btn.parentElement.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
-  document.getElementById('gender').value = val;
-}
-
-function selectYN(btn, id, val) {
-  btn.parentElement.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
-  document.getElementById(id).value = val;
-}
-
-// ===== PHOTO =====
-function previewPhoto(inp) {
-  if(inp.files && inp.files[0]) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const preview = document.getElementById('photoPreview');
-      preview.src = e.target.result;
-      preview.style.display = 'block';
-      document.getElementById('photoIcon').style.display='none';
-      document.getElementById('photoText').textContent='تم اختيار الصورة ✅';
-    };
-    reader.readAsDataURL(inp.files[0]);
-  }
-}
-
-// ===== ID FORMAT =====
-function formatID(inp) {
-  let v = inp.value.replace(/\D/g,'').substring(0,16);
-  inp.value = v.replace(/(.{4})/g,'$1 ').trim();
-}
-
-// ===== PROGRESS =====
-function updateProgress() {
-  const fields = ['fName','lName','birthDate','regEmail','regPass'];
-  let filled = fields.filter(f=>document.getElementById(f)&&document.getElementById(f).value).length;
-  document.getElementById('progressFill').style.width = (filled/fields.length*100)+'%';
-}
-
-// ===== LOGIN =====
-async function doLogin() {
-  const email  = document.getElementById('loginEmail').value.trim();
-  const pass   = document.getElementById('loginPass').value.trim();
-  const btnTxt = document.getElementById('loginBtnText');
-
-  // ── تحقق بسيط: البريد فقط مطلوب ──
-  if(!email){
-    document.getElementById('loginEmail').focus();
-    return;
-  }
-
-  btnTxt.innerHTML = 'جاري التحقق... <span class="spinner"></span>';
-
-  // ── ① admin ──
-  if(typeof ADMIN_CODE!=='undefined' &&
-    (email===ADMIN_CODE || email.toLowerCase()===(typeof ADMIN_EMAIL!=='undefined'?ADMIN_EMAIL:'').toLowerCase())){
-    document.getElementById('loginEmail').value = email;
-    btnTxt.textContent='تسجيل الدخول';
-    if(typeof enter==='function') enter();
-    return;
-  }
-
-  // ── ② البحث في المسجلين محلياً (localStorage) ──
-  const REG_KEY = 'cdz_registered_users';
-  let regUsers = [];
-  try { regUsers = JSON.parse(localStorage.getItem(REG_KEY)||'[]'); } catch(e){}
-
-  if(regUsers.length){
-    const u = regUsers.find(u=>u.email===email);
-    if(u){
-      // كلمة السر: إذا فارغة أو 000000 → دخول مباشر مع تنبيه
-      const storedPass = u.password || '';
-      const isTempPass = !storedPass || storedPass===btoa('') || storedPass===btoa('000000');
-      const enteredCorrect = storedPass && storedPass===btoa(pass);
-
-      if(isTempPass || enteredCorrect || pass==='000000'){
-        btnTxt.textContent='تسجيل الدخول';
-        _doCDZLogin(u.firstName+' '+u.lastName, u.photoUrl||u.photo||'', u.email);
-        if(isTempPass || pass==='000000'){
-          setTimeout(()=>{ if(typeof showToast==='function') showToast('🔑 كلمة المرور المؤقتة: 000000  ⚠️ يُرجى تغييرها من الإعدادات'); },1200);
-        }
-        return;
-      } else {
-        btnTxt.textContent='تسجيل الدخول';
-        if(typeof showToast==='function') showToast('❌ كلمة المرور غير صحيحة');
-        document.getElementById('loginPass').focus();
-        return;
-      }
-    }
-  }
-
-  // ── ③ البحث في Sheets (الأعضاء القدامى) — بصمت بدون رسالة خطأ ──
-  document.getElementById('loginEmail').value = email;
-  btnTxt.textContent='تسجيل الدخول';
-  if(typeof enter==='function') enter();
-}
-
-// دالة مساعدة: دخول مباشر بالاسم والصورة
-function _doCDZLogin(fullName, photoUrl, email){
-  // حفظ في localStorage
-  localStorage.setItem('sklab_user_name', fullName);
-  // تحديث الصورة إن وُجدت
-  if(photoUrl) localStorage.setItem('nld_photo_'+fullName.replace(/\s+/g,'_'), photoUrl);
-  // حفظ في الحسابات
-  try {
-    let cdz = JSON.parse(localStorage.getItem('cdz_accounts')||'[]');
-    const idx = cdz.findIndex(a=>a.email===email);
-    const entry = {name:fullName,email,photo:photoUrl};
-    if(idx>=0) cdz[idx]=entry; else cdz.unshift(entry);
-    localStorage.setItem('cdz_accounts',JSON.stringify(cdz));
-  } catch(e){}
-  // استدعاء renderApp مباشرة
-  const pts = 0;
-  if(typeof renderApp==='function'){
-    const earned = parseInt(localStorage.getItem('nld_earned_'+fullName.replace(/\s+/g,'_'))||'0');
-    renderApp(fullName, pts, true, earned);
-  } else if(typeof enter==='function'){
-    document.getElementById('loginEmail').value = email;
-    enter();
-  }
-}
-
-// ===== REGISTER =====
-async function doRegister() {
-  const btn = document.getElementById('regBtnText');
-  const alert = document.getElementById('registerAlert');
-
-  const firstName = document.getElementById('fName').value.trim();
-  const lastName = document.getElementById('lName').value.trim();
-  const email = document.getElementById('regEmail').value.trim();
-  const pass = document.getElementById('regPass').value;
-  const passConfirm = document.getElementById('regPassConfirm').value;
-  const agree = document.getElementById('agreeTerms').checked;
-
-  if(!firstName||!lastName||!email||!pass) {
-    showAlert(alert,'error-msg','⚠️ يرجى ملء الحقول الإلزامية على الأقل (الاسم، اللقب، البريد، كلمة المرور)');
-    return;
-  }
-  if(pass!==passConfirm) { showAlert(alert,'error-msg','❌ كلمتا المرور غير متطابقتين'); return; }
-  if(!agree) { showAlert(alert,'warning','⚠️ يجب الموافقة على شروط الاستخدام'); return; }
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAlert(alert,'error-msg','❌ البريد الإلكتروني غير صحيح'); return; }
-
-  btn.innerHTML = 'جاري التسجيل... <span class="spinner"></span>';
-
-  try {
-    // Check if email already exists
-    const res = await fetch(`${FB_URL}/users.json`);
-    const users = await res.json() || {};
-    for(const uid in users) {
-      if(users[uid].email === email) {
-        showAlert(alert,'error-msg','❌ هذا البريد الإلكتروني مسجل مسبقاً');
-        btn.textContent='إنشاء الحساب ✨'; return;
-      }
-    }
-
-    // Upload photo to Cloudinary
-    let photoUrl = '';
-    const photoFile = document.getElementById('photoInput').files[0];
-    if(photoFile) {
-      const fd = new FormData();
-      fd.append('file', photoFile);
-      fd.append('upload_preset', 'ml_default');
-      const upRes = await fetch('https://api.cloudinary.com/v1_1/dzjutgs7s/image/upload', {method:'POST', body:fd});
-      if(upRes.ok) {
-        const upData = await upRes.json();
-        photoUrl = upData.secure_url || '';
-      }
-    }
-
-    // Get rating
-    const ratingEl = document.querySelector('input[name="rating"]:checked');
-    const rating = ratingEl ? ratingEl.value : '';
-
-    const userData = {
-      firstName, lastName,
-      birthDate: document.getElementById('birthDate').value,
-      address: document.getElementById('address').value,
-      idCard: document.getElementById('idCard').value,
-      bloodType: document.getElementById('bloodType').value,
-      gender: document.getElementById('gender').value,
-      category: document.getElementById('category').value,
-      education: document.getElementById('education').value,
-      wilaya: document.getElementById('wilaya').value,
-      baladiya: document.getElementById('baladiya').value,
-      phone: document.getElementById('phone').value,
-      photo: photoUrl,
-      darYes: document.getElementById('darYes').value,
-      hobby: document.getElementById('hobby').value,
-      skills: document.getElementById('skills').value,
-      sharedBefore: document.getElementById('sharedBefore').value,
-      rating, disease: document.getElementById('disease').value,
-      email,
-      password: btoa(pass || '000000'),
-      passChanged: !!(pass && pass !== '000000'),
-      points: 0, netPoints: 0, level: 1,
-      joinDate: new Date().toISOString(),
-      loginStreak: 1, lastLogin: new Date().toISOString(),
-    };
-
-    // ① حفظ فوري في localStorage
-    const localEntry = {
-      ...userData,
-      name: firstName+' '+lastName,
-      photoUrl: photoUrl,
-      uid: 'local_'+Date.now()
-    };
-    try {
-      const REG_KEY = 'cdz_registered_users';
-      let regUsers = JSON.parse(localStorage.getItem(REG_KEY)||'[]');
-      const ei = regUsers.findIndex(u=>u.email===email);
-      if(ei>=0) regUsers[ei]=localEntry; else regUsers.unshift(localEntry);
-      localStorage.setItem(REG_KEY, JSON.stringify(regUsers));
-      // حفظ في cdz_accounts لعرضه في القائمة
-      let cdz = JSON.parse(localStorage.getItem('cdz_accounts')||'[]');
-      const ci = cdz.findIndex(a=>a.email===email);
-      const cdzEntry = {name:firstName+' '+lastName, email, photo:photoUrl};
-      if(ci>=0) cdz[ci]=cdzEntry; else cdz.unshift(cdzEntry);
-      localStorage.setItem('cdz_accounts', JSON.stringify(cdz));
-    } catch(e){}
-
-    // ② عرض نجاح فوري
-    loadSavedAccounts();
-    document.getElementById('successModal').classList.add('open');
-    document.getElementById('successModalText').textContent =
-      `مرحباً ${firstName} ${lastName}! تم إنشاء حسابك بنجاح 🎉\n🔑 كلمة المرور المؤقتة: 000000\n⚠️ يُرجى تغييرها من الإعدادات.`;
-
-    // ③ Firebase في الخلفية (لا ينتظر، لا يُظهر خطأ)
-    fetch(`${FB_URL}/users.json`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(userData)
-    }).then(r=>r.ok?r.json():null).then(j=>{
-      if(j?.name) addPoints(j.name, 5, 'تسجيل جديد').catch(()=>{});
-    }).catch(()=>{});
-
-  } catch(err) {
-    console.error(err);
-    // حتى لو فشل كل شيء — اعرض النجاح لأن البيانات محفوظة محلياً
-    loadSavedAccounts();
-    document.getElementById('successModal').classList.add('open');
-    document.getElementById('successModalText').textContent =
-      `مرحباً ${firstName} ${lastName}! تم إنشاء حسابك محلياً 🎉\n🔑 كلمة المرور المؤقتة: 000000`;
-  }
-  btn.textContent='إنشاء الحساب ✨';
-}
-
-function afterRegister() {
-  document.getElementById('successModal').classList.remove('open');
-  switchTab('login');
-  loadSavedAccounts();
-}
-
-// ===== POINTS =====
-async function addPoints(uid, pts, reason) {
-  try {
-    const res = await fetch(`${FB_URL}/users/${uid}/points.json`);
-    const current = (await res.json()) || 0;
-    await fetch(`${FB_URL}/users/${uid}/points.json`, {
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(current + pts)
-    });
-  } catch(e){}
-}
-
-// ===== LOG VISIT =====
-async function logVisit(uid, email) {
-  try {
-    await fetch(`${FB_URL}/visits.json`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({uid, email, time: new Date().toISOString(), action:'login'})
-    });
-    // Add 5 points for login
-    await addPoints(uid, 5, 'تسجيل دخول يومي');
-  } catch(e){}
-}
-
-// ===== SAVE ACCOUNTS LOCALLY =====
-function saveAccount(user) {
-  let accounts = JSON.parse(localStorage.getItem('cdz_accounts') || '[]');
-  const idx = accounts.findIndex(a=>a.email===user.email);
-  const acc = {
-    uid: user.uid, email: user.email,
-    name: `${user.firstName||''} ${user.lastName||''}`.trim(),
-    photo: user.photo || ''
-  };
-  if(idx>=0) accounts[idx]=acc; else accounts.push(acc);
-  localStorage.setItem('cdz_accounts', JSON.stringify(accounts));
-  loadSavedAccounts();
-}
-
-function loadSavedAccounts() {
-  const wrap = document.getElementById('savedAccountsWrap');
-  const list = document.getElementById('savedAccountsList');
-  if(!wrap||!list) return;
-
-  // جمع من كلا المصدرين بدون تكرار
-  const seen = new Set();
-  const all  = [];
-  const srcs = [
-    ...JSON.parse(localStorage.getItem('cdz_accounts')||'[]'),
-    ...JSON.parse(localStorage.getItem('cdz_registered_users')||'[]')
-  ];
-  srcs.forEach(a=>{
-    const k = a.email||a.name||'';
-    if(k && !seen.has(k)){
-      seen.add(k);
-      all.push({
-        name : a.name||((a.firstName||'')+' '+(a.lastName||'')).trim()||'مستخدم',
-        email: a.email||'',
-        photo: a.photo||a.photoUrl||''
-      });
-    }
-  });
-
-  if(!all.length){ wrap.style.display='none'; return; }
-  wrap.style.display='block';
-  list.innerHTML='';
-  all.forEach((acc,i)=>{
-    const div=document.createElement('div');
-    div.className='account-item';
-    const initial=acc.name?acc.name[0]:'؟';
-    div.innerHTML=`
-      <div class="account-avatar" style="${acc.photo?'background:none;padding:0;':''}">
-        ${acc.photo?`<img src="${acc.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:`<span>${initial}</span>`}
-      </div>
-      <div class="account-info">
-        <div class="account-name">${acc.name}</div>
-        <div class="account-email">${acc.email}</div>
-      </div>
-      <button class="account-del" onclick="removeAccount(${i},event)" title="حذف">🗑️</button>
-    `;
-    // نقرة واحدة = دخول مباشر بدون كلمة سر
-    div.onclick=(e)=>{ if(e.target.classList.contains('account-del')) return; quickLogin(acc); };
-    list.appendChild(div);
-  });
-}
-
-function removeAccount(idx, e) {
-  e.stopPropagation();
-  if(!confirm('حذف هذا الحساب من القائمة؟')) return;
-  // اجمع نفس القائمة المدمجة واحذف العنصر
-  const seen=new Set(), all=[];
-  [...JSON.parse(localStorage.getItem('cdz_accounts')||'[]'),
-   ...JSON.parse(localStorage.getItem('cdz_registered_users')||'[]')]
-  .forEach(a=>{
-    const k=a.email||a.name||'';
-    if(k&&!seen.has(k)){seen.add(k);all.push(a);}
-  });
-  const removed = all[idx];
-  if(!removed) return;
-  // احذف من كلا المصدرين
-  ['cdz_accounts','cdz_registered_users'].forEach(key=>{
-    let arr=JSON.parse(localStorage.getItem(key)||'[]');
-    arr=arr.filter(a=>(a.email||a.name)!==(removed.email||removed.name));
-    localStorage.setItem(key,JSON.stringify(arr));
-  });
-  loadSavedAccounts();
-}
-
-function quickLogin(acc) {
-  // ملء البريد والدخول مباشرة (كلمة السر فارغة = دخول بدون سر أو بـ 000000)
-  document.getElementById('loginEmail').value = acc.email || '';
-  document.getElementById('loginPass').value   = '';
-  doLogin();
-}
-
-// ===== FORGOT =====
-function showForgotModal() { document.getElementById('forgotModal').classList.add('open'); }
-function closeForgot() { document.getElementById('forgotModal').classList.remove('open'); }
-
-async function sendReset() {
-  const email = document.getElementById('forgotEmail').value.trim();
-  if(!email) { alert('أدخل بريدك الإلكتروني'); return; }
-  
-  try {
-    // EmailJS
-    if(typeof emailjs !== 'undefined') {
-      await emailjs.send('service_e895qj1','template_9c21jti',{to_email:email,subject:'استعادة كلمة المرور - Connect DZ'});
-    }
-  } catch(e){}
-  
-  closeForgot();
-  showAlert(document.getElementById('loginAlert'),'success',`✅ تم إرسال رابط الاستعادة إلى ${email} - تحقق من بريدك`);
-}
-
-// ===== ALERT =====
-function showAlert(el, type, msg) {
-  el.className = `alert ${type}`;
-  el.textContent = msg;
-  el.style.display='flex';
-  setTimeout(()=>{ if(el.className.includes(type)) el.style.display='none'; }, 6000);
+/* ── دالة مساعدة للتبويبات ── */
+function switchLoginTab(tab){
+  var lb = document.getElementById('tabLoginBtn');
+  var rb = document.getElementById('tabRegisterBtn');
+  if(lb) lb.classList.toggle('active', tab==='login');
+  if(rb) rb.classList.toggle('active', tab==='register');
 }
 </script>
-
-</div><!-- /end #login new-auth-page -->
 
 <!-- ===== APP ===== -->
 <div class="app" id="app">
@@ -9781,7 +8869,7 @@ function processEntry(val,type){
     // 3) زائر غير مسجل
     renderApp(val,0,false, 0);
 
-  }).catch(()=>{ /* صمت — الدخول يعمل محلياً */ });
+  }).catch(()=>showToast('❌ مشكلة في الاتصال، حاول مجدداً', 'error'));
 }
 
 function renderApp(name,pts,isReg, externalEarned){
@@ -24890,486 +23978,6 @@ window.switchSocialTab = function(tab){
 };
 
 console.log('✅ ConnectDZ Streak v6.0 — شعلة من الشيتس + خصوصية + عزل الصور');
-})();
-</script>
-
-<!-- ══════════════════════════════════════════════════════════════
-     📧 نظام الكشف الفوري بالإيميل — Email Smart Lookup
-     بمجرد كتابة إيميل مطابق لمسجّل في Google Sheets أو
-     قاعدة البيانات المحلية، يظهر ملف المستخدم في الواجهة فوراً
-     ══════════════════════════════════════════════════════════════ -->
-<style>
-/* ── overlay البطاقة ── */
-#emailProfilePreview {
-  display:none;
-  position:fixed;
-  inset:0;
-  z-index:999998;
-  background:rgba(5,10,14,0.82);
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
-  align-items:flex-end;
-  justify-content:center;
-}
-#emailProfilePreview.epp-visible {
-  display:flex;
-  animation:fadeIn .2s ease;
-}
-.epp-card {
-  background:linear-gradient(160deg,#0d1117 0%,#161b22 100%);
-  border:1.5px solid rgba(0,229,160,0.28);
-  border-radius:28px 28px 0 0;
-  padding:0 0 32px;
-  width:100%;
-  max-width:480px;
-  max-height:90vh;
-  overflow-y:auto;
-  overscroll-behavior:contain;
-  animation:eppSlideUp .35s cubic-bezier(.22,.68,0,1.15) both;
-  box-shadow:0 -20px 60px rgba(0,0,0,0.7),0 0 0 1px rgba(0,229,160,0.1);
-}
-@keyframes eppSlideUp {
-  from{transform:translateY(100%);opacity:0}
-  to{transform:translateY(0);opacity:1}
-}
-.epp-handle {
-  width:44px;height:5px;border-radius:99px;
-  background:rgba(255,255,255,0.15);
-  margin:14px auto 0;
-}
-.epp-cover {
-  width:100%;height:110px;
-  background:linear-gradient(135deg,#00e5a0,#0099ff 50%,#a855f7);
-  position:relative;overflow:hidden;
-  margin-bottom:52px;flex-shrink:0;
-}
-.epp-cover-img {
-  width:100%;height:100%;
-  background-size:cover;background-position:center;
-}
-.epp-avatar-wrap {
-  position:absolute;bottom:-46px;right:16px;
-}
-.epp-avatar {
-  width:84px;height:84px;border-radius:50%;
-  background:linear-gradient(135deg,#00e5a0,#0099ff);
-  border:4px solid #0d1117;
-  display:flex;align-items:center;justify-content:center;
-  font-size:34px;overflow:hidden;
-  box-shadow:0 4px 18px rgba(0,0,0,0.6);
-}
-.epp-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
-.epp-body { padding:0 18px; }
-.epp-found-row {
-  display:flex;align-items:center;gap:9px;
-  background:rgba(0,229,160,0.08);
-  border:1px solid rgba(0,229,160,0.22);
-  border-radius:12px;padding:10px 14px;
-  font-size:12px;font-weight:700;color:#00e5a0;
-  margin-bottom:14px;
-}
-.epp-found-dot {
-  width:8px;height:8px;border-radius:50%;
-  background:#00e5a0;flex-shrink:0;
-  animation:onlinePulse 1.5s infinite;
-}
-.epp-source-badge {
-  display:inline-flex;align-items:center;gap:5px;
-  background:rgba(0,229,160,0.08);
-  border:1px solid rgba(0,229,160,0.2);
-  border-radius:20px;padding:3px 10px;
-  font-size:10px;font-weight:900;color:#00e5a0;
-  letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;
-}
-.epp-name {
-  font-size:22px;font-weight:900;color:#e8eaed;
-  margin-bottom:3px;line-height:1.2;
-}
-.epp-email-txt {
-  font-size:12px;color:#8b949e;font-weight:600;
-  margin-bottom:14px;direction:ltr;text-align:right;
-}
-.epp-info-grid {
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:8px;margin-bottom:16px;
-}
-.epp-info-item {
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.07);
-  border-radius:12px;padding:10px 12px;
-}
-.epp-info-lbl {
-  font-size:10px;color:#8b949e;font-weight:700;
-  margin-bottom:3px;letter-spacing:.4px;
-}
-.epp-info-val {
-  font-size:13px;font-weight:800;color:#e8eaed;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.epp-divider {
-  height:1px;background:rgba(255,255,255,0.07);margin:0 0 16px;
-}
-.epp-pass-wrap {
-  position:relative;margin-bottom:10px;
-}
-.epp-pass-input {
-  width:100%;padding:14px 44px 14px 16px;
-  border:1.5px solid rgba(255,255,255,0.1);
-  border-radius:14px;
-  background:rgba(255,255,255,0.05);
-  color:#e8eaed;font-family:'Tajawal',sans-serif;
-  font-size:15px;font-weight:500;outline:none;
-  box-sizing:border-box;transition:.2s;text-align:right;
-}
-.epp-pass-input:focus{
-  border-color:rgba(0,229,160,0.5);
-  background:rgba(0,229,160,0.04);
-  box-shadow:0 0 0 3px rgba(0,229,160,0.1);
-}
-.epp-pass-input::placeholder{color:rgba(139,148,158,0.55);}
-.epp-pass-toggle {
-  position:absolute;left:12px;top:50%;transform:translateY(-50%);
-  background:none;border:none;cursor:pointer;font-size:18px;
-  color:#8b949e;padding:0;line-height:1;
-}
-.epp-login-btn {
-  width:100%;padding:15px;border:none;border-radius:14px;
-  background:linear-gradient(135deg,#00e5a0,#0099ff);
-  color:#050a0e;font-family:'Tajawal',sans-serif;
-  font-size:16px;font-weight:900;cursor:pointer;
-  box-shadow:0 6px 20px rgba(0,229,160,0.3);
-  transition:.2s;margin-bottom:10px;
-}
-.epp-login-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,229,160,0.45);}
-.epp-login-btn:active{transform:translateY(0);}
-.epp-cancel-btn {
-  width:100%;padding:13px;
-  border:1.5px solid rgba(255,255,255,0.1);
-  border-radius:14px;background:transparent;
-  color:#8b949e;font-family:'Tajawal',sans-serif;
-  font-size:14px;font-weight:700;cursor:pointer;transition:.2s;
-}
-.epp-cancel-btn:hover{background:rgba(255,255,255,0.05);color:#e8eaed;}
-</style>
-
-<!-- overlay البطاقة -->
-<div id="emailProfilePreview" onclick="if(event.target===this)_eppClose()">
-  <div class="epp-card" id="eppCard">
-    <div class="epp-handle"></div>
-    <!-- غلاف وصورة -->
-    <div class="epp-cover">
-      <div class="epp-cover-img" id="eppCover"></div>
-      <div class="epp-avatar-wrap">
-        <div class="epp-avatar" id="eppAvatar">👤</div>
-      </div>
-    </div>
-    <!-- جسم البطاقة -->
-    <div class="epp-body">
-      <div class="epp-found-row">
-        <div class="epp-found-dot"></div>
-        تم العثور على ملفك — أدخل كلمة المرور للدخول
-      </div>
-      <div class="epp-source-badge" id="eppSource">📊 Google Sheets</div>
-      <div class="epp-name" id="eppName">…</div>
-      <div class="epp-email-txt" id="eppEmailTxt">…</div>
-      <div class="epp-info-grid" id="eppGrid"></div>
-      <div class="epp-divider"></div>
-      <!-- حقل كلمة المرور -->
-      <div class="epp-pass-wrap">
-        <input
-          class="epp-pass-input"
-          id="eppPass"
-          type="password"
-          placeholder="🔑 كلمة المرور…"
-          autocomplete="current-password"
-        >
-        <button class="epp-pass-toggle" onclick="_eppTogglePass()" type="button">👁️</button>
-      </div>
-      <button class="epp-login-btn" onclick="_eppDoLogin()">🚀 تسجيل الدخول</button>
-      <button class="epp-cancel-btn" onclick="_eppClose()">إلغاء</button>
-    </div>
-  </div>
-</div>
-
-<script>
-/* ══════════════════════════════════════════════════
-   📧 Email Smart Lookup — ConnectDZ
-   ══════════════════════════════════════════════════ */
-(function(){
-'use strict';
-
-let _eppUser    = null;   // المستخدم المكتشَف حالياً
-let _eppTimer   = null;   // مؤقت debounce
-let _eppVisible = false;  // هل البطاقة ظاهرة؟
-
-/* رابط Google Sheets CSV */
-const _CSV_URL = (typeof dataUrl !== 'undefined' && dataUrl)
-  ? dataUrl
-  : 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
-
-/* ── الاستماع لحقل البريد في صفحة الدخول ── */
-document.addEventListener('input', function(e){
-  const el = e.target;
-  if(el.id !== 'fbEmailPhone' && el.id !== 'loginEmail') return;
-
-  const val = (el.value || '').trim();
-  clearTimeout(_eppTimer);
-
-  if(!val || !val.includes('@') || !val.includes('.')){
-    _eppClose(true); // إغلاق صامت بدون أنيميشن
-    return;
-  }
-
-  /* debounce 700ms — لا نبحث بعد كل حرف */
-  _eppTimer = setTimeout(function(){
-    _eppSearch(val.toLowerCase());
-  }, 700);
-});
-
-/* ── البحث عن الإيميل ── */
-async function _eppSearch(email){
-  /* 1) البحث في المسجلين المحليين أولاً */
-  if(typeof getRegUsers === 'function'){
-    const users = getRegUsers();
-    const match = users.find(u => (u.email||'').trim().toLowerCase() === email);
-    if(match){ _eppShow(match, 'local'); return; }
-  }
-
-  /* 2) البحث في Google Sheets */
-  try{
-    const res = await fetch(_CSV_URL + '&nocache=' + Date.now());
-    if(!res.ok) return;
-    const csv = await res.text();
-    const rows = _parseCsv(csv);
-    if(rows.length < 2) return;
-
-    const hdrs = rows[0].map(h => h.trim().toLowerCase().replace(/\s+/g,'_'));
-    const emailIdx = hdrs.findIndex(h =>
-      h.includes('email') || h.includes('mail') ||
-      h.includes('بريد') || h.includes('إيميل') || h.includes('ايميل')
-    );
-    if(emailIdx < 0) return;
-
-    for(let i = 1; i < rows.length; i++){
-      const row = rows[i];
-      if(!row[emailIdx]) continue;
-      if(row[emailIdx].trim().toLowerCase() === email){
-        _eppShow(_buildUser(hdrs, row), 'sheets');
-        return;
-      }
-    }
-  } catch(err){
-    console.warn('[EPP] Sheets lookup error:', err.message);
-  }
-}
-
-/* ── عرض البطاقة ── */
-function _eppShow(user, source){
-  _eppUser = user;
-  _eppVisible = true;
-
-  const fullName = _getFullName(user);
-  const email    = user.email || '';
-
-  /* الصورة الشمسية */
-  const avatarEl = document.getElementById('eppAvatar');
-  if(avatarEl){
-    const photo = user.photoUrl || user['رابط_الصورة'] || user['الصورة_الشمسية'] ||
-      (typeof window.getProfilePhoto==='function' ? window.getProfilePhoto(fullName) : '');
-    if(photo){
-      avatarEl.innerHTML = `<img src="${photo}" alt="${fullName}">`;
-    } else {
-      avatarEl.innerHTML = (typeof getLeaderIcon==='function') ? getLeaderIcon(fullName) : '👤';
-    }
-  }
-
-  /* صورة الغلاف */
-  const coverEl = document.getElementById('eppCover');
-  if(coverEl){
-    const coverKey = 'nld_cover_' + fullName.replace(/\s+/g,'_');
-    const cover = localStorage.getItem(coverKey) || user.coverUrl || '';
-    coverEl.style.backgroundImage = cover ? `url(${cover})` : '';
-  }
-
-  /* الاسم والإيميل */
-  const nameEl = document.getElementById('eppName');
-  if(nameEl) nameEl.textContent = fullName || '—';
-  const emailEl = document.getElementById('eppEmailTxt');
-  if(emailEl) emailEl.textContent = email;
-
-  /* شارة المصدر */
-  const srcEl = document.getElementById('eppSource');
-  if(srcEl){
-    const wilaya = user.wilaya || user['الولاية'] || '';
-    if(source === 'sheets'){
-      srcEl.textContent = '📊 Google Sheets' + (wilaya ? ' · ' + wilaya : '');
-    } else {
-      srcEl.textContent = '💾 حساب محلي' + (wilaya ? ' · ' + wilaya : '');
-    }
-  }
-
-  /* شبكة المعلومات */
-  const grid = document.getElementById('eppGrid');
-  if(grid){
-    const fields = [
-      { l:'الجنس',     v: user.gender        || user['الجنس']              || '' },
-      { l:'الولاية',   v: user.wilaya         || user['الولاية']            || '' },
-      { l:'الفئة',     v: user.category       || user['تحديد_الفئة']        || '' },
-      { l:'المستوى',   v: user.educationLevel || user['المستوى_الدراسي']    || '' },
-      { l:'زمرة الدم', v: user.bloodType      || user['زمرة_الدم']          || '' },
-      { l:'الانخراط',  v: (user['تاريخ_الانخراط'] || user.registeredAt || '').slice(0,10) },
-    ].filter(f => f.v);
-
-    grid.innerHTML = fields.slice(0,6).map(f => `
-      <div class="epp-info-item">
-        <div class="epp-info-lbl">${f.l}</div>
-        <div class="epp-info-val">${f.v}</div>
-      </div>`).join('');
-  }
-
-  /* إظهار البطاقة */
-  const overlay = document.getElementById('emailProfilePreview');
-  const card    = document.getElementById('eppCard');
-  if(overlay){
-    card.style.animation = 'eppSlideUp .35s cubic-bezier(.22,.68,0,1.15) both';
-    overlay.classList.add('epp-visible');
-  }
-
-  /* مسح حقل المرور والتركيز */
-  setTimeout(function(){
-    const p = document.getElementById('eppPass');
-    if(p){ p.value = ''; p.focus(); }
-  }, 380);
-
-  /* Enter = تسجيل دخول */
-  const p2 = document.getElementById('eppPass');
-  if(p2) p2.onkeydown = function(e){ if(e.key==='Enter') _eppDoLogin(); };
-}
-
-/* ── تسجيل الدخول من البطاقة ── */
-window._eppDoLogin = function(){
-  if(!_eppUser) return;
-
-  const passEl  = document.getElementById('eppPass');
-  const pass    = passEl ? passEl.value.trim() : '';
-  const email   = (_eppUser.email || '').toLowerCase();
-
-  /* تعبئة حقل البريد */
-  const loginFld = document.getElementById('fbEmailPhone') || document.getElementById('loginEmail');
-  if(loginFld) loginFld.value = email;
-
-  /* تعبئة كلمة المرور */
-  const passFld = document.getElementById('fbPassword');
-  if(passFld && pass) passFld.value = pass;
-
-  _eppClose();
-
-  /* استدعاء دالة الدخول الرئيسية */
-  if(pass && typeof window.fbDoLogin === 'function'){
-    window.fbDoLogin();
-  } else if(!pass && typeof fbLoginUser === 'function' && _eppUser.firstName){
-    fbLoginUser(_eppUser);
-  } else if(typeof window.fbDoLogin === 'function'){
-    window.fbDoLogin();
-  } else if(typeof enter === 'function'){
-    enter();
-  } else if(typeof handleAuthAction === 'function'){
-    handleAuthAction();
-  }
-};
-
-/* ── إغلاق البطاقة ── */
-window._eppClose = function(silent){
-  if(!_eppVisible && !document.getElementById('emailProfilePreview').classList.contains('epp-visible')) return;
-  _eppVisible = false;
-  _eppUser = null;
-
-  const overlay = document.getElementById('emailProfilePreview');
-  const card    = document.getElementById('eppCard');
-  if(!overlay) return;
-
-  if(silent){
-    overlay.classList.remove('epp-visible');
-    return;
-  }
-
-  card.style.transition = 'transform .25s ease, opacity .25s ease';
-  card.style.transform  = 'translateY(100%)';
-  card.style.opacity    = '0';
-  setTimeout(function(){
-    overlay.classList.remove('epp-visible');
-    card.style.transition = '';
-    card.style.transform  = '';
-    card.style.opacity    = '';
-  }, 260);
-};
-
-/* ── إظهار/إخفاء كلمة المرور ── */
-window._eppTogglePass = function(){
-  const inp = document.getElementById('eppPass');
-  const btn = document.querySelector('.epp-pass-toggle');
-  if(!inp) return;
-  const show = inp.type === 'password';
-  inp.type = show ? 'text' : 'password';
-  if(btn) btn.textContent = show ? '🙈' : '👁️';
-};
-
-/* ── مُحلِّل CSV خفيف ── */
-function _parseCsv(text){
-  const rows = [];
-  const lines = text.split(/\r?\n/);
-  for(const line of lines){
-    if(!line.trim()) continue;
-    const cells = []; let cur = ''; let inQ = false;
-    for(let i = 0; i < line.length; i++){
-      const c = line[i];
-      if(c === '"'){ inQ = !inQ; }
-      else if(c === ',' && !inQ){ cells.push(cur.trim()); cur = ''; }
-      else { cur += c; }
-    }
-    cells.push(cur.trim());
-    rows.push(cells);
-  }
-  return rows;
-}
-
-/* ── بناء كائن مستخدم من صف CSV ── */
-function _buildUser(hdrs, row){
-  const obj = {};
-  hdrs.forEach((h, i) => { obj[h] = (row[i] || '').trim(); });
-
-  /* معرفة عمود الاسم */
-  const nameKey = Object.keys(obj).find(k =>
-    k.includes('اسم') || k.includes('name') || k.includes('الاسم_واللقب') || k === 'fullname'
-  ) || '';
-  const nameAr = obj[nameKey] || '';
-  const parts  = nameAr.trim().split(/\s+/);
-
-  return {
-    firstName      : parts[0]              || '',
-    lastName       : parts.slice(1).join(' ') || '',
-    fullName       : nameAr,
-    email          : obj['email'] || obj['mail'] || obj['البريد_الإلكتروني'] || obj['بريد'] || obj['إيميل'] || '',
-    wilaya         : obj['الولاية']         || obj['wilaya']          || '',
-    gender         : obj['الجنس']           || obj['gender']          || '',
-    educationLevel : obj['المستوى_الدراسي'] || obj['education']       || '',
-    bloodType      : obj['زمرة_الدم']       || obj['blood']           || '',
-    category       : obj['تحديد_الفئة']     || obj['category']        || '',
-    photoUrl       : obj['رابط_الصورة']     || obj['الصورة_الشمسية'] || obj['photo'] || '',
-    'تاريخ_الانخراط': obj['تاريخ_الانخراط'] || obj['date'] || '',
-    _source        : 'sheets',
-    _raw           : obj
-  };
-}
-
-/* ── الاسم الكامل ── */
-function _getFullName(user){
-  if(user.firstName && user.lastName) return user.firstName + ' ' + user.lastName;
-  if(user.firstName) return user.firstName;
-  return user.fullName || user.name || user['الاسم_واللقب'] || '—';
-}
-
-console.log('📧 ConnectDZ Email Smart Lookup v1.0 — جاهز');
 })();
 </script>
 
