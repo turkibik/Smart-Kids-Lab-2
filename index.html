@@ -7406,7 +7406,7 @@ async function _computeAndShowBalance(){
     ]);
 
     // بناء قائمة الأعضاء مرتبة حسب النقاط (لتحديد الأوائل 15)
-    const _EXCLUDED = ['لؤي','ممتاز'];
+    const _EXCLUDED = ['لؤي','لؤي عماري','ممتاز'];
     const allRows = [];
     const seen = new Set();
 
@@ -7415,7 +7415,7 @@ async function _computeAndShowBalance(){
         if(!row.trim()) return;
         const c = csvParse(row);
         const n = (c[2]||'').trim();
-        if(!n || _EXCLUDED.includes(n)) return;
+        if(!n || _EXCLUDED.some(ex=>n===ex||n.startsWith(ex+' '))) return;
         const key = norm(n);
         if(seen.has(key)) return;
         seen.add(key);
@@ -9171,7 +9171,7 @@ async function loadMembers(){
     const dataRows=t1.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
       const c=csvParse(r);
       const name=(c[2]||'').trim();
-      if(!name||name==='ممتاز'||name==='لؤي') return null;
+      if(!name||name==='ممتاز'||name==='لؤي'||name==='لؤي عماري') return null;
       const age=parseAge(c[3]);
       const pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
       return {name,age,pts};
@@ -9184,7 +9184,7 @@ async function loadMembers(){
     const smartRows=t2.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
       const c=csvParse(r);
       const name=(c[2]||'').trim();
-      if(!name||name==='ممتاز') return null;
+      if(!name||name==='ممتاز'||name==='لؤي'||name==='لؤي عماري') return null;
       const age=parseAge(c[3]);
       const pts=ptsMap[norm(name)]||0;
       return {name,age,pts};
@@ -9327,7 +9327,7 @@ async function loadRanking(){
       const c=csvParse(r);
       const n=(c[2]||'').trim();
       const p=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
-      if(!n||n==='ممتاز') return null;
+      if(!n||n==='ممتاز'||n==='لؤي'||n==='لؤي عماري') return null;
       return {n,p};
     }).filter(Boolean);
 
@@ -9340,7 +9340,7 @@ async function loadRanking(){
     const fromSmart=t2.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
       const cols=csvParse(r);
       const n=(cols[2]||'').trim();
-      if(!n||n==='ممتاز'||namesInData.has(norm(n))) return null;
+      if(!n||n==='ممتاز'||n==='لؤي'||n==='لؤي عماري'||namesInData.has(norm(n))) return null;
       const p=ptsMapR[norm(n)]||0;
       namesInData.add(norm(n));
       return {n,p};
@@ -9355,8 +9355,8 @@ async function loadRanking(){
       }
     });
     // دمج وترتيب - نقاط الكويز تُضاف لجدول الترتيب (الإجمالي = جدول + كويز)
-    const _EXCLUDED_NAMES = ['لؤي'];
-    const list=Object.values(mergedMap).filter(x=>!_EXCLUDED_NAMES.some(ex=>x.n.trim()===ex)).map(x=>{
+    const _EXCLUDED_NAMES = ['لؤي','لؤي عماري'];
+    const list=Object.values(mergedMap).filter(x=>!_EXCLUDED_NAMES.some(ex=>x.n.trim()===ex||x.n.trim().startsWith(ex+' '))).map(x=>{
       const qPts=getSharedQuizPts(x.n);
       return {n:x.n, p:x.p, sheetP:x.p, quizP:qPts, total:x.p+qPts};
     }).sort((a,b)=>b.total-a.total);
@@ -9473,11 +9473,27 @@ async function isEarlyBirdUser(){
       }
       return res;
     };
-    const r = await fetch(dataUrl).then(r=>r.text()).catch(()=>null);
-    if(!r){ window._earlyBirdCache=false; return false; }
-    const rows = r.split('\n').slice(1).filter(x=>x.trim());
-    const validRows = rows.filter(row=>{ const c=csvParse(row); return (c[2]||'').trim(); });
-    const myIdx = validRows.findIndex(row=>{ const c=csvParse(row); return norm(c[2]||'')===norm(name); });
+    // جلب المصدرين معاً — نفس منطق أيقونة المنخرطون
+    const [r1, r2] = await Promise.all([
+      fetch(dataUrl).then(r=>r.text()).catch(()=>null),
+      fetch(smartUrl).then(r=>r.text()).catch(()=>null)
+    ]);
+    if(!r1 && !r2){ window._earlyBirdCache=false; return false; }
+    const _EB_EXCL = ['لؤي','لؤي عماري','ممتاز'];
+    const seen2 = new Set();
+    const mergedMembers = [];
+    [r1||'', r2||''].forEach(txt=>{
+      txt.split('\n').slice(1).filter(x=>x.trim()).forEach(row=>{
+        const c=csvParse(row);
+        const n=(c[2]||'').trim();
+        if(!n || _EB_EXCL.some(ex=>n===ex||n.startsWith(ex+' '))) return;
+        const key=norm(n);
+        if(seen2.has(key)) return;
+        seen2.add(key);
+        mergedMembers.push(n);
+      });
+    });
+    const myIdx = mergedMembers.findIndex(n=>norm(n)===norm(name));
     window._earlyBirdCache = (myIdx >= 0 && myIdx < 15);
     return window._earlyBirdCache;
   }catch(e){ window._earlyBirdCache=false; return false; }
