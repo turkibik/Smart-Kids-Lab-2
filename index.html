@@ -24629,5 +24629,295 @@ console.log('✅ AutoFix Messenger محمّل — لتشخيص يدوي اكتب
 })();
 </script>
 
+<script>
+/* ════════════════════════════════════════════════════════════
+   ⚡ INSTANT MESSENGER v2 — رسائل فورية + حذف بثلاث نقرات
+   ════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ══════════════════════════════════════════════
+   PART 1: إصلاح الـ polling — من 10 ثوانٍ إلى 1.5 ثانية
+   ══════════════════════════════════════════════ */
+
+/* أوقف الـ polling القديم (10 ثوانٍ) فوراً */
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    if(typeof stopChatPolling === 'function') stopChatPolling();
+    if(typeof window.stopRealtimeMessenger === 'function') window.stopRealtimeMessenger();
+    console.log('⚡ InstantMsg: أُوقف الـ polling القديم');
+  }, 500);
+});
+
+/* متغيرات الـ polling السريع */
+let _fastInterval  = null;
+let _fastSig       = '';
+let _fastTarget    = '';
+
+/* توليد توقيع سريع للرسائل */
+function _sig(msgs){
+  if(!Array.isArray(msgs) || !msgs.length) return '0';
+  const last = msgs[msgs.length - 1];
+  return msgs.length + '|' + (last.id || '') + '|' + (last.timestamp || '');
+}
+
+/* تحديث واجهة المحادثة إذا تغيّرت الرسائل */
+async function _fastPoll(){
+  try{
+    const chatScreen = document.getElementById('chatScreen');
+    if(!chatScreen || chatScreen.style.display === 'none') return;
+    if(!window._currentChatTarget) return;
+
+    const myName = window._isAdmin
+      ? 'المدير'
+      : (typeof getCurrentUser === 'function' ? getCurrentUser() : localStorage.getItem('sklab_user_name') || '');
+    if(!myName) return;
+
+    /* إذا تغيّر المحادث — صفّر التوقيع */
+    if(_fastTarget !== window._currentChatTarget){
+      _fastTarget = window._currentChatTarget;
+      _fastSig = '';
+    }
+
+    /* جلب من Supabase */
+    let remote = null;
+    if(typeof sbGetMessages === 'function'){
+      try{ remote = await sbGetMessages(myName, window._currentChatTarget); }catch(e){}
+    }
+
+    /* fallback: Firebase */
+    if(!remote || !remote.length){
+      if(typeof window._loadMsgsFromFirebase === 'function'){
+        try{ remote = await window._loadMsgsFromFirebase(myName, window._currentChatTarget); }catch(e){}
+      }
+    }
+
+    if(!remote || !remote.length) return;
+
+    /* دمج مع localStorage */
+    const local = (typeof _getP2PMsgs === 'function')
+      ? (_getP2PMsgs(myName, window._currentChatTarget) || [])
+      : [];
+
+    const ids  = new Set(remote.map(m => m.id));
+    const extra = local.filter(m => !ids.has(m.id));
+    const merged = [...remote, ...extra].sort((a, b) =>
+      (a.timestamp || '').localeCompare(b.timestamp || ''));
+
+    const newSig = _sig(merged);
+    if(newSig === _fastSig) return; /* لا جديد */
+    _fastSig = newSig;
+
+    /* حفظ محلياً */
+    if(typeof _saveP2PMsgs === 'function'){
+      try{ _saveP2PMsgs(myName, window._currentChatTarget, merged); }catch(e){}
+    }
+
+    /* تحديث الواجهة */
+    const box = document.getElementById('messagesContent');
+    if(box && typeof renderChatBubbles === 'function'){
+      const atBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 150;
+      const readOnly = chatScreen.getAttribute('data-readonly');
+      renderChatBubbles(merged, box, myName, !!readOnly);
+      if(atBottom) box.scrollTop = box.scrollHeight;
+    }
+
+    /* تحديث badge */
+    if(typeof refreshSocialMsgBadge === 'function') refreshSocialMsgBadge();
+
+  }catch(err){
+    /* صامت — لا نوقف الـ polling بسبب خطأ عابر */
+  }
+}
+
+/* تشغيل الـ polling السريع (1.5 ثانية) */
+function _startFastPolling(){
+  _stopFastPolling();
+  _fastSig = '';
+  _fastPoll(); /* تحديث فوري عند الفتح */
+  _fastInterval = setInterval(_fastPoll, 1500);
+  console.log('⚡ InstantMsg: polling سريع يعمل كل 1.5 ثانية');
+}
+
+function _stopFastPolling(){
+  if(_fastInterval){ clearInterval(_fastInterval); _fastInterval = null; }
+}
+
+/* ربط التشغيل بفتح المحادثة */
+const _origOpenP2P_fast = window.openP2PChat;
+window.openP2PChat = function(){
+  if(typeof _origOpenP2P_fast === 'function') _origOpenP2P_fast.apply(this, arguments);
+  setTimeout(_startFastPolling, 200);
+};
+
+const _origOpenAdmin_fast = window.openAdminChat;
+window.openAdminChat = function(){
+  if(typeof _origOpenAdmin_fast === 'function') _origOpenAdmin_fast.apply(this, arguments);
+  setTimeout(_startFastPolling, 200);
+};
+
+/* تحديث فوري بعد الإرسال */
+const _origSend_fast = window.sendChatMessage;
+window.sendChatMessage = async function(){
+  if(typeof _origSend_fast === 'function') await _origSend_fast.apply(this, arguments);
+  _fastSig = ''; /* أجبر التحديث في الدورة التالية */
+  setTimeout(_fastPoll, 200);
+  setTimeout(_fastPoll, 700);
+};
+
+/* إيقاف عند إغلاق المحادثة */
+const _origBack = window.backFromChat || null;
+window.backFromChat = function(){
+  _stopFastPolling();
+  if(typeof _origBack === 'function') _origBack.apply(this, arguments);
+};
+
+/* ══════════════════════════════════════════════
+   PART 2: حذف الرسالة بثلاث نقرات متتالية
+   ══════════════════════════════════════════════ */
+
+/* تتبع النقرات لكل رسالة */
+const _tapCount  = {};
+const _tapTimer  = {};
+const TAP_LIMIT  = 600; /* ms بين النقرات */
+
+/* حذف رسالة من localStorage + Supabase + الواجهة */
+async function _deleteMyMsgById(msgId){
+  if(!msgId) return;
+
+  const myName = window._isAdmin
+    ? 'المدير'
+    : (typeof getCurrentUser === 'function' ? getCurrentUser() : localStorage.getItem('sklab_user_name') || '');
+
+  /* حذف من localStorage */
+  let deleted = false;
+  for(let i = 0; i < localStorage.length; i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith('nld_p2p_')){
+      try{
+        let msgs = JSON.parse(localStorage.getItem(k) || '[]');
+        const before = msgs.length;
+        msgs = msgs.filter(m => m.id !== msgId);
+        if(msgs.length !== before){
+          localStorage.setItem(k, JSON.stringify(msgs));
+          deleted = true;
+        }
+      }catch(e){}
+    }
+  }
+
+  /* حذف من Supabase */
+  try{
+    const sbUrl = (typeof SUPABASE_URL !== 'undefined') ? SUPABASE_URL : 'https://slqgbnxwsnzsiovfarsn.supabase.co';
+    const sbKey = (typeof SUPABASE_KEY !== 'undefined') ? SUPABASE_KEY
+      : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNscWdibnh3c256c2lvdmZhcnNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDc1MDcsImV4cCI6MjA5MzU4MzUwN30.gDJojEroxvwc86K6Xd0mO2rcRMQ9vuDacqUKZpJTQTI';
+    await fetch(sbUrl + '/rest/v1/messages?id=eq.' + encodeURIComponent(msgId), {
+      method: 'DELETE',
+      headers: {
+        'apikey': sbKey,
+        'Authorization': 'Bearer ' + sbKey,
+        'Content-Type': 'application/json'
+      }
+    });
+  }catch(e){}
+
+  /* إخفاء من الواجهة */
+  const wrap = document.querySelector('[data-msg-id="' + msgId + '"]');
+  if(wrap){
+    wrap.style.transition = 'opacity .25s ease, transform .25s ease';
+    wrap.style.opacity    = '0';
+    wrap.style.transform  = 'scale(0.85)';
+    setTimeout(() => wrap.remove(), 260);
+  }
+
+  if(deleted || wrap){
+    if(typeof showToast === 'function') showToast('🗑️ تم حذف الرسالة');
+    _fastSig = ''; /* أجبر إعادة التحميل */
+  }
+}
+
+/* معالج النقر الثلاثي — يُضاف على كل فقاعة */
+function _handleTripleTap(e, msgId, isMe){
+  /* فقط رسائلي أنا */
+  if(!isMe) return;
+  if(!msgId) return;
+
+  const now = Date.now();
+
+  if(!_tapCount[msgId] || (now - (_tapTimer[msgId] || 0)) > TAP_LIMIT * 3){
+    _tapCount[msgId] = 1;
+  } else {
+    _tapCount[msgId]++;
+  }
+  _tapTimer[msgId] = now;
+
+  /* إلغاء مؤقت سابق */
+  if(_tapTimer['_t_' + msgId]) clearTimeout(_tapTimer['_t_' + msgId]);
+
+  if(_tapCount[msgId] >= 3){
+    _tapCount[msgId] = 0;
+    e.preventDefault();
+    e.stopPropagation();
+    /* تأكيد بصري على الفقاعة */
+    const wrap = document.querySelector('[data-msg-id="' + msgId + '"]');
+    if(wrap){
+      wrap.style.transition = 'background .15s ease';
+      const bbl = wrap.querySelector('.chat-bubble');
+      if(bbl){ bbl.style.background = 'rgba(248,113,113,0.35)'; }
+      setTimeout(() => _deleteMyMsgById(msgId), 150);
+    } else {
+      _deleteMyMsgById(msgId);
+    }
+    return;
+  }
+
+  /* تصفير العداد بعد 1.8 ثانية بدون نقر */
+  _tapTimer['_t_' + msgId] = setTimeout(() => {
+    _tapCount[msgId] = 0;
+  }, 1800);
+}
+
+/* اعتراض renderBubble لإضافة onclick ثلاثي النقر */
+const _origRenderBubble = window.renderBubble;
+if(typeof _origRenderBubble === 'function'){
+  window.renderBubble = function(m, isMe){
+    let html = _origRenderBubble(m, isMe);
+    if(isMe && m && m.id){
+      const safeId = (m.id || '').replace(/"/g, '&quot;');
+      /* أضف data-triple-tap على الـ wrapper */
+      html = html.replace(
+        'data-msg-id="' + m.id + '"',
+        'data-msg-id="' + m.id + '" data-triple="1" onclick="_handleTripleTap(event,\'' + safeId + '\',true)"'
+      );
+    }
+    return html;
+  };
+}
+
+/* إضافة تلميح بصري في CSS */
+(function(){
+  const style = document.createElement('style');
+  style.textContent = `
+    [data-triple="1"] { -webkit-tap-highlight-color: transparent; }
+    [data-triple="1"]:active .chat-bubble.me {
+      filter: brightness(1.15);
+      transform: scale(0.97);
+      transition: transform .1s ease, filter .1s ease;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+/* تصدير للاستخدام الخارجي إن لزم */
+window._handleTripleTap   = _handleTripleTap;
+window._deleteMyMsgById   = _deleteMyMsgById;
+window._startFastPolling  = _startFastPolling;
+window._stopFastPolling   = _stopFastPolling;
+
+console.log('⚡ InstantMsg v2 محمّل: polling 1.5ث + حذف بثلاث نقرات');
+
+})();
+</script>
+
 </body>
 </html>
