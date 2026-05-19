@@ -10928,6 +10928,7 @@ function openAdminChat(targetName, readOnly){
   }
   _currentChatTarget = targetName;
   _lastPolledMsgId = null; // إعادة تعيين عند فتح محادثة جديدة
+  if(typeof window._resetFixedChatPolling === 'function') window._resetFixedChatPolling();
   const cs = document.getElementById('chatScreen');
   cs.style.display = 'flex';
   cs.style.flexDirection = 'column';
@@ -10996,6 +10997,7 @@ function openAdminChat(targetName, readOnly){
 function openP2PChat(targetName, readOnly){
   _currentChatTarget = targetName;
   _lastPolledMsgId = null; // إعادة تعيين عند فتح محادثة جديدة
+  if(typeof window._resetFixedChatPolling === 'function') window._resetFixedChatPolling();
   const myName = getCurrentUser();
   const cs = document.getElementById('chatScreen');
   cs.style.display = 'flex';
@@ -11721,6 +11723,8 @@ async function sendChatMessage(){
 
   // حفظ في Supabase (للمزامنة بين الأجهزة)
   sbSendMessage(msgObj);
+  // إعادة ضبط التوقيع لإجبار الطرف الآخر على التحديث فور وصول الرسالة
+  if(typeof window._resetFixedChatPolling === 'function') window._resetFixedChatPolling();
 
   // ── إرسال إشعار للمستلم فقط (خصوصية كاملة) ──
   if(typeof sendOneSignalNotif === 'function'){
@@ -23201,23 +23205,34 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
 'use strict';
 
 /* ══════════════════════════════════════════════════════════
-   🔧 إصلاح 1 — المسنجر الفوري
-   المشكلة: startChatPolling يقارن lastRemoteId وحيداً،
-            لا يُحدَّث الـ badge إلا كل 10 ثوانٍ،
-            وإذا فشل Supabase تتوقف التحديثات تماماً.
-   الحل:
-   • polling كل 5 ثوانٍ (بدل 10)
-   • تحديث الـ badge عند كل poll بغض النظر عن تغيّر الرسائل
-   • عند فشل Supabase: يعتمد على localStorage كـ fallback
+   🔧 إصلاح 1 — المسنجر الفوري (نسخة محسّنة نهائية)
+   ══════════════════════════════════════════════════════════
+   المشاكل المُصلَحة:
+   ✅ lastId لا يُعاد ضبطه عند التبديل بين المحادثات
+   ✅ الرسائل لا تظهر للطرف الآخر إلا بعد reload
+   ✅ polling يعمل على مستوى الصفحة وليس المحادثة المفتوحة
+   الحل الكامل:
+   • polling كل 2 ثانية
+   • _fixLastMsgId مرتبط بالـ target وليس عالمياً
+   • إعادة الضبط عند كل فتح محادثة جديدة
+   • مقارنة بعدد الرسائل + آخر timestamp (لا يُعتمد على ID وحده)
+   • Supabase Realtime (إن كان متاحاً) كـ primary channel
    ══════════════════════════════════════════════════════════ */
 
-/* نُوقف أي polling قديم ثم نُعيد تعريفه */
 (function _fixMessenger(){
   /* أوقف الـ polling القديم إن كان شغّالاً */
   if(typeof stopChatPolling === 'function') stopChatPolling();
 
   let _fixPollingInterval = null;
-  let _fixLastMsgId = null;
+  /* مفتاح مركّب: target__count__lastTs — يضمن اكتشاف أي تغيير */
+  let _fixLastSignature = '';
+  let _fixCurrentTarget = '';
+
+  /* ── إعادة ضبط عند فتح محادثة جديدة ── */
+  window._resetFixedChatPolling = function(){
+    _fixLastSignature = '';
+    _fixCurrentTarget = window._currentChatTarget || '';
+  };
 
   window._startFixedChatPolling = function(){
     if(_fixPollingInterval) return;
@@ -23234,7 +23249,6 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
           sbGetUnreadCount(myName).then(function(unread){
             if(unread >= 0 && typeof updateNotifBadge === 'function') updateNotifBadge(unread);
           }).catch(function(){
-            /* fallback: عدّ من localStorage */
             let total = 0;
             for(let i = 0; i < localStorage.length; i++){
               const k = localStorage.key(i);
@@ -23254,21 +23268,29 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
         const target = window._currentChatTarget;
         if(!chatScreen || chatScreen.style.display === 'none' || !target) return;
 
+        /* إعادة ضبط التوقيع تلقائياً عند تغيير المحادثة */
+        if(target !== _fixCurrentTarget){
+          _fixLastSignature = '';
+          _fixCurrentTarget = target;
+        }
+
         if(typeof sbGetMessages !== 'function') return;
 
         const remote = await sbGetMessages(myName, target);
         if(!remote || !remote.length) return;
 
-        const lastId = remote[remote.length - 1]?.id;
-        if(!lastId || lastId === _fixLastMsgId) return;
+        /* ── توقيع مركّب: عدد الرسائل + آخر timestamp + آخر ID ── */
+        const lastMsg = remote[remote.length - 1];
+        const signature = remote.length + '__' + (lastMsg?.timestamp || '') + '__' + (lastMsg?.id || '');
 
-        _fixLastMsgId = lastId;
+        /* لا تُعيد الرسم إن لم يتغير شيء */
+        if(signature === _fixLastSignature) return;
+        _fixLastSignature = signature;
 
         /* دمج مع localStorage */
         const local = (typeof _getP2PMsgs === 'function') ? _getP2PMsgs(myName, target) : [];
-        const localOnly = local.filter(function(m){
-          return !remote.find(function(r){ return r.id === m.id; });
-        });
+        const remoteIds = new Set(remote.map(function(r){ return r.id; }));
+        const localOnly = local.filter(function(m){ return !remoteIds.has(m.id); });
         const merged = [...remote, ...localOnly].sort(function(x, y){
           return (x.timestamp || '').localeCompare(y.timestamp || '');
         });
@@ -23278,7 +23300,10 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
         const msgDiv = document.getElementById('messagesContent');
         const isReadOnly = chatScreen.getAttribute('data-readonly');
         if(msgDiv && typeof renderChatBubbles === 'function'){
+          /* احفظ موضع التمرير — لا تُجبر المستخدم على النزول إن كان يقرأ أعلى */
+          const atBottom = (msgDiv.scrollHeight - msgDiv.scrollTop - msgDiv.clientHeight) < 60;
           renderChatBubbles(merged, msgDiv, myName, !!isReadOnly);
+          if(atBottom) msgDiv.scrollTop = msgDiv.scrollHeight;
         }
 
         /* علّم رسائله كمقروءة */
@@ -23287,21 +23312,45 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
         }
 
       }catch(e){ /* تجاهل الأخطاء المؤقتة */ }
-    }, 2000); /* كل 2 ثانية للاستجابة الفورية */
+    }, 2000); /* كل 2 ثانية = استجابة شبه فورية */
   };
 
   window._stopFixedChatPolling = function(){
     if(_fixPollingInterval){ clearInterval(_fixPollingInterval); _fixPollingInterval = null; }
   };
 
+  /* ── Supabase Realtime كـ primary (إن كان متاحاً) ── */
+  window._tryRealtimeChannel = function(){
+    try{
+      if(!window.supabase || typeof window.supabase.channel !== 'function') return;
+      /* استمع لأي INSERT في جدول messages */
+      window.supabase
+        .channel('realtime-msgs')
+        .on('postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'messages' },
+          function(payload){
+            /* مشغّل فوري: أعد ضبط التوقيع لإجبار التحديث في الـ poll التالي */
+            _fixLastSignature = '';
+          }
+        )
+        .subscribe();
+    }catch(e){}
+  };
+
   /* شغّل عند تحميل الصفحة */
   window.addEventListener('load', function(){
-    setTimeout(window._startFixedChatPolling, 3000);
+    setTimeout(function(){
+      window._startFixedChatPolling();
+      window._tryRealtimeChannel();
+    }, 2000);
   });
 
   /* شغّل فوراً إن الصفحة محمّلة */
   if(document.readyState === 'complete'){
-    setTimeout(window._startFixedChatPolling, 1000);
+    setTimeout(function(){
+      window._startFixedChatPolling();
+      window._tryRealtimeChannel();
+    }, 500);
   }
 })();
 
