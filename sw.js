@@ -82,7 +82,7 @@ self.addEventListener('notificationclick', (event) => {
 /* ════════════════════════════════════════════
    📦  PWA Cache — يخزّن الملفات للعمل أوفلاين
 ════════════════════════════════════════════ */
-const CACHE_NAME    = 'cdz-cache-v2';
+const CACHE_NAME    = 'cdz-cache-v3';
 const CACHE_ASSETS  = [
   '/',
   '/400000.html',
@@ -155,4 +155,5 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-console.log('[SW] 🔧 Connect DZ Service Worker v2 — جاهز');
+console.log('[SW] 🔧 Connect DZ Service Worker v3 — جاهز');
+            
