@@ -10365,16 +10365,31 @@ async function sbGetMessages(userA, userB){
 
 /* --- حفظ رسالة واحدة --- */
 async function sbSendMessage(msgObj){
-  try{
-    const pairKey = _sbPairKey(msgObj.from, msgObj.to);
-    const body = { ...msgObj, pair_key: pairKey };
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/messages`, {
-      method: 'POST',
-      headers: SB_HEADERS,
-      body: JSON.stringify(body)
-    });
-    return r.ok;
-  }catch(e){ return false; }
+  const pairKey = _sbPairKey(msgObj.from, msgObj.to);
+  const body = { ...msgObj, pair_key: pairKey };
+
+  /* إرسال لـ Supabase و Firebase معاً بالتوازي */
+  const supabaseProm = fetch(`${SUPABASE_URL}/rest/v1/messages`, {
+    method: 'POST',
+    headers: SB_HEADERS,
+    body: JSON.stringify(body)
+  }).then(r => r.ok).catch(() => false);
+
+  /* كتابة لـ Firebase فوراً لإطلاق SSE عند المستلم */
+  const msgKey = (msgObj.id || ('msg_' + Date.now())).replace(/[.#$/\[\]]/g, '_');
+  const fbBody = {
+    id: msgObj.id || msgKey, from: msgObj.from, to: msgObj.to,
+    message: msgObj.message || '', timestamp: msgObj.timestamp || new Date().toISOString(),
+    read: false, mediaType: msgObj.mediaType || null, pair_key: pairKey
+  };
+  const firebaseProm = fetch(
+    `https://connectdz-49fab-default-rtdb.firebaseio.com/messages/${pairKey}/${msgKey}.json`,
+    { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(fbBody) }
+  ).catch(() => {});
+
+  /* انتظر الاثنين معاً */
+  const [sbOk] = await Promise.all([supabaseProm, firebaseProm]);
+  return sbOk;
 }
 
 /* --- تمييز الرسائل كمقروءة --- */
@@ -10971,6 +10986,9 @@ function openAdminChat(targetName, readOnly){
   const adminMsgDiv = document.getElementById('messagesContent');
   adminMsgDiv.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><div class="spinner"></div></div>';
 
+  /* 🔧 تشغيل SSE+polling فوراً */
+  if(typeof window._startFixedChatPolling === 'function') window._startFixedChatPolling();
+
   _syncAndGetMsgs('المدير', targetName).then(msgs => {
     let changed = false;
     msgs.forEach(m=>{ if(m.to==='المدير' && !m.read){ m.read=true; changed=true; } });
@@ -11054,6 +11072,14 @@ function openP2PChat(targetName, readOnly){
   // تحميل الرسائل من Supabase
   const msgDiv = document.getElementById('messagesContent');
   msgDiv.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><div class="spinner"></div></div>';
+
+  /* 🔧 تشغيل SSE+polling فوراً عند فتح المحادثة */
+  if(typeof window._resetFixedChatPolling === 'function'){
+    setTimeout(function(){ window._resetFixedChatPolling(); }, 0);
+  }
+  if(typeof window._startFixedChatPolling === 'function'){
+    window._startFixedChatPolling();
+  }
 
   _syncAndGetMsgs(myName, targetName).then(msgs => {
     if(!readOnly){
@@ -23339,7 +23365,10 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
     if(typeof updateNotifBadge === 'function') updateNotifBadge(total);
   }
 
-  /* ══ Firebase SSE — استماع فوري لتغييرات المحادثة ══ */
+  /* ══ Firebase SSE — استماع فوري لتغييرات المحادثة ══
+     إصلاح: كان يُطلق _fetchAndRender على الـ snapshot الأولي فيتجمد
+     الحل: تجاهل أول "put" (snapshot) والاستجابة فقط للتغييرات الحقيقية
+  ══ */
   function _startSSE(myName, target){
     _stopSSE();
     if(!myName || !target) return;
@@ -23347,7 +23376,11 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
     try{
       const url = `${FB}/messages/${pair}.json`;
       const es = new EventSource(url);
-      es.addEventListener('put', function(){ _fetchAndRender(true); });
+      let _sseReady = false;
+      es.addEventListener('put', function(){
+        if(!_sseReady){ _sseReady = true; return; } /* تجاهل snapshot الأول */
+        _fetchAndRender(true);
+      });
       es.addEventListener('patch', function(){ _fetchAndRender(true); });
       es.onerror = function(){ _sseActive = false; };
       es.onopen  = function(){ _sseActive = true; };
@@ -23360,13 +23393,12 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
     if(_sseSource){ try{ _sseSource.close(); }catch(e){} _sseSource = null; }
   }
 
-  /* ══ Polling احتياطي ══ */
+  /* ══ Polling احتياطي — 800ms للتأكد من وصول كل رسالة ══ */
   function _startPoll(){
     if(_pollTimer) return;
     _pollTimer = setInterval(function(){
       _fetchAndRender(false);
-      _refreshBadge();
-    }, 1500); /* كل 1.5 ثانية */
+    }, 800); /* تسريع: 800ms بدلاً من 1500ms */
   }
 
   function _stopPoll(){
@@ -24261,24 +24293,29 @@ window.adminResyncMember = async function(memberName){
    الحل: ضمان أن كل رسالة تُرسَل لـ Supabase + Firebase
    ══════════════════════════════════════════════════════ */
 
-/* مزامنة رسائل Supabase → Firebase (احتياطي إضافي) */
+/* مزامنة رسائل Supabase → Firebase (الكتابة للمسار الصحيح الذي يستمع له SSE) */
 window._syncMsgToFirebase = async function(msgObj){
   try {
     const pairKey = [msgObj.from, msgObj.to].sort().map(n=>n.replace(/\s+/g,'_')).join('__');
-    const msgKey = 'msg_' + (msgObj.id || Date.now());
-    await fetch(`${_DB}/messages/${pairKey}/${msgKey}.json`, {
+    /* 🔧 إصلاح المسار: /messages/pair_key/msg_ID
+       هذا هو نفس المسار الذي يستمع له SSE عبر /messages/pair_key.json
+       أي تغيير في أي child سيُطلق حدث "patch" في SSE */
+    const msgKey = (msgObj.id || ('msg_' + Date.now())).replace(/[.#$/\[\]]/g, '_');
+    const body = {
+      id        : msgObj.id        || msgKey,
+      from      : msgObj.from      || '',
+      to        : msgObj.to        || '',
+      message   : msgObj.message   || '',
+      timestamp : msgObj.timestamp || new Date().toISOString(),
+      read      : msgObj.read      || false,
+      mediaType : msgObj.mediaType || null,
+      pair_key  : pairKey
+    };
+    /* لا نرسل mediaData الكبيرة لـ Firebase (تُبطّئ SSE) */
+    await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/messages/${pairKey}/${msgKey}.json`, {
       method : 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify({
-        id        : msgObj.id        || msgKey,
-        from      : msgObj.from      || '',
-        to        : msgObj.to        || '',
-        message   : msgObj.message   || '',
-        timestamp : msgObj.timestamp || new Date().toISOString(),
-        read      : msgObj.read      || false,
-        mediaType : msgObj.mediaType || null,
-        pair_key  : pairKey
-      })
+      body   : JSON.stringify(body)
     });
   } catch(e){ /* صامت */ }
 };
@@ -24350,498 +24387,15 @@ window.addEventListener('load', function(){
 console.log('✅ ConnectDZ PATCH v7.1 محمّل — إصلاح Sheets + Messenger + بن قدور ايمان');
 })();
 </script>
-
-<script>
-/* ════════════════════════════════════════
-   ✅ FINAL REALTIME MESSENGER FIX
-   إصلاح الرسائل الفورية النهائي
-════════════════════════════════════════ */
-
-(function(){
-'use strict';
-
-let _chatRealtimeInterval = null;
-let _lastChatSignature = '';
-
-function _getRealtimeSignature(msgs){
-  try{
-    return JSON.stringify(
-      msgs.map(m => ({
-        id:m.id,
-        t:m.timestamp,
-        r:m.read
-      }))
-    );
-  }catch(e){
-    return String(Date.now());
-  }
-}
-
-/* تحميل المحادثة فورياً */
-async function _refreshCurrentChat(){
-  try{
-    if(!window._currentChatTarget) return;
-
-    const myName = window._isAdmin ? 'المدير' : (typeof getCurrentUser==='function' ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'');
-    if(!myName) return;
-
-    let msgs = [];
-
-    /* localStorage */
-    try{
-      msgs = (typeof _getP2PMsgs==='function' ? _getP2PMsgs(myName, window._currentChatTarget) : []) || [];
-    }catch(e){}
-
-    /* Supabase أولاً */
-    try{
-      if(typeof sbGetMessages==='function'){
-        const remote = await sbGetMessages(myName, window._currentChatTarget);
-        if(Array.isArray(remote) && remote.length){
-          const ids = new Set(msgs.map(m=>m.id));
-          remote.forEach(r=>{ if(!ids.has(r.id)) msgs.push(r); });
-          msgs.sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
-          if(typeof _saveP2PMsgs==='function') _saveP2PMsgs(myName, window._currentChatTarget, msgs);
-        }
-      }
-    }catch(e){}
-
-    /* Firebase fallback */
-    try{
-      if(typeof window._loadMsgsFromFirebase==='function'){
-        const remote = await window._loadMsgsFromFirebase(myName, window._currentChatTarget);
-        if(Array.isArray(remote) && remote.length){
-          const ids = new Set(msgs.map(m=>m.id));
-          remote.forEach(r=>{ if(!ids.has(r.id)) msgs.push(r); });
-          msgs.sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
-          if(typeof _saveP2PMsgs==='function') _saveP2PMsgs(myName, window._currentChatTarget, msgs);
-        }
-      }
-    }catch(e){}
-
-    const sign = _getRealtimeSignature(msgs);
-    if(sign === _lastChatSignature) return;
-    _lastChatSignature = sign;
-
-    const box = document.getElementById('messagesContent');
-    if(box && typeof renderChatBubbles==='function'){
-      const atBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 120;
-      renderChatBubbles(msgs, box, myName, false);
-      if(atBottom) box.scrollTop = box.scrollHeight;
-    }
-
-    if(typeof refreshSocialMsgBadge==='function') refreshSocialMsgBadge();
-
-  }catch(err){
-    console.warn('Realtime chat refresh error', err);
-  }
-}
-
-/* تشغيل realtime */
-window.startRealtimeMessenger = function(){
-  if(_chatRealtimeInterval) clearInterval(_chatRealtimeInterval);
-  _lastChatSignature = ''; /* إعادة ضبط عند كل فتح محادثة */
-  _refreshCurrentChat();
-  _chatRealtimeInterval = setInterval(_refreshCurrentChat, 1200);
-};
-
-/* إيقاف realtime */
-window.stopRealtimeMessenger = function(){
-  if(_chatRealtimeInterval){ clearInterval(_chatRealtimeInterval); _chatRealtimeInterval = null; }
-};
-
-/* تشغيل تلقائي عند فتح المحادثة — openP2PChat */
-const _origOpenP2P = window.openP2PChat;
-window.openP2PChat = function(){
-  if(typeof _origOpenP2P==='function') _origOpenP2P.apply(this, arguments);
-  setTimeout(window.startRealtimeMessenger, 300);
-};
-
-/* تشغيل تلقائي عند فتح محادثة المدير — openAdminChat */
-const _origOpenAdmin = window.openAdminChat;
-window.openAdminChat = function(){
-  if(typeof _origOpenAdmin==='function') _origOpenAdmin.apply(this, arguments);
-  setTimeout(window.startRealtimeMessenger, 300);
-};
-
-/* تحديث مباشر بعد إرسال الرسالة */
-const _origSendChat = window.sendChatMessage;
-window.sendChatMessage = async function(){
-  if(typeof _origSendChat==='function') await _origSendChat.apply(this, arguments);
-  setTimeout(_refreshCurrentChat, 150);
-  setTimeout(_refreshCurrentChat, 800);
-};
-
-console.log('✅ Messenger realtime fixed successfully');
-
-})();
-</script>
-
-<script>
-/* ════════════════════════════════════════════════════════
-   🔧 SUPABASE AUTO-FIX — إصلاح تلقائي لمشكلة الرسائل
-   يعمل فور تحميل الصفحة: يتحقق من Supabase ويُصلح تلقائياً
-════════════════════════════════════════════════════════ */
-(function(){
-'use strict';
-
-const _SB_URL = 'https://slqgbnxwsnzsiovfarsn.supabase.co';
-const _SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNscWdibnh3c256c2lvdmZhcnNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDc1MDcsImV4cCI6MjA5MzU4MzUwN30.gDJojEroxvwc86K6Xd0mO2rcRMQ9vuDacqUKZpJTQTI';
-const _SB_HDR = {
-  'Content-Type': 'application/json',
-  'apikey': _SB_KEY,
-  'Authorization': 'Bearer ' + _SB_KEY,
-  'Prefer': 'return=representation'
-};
-
-/* ── 1. التحقق من اتصال Supabase ── */
-async function _checkSupabase(){
-  try{
-    const r = await fetch(_SB_URL + '/rest/v1/messages?limit=1', { headers: _SB_HDR });
-    return { ok: r.ok, status: r.status };
-  }catch(e){ return { ok: false, status: 0, error: e.message }; }
-}
-
-/* ── 2. إرسال رسالة مع retry (3 محاولات) ── */
-async function _sendWithRetry(msgObj, attempts){
-  attempts = attempts || 3;
-  // تأكد أن mediaData لا يتجاوز 500KB (Supabase يرفض الأحجام الكبيرة)
-  const safe = Object.assign({}, msgObj);
-  if(safe.mediaData && safe.mediaData.length > 500000){
-    safe.mediaData = null; // احذف البيانات الكبيرة — الـ URL يكفي
-  }
-  const pairKey = [safe.from, safe.to].sort().map(n=>n.replace(/\s+/g,'_')).join('__');
-  safe.pair_key = pairKey;
-
-  for(let i = 0; i < attempts; i++){
-    try{
-      const r = await fetch(_SB_URL + '/rest/v1/messages', {
-        method: 'POST',
-        headers: _SB_HDR,
-        body: JSON.stringify(safe)
-      });
-      if(r.ok || r.status === 409) return true; // 409 = مكرر = موجود فعلاً
-      if(r.status === 403){
-        console.error('🔒 Supabase RLS يمنع الكتابة — راجع الـ Policies');
-        return false;
-      }
-      if(r.status === 404){
-        console.error('❌ جدول messages غير موجود في Supabase');
-        return false;
-      }
-      // انتظر قبل إعادة المحاولة
-      await new Promise(res => setTimeout(res, 600 * (i + 1)));
-    }catch(e){
-      await new Promise(res => setTimeout(res, 600 * (i + 1)));
-    }
-  }
-  return false;
-}
-
-/* ── 3. اعتراض sbSendMessage وتقوية الإرسال ── */
-const _origSb = window.sbSendMessage;
-window.sbSendMessage = async function(msgObj){
-  // نحاول أولاً الدالة الأصلية
-  let ok = false;
-  if(typeof _origSb === 'function'){
-    try{ ok = await _origSb(msgObj); }catch(e){ ok = false; }
-  }
-  // إذا فشلت أو لم تكن موثوقة — نُعيد المحاولة بنظام retry
-  if(!ok){
-    ok = await _sendWithRetry(msgObj);
-    if(ok) console.log('✅ AutoFix: رسالة أُرسلت بعد retry');
-    else    console.warn('⚠️ AutoFix: فشل الإرسال نهائياً — تحقق من Supabase');
-  }
-  // دائماً sync لـ Firebase كاحتياطي
-  if(typeof window._syncMsgToFirebase === 'function'){
-    window._syncMsgToFirebase(msgObj);
-  }
-  return ok;
-};
-
-/* ── 4. اعتراض sbGetMessages وتقوية الجلب ── */
-const _origGet = window.sbGetMessages;
-window.sbGetMessages = async function(userA, userB){
-  let msgs = null;
-  if(typeof _origGet === 'function'){
-    try{ msgs = await _origGet(userA, userB); }catch(e){ msgs = null; }
-  }
-  // إذا فشل Supabase → Firebase fallback
-  if(!msgs || !Array.isArray(msgs) || msgs.length === 0){
-    if(typeof window._loadMsgsFromFirebase === 'function'){
-      const fb = await window._loadMsgsFromFirebase(userA, userB);
-      if(Array.isArray(fb) && fb.length > 0){
-        console.log('📡 AutoFix: استُرجعت الرسائل من Firebase بدلاً من Supabase');
-        return fb;
-      }
-    }
-    return msgs || [];
-  }
-  return msgs;
-};
-
-/* ── 5. فحص عند تحميل الصفحة وإبلاغ المطور ── */
-window.addEventListener('load', async function(){
-  await new Promise(res => setTimeout(res, 2000));
-  const result = await _checkSupabase();
-  if(result.ok){
-    console.log('✅ AutoFix: Supabase متصل وجاهز للرسائل');
-  } else if(result.status === 403){
-    console.error('🔒 AutoFix: Supabase RLS مفعّل بدون Policy — الرسائل لن تصل!\n👉 الحل: افتح Supabase Dashboard → Authentication → Policies → messages → أضف Allow All لـ anon');
-  } else if(result.status === 404 || result.status === 0){
-    console.error('❌ AutoFix: تعذّر الوصول لـ Supabase (status=' + result.status + ')\n👉 تأكد من صحة SUPABASE_URL والـ KEY، أو أن الجدول messages موجود');
-  } else {
-    console.warn('⚠️ AutoFix: Supabase status=' + result.status);
-  }
-});
-
-/* ── 6. دالة إصلاح يدوي من Console ── */
-window._fixMessages = async function(){
-  console.log('🔧 جاري فحص Supabase...');
-  const r = await _checkSupabase();
-  console.log('📡 النتيجة:', r);
-
-  const myName = (typeof getCurrentUser==='function' ? getCurrentUser() : null)
-    || localStorage.getItem('sklab_user_name') || 'مجهول';
-
-  // إرسال رسالة اختبار
-  const testOk = await _sendWithRetry({
-    id: 'fix_test_' + Date.now(),
-    from: myName,
-    to: myName,
-    message: '🔧 اختبار إصلاح',
-    timestamp: new Date().toISOString(),
-    read: true,
-    mediaType: null,
-    mediaData: null
-  });
-
-  if(testOk){
-    if(typeof showToast==='function') showToast('✅ Supabase يعمل — الرسائل ستصل الآن!');
-    console.log('✅ Supabase يعمل بشكل صحيح');
-  } else {
-    if(typeof showToast==='function') showToast('❌ Supabase لا يعمل — راجع الـ Console للتفاصيل');
-    console.error('❌ تحقق من:\n1. Supabase Dashboard → Table Editor → messages موجود؟\n2. Authentication → Policies → Allow INSERT لـ anon؟\n3. SQL: ALTER TABLE messages ENABLE ROW LEVEL SECURITY;\n   CREATE POLICY "allow_all" ON messages FOR ALL TO anon USING (true) WITH CHECK (true);');
-  }
-};
-
-console.log('✅ AutoFix Messenger محمّل — لتشخيص يدوي اكتب: _fixMessages()');
-
-})();
 </script>
 
 <script>
 /* ════════════════════════════════════════════════════════════
-   ⚡ INSTANT MESSENGER v3 — رسائل فورية حقيقية (إصلاح شامل)
-   الإصلاحات:
-   1. توحيد كل الـ wrappers المتراكمة في مكان واحد
-   2. عرض الرسالة فورياً في الواجهة قبل إرسالها للسيرفر
-   3. polling موحد بـ 800ms بدلاً من نظامين متعارضين
-   4. إلغاء كل setTimeout غير ضروري في مسار الإرسال
+   ⚡ INSTANT MESSENGER v3 — حذف بثلاث نقرات فقط
+   (الـ polling والـ SSE يُديرهما النظام الأساسي في _fixMessengerFinal)
    ════════════════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
-/* ══ إيقاف كل الـ polling القديمة فوراً ══ */
-window.addEventListener('load', function(){
-  setTimeout(function(){
-    if(typeof stopChatPolling === 'function') try{ stopChatPolling(); }catch(e){}
-    if(typeof window.stopRealtimeMessenger === 'function') try{ window.stopRealtimeMessenger(); }catch(e){}
-    console.log('⚡ InstantMsg v3: أُوقفت كل الـ polling القديمة');
-  }, 300);
-});
-
-/* ══ متغيرات الـ polling الموحّد ══ */
-let _pollInterval = null;
-let _pollSig      = '';
-let _pollTarget   = '';
-const _POLL_MS    = 800; /* 0.8 ثانية — أسرع بكثير مع استهلاك أقل */
-
-/* توقيع سريع للكشف عن تغيير الرسائل */
-function _sig(msgs){
-  if(!Array.isArray(msgs) || !msgs.length) return '0';
-  const last = msgs[msgs.length - 1];
-  return msgs.length + '|' + (last.id || '') + '|' + (last.timestamp || '');
-}
-
-/* ══ الدالة الأساسية للـ polling ══ */
-async function _poll(){
-  try{
-    const chatScreen = document.getElementById('chatScreen');
-    if(!chatScreen || chatScreen.style.display === 'none') return;
-    if(!window._currentChatTarget) return;
-
-    const myName = window._isAdmin
-      ? 'المدير'
-      : (typeof getCurrentUser === 'function' ? getCurrentUser() : localStorage.getItem('sklab_user_name') || '');
-    if(!myName) return;
-
-    /* إذا تغيّر المحادث — صفّر التوقيع */
-    if(_pollTarget !== window._currentChatTarget){
-      _pollTarget = window._currentChatTarget;
-      _pollSig = '';
-    }
-
-    /* جلب من Supabase أولاً */
-    let remote = null;
-    if(typeof sbGetMessages === 'function'){
-      try{ remote = await sbGetMessages(myName, window._currentChatTarget); }catch(e){}
-    }
-
-    /* fallback: Firebase */
-    if(!remote || !remote.length){
-      if(typeof window._loadMsgsFromFirebase === 'function'){
-        try{ remote = await window._loadMsgsFromFirebase(myName, window._currentChatTarget); }catch(e){}
-      }
-    }
-
-    /* دمج مع localStorage */
-    const local = (typeof _getP2PMsgs === 'function')
-      ? (_getP2PMsgs(myName, window._currentChatTarget) || [])
-      : [];
-
-    let merged = local.slice();
-    if(remote && remote.length){
-      const ids = new Set(merged.map(m => m.id));
-      remote.forEach(r => { if(!ids.has(r.id)) merged.push(r); });
-      merged.sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
-    }
-
-    if(!merged.length) return;
-
-    const newSig = _sig(merged);
-    if(newSig === _pollSig) return; /* لا جديد */
-    _pollSig = newSig;
-
-    /* حفظ محلياً */
-    if(typeof _saveP2PMsgs === 'function'){
-      try{ _saveP2PMsgs(myName, window._currentChatTarget, merged); }catch(e){}
-    }
-
-    /* تحديث الواجهة */
-    const box = document.getElementById('messagesContent');
-    if(box && typeof renderChatBubbles === 'function'){
-      const atBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 150;
-      const readOnly = chatScreen.getAttribute('data-readonly');
-      renderChatBubbles(merged, box, myName, !!readOnly);
-      if(atBottom) box.scrollTop = box.scrollHeight;
-    }
-
-    /* تحديث badge */
-    if(typeof refreshSocialMsgBadge === 'function') refreshSocialMsgBadge();
-
-  }catch(err){ /* صامت */ }
-}
-
-/* ══ تشغيل وإيقاف الـ polling الموحّد ══ */
-function _startPolling(){
-  _stopPolling();
-  _pollSig = '';
-  _poll(); /* تحديث فوري عند الفتح */
-  _pollInterval = setInterval(_poll, _POLL_MS);
-  console.log('⚡ InstantMsg v3: polling موحّد يعمل كل ' + _POLL_MS + 'ms');
-}
-
-function _stopPolling(){
-  if(_pollInterval){ clearInterval(_pollInterval); _pollInterval = null; }
-}
-
-/* ══════════════════════════════════════════════════════════
-   الإصلاح الجوهري: استبدال كل الـ wrappers المتراكمة
-   بـ wrapper واحد نظيف على openP2PChat / openAdminChat
-   ══════════════════════════════════════════════════════════ */
-
-/* نحفظ الدالة الأصلية قبل أي تعديل (نتجاوز الـ wrappers السابقة) */
-window.addEventListener('load', function(){
-  setTimeout(function(){
-
-    /* ── wrapper موحّد لفتح المحادثة (يلغي الـ wrappers المتراكمة) ── */
-    const _baseOpenP2P = window.openP2PChat;
-    window.openP2PChat = function(){
-      if(typeof _baseOpenP2P === 'function') _baseOpenP2P.apply(this, arguments);
-      _startPolling();
-    };
-
-    const _baseOpenAdmin = window.openAdminChat;
-    window.openAdminChat = function(){
-      if(typeof _baseOpenAdmin === 'function') _baseOpenAdmin.apply(this, arguments);
-      _startPolling();
-    };
-
-    /* ── إيقاف عند الخروج ── */
-    const _baseBack = window.backFromChat;
-    window.backFromChat = function(){
-      _stopPolling();
-      if(typeof _baseBack === 'function') _baseBack.apply(this, arguments);
-    };
-
-    console.log('⚡ InstantMsg v3: wrappers موحّدة على openP2PChat/openAdminChat/backFromChat');
-  }, 600);
-});
-
-/* ══════════════════════════════════════════════════════════
-   الإصلاح الأهم: sendChatMessage — عرض الرسالة فورياً
-   قبل الانتظار للشبكة (Optimistic UI)
-   ══════════════════════════════════════════════════════════ */
-window.addEventListener('load', function(){
-  setTimeout(function(){
-
-    const _baseSend = window.sendChatMessage;
-    window.sendChatMessage = async function(){
-      /* ── STEP 1: عرض الرسالة فورياً في الواجهة (Optimistic UI) ── */
-      const input = document.getElementById('chatInput') || document.getElementById('msgInput');
-      const text  = input ? input.value.trim() : '';
-      const myName = window._isAdmin
-        ? 'المدير'
-        : (typeof getCurrentUser === 'function' ? getCurrentUser() : localStorage.getItem('sklab_user_name') || '');
-      const target = window._currentChatTarget;
-
-      if(text && myName && target){
-        /* بناء كائن الرسالة المؤقتة */
-        const tempMsg = {
-          id        : 'tmp_' + Date.now() + '_' + Math.random().toString(36).slice(2),
-          from      : myName,
-          to        : target,
-          message   : text,
-          timestamp : new Date().toISOString(),
-          read      : false,
-          _pending  : true  /* علامة مؤقتة */
-        };
-
-        /* إضافة للـ localStorage فوراً */
-        if(typeof _getP2PMsgs === 'function' && typeof _saveP2PMsgs === 'function'){
-          try{
-            const curr = _getP2PMsgs(myName, target) || [];
-            curr.push(tempMsg);
-            _saveP2PMsgs(myName, target, curr);
-          }catch(e){}
-        }
-
-        /* عرض في الواجهة فوراً */
-        const box = document.getElementById('messagesContent');
-        if(box && typeof renderChatBubbles === 'function'){
-          try{
-            const msgs = (typeof _getP2PMsgs === 'function' ? _getP2PMsgs(myName, target) : []) || [];
-            const chatScreen = document.getElementById('chatScreen');
-            const readOnly = chatScreen ? chatScreen.getAttribute('data-readonly') : false;
-            renderChatBubbles(msgs, box, myName, !!readOnly);
-            box.scrollTop = box.scrollHeight;
-          }catch(e){}
-        }
-      }
-
-      /* ── STEP 2: إرسال للسيرفر في الخلفية ── */
-      if(typeof _baseSend === 'function'){
-        try{ await _baseSend.apply(this, arguments); }catch(e){}
-      }
-
-      /* ── STEP 3: تحديث من السيرفر بعد الإرسال لاستبدال الرسالة المؤقتة بالحقيقية ── */
-      _pollSig = ''; /* أجبر إعادة التحميل */
-      setTimeout(_poll, 100);
-    };
-
-    console.log('⚡ InstantMsg v3: sendChatMessage مع Optimistic UI فعّال');
-  }, 700);
-});
 
 /* ══════════════════════════════════════════════
    PART 2: حذف الرسالة بثلاث نقرات متتالية
@@ -24903,7 +24457,7 @@ async function _deleteMyMsgById(msgId){
 
   if(deleted || wrap){
     if(typeof showToast === 'function') showToast('🗑️ تم حذف الرسالة');
-    _pollSig = ''; /* أجبر إعادة التحميل */
+    _fastSig = ''; /* أجبر إعادة التحميل */
   }
 }
 
@@ -24982,16 +24536,8 @@ if(typeof _origRenderBubble === 'function'){
 /* تصدير للاستخدام الخارجي إن لزم */
 window._handleTripleTap   = _handleTripleTap;
 window._deleteMyMsgById   = _deleteMyMsgById;
-window._startFastPolling  = _startPolling;  /* توافق مع الكود القديم */
-window._stopFastPolling   = _stopPolling;
-window._startPolling      = _startPolling;
-window._stopPolling       = _stopPolling;
 
-/* startRealtimeMessenger وستopRealtimeMessenger للتوافق */
-window.startRealtimeMessenger = _startPolling;
-window.stopRealtimeMessenger  = _stopPolling;
-
-console.log('⚡ InstantMsg v3 محمّل: polling ' + _POLL_MS + 'ms + Optimistic UI + حذف بثلاث نقرات');
+console.log('⚡ InstantMsg v3 محمّل: SSE فوري + polling 800ms + حذف بثلاث نقرات');
 
 })();
 </script>
