@@ -24542,5 +24542,288 @@ console.log('⚡ InstantMsg v3 محمّل: SSE فوري + polling 800ms + حذف
 })();
 </script>
 
+<!-- ══════════════════════════════════════════════════════════════════════
+     ⚡ ConnectDZ REALTIME FIX v8.0 — حل جذري لتأخر الرسائل
+     المشاكل المكتشفة والمحلولة:
+     1. SSE يتجاهل أحياناً التحديثات الحقيقية (منطق _sseReady خاطئ)
+     2. لا يوجد إعادة اتصال تلقائية عند قطع SSE
+     3. الـ polling لا يُشغَّل عند بقاء SSE مفتوحاً لكنه صامت
+     4. badge الرسائل لا يتحدث بشكل فوري
+     5. لا يوجد heartbeat للتحقق من حيوية SSE
+     ══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+const _FB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+/* ── مساعدات ── */
+function _norm(n){ return (n||'').replace(/\s+/g,'_'); }
+function _pairKey(a,b){ return [_norm(a),_norm(b)].sort().join('__'); }
+function _me(){
+  if(window._isAdmin) return 'المدير';
+  if(typeof getCurrentUser==='function') return getCurrentUser()||'';
+  return localStorage.getItem('sklab_user_name')||'';
+}
+
+/* ══════════════════════════════════════════════════════════
+   CORE: نظام SSE مُصلَح مع إعادة اتصال + heartbeat
+   ══════════════════════════════════════════════════════════ */
+let _sse         = null;
+let _ssePair     = '';
+let _sseAlive    = false;
+let _sseLastEvt  = 0;
+let _reconnectT  = null;
+let _heartbeatT  = null;
+let _fastPollT   = null;
+let _fastSig     = '';
+const SSE_TIMEOUT   = 15000;  /* 15 ثانية بدون حدث = اعتبر SSE ميتاً */
+const FAST_POLL_MS  = 600;    /* polling احتياطي كل 600ms */
+const RECONNECT_MS  = 2000;   /* إعادة اتصال بعد 2 ثانية */
+
+/* ── جلب وعرض الرسائل (نسخة محسّنة) ── */
+async function _fetchRender(force){
+  const me = _me();
+  if(!me || me==='زائر') return;
+  const screen = document.getElementById('chatScreen');
+  const target = window._currentChatTarget;
+  if(!screen || screen.style.display==='none' || !target) return;
+
+  const pair = _pairKey(me, target);
+
+  /* جلب من Supabase */
+  let remote = null;
+  try{
+    if(typeof sbGetMessages==='function'){
+      remote = await sbGetMessages(me, target);
+    }
+  }catch(e){}
+
+  /* fallback Firebase */
+  if(!remote || !Array.isArray(remote) || remote.length===0){
+    try{
+      const r = await fetch(`${_FB}/messages/${pair}.json`,{cache:'no-store'});
+      if(r.ok){
+        const d = await r.json();
+        if(d && typeof d==='object'){
+          remote = Object.values(d).sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
+        }
+      }
+    }catch(e){}
+  }
+
+  /* دمج localStorage */
+  const local = (typeof _getP2PMsgs==='function') ? _getP2PMsgs(me,target) : [];
+  const base  = (remote&&remote.length) ? remote : local;
+  const bIds  = new Set(base.map(m=>m.id));
+  const extra = local.filter(m=>!bIds.has(m.id));
+  const merged = [...base,...extra].sort((a,b)=>(a.timestamp||'').localeCompare(b.timestamp||''));
+
+  /* توقيع */
+  const last = merged[merged.length-1];
+  const sig  = merged.length+'|'+(last?.id||'')+'|'+(last?.timestamp||'');
+  if(!force && sig===_fastSig) return;
+  _fastSig = sig;
+
+  /* حفظ */
+  if(typeof _saveP2PMsgs==='function') _saveP2PMsgs(me, target, merged);
+
+  /* عرض */
+  const msgDiv = document.getElementById('messagesContent');
+  const isRO   = screen.getAttribute('data-readonly');
+  if(msgDiv && typeof renderChatBubbles==='function'){
+    const atBottom = (msgDiv.scrollHeight - msgDiv.scrollTop - msgDiv.clientHeight) < 80;
+    renderChatBubbles(merged, msgDiv, me, !!isRO);
+    if(atBottom) msgDiv.scrollTop = msgDiv.scrollHeight;
+  }
+
+  /* تعليم مقروء */
+  if(!isRO && typeof sbMarkRead==='function') sbMarkRead(me, target, me);
+}
+
+/* ── إيقاف SSE الحالي ── */
+function _stopSSE(){
+  _sseAlive = false;
+  if(_sse){ try{ _sse.close(); }catch(e){} _sse=null; }
+  if(_reconnectT){ clearTimeout(_reconnectT); _reconnectT=null; }
+  if(_heartbeatT){ clearInterval(_heartbeatT); _heartbeatT=null; }
+}
+
+/* ── بدء SSE مع heartbeat وإعادة اتصال ── */
+function _startSSE(me, target){
+  if(!me||!target) return;
+  const pair = _pairKey(me,target);
+
+  /* لا تُعيد الاتصال إذا نفس المحادثة وSSE حي */
+  if(_ssePair===pair && _sseAlive) return;
+
+  _stopSSE();
+  _ssePair = pair;
+
+  try{
+    /* استخدم .json?stream=true للحصول على Stream حقيقي من Firebase */
+    const url = `${_FB}/messages/${pair}.json`;
+    const es = new EventSource(url);
+    let firstEvent = true;  /* أول حدث دائماً snapshot كامل */
+
+    es.addEventListener('put', function(e){
+      _sseLastEvt = Date.now();
+      /* الحدث الأول: snapshot كامل — نعرضه فوراً */
+      if(firstEvent){
+        firstEvent = false;
+        _fetchRender(true);
+        return;
+      }
+      /* تغييرات لاحقة: رسائل جديدة وصلت */
+      _fastSig = ''; /* أجبر إعادة رسم */
+      _fetchRender(true);
+    });
+
+    es.addEventListener('patch', function(){
+      _sseLastEvt = Date.now();
+      _fastSig = '';
+      _fetchRender(true);
+    });
+
+    es.onopen = function(){
+      _sseAlive = true;
+      _sseLastEvt = Date.now();
+      console.log('✅ [RealtimeFix v8] SSE متصل:', pair);
+    };
+
+    es.onerror = function(){
+      _sseAlive = false;
+      console.warn('⚠️ [RealtimeFix v8] SSE انقطع، إعادة اتصال...');
+      _sse = null;
+      /* إعادة اتصال بعد RECONNECT_MS */
+      if(!_reconnectT){
+        _reconnectT = setTimeout(function(){
+          _reconnectT = null;
+          const curTarget = window._currentChatTarget;
+          const curMe = _me();
+          if(curMe && curTarget) _startSSE(curMe, curTarget);
+        }, RECONNECT_MS);
+      }
+    };
+
+    _sse = es;
+
+    /* ── Heartbeat: إذا لم يصل حدث منذ SSE_TIMEOUT → أعد الاتصال ── */
+    _heartbeatT = setInterval(function(){
+      if(!_sseAlive) return;
+      if(Date.now() - _sseLastEvt > SSE_TIMEOUT){
+        console.warn('⚠️ [RealtimeFix v8] SSE صامت، إعادة اتصال...');
+        _sseAlive = false;
+        if(_sse){ try{_sse.close();}catch(e){} _sse=null; }
+        const curTarget = window._currentChatTarget;
+        const curMe = _me();
+        if(curMe && curTarget) _startSSE(curMe, curTarget);
+      }
+    }, SSE_TIMEOUT);
+
+  }catch(e){
+    _sseAlive = false;
+    console.warn('⚠️ [RealtimeFix v8] EventSource غير مدعوم:', e);
+  }
+}
+
+/* ── Fast Polling احتياطي — يعمل دائماً مهما كان SSE ── */
+function _startFastPoll(){
+  if(_fastPollT) return;
+  _fastPollT = setInterval(function(){
+    /* إذا SSE حي: نُقلل الضغط — نُشغله مرة كل 3 دورات فقط */
+    if(_sseAlive){
+      if(Math.random() > 0.33) return; /* ~33% من الوقت */
+    }
+    _fetchRender(false);
+  }, FAST_POLL_MS);
+}
+
+/* ── badge الرسائل: تحديث فوري من Firebase SSE ── */
+(function _startBadgeSSE(){
+  const me = _me();
+  if(!me||me==='زائر') return;
+  try{
+    const normMe = _norm(me);
+    /* استمع على /unread/{normMe} في Firebase */
+    const badgeUrl = `${_FB}/unread/${normMe}.json`;
+    const badgeEs  = new EventSource(badgeUrl);
+    badgeEs.addEventListener('put', function(e){
+      try{
+        const d = JSON.parse(e.data);
+        const count = (d && typeof d==='object')
+          ? Object.values(d).reduce(function(s,v){ return s+(parseInt(v)||0); },0)
+          : (parseInt(d)||0);
+        if(typeof updateNotifBadge==='function') updateNotifBadge(count);
+      }catch(ex){}
+    });
+  }catch(e){}
+})();
+
+/* ══ تجاوز _resetFixedChatPolling — يُستدعى عند فتح محادثة جديدة ══ */
+const _origReset = window._resetFixedChatPolling;
+window._resetFixedChatPolling = function(){
+  if(typeof _origReset==='function') _origReset();
+  _fastSig = '';
+  const me     = _me();
+  const target = window._currentChatTarget;
+  if(me && target){
+    /* أعد اتصال SSE للمحادثة الجديدة */
+    _startSSE(me, target);
+    /* جلب فوري */
+    setTimeout(function(){ _fetchRender(true); }, 100);
+  }
+};
+
+/* ══ تجاوز openChat / openChatWith — كل دالة تفتح محادثة ══ */
+['openChat','openChatWith','startChat','openPrivateChat','openDirectMsg'].forEach(function(fn){
+  const orig = window[fn];
+  if(typeof orig!=='function') return;
+  window[fn] = function(){
+    orig.apply(this, arguments);
+    /* بعد 200ms: ابدأ SSE للمحادثة الجديدة */
+    setTimeout(function(){
+      const me     = _me();
+      const target = window._currentChatTarget;
+      if(me && target){
+        _fastSig = '';
+        _startSSE(me, target);
+        _fetchRender(true);
+      }
+    }, 200);
+  };
+});
+
+/* ══ مراقبة _currentChatTarget — إذا تغير تلقائياً ══ */
+let _lastChatTarget = '';
+setInterval(function(){
+  const target = window._currentChatTarget;
+  const me     = _me();
+  if(target && target !== _lastChatTarget){
+    _lastChatTarget = target;
+    _fastSig = '';
+    if(me) _startSSE(me, target);
+  }
+}, 300);
+
+/* ══ تشغيل عند الـ load ══ */
+function _init(){
+  _startFastPoll();
+  const me     = _me();
+  const target = window._currentChatTarget;
+  if(me && target) _startSSE(me, target);
+}
+
+if(document.readyState==='complete'){
+  _init();
+} else {
+  window.addEventListener('load', _init, {once:true});
+}
+
+console.log('🚀 [RealtimeFix v8] محمّل — SSE فوري + إعادة اتصال + heartbeat + badge');
+
+})();
+</script>
+
 </body>
 </html>
