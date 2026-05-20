@@ -16441,45 +16441,64 @@ function renderSocialMessengerPanel(){
   _renderSmInbox(getCurrentUser());
 }
 
-function _renderSmInbox(myName, filter=''){
+/* ══ _renderSmInbox — يقرأ من Supabase (فوري) بدلاً من localStorage ══ */
+async function _renderSmInbox(myName, filter=''){
   const listEl = document.getElementById('smInboxList');
   if(!listEl) return;
   if(!myName){ listEl.innerHTML=`<div style="text-align:center;padding:40px 20px;font-size:13px;color:#65676B;">سجّل دخولك أولاً</div>`; return; }
 
-  // جمع كل المحادثات (بطريقة موثوقة تشمل Firebase)
-  const convMap = {};
-  const _smAllKeys = new Set();
-  try{ for(let i=0;i<localStorage.length;i++){ const _k=localStorage.key(i); if(_k) _smAllKeys.add(_k); } }catch(e){}
-  try{ Object.keys(localStorage).forEach(function(_k){ _smAllKeys.add(_k); }); }catch(e){}
-
-  for(const k of _smAllKeys){
-    if(!k || !k.startsWith('nld_p2p_')) continue;
-    let msgs; try{ msgs = JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ msgs=[]; }
-    const conv = msgs.filter(m=>m.from===myName||m.to===myName);
-    if(conv.length===0) continue;
-    const other = conv[0].from===myName ? conv[0].to : conv[0].from;
-    if(!other || other===myName) continue;
-    const last = conv[conv.length-1];
-    const unread = conv.filter(m=>m.to===myName&&!m.read).length;
-    if(!convMap[other] || last.timestamp > convMap[other].last.timestamp){
-      convMap[other] = { other, last, unread };
-    }
+  /* عرض loading مؤقت */
+  if(!listEl.dataset.loaded){
+    listEl.innerHTML=`<div style="text-align:center;padding:30px;color:#65676B;font-size:13px;">⏳ جاري التحميل...</div>`;
   }
-  // أيضاً: المحادثات مع المدير (فحص عدة صيغ للمفتاح)
-  const _adminKeys = ['nld_p2p_المدير_'+myName.replace(/\s+/g,'_'), 'nld_p2p_'+myName.replace(/\s+/g,'_')+'_المدير'];
-  for(const _ak of _adminKeys){
-    try{
-      const adminMsgs = JSON.parse(localStorage.getItem(_ak)||'[]');
-      if(adminMsgs.length>0 && !convMap['المدير']){
-        const last = adminMsgs[adminMsgs.length-1];
-        const unread = adminMsgs.filter(m=>m.to===myName&&!m.read).length;
-        convMap['المدير'] = { other:'المدير', last, unread };
+
+  /* ── جلب من Supabase (المصدر الرئيسي) ── */
+  const convMap = {};
+  try{
+    if(typeof sbGetInbox === 'function'){
+      const allMsgs = await sbGetInbox(myName);
+      if(Array.isArray(allMsgs) && allMsgs.length > 0){
+        allMsgs.forEach(function(m){
+          if(!m || (!m.from && !m.to)) return;
+          const other = m.from === myName ? m.to : m.from;
+          if(!other || other === myName) return;
+          const existing = convMap[other];
+          if(!existing || (m.timestamp||'') > (existing.last.timestamp||'')){
+            convMap[other] = convMap[other] || { other, last: m, unread: 0 };
+            convMap[other].last = m;
+          }
+          if(m.to === myName && !m.read){
+            convMap[other] = convMap[other] || { other, last: m, unread: 0 };
+            convMap[other].unread = (convMap[other].unread || 0) + 1;
+          }
+        });
       }
-    }catch(e){}
+    }
+  }catch(e){}
+
+  /* ── احتياطي: localStorage إذا فشل Supabase ── */
+  if(Object.keys(convMap).length === 0){
+    const _smAllKeys = new Set();
+    try{ for(let i=0;i<localStorage.length;i++){ const _k=localStorage.key(i); if(_k) _smAllKeys.add(_k); } }catch(e){}
+    for(const k of _smAllKeys){
+      if(!k || !k.startsWith('nld_p2p_')) continue;
+      let msgs; try{ msgs = JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ msgs=[]; }
+      const conv = msgs.filter(m=>m.from===myName||m.to===myName);
+      if(conv.length===0) continue;
+      const other = conv[0].from===myName ? conv[0].to : conv[0].from;
+      if(!other || other===myName) continue;
+      const last = conv[conv.length-1];
+      const unread = conv.filter(m=>m.to===myName&&!m.read).length;
+      if(!convMap[other] || (last.timestamp||'') > (convMap[other].last.timestamp||'')){
+        convMap[other] = { other, last, unread };
+      }
+    }
   }
 
   let convList = Object.values(convMap).sort((a,b)=>new Date(b.last.timestamp)-new Date(a.last.timestamp));
   if(filter.trim()) convList = convList.filter(c=>c.other.toLowerCase().includes(filter.toLowerCase()));
+
+  listEl.dataset.loaded = '1';
 
   if(convList.length===0){
     listEl.innerHTML=`<div style="text-align:center;padding:50px 20px;"><div style="font-size:48px;margin-bottom:12px;">💬</div><div style="font-size:14px;font-weight:700;color:#65676B;">ابدأ محادثة جديدة</div><div style="font-size:12px;color:#65676B;margin-top:6px;">استخدم زر ✏️ للتحدث مع أحد الأعضاء</div></div>`;
@@ -16492,8 +16511,9 @@ function _renderSmInbox(myName, filter=''){
     const avatarHtml = photo
       ? `<img loading="lazy" src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
       : `<div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#00B2FF,#0078FF);display:flex;align-items:center;justify-content:center;font-size:22px;">${other==='المدير'?'🛡️':icon}</div>`;
-    const msgPreview = last.message
-      ? (last.message.length>35 ? last.message.substring(0,35)+'…' : last.message)
+    const msgText = last.message || last.text || '';
+    const msgPreview = msgText
+      ? (msgText.length>35 ? msgText.substring(0,35)+'…' : msgText)
       : (last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت');
     const ts = last.timestamp ? new Date(last.timestamp).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'}) : '';
     const isMine = last.from === myName;
@@ -16566,14 +16586,22 @@ function switchSocialTab(tab){
 }
 
 // تحديث badge المسنجر
-function refreshSocialMsgBadge(){
+async function refreshSocialMsgBadge(){
   const name = getCurrentUser(); if(!name) return;
-  let total=0;
-  for(let i=0;i<localStorage.length;i++){
-    const k=localStorage.key(i);
-    if(k&&k.startsWith('nld_p2p_')){
-      const msgs=JSON.parse(localStorage.getItem(k)||'[]');
-      total+=msgs.filter(m=>m.to===name&&!m.read).length;
+  /* ── قراءة من Supabase أولاً (الأدق) ── */
+  let total = 0;
+  try{
+    if(typeof sbGetUnreadCount === 'function'){
+      total = await sbGetUnreadCount(name);
+    }
+  }catch(e){}
+  /* ── احتياطي: localStorage ── */
+  if(!total){
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.startsWith('nld_p2p_')){
+        try{ total+=JSON.parse(localStorage.getItem(k)||'[]').filter(m=>m.to===name&&!m.read).length; }catch(e){}
+      }
     }
   }
   const badge = document.getElementById('socialMsgBadge');
@@ -23382,8 +23410,15 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
       es.addEventListener('put', function(){
         if(!_sseReady){ _sseReady = true; return; } /* تجاهل snapshot الأول */
         _fetchAndRender(true);
+        /* تحديث inbox وbadge فوراً عند وصول رسالة جديدة */
+        if(typeof _renderSmInbox === 'function') _renderSmInbox(myName);
+        if(typeof refreshSocialMsgBadge === 'function') refreshSocialMsgBadge();
       });
-      es.addEventListener('patch', function(){ _fetchAndRender(true); });
+      es.addEventListener('patch', function(){
+        _fetchAndRender(true);
+        if(typeof _renderSmInbox === 'function') _renderSmInbox(myName);
+        if(typeof refreshSocialMsgBadge === 'function') refreshSocialMsgBadge();
+      });
       es.onerror = function(){ _sseActive = false; };
       es.onopen  = function(){ _sseActive = true; };
       _sseSource = es;
