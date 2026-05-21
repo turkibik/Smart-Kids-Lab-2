@@ -25845,17 +25845,21 @@ window.openCreateGroupScreen = function(){
     await _saveGroup(group);
     ov.remove();
     showToast('✅ تم إنشاء مجموعة "'+name+'"');
-    /* فتح المجموعة مباشرة */
-    openGroupChat(group.id);
     /* تحديث قائمة المجموعات */
     _renderGroupsInInbox();
+    /* فتح المجموعة مباشرة — نمرر الكائن مباشرةً لتجنب تأخر Firebase */
+    openGroupChat(group.id, group);
   };
 };
 
 /* ══ فتح محادثة المجموعة ══ */
-window.openGroupChat = async function(groupId){
-  const groups = await _fetchGroups();
-  const group = groups.find(g=>g.id===groupId);
+window.openGroupChat = async function(groupId, _directGroup){
+  /* إذا مُرِّر كائن المجموعة مباشرةً (بعد الإنشاء) نستخدمه فوراً بدون انتظار Firebase */
+  let group = _directGroup || null;
+  if(!group){
+    const groups = await _fetchGroups();
+    group = groups.find(g=>g.id===groupId);
+  }
   if(!group){ showToast('❌ المجموعة غير موجودة'); return; }
   const myName = _me();
   if(!myName) return;
