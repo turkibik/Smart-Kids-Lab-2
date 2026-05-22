@@ -4646,7 +4646,7 @@ function switchLoginTab(tab){
             <div style="position:relative;width:68px;height:110px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#e3f0ff 0%,#c8dfff 100%);border:2.5px solid #1877F2;">
               <div id="myStoryThumb" style="width:100%;height:70%;background:linear-gradient(135deg,#1877F2,#0d5bda);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;">👑</div>
               <div style="position:absolute;bottom:0;width:100%;height:40%;background:white;display:flex;align-items:center;justify-content:center;">
-                <span style="font-size:10px;font-weight:700;color:#050505;text-align:center;line-height:1.2;">يومياتي</span>
+                <span style="font-size:10px;font-weight:700;color:#050505;text-align:center;line-height:1.2;">ڨوستا تايم</span>
               </div>
               <div style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%);width:24px;height:24px;background:#1877F2;border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:white;line-height:1;">+</div>
             </div>
@@ -4662,10 +4662,10 @@ function switchLoginTab(tab){
           <div id="socialPostAvatarWrap" onclick="openMyStory()" style="flex-shrink:0;cursor:pointer;position:relative;">
             <div class="story-ring" id="myStoryRing">
               <div class="story-ring-inner">
-                <div id="socialPostAvatar" style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;" title="يومياتي">👑</div>
+                <div id="socialPostAvatar" style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;" title="ڨوستا تايم">👑</div>
               </div>
             </div>
-            <div class="story-add-btn" onclick="event.stopPropagation();addMyStory()" title="إضافة قصة">+</div>
+            <div class="story-add-btn" onclick="event.stopPropagation();addMyStory()" title="ڨوستا تايم جديد">+</div>
           </div>
           <div onclick="openSocialCreatePost()" style="flex:1;background:#F0F2F5;border-radius:22px;padding:10px 16px;font-size:13px;color:#65676B;cursor:pointer;font-family:'Tajawal',sans-serif;">بماذا تفكر؟</div>
         </div>
@@ -4897,42 +4897,70 @@ function switchLoginTab(tab){
 
 <!-- ── نافذة إنشاء منشور اجتماعي ── -->
 <div id="socialCreatePostModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:5500;align-items:flex-end;justify-content:center;">
-  <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 28px;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;overflow:hidden;max-height:92vh;display:flex;flex-direction:column;">
+  <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 24px;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;overflow:hidden;max-height:94vh;display:flex;flex-direction:column;">
+    <!-- Header -->
     <div style="padding:14px 16px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div onclick="closeSocialCreatePost()" style="width:30px;height:30px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;cursor:pointer;color:#050505;">✕</div>
+      <div onclick="closeSocialCreatePost()" style="width:32px;height:32px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;cursor:pointer;color:#050505;">✕</div>
       <div style="font-size:16px;font-weight:900;color:#050505;">إنشاء منشور</div>
-      <button onclick="submitSocialPost()" style="background:#1877F2;border:none;border-radius:20px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;padding:7px 18px;cursor:pointer;">نشر</button>
+      <button id="scpPublishBtn" onclick="submitSocialPost()" style="background:#1877F2;border:none;border-radius:20px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;padding:7px 20px;cursor:pointer;transition:.15s;">نشر</button>
     </div>
+    <!-- Body -->
     <div style="padding:14px 16px;overflow-y:auto;flex:1;overscroll-behavior:none;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-        <div id="scpAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;">👑</div>
+      <!-- المستخدم + الخصوصية -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div id="scpAvatar" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;flex-shrink:0;">👑</div>
         <div>
-          <div id="scpName" style="font-size:14px;font-weight:900;color:#050505;"></div>
-          <div onclick="openScpPrivacyPicker()" id="scpPrivacyBadge" style="background:#F0F2F5;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;color:#65676B;margin-top:3px;display:inline-flex;align-items:center;gap:4px;cursor:pointer;">🌐 عام ▾</div>
+          <div id="scpName" style="font-size:15px;font-weight:900;color:#050505;"></div>
+          <div onclick="openScpPrivacyPicker()" id="scpPrivacyBadge" style="background:#F0F2F5;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;color:#65676B;margin-top:3px;display:inline-flex;align-items:center;gap:4px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">🌐 عام ▾</div>
         </div>
       </div>
-      <div id="scpFeelBadge" style="display:none;background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;"></div>
-      <textarea id="scpTextInput" placeholder="بماذا تفكر؟" style="width:100%;border:none;background:transparent;color:#050505;font-family:'Tajawal',sans-serif;font-size:16px;outline:none;resize:none;min-height:120px;line-height:1.6;text-align:right;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,320)+'px'"></textarea>
+      <!-- شارة الشعور -->
+      <div id="scpFeelBadge" style="display:none;background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:20px;padding:5px 12px;font-size:13px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;"></div>
+      <!-- شارة الموقع -->
+      <div id="scpLocationBadge" style="display:none;background:rgba(229,57,53,0.1);border:1px solid rgba(229,57,53,0.25);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:#e53935;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;margin-right:6px;cursor:pointer;" onclick="removeScpLocation()">
+        <span id="scpLocationText">📍</span>
+        <span style="font-size:14px;color:#e53935;font-weight:900;">✕</span>
+      </div>
+      <!-- حقل النص -->
+      <textarea id="scpTextInput" placeholder="بماذا تفكر؟" style="width:100%;border:none;background:transparent;color:#050505;font-family:'Tajawal',sans-serif;font-size:17px;outline:none;resize:none;min-height:100px;line-height:1.7;text-align:right;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,300)+'px'"></textarea>
+      <!-- معرض الصور المتعددة -->
+      <div id="scpMultiImgPreview" style="display:none;margin-top:8px;border-radius:12px;overflow:hidden;position:relative;background:#000;"></div>
+      <!-- معاينة الصورة الفردية -->
       <div id="scpImagePreview" style="display:none;border-radius:12px;overflow:hidden;margin-top:8px;position:relative;">
-        <img loading="lazy" id="scpImagePreviewImg" style="width:100%;max-height:200px;object-fit:cover;">
-        <div onclick="document.getElementById('scpImagePreview').style.display='none';_scpImageData=null;" style="position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:white;">✕</div>
+        <img loading="lazy" id="scpImagePreviewImg" style="width:100%;max-height:240px;object-fit:cover;">
+        <div onclick="document.getElementById('scpImagePreview').style.display='none';_scpImageData=null;_scpMultiImages=[];" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:white;font-weight:900;">✕</div>
       </div>
+      <!-- معاينة الفيديو -->
       <div id="scpVideoPreview" style="display:none;border-radius:12px;overflow:hidden;margin-top:8px;position:relative;">
-        <video id="scpVideoPreviewVid" controls playsinline style="width:100%;max-height:220px;display:block;background:#000;" preload="metadata"></video>
-        <div onclick="document.getElementById('scpVideoPreview').style.display='none';_scpVideoData=null;" style="position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:white;">✕</div>
+        <video id="scpVideoPreviewVid" controls playsinline style="width:100%;max-height:240px;display:block;background:#000;" preload="metadata"></video>
+        <div onclick="document.getElementById('scpVideoPreview').style.display='none';_scpVideoData=null;" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:white;font-weight:900;">✕</div>
       </div>
+      <!-- وسم صديق -->
+      <div id="scpTagPreview" style="display:none;padding:8px 0 0;"></div>
     </div>
-    <div style="display:flex;gap:8px;padding:0 16px;flex-wrap:wrap;flex-shrink:0;padding-bottom:8px;">
-      <label style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#F0F2F5;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;">
-        🖼️ صورة
-        <input type="file" accept="image/*" style="display:none;" onchange="handleScpImage(event)">
-      </label>
-      <label style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#F0F2F5;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F1135C;">
-        🎬 فيديو
-        <input type="file" accept="video/*" style="display:none;" onchange="handleScpVideo(event)">
-      </label>
-      <div onclick="toggleScpFeeling()" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#F0F2F5;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;">😊 شعور/نشاط</div>
-      <div onclick="openScpPrivacyPicker()" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#F0F2F5;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#65676B;">🔒 الخصوصية</div>
+    <!-- أدوات المنشور -->
+    <div style="padding:8px 14px;border-top:1px solid #F0F2F5;flex-shrink:0;">
+      <div style="font-size:12px;font-weight:800;color:#65676B;margin-bottom:8px;">أضف إلى منشورك</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <!-- صورة -->
+        <label style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 13px;background:#F0FFF4;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;color:#45BD62;border:1.5px solid rgba(69,189,98,0.25);transition:.15s;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#F0FFF4'">
+          🖼️ صورة
+          <input type="file" accept="image/*" multiple style="display:none;" onchange="handleScpMultiImages(event)">
+        </label>
+        <!-- فيديو -->
+        <label style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 13px;background:#FFF0F3;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;color:#F1135C;border:1.5px solid rgba(241,19,92,0.2);transition:.15s;" onmouseover="this.style.background='#ffe4ec'" onmouseout="this.style.background='#FFF0F3'">
+          🎬 فيديو
+          <input type="file" accept="video/*" style="display:none;" onchange="handleScpVideo(event)">
+        </label>
+        <!-- شعور -->
+        <div onclick="openScpFeelingPicker()" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 13px;background:#FFFBEB;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;color:#D97706;border:1.5px solid rgba(217,119,6,0.2);transition:.15s;" onmouseover="this.style.background='#fef3c7'" onmouseout="this.style.background='#FFFBEB'">😊 شعور</div>
+        <!-- موقع -->
+        <div onclick="openScpLocationPicker()" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 13px;background:#FFF0F0;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;color:#e53935;border:1.5px solid rgba(229,57,53,0.2);transition:.15s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#FFF0F0'">📍 موقع</div>
+        <!-- وسم صديق -->
+        <div onclick="openScpTagFriend()" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 13px;background:#EFF6FF;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;color:#1877F2;border:1.5px solid rgba(24,119,242,0.2);transition:.15s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#EFF6FF'">🏷️ وسم</div>
+        <!-- الخصوصية -->
+        <div onclick="openScpPrivacyPicker()" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 13px;background:#F5F5F5;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;color:#65676B;border:1.5px solid rgba(0,0,0,0.08);transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F5F5F5'">🔒 خصوصية</div>
+      </div>
     </div>
   </div>
 </div>
@@ -9378,7 +9406,7 @@ async function loadRanking(){
     const _EXCLUDED_NAMES = ['لؤي','لؤي عماري'];
     const list=Object.values(mergedMap).filter(x=>!_EXCLUDED_NAMES.some(ex=>x.n.trim()===ex||x.n.trim().startsWith(ex+' '))).map(x=>{
       const qPts=getSharedQuizPts(x.n);
-      return {n:x.n, p:x.p, sheetP:x.p, quizP:qPts, total:x.p+qPts};
+      return {n:x.n, p:x.p, sheetP:x.p, quizP:qPts, total:x.p}; // ترتيب بنقاط الجدول فقط
     }).sort((a,b)=>b.total-a.total);
 
     // ── حساب الرصيد الذكي حسب الترتيب ──
@@ -9421,7 +9449,7 @@ async function loadRanking(){
     div.innerHTML=list.map((x,i)=>{
       const isMe=norm(x.n)===currentUserNorm;
       const quizPts=x.quizP||0;
-      const quizBadge=quizPts>0?`<span style="font-size:10px;color:#a78bfa;background:rgba(168,85,247,0.15);border-radius:5px;padding:1px 5px;margin-right:4px;" title="نقاط الكويز">🎯+${quizPts}</span>`:'';
+      const quizBadge=''; // نقاط الكويز لا تظهر في جدول الترتيب
       const delay = Math.min(i * 0.05, 0.6);
       const isMeStyle = isMe
         ? 'border-color:rgba(0,229,160,0.55)!important;background:linear-gradient(135deg,rgba(0,229,160,0.1),rgba(0,229,160,0.04))!important;box-shadow:0 0 16px rgba(0,229,160,0.15);'
@@ -9581,7 +9609,7 @@ function ebPointsShare(){
   addPointsInstant(5);
 }
 
-function ebPointsStory(){ grantEarlyBirdPoints('story_'+Date.now(), 1, false, 'قصة'); }
+function ebPointsStory(){ grantEarlyBirdPoints('story_'+Date.now(), 1, false, 'ڨوستا تايم'); }
 function ebPointsVisit(){ grantEarlyBirdPoints('daily_visit', 5, true, 'زيارة يومية'); }
 function ebPointsFacebook(){ grantEarlyBirdPoints('facebook_open', 10, true, 'فتح فيسبوك'); }
 
@@ -14130,8 +14158,20 @@ function renderSocialPostCard(p){
       </div>
       ${p.feeling ? `<div style="background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;">${p.feeling}</div>` : ''}
       ${p.text ? `<div style="font-size:14px;color:#050505;line-height:1.6;margin-bottom:${p.image||p.video?'10px':'0'};text-align:right;white-space:pre-wrap;">${p.text}</div>` : ''}
-      ${p.image ? `<div style="border-radius:12px;overflow:hidden;margin:8px -14px 0;background:#f0f2f5;min-height:60px;"><img src="${p.image}" loading="lazy" style="width:100%;max-height:420px;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;" onload="this.style.opacity=1" onerror="this.parentElement.style.display='none'"></div>` : ''}
+      ${(()=>{
+        if(p.images && p.images.length > 1){
+          const imgs = p.images;
+          if(imgs.length===2) return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:12px;overflow:hidden;margin:8px -14px 0;">${imgs.map(s=>`<img src="${s}" loading="lazy" style="width:100%;height:180px;object-fit:cover;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1">`).join('')}</div>`;
+          if(imgs.length===3) return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:12px;overflow:hidden;margin:8px -14px 0;"><img src="${imgs[0]}" loading="lazy" style="width:100%;height:240px;object-fit:cover;grid-row:span 2;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1"><img src="${imgs[1]}" loading="lazy" style="width:100%;height:119px;object-fit:cover;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1"><img src="${imgs[2]}" loading="lazy" style="width:100%;height:119px;object-fit:cover;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1"></div>`;
+          const extra = imgs.length-4;
+          return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:12px;overflow:hidden;margin:8px -14px 0;">${imgs.slice(0,3).map(s=>`<img src="${s}" loading="lazy" style="width:100%;height:140px;object-fit:cover;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1">`).join('')}<div style="position:relative;"><img src="${imgs[3]}" loading="lazy" style="width:100%;height:140px;object-fit:cover;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1">${extra>0?`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:white;pointer-events:none;">+${extra}</div>`:''}</div></div>`;
+        }
+        if(p.image) return `<div style="border-radius:12px;overflow:hidden;margin:8px -14px 0;background:#f0f2f5;min-height:60px;"><img src="${p.image}" loading="lazy" style="width:100%;max-height:420px;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;" onload="this.style.opacity=1" onerror="this.parentElement.style.display='none'"></div>`;
+        return '';
+      })()}
       ${p.video ? `<div style="border-radius:12px;overflow:hidden;margin:8px -14px 0;background:#000;"><video src="${p.video}" controls playsinline preload="metadata" style="width:100%;max-height:400px;display:block;object-fit:contain;" onplay="document.querySelectorAll('video').forEach(v=>{if(v!==this&&!v.paused)v.pause();})"></video></div>` : ''}
+      ${(p.location||p.taggedFriends)?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">${p.location?`<span style="background:rgba(229,57,53,0.08);border:1px solid rgba(229,57,53,0.2);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:#e53935;">📍 ${p.location}</span>`:''}${p.taggedFriends&&p.taggedFriends.length?`<span style="background:rgba(24,119,242,0.08);border:1px solid rgba(24,119,242,0.2);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:#1877F2;">🏷️ مع ${p.taggedFriends.join('، ')}</span>`:''}
+      </div>`:''} 
     </div>
 
     <!-- إحصائيات التفاعل -->
@@ -14332,22 +14372,29 @@ let _scpPrivacy = '🌐 عام'; // خصوصية المنشور الافتراض
 const _scpFeelings = ['😊 سعيد','😍 متحمس','🔥 نشيط','💪 مصمم','🤩 رائع','🎉 منتصر','🧠 مفكر','😤 مجتهد','🌟 متألق'];
 let _scpFeelingIdx = 0;
 
+let _scpMultiImages = []; // صور متعددة
+let _scpLocation = null;   // موقع المنشور
+let _scpTaggedFriends = []; // الأصدقاء الموسومون
+
 function openSocialCreatePost(type){
-  _scpFeelingMode = false; _scpImageData = null; _scpVideoData = null; _scpPrivacy = '🌐 عام';
+  _scpFeelingMode = false; _scpImageData = null; _scpVideoData = null;
+  _scpPrivacy = '🌐 عام'; _scpMultiImages = []; _scpLocation = null; _scpTaggedFriends = [];
   const modal = document.getElementById('socialCreatePostModal');
   if(modal) modal.style.display='flex';
   const textEl = document.getElementById('scpTextInput');
   if(textEl){ textEl.value=''; textEl.style.height='auto'; }
-  const prev = document.getElementById('scpImagePreview');
-  if(prev) prev.style.display='none';
-  const vprev = document.getElementById('scpVideoPreview');
-  if(vprev) vprev.style.display='none';
+  ['scpImagePreview','scpVideoPreview','scpMultiImgPreview','scpTagPreview'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display='none';
+  });
   const badge = document.getElementById('scpFeelBadge');
   if(badge) badge.style.display='none';
+  const locBadge = document.getElementById('scpLocationBadge');
+  if(locBadge) locBadge.style.display='none';
   const privBadge = document.getElementById('scpPrivacyBadge');
-  if(privBadge) privBadge.innerText = '🌐 عام';
+  if(privBadge) privBadge.innerText = '🌐 عام ▾';
   const name = getCurrentUser();
   if(name) syncSocialAvatar(name);
+  setTimeout(()=>{ document.getElementById('scpTextInput')?.focus(); }, 200);
   if(type==='achievement'){
     if(textEl) textEl.value='🏆 لقد حققت إنجازاً جديداً! ';
     _scpFeelingMode = true; _scpFeelingIdx = 5;
@@ -14357,10 +14404,12 @@ function openSocialCreatePost(type){
     if(badge){ badge.style.display='inline-flex'; badge.innerText=_scpFeelings[0]; }
   }
 }
+
 function closeSocialCreatePost(){
   const modal = document.getElementById('socialCreatePostModal');
   if(modal) modal.style.display='none';
 }
+
 function toggleScpFeeling(){
   _scpFeelingMode = !_scpFeelingMode;
   _scpFeelingIdx = (_scpFeelingIdx+1) % _scpFeelings.length;
@@ -14370,19 +14419,72 @@ function toggleScpFeeling(){
     else { badge.style.display='none'; }
   }
 }
+
+/* ── معالجة صور متعددة ── */
+function handleScpMultiImages(event){
+  const files = Array.from(event.target.files||[]).slice(0,10);
+  if(!files.length) return;
+  _scpVideoData = null;
+  document.getElementById('scpVideoPreview').style.display='none';
+  _scpMultiImages = [];
+  const multiPrev = document.getElementById('scpMultiImgPreview');
+  const singlePrev = document.getElementById('scpImagePreview');
+  if(singlePrev) singlePrev.style.display='none';
+  let loaded = 0;
+  files.forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      _scpMultiImages.push(e.target.result);
+      loaded++;
+      if(loaded === files.length){
+        _scpImageData = _scpMultiImages[0];
+        _renderMultiImgPreview();
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function _renderMultiImgPreview(){
+  const multiPrev = document.getElementById('scpMultiImgPreview');
+  if(!multiPrev) return;
+  const imgs = _scpMultiImages;
+  if(!imgs.length){ multiPrev.style.display='none'; return; }
+  multiPrev.style.display='block';
+  if(imgs.length === 1){
+    multiPrev.style.cssText += ';border-radius:12px;overflow:hidden;margin-top:8px;position:relative;background:#000;';
+    multiPrev.innerHTML = `<img src="${imgs[0]}" style="width:100%;max-height:280px;object-fit:cover;display:block;">
+      <div onclick="_clearScpImages()" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:white;font-weight:900;">✕</div>`;
+  } else if(imgs.length === 2){
+    multiPrev.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:12px;overflow:hidden;margin-top:8px;position:relative;">
+      ${imgs.map(s=>`<img src="${s}" style="width:100%;height:180px;object-fit:cover;">`).join('')}
+      <div onclick="_clearScpImages()" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:white;font-weight:900;">✕</div>
+    </div>`;
+  } else if(imgs.length === 3){
+    multiPrev.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:12px;overflow:hidden;margin-top:8px;position:relative;">
+      <img src="${imgs[0]}" style="width:100%;height:240px;object-fit:cover;grid-row:span 2;">
+      <img src="${imgs[1]}" style="width:100%;height:119px;object-fit:cover;">
+      <img src="${imgs[2]}" style="width:100%;height:119px;object-fit:cover;">
+      <div onclick="_clearScpImages()" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:white;font-weight:900;">✕</div>
+    </div>`;
+  } else {
+    const extra = imgs.length - 4;
+    multiPrev.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:12px;overflow:hidden;margin-top:8px;position:relative;">
+      ${imgs.slice(0,3).map(s=>`<img src="${s}" style="width:100%;height:140px;object-fit:cover;">`).join('')}
+      <div style="position:relative;"><img src="${imgs[3]}" style="width:100%;height:140px;object-fit:cover;">${extra>0?`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:white;">+${extra}</div>`:''}</div>
+      <div onclick="_clearScpImages()" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:white;font-weight:900;">✕</div>
+    </div>`;
+  }
+}
+
+function _clearScpImages(){
+  _scpImageData = null; _scpMultiImages = [];
+  const el = document.getElementById('scpMultiImgPreview');
+  if(el) el.style.display='none';
+}
+
 function handleScpImage(event){
-  const file = event.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e=>{
-    _scpImageData = e.target.result;
-    _scpVideoData = null;
-    const vprev = document.getElementById('scpVideoPreview');
-    if(vprev) vprev.style.display='none';
-    const prev = document.getElementById('scpImagePreview');
-    const img  = document.getElementById('scpImagePreviewImg');
-    if(prev && img){ img.src=_scpImageData; prev.style.display='block'; }
-  };
-  reader.readAsDataURL(file);
+  handleScpMultiImages(event);
 }
 function handleScpVideo(event){
   const file = event.target.files[0]; if(!file) return;
@@ -14420,20 +14522,132 @@ function setScpPrivacy(label){
   if(badge) badge.innerText = label;
   document.getElementById('_scpPrivacyOverlay')?.remove();
 }
+/* ── اختيار الموقع ── */
+function openScpLocationPicker(){
+  const locations = ['الجزائر العاصمة','وهران','قسنطينة','عنابة','سطيف','تلمسان','بجاية','بسكرة','ورقلة','مستغانم','المدية','المسيلة','تيارت','الشلف','تيزي وزو','جيجل','باتنة','بومرداس','تبسة','خنشلة','سكيكدة','سوق أهراس','الطارف','عين تموشنت','غليزان','معسكر','موقع آخر...'];
+  const old=document.getElementById('_scpLocOverlay'); if(old) old.remove();
+  const ov=document.createElement('div');
+  ov.id='_scpLocOverlay';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:flex-end;justify-content:center;';
+  ov.innerHTML=`<div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:18px 16px 32px;max-height:70vh;overflow-y:auto;overscroll-behavior:none;">
+    <div style="width:36px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 14px;"></div>
+    <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:12px;text-align:center;">📍 أضف موقعك</div>
+    <input id="_scpLocSearch" placeholder="ابحث عن مدينة..." style="width:100%;padding:10px 14px;border:1.5px solid #E4E6EB;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box;text-align:right;" oninput="_filterScpLoc(this.value)">
+    <div id="_scpLocList">${locations.map(l=>`<div onclick="setScpLocation('${l}')" style="padding:11px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">📍 ${l}</div>`).join('')}</div>
+    <button onclick="document.getElementById('_scpLocOverlay').remove()" style="width:100%;padding:12px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#65676B;cursor:pointer;margin-top:8px;">إلغاء</button>
+  </div>`;
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+}
+window._filterScpLoc = function(q){
+  const items = document.querySelectorAll('#_scpLocList div');
+  items.forEach(d=>{ d.style.display = d.innerText.includes(q) ? '' : 'none'; });
+};
+function setScpLocation(loc){
+  _scpLocation = loc;
+  const badge = document.getElementById('scpLocationBadge');
+  const txt = document.getElementById('scpLocationText');
+  if(badge && txt){ txt.innerText='📍 '+loc; badge.style.display='inline-flex'; }
+  document.getElementById('_scpLocOverlay')?.remove();
+}
+function removeScpLocation(){
+  _scpLocation = null;
+  const badge = document.getElementById('scpLocationBadge');
+  if(badge) badge.style.display='none';
+}
+
+/* ── اختيار الشعور (نافذة) ── */
+function openScpFeelingPicker(){
+  const feelings = [
+    '😊 سعيد','❤️ ممتن','🎉 متحمس','😄 مبتهج','🤩 مندهش','🏆 فخور',
+    '😌 هادئ','😔 حزين','😤 غاضب','😰 قلق','🤒 مريض','😴 متعب',
+    '💪 مصمم','🧠 متركز','🌙 حالم','🎯 طامح','✈️ مسافر','🍕 جائع'
+  ];
+  const old=document.getElementById('_scpFeelOverlay'); if(old) old.remove();
+  const ov=document.createElement('div');
+  ov.id='_scpFeelOverlay';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:flex-end;justify-content:center;';
+  ov.innerHTML=`<div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:18px 16px 32px;">
+    <div style="width:36px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 14px;"></div>
+    <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:14px;text-align:center;">😊 كيف تشعر؟</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+      ${feelings.map(f=>`<div onclick="setScpFeeling('${f}')" style="padding:12px 8px;border-radius:12px;cursor:pointer;text-align:center;background:#F8F9FA;border:1.5px solid #E4E6EB;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='#EEF4FF';this.style.borderColor='#1877F2'" onmouseout="this.style.background='#F8F9FA';this.style.borderColor='#E4E6EB'">${f}</div>`).join('')}
+    </div>
+    <button onclick="clearScpFeeling();document.getElementById('_scpFeelOverlay').remove()" style="width:100%;padding:11px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;color:#65676B;cursor:pointer;margin-top:12px;">إزالة الشعور</button>
+  </div>`;
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+}
+function setScpFeeling(f){
+  _scpFeelingMode = true;
+  const idx = _scpFeelings.indexOf(f);
+  _scpFeelingIdx = idx >= 0 ? idx : 0;
+  const badge = document.getElementById('scpFeelBadge');
+  if(badge){ badge.style.display='inline-flex'; badge.innerText=f; }
+  document.getElementById('_scpFeelOverlay')?.remove();
+}
+function clearScpFeeling(){
+  _scpFeelingMode = false;
+  const badge = document.getElementById('scpFeelBadge');
+  if(badge) badge.style.display='none';
+}
+
+/* ── وسم صديق ── */
+function openScpTagFriend(){
+  const name = getCurrentUser(); if(!name) return;
+  const friends = getFriends(name);
+  if(!friends.length){ showToast('لا يوجد أصدقاء لوسمهم'); return; }
+  const old=document.getElementById('_scpTagOverlay'); if(old) old.remove();
+  const ov=document.createElement('div');
+  ov.id='_scpTagOverlay';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:flex-end;justify-content:center;';
+  ov.innerHTML=`<div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:18px 16px 32px;max-height:60vh;overflow-y:auto;">
+    <div style="width:36px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 14px;"></div>
+    <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:12px;text-align:center;">🏷️ وسم صديق</div>
+    ${friends.map(f=>`<div onclick="toggleScpTag('${f.replace(/'/g,"\'")}');this.style.background=_scpTaggedFriends.includes('${f.replace(/'/g,"\'")}')?' #EEF4FF':'transparent';" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=_scpTaggedFriends.includes('${f.replace(/'/g,"\'")}')?' #EEF4FF':'transparent'">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(f):'👑'}</div>
+      <span style="flex:1;">${f}</span>
+      <span id="_tagCheck_${f.replace(/\s+/g,'_')}" style="font-size:18px;color:#1877F2;">${_scpTaggedFriends.includes(f)?'✓':''}</span>
+    </div>`).join('')}
+    <button onclick="document.getElementById('_scpTagOverlay').remove();_renderTagPreview()" style="width:100%;padding:12px;background:#1877F2;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:white;cursor:pointer;margin-top:8px;">تأكيد</button>
+  </div>`;
+  ov.addEventListener('click',e=>{ if(e.target===ov){ ov.remove(); _renderTagPreview(); } });
+  document.body.appendChild(ov);
+}
+function toggleScpTag(name){
+  const idx = _scpTaggedFriends.indexOf(name);
+  if(idx>=0) _scpTaggedFriends.splice(idx,1);
+  else _scpTaggedFriends.push(name);
+  const chk = document.getElementById('_tagCheck_'+name.replace(/\s+/g,'_'));
+  if(chk) chk.innerText = _scpTaggedFriends.includes(name)?'✓':'';
+}
+function _renderTagPreview(){
+  const el = document.getElementById('scpTagPreview'); if(!el) return;
+  if(!_scpTaggedFriends.length){ el.style.display='none'; return; }
+  el.style.display='block';
+  el.innerHTML=`<div style="font-size:12px;color:#65676B;font-weight:700;margin-bottom:4px;">🏷️ مع: ${_scpTaggedFriends.join('، ')}</div>`;
+}
+
 function submitSocialPost(){
   const name = getCurrentUser();
   const text = (document.getElementById('scpTextInput')||{}).value?.trim() || '';
-  if(!text && !_scpImageData && !_scpVideoData){ showToast('✏️ اكتب شيئاً أو أضف صورة/فيديو', 'warning'); return; }
+  const hasImages = _scpMultiImages && _scpMultiImages.length > 0;
+  if(!text && !_scpImageData && !_scpVideoData && !hasImages){ showToast('✏️ اكتب شيئاً أو أضف صورة/فيديو'); return; }
   const posts = getSocialPosts();
   const now = new Date();
   const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
+  // بناء نص الموقع والوسوم
+  let fullText = text;
   const newPost = {
     id: 'sp_' + Date.now() + '_' + Math.random().toString(36).substr(2,5),
     author: name,
-    text,
+    text: fullText,
     image: _scpImageData,
+    images: hasImages && _scpMultiImages.length > 1 ? _scpMultiImages : null,
     video: _scpVideoData,
-    feeling: _scpFeelingMode ? _scpFeelings[_scpFeelingIdx] : null,
+    feeling: _scpFeelingMode ? (_scpFeelings[_scpFeelingIdx]||document.getElementById('scpFeelBadge')?.innerText) : null,
+    location: _scpLocation || null,
+    taggedFriends: _scpTaggedFriends.length ? [..._scpTaggedFriends] : null,
     privacy: _scpPrivacy || '🌐 عام',
     date: dateStr,
     ts: Date.now(),
@@ -14442,12 +14656,12 @@ function submitSocialPost(){
   };
   posts.push(newPost);
   saveSocialPosts(posts);
-  // حفظ أيضاً في منشورات الملف الشخصي
   const profilePosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
-  profilePosts.push({ text, image: _scpImageData, video: _scpVideoData, feeling: _scpFeelingMode ? _scpFeelings[_scpFeelingIdx] : null, privacy: _scpPrivacy, date: dateStr, ts: Date.now() });
+  profilePosts.push({ text: fullText, image: _scpImageData, images: newPost.images, video: _scpVideoData, feeling: newPost.feeling, location: _scpLocation, taggedFriends: newPost.taggedFriends, privacy: _scpPrivacy, date: dateStr, ts: Date.now() });
   localStorage.setItem(getProfilePostsKey(name), JSON.stringify(profilePosts));
   closeSocialCreatePost();
   renderSocialFeed();
+  ebPointsPost();
   showToast('تم نشر منشورك ✅');
 }
 
@@ -17003,7 +17217,7 @@ function addMyStory(){
   modal.innerHTML = `
     <div style="width:100%;max-width:480px;background:#18191A;border-radius:24px 24px 0 0;padding:20px 16px 36px;animation:slideUp .3s cubic-bezier(.32,.72,0,1);">
       <div style="width:38px;height:4px;background:rgba(255,255,255,0.18);border-radius:10px;margin:0 auto 20px;"></div>
-      <div style="font-size:18px;font-weight:900;color:white;margin-bottom:18px;text-align:center;letter-spacing:-.3px;">✨ إنشاء يوميات</div>
+      <div style="font-size:18px;font-weight:900;color:white;margin-bottom:18px;text-align:center;letter-spacing:-.3px;">🎬 ڨوستا تايم جديد</div>
 
       <!-- 📸 كاميرا فورية -->
       <div onclick="document.getElementById('_storyTypeModal').remove();_openInstantCamera('${name.replace(/'/g,"\\'")}');" style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:linear-gradient(135deg,rgba(24,119,242,0.25),rgba(0,120,255,0.15));border:1.5px solid rgba(24,119,242,0.45);border-radius:18px;cursor:pointer;margin-bottom:10px;transition:.2s;" onmouseover="this.style.background='rgba(24,119,242,0.35)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(24,119,242,0.25),rgba(0,120,255,0.15))'">
@@ -17030,8 +17244,8 @@ function addMyStory(){
       <div onclick="document.getElementById('_storyTypeModal').remove();_openTextOnlyStory();" style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:18px;cursor:pointer;margin-bottom:10px;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
         <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;box-shadow:0 6px 16px rgba(240,147,251,0.4);">✏️</div>
         <div style="flex:1;">
-          <div style="font-size:16px;font-weight:900;color:white;margin-bottom:3px;">قصة نصية</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.6);">نص بخلفية ملونة جذابة</div>
+          <div style="font-size:16px;font-weight:900;color:white;margin-bottom:3px;">نص إبداعي</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);">كتابة نص بخلفية ملونة</div>
         </div>
         <div style="font-size:20px;color:rgba(255,255,255,0.5);">›</div>
       </div>
@@ -17040,8 +17254,8 @@ function addMyStory(){
       <div onclick="document.getElementById('_storyTypeModal').remove();_openAudioStory();" style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:18px;cursor:pointer;margin-bottom:10px;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
         <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;box-shadow:0 6px 16px rgba(17,153,142,0.4);">🎙️</div>
         <div style="flex:1;">
-          <div style="font-size:16px;font-weight:900;color:white;margin-bottom:3px;">قصة صوتية</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.6);">سجّل رسالة صوتية كقصة</div>
+          <div style="font-size:16px;font-weight:900;color:white;margin-bottom:3px;">رسالة صوتية</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);">سجّل رسالة صوتية</div>
         </div>
         <div style="font-size:20px;color:rgba(255,255,255,0.5);">›</div>
       </div>
@@ -17262,7 +17476,7 @@ function _openTextOnlyStory(){
       <!-- Top bar -->
       <div style="position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;z-index:10;background:linear-gradient(to bottom,rgba(0,0,0,0.5),transparent);">
         <div onclick="document.getElementById('_textStoryOverlay').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:white;">✕</div>
-        <div style="font-size:14px;font-weight:800;color:white;">قصة نصية</div>
+        <div style="font-size:14px;font-weight:800;color:white;">نص إبداعي</div>
         <button onclick="_publishTextStory()" style="background:#1877F2;border:none;border-radius:20px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:800;padding:8px 18px;cursor:pointer;">نشر ✅</button>
       </div>
       <!-- Bottom: خلفيات -->
@@ -17333,7 +17547,7 @@ function _openAudioStory(){
   ov.style.cssText = 'position:fixed;inset:0;background:linear-gradient(135deg,#0a0f1a,#11998e);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;animation:fadeIn .25s ease;';
   ov.innerHTML = `
     <div onclick="document.getElementById('_audioStoryOverlay').remove()" style="position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:white;">✕</div>
-    <div style="font-size:17px;font-weight:900;color:white;">قصة صوتية</div>
+    <div style="font-size:17px;font-weight:900;color:white;">رسالة صوتية</div>
     <div id="_audioWave" style="display:flex;gap:4px;align-items:center;height:60px;">
       ${Array.from({length:16},(_,i)=>`<div class="_aBar" style="width:6px;background:rgba(255,255,255,0.4);border-radius:6px;height:${8+Math.random()*30}px;transition:height .15s;"></div>`).join('')}
     </div>
@@ -17828,7 +18042,7 @@ function openMyStory(){
   const stories = getMyStories(name);
   if(stories.length===0){
     // لا توجد قصص → اعرض خيار إضافة
-    if(typeof showToast==='function') showToast('لا توجد قصص. اضغط + لإضافة قصة 📸');
+    if(typeof showToast==='function') showToast('لا يوجد ڨوستا تايم بعد. اضغط + لإضافة 📸');
     return;
   }
   _showStoryViewer(name, stories, 0);
