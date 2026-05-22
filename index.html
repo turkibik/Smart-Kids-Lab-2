@@ -301,23 +301,39 @@ document.addEventListener('touchmove', function(e){
           '00000020',  // video/mp4
           '00000014',  // video/mp4 ftyp variant
           '0000001c',  // video/mp4 ftyp variant
+          '00000008',  // video/mp4 / HEIC ftyp
+          '00000010',  // HEIC/HEIF variant
+          '00000024',  // HEIC/HEIF variant
+          '00000028',  // HEIC/HEIF variant
+          '0000002c',  // HEIC/HEIF variant
+          '00000030',  // HEIC/HEIF variant
           '1a45dfa3',  // video/webm
           'fffb',      // audio/mpeg
           'fff3',      // audio/mpeg
           'fff2',      // audio/mpeg
-          '49443303',  // audio/mpeg ID3v2.3 ✅ إصلاح: كان '4944330' خاطئاً (7 أرقام بدل 8)
+          '49443303',  // audio/mpeg ID3v2.3
           '49443304',  // audio/mpeg ID3v2.4
           '4f676753',  // audio/ogg
           '664c6143',  // audio/flac
         ];
 
-        const matched = MAGIC_SIGNATURES.some(sig => hex.startsWith(sig));
+        /* فحص المحتوى النصي للـ WebP (قد يحتوي RIFF....WEBP) */
+        const isWebpContent = hex.startsWith('52494646') || 
+          (arr.length >= 12 && String.fromCharCode(...arr.slice(8,12)) === 'WEBP');
+        
+        /* فحص HEIC/HEIF: يحتوي على 'ftyp' في البايتات 4-7 */
+        const ftypHex = hex.slice(8, 16); // bytes 4-7
+        const isHeic = ftypHex === '66747970'; // 'ftyp'
 
-        if(matched){
+        const matched = MAGIC_SIGNATURES.some(sig => hex.startsWith(sig)) || isWebpContent || isHeic;
+
+        /* للصور: نثق بـ MIME type إذا فشل التوقيع (بعض هواتف أندرويد تُغيّر البيانات) */
+        const isTrustedImageMime = ['image/jpeg','image/png','image/gif','image/webp','image/heic','image/heif','image/jpg'].includes(file.type);
+
+        if(matched || isTrustedImageMime){
           resolve(true);
         } else {
-          /* ✅ إصلاح: نرفض بدلاً من القبول الصامت */
-          reject(new Error('\u274c \u0645\u062d\u062a\u0648\u0649 \u0627\u0644\u0645\u0644\u0641 \u0644\u0627 \u064a\u0637\u0627\u0628\u0642 \u0646\u0648\u0639\u0647 \u2014 \u0642\u062f \u064a\u0643\u0648\u0646 \u0645\u0644\u0641\u0627\u064b \u0645\u0632\u0648\u0631\u0627\u064b: ' + file.name));
+          reject(new Error('❌ نوع الملف غير مدعوم: ' + (file.name || file.type)));
         }
       };
       /* ✅ إصلاح: خطأ القراءة = رفض وليس قبول */
@@ -5353,33 +5369,88 @@ function switchLoginTab(tab){
   </div>
 </div>
 
-<!-- ── نافذة إنشاء منشور ── -->
+<!-- ── نافذة إنشاء منشور (محاكاة فيسبوك) ── -->
 <div id="createPostModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:4500;align-items:flex-end;justify-content:center;">
-  <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 28px;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;overflow:hidden;">
-    <div style="padding:16px 20px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-size:16px;font-weight:900;color:#050505;">إنشاء منشور</div>
-      <div onclick="closeCreatePost()" style="width:32px;height:32px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:900;color:#65676B;">✕</div>
+  <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 env(safe-area-inset-bottom,12px);animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;overflow:hidden;max-height:92vh;display:flex;flex-direction:column;">
+    
+    <!-- Header -->
+    <div style="padding:14px 16px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="font-size:17px;font-weight:900;color:#050505;flex:1;text-align:center;">إنشاء منشور</div>
+      <div onclick="closeCreatePost()" style="width:34px;height:34px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:900;color:#65676B;position:absolute;left:14px;">✕</div>
     </div>
-    <div style="padding:14px 20px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-        <div id="cpAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;">👑</div>
-        <div>
-          <div id="cpName" style="font-size:14px;font-weight:900;color:#050505;">…</div>
-          <div style="background:#E4E6EB;border-radius:6px;padding:2px 8px;font-size:11px;color:#65676B;display:inline-flex;align-items:center;gap:4px;margin-top:2px;">🌐 عام</div>
+
+    <!-- Scrollable Content -->
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+      
+      <!-- Author Info -->
+      <div style="padding:12px 16px 8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="cpAvatar" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0;">👑</div>
+          <div>
+            <div id="cpName" style="font-size:15px;font-weight:900;color:#050505;">…</div>
+            <div style="display:inline-flex;align-items:center;gap:5px;background:#E4E6EB;border-radius:8px;padding:3px 10px;font-size:11px;font-weight:700;color:#444;margin-top:2px;cursor:pointer;">
+              🌐 عام <span style="font-size:9px;">▼</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Feeling Badge -->
+        <div id="cpFeelBadge" style="display:none;background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:6px;margin-top:10px;box-shadow:0 2px 8px rgba(243,66,95,0.3);"></div>
+      </div>
+
+      <!-- Text Input Area -->
+      <div style="padding:0 16px;">
+        <textarea id="postTextInput" placeholder="بماذا تفكر؟" style="width:100%;min-height:100px;border:none;outline:none;font-family:'Tajawal',sans-serif;font-size:16px;color:#050505;resize:none;background:transparent;text-align:right;line-height:1.6;box-sizing:border-box;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      </div>
+
+      <!-- Image Grid Preview (Facebook-style) -->
+      <div id="postMultiImgPreview" style="display:none;margin:4px 16px 8px;border-radius:16px;overflow:hidden;position:relative;"></div>
+
+      <!-- Video Preview -->
+      <div id="postVideoPreview" style="display:none;margin:4px 16px 8px;border-radius:16px;overflow:hidden;position:relative;">
+        <video id="postVideoPreviewEl" style="width:100%;max-height:220px;display:block;background:#000;" controls playsinline></video>
+        <div onclick="clearPostVideo()" style="position:absolute;top:8px;left:8px;width:28px;height:28px;background:rgba(0,0,0,0.65);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:white;font-weight:900;">✕</div>
+      </div>
+
+      <!-- Old single image preview (hidden, kept for compatibility) -->
+      <div id="postImagePreview" style="display:none;"></div>
+
+    </div>
+
+    <!-- Bottom Actions Bar (Facebook-style) -->
+    <div style="flex-shrink:0;border-top:1px solid #E4E6EB;">
+      
+      <!-- Add to post label -->
+      <div style="padding:10px 16px 6px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:13px;font-weight:800;color:#050505;">أضف إلى منشورك</div>
+        <div style="font-size:11px;color:#65676B;" id="postImgCounter"></div>
+      </div>
+
+      <!-- Media Buttons Row -->
+      <div style="padding:0 12px 10px;display:flex;gap:6px;align-items:center;">
+        
+        <!-- صور - Main Button -->
+        <label id="postImgBtn" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;background:#E8F5E9;border-radius:22px;cursor:pointer;font-size:13px;font-weight:800;color:#00c853;border:none;flex:1;white-space:nowrap;">
+          <span style="font-size:18px;">🖼️</span> صور
+          <input type="file" accept="image/*,image/heic,image/heif" multiple style="display:none;" onchange="handlePostImage(event)">
+        </label>
+
+        <!-- فيديو -->
+        <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;background:#FFEBEE;border-radius:22px;cursor:pointer;font-size:13px;font-weight:800;color:#e53935;flex:1;white-space:nowrap;">
+          <span style="font-size:18px;">🎬</span> فيديو
+          <input type="file" accept="video/*" style="display:none;" onchange="handlePostVideo(event)">
+        </label>
+
+        <!-- شعور -->
+        <div onclick="togglePostFeeling()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;background:#FFF8E1;border-radius:22px;cursor:pointer;font-size:13px;font-weight:800;color:#F7B928;flex:1;white-space:nowrap;">
+          <span style="font-size:18px;">😊</span> شعور
         </div>
       </div>
-      <div id="cpFeelBadge" style="display:none;background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;"></div>
-      <textarea id="postTextInput" placeholder="بماذا تفكر؟" style="width:100%;min-height:90px;border:none;outline:none;font-family:'Tajawal',sans-serif;font-size:15px;color:#050505;resize:none;background:transparent;text-align:right;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-      <div id="postImagePreview" style="display:none;margin-top:8px;border-radius:12px;overflow:hidden;position:relative;"><img loading="lazy" id="postImagePreviewImg" style="width:100%;max-height:180px;object-fit:cover;"><div onclick="clearPostMedia()" style="position:absolute;top:6px;left:6px;width:26px;height:26px;background:rgba(0,0,0,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:white;">✕</div></div>
-      <div id="postVideoPreview" style="display:none;margin-top:8px;border-radius:12px;overflow:hidden;position:relative;"><video id="postVideoPreviewEl" style="width:100%;max-height:200px;display:block;background:#000;" controls playsinline></video><div onclick="clearPostVideo()" style="position:absolute;top:6px;left:6px;width:26px;height:26px;background:rgba(0,0,0,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:white;">✕</div></div>
-    </div>
-    <div style="padding:0 20px;display:flex;gap:8px;margin-bottom:12px;">
-      <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#E8F5E9;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#00c853;border:1.5px solid #A5D6A7;">🖼️ صور (7)<input type="file" accept="image/*" multiple style="display:none;" onchange="handlePostImage(event)"></label>
-      <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#FFEBEE;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#e53935;border:1.5px solid #FFCDD2;">🎬 فيديو (15ث)<input type="file" accept="video/*" style="display:none;" onchange="handlePostVideo(event)"></label>
-      <div onclick="togglePostFeeling()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#FFF8E1;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;border:1.5px solid #FFE082;">😊 شعور</div>
-    </div>
-    <div style="padding:0 20px;">
-      <button onclick="submitPost()" style="width:100%;padding:13px;background:linear-gradient(135deg,#00c853,#e53935);border:none;border-radius:12px;color:white;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 4px 16px rgba(0,200,83,0.4);">نشر</button>
+
+      <!-- Publish Button -->
+      <div style="padding:0 16px 16px;">
+        <button onclick="submitPost()" id="postSubmitBtn" style="width:100%;padding:13px;background:linear-gradient(135deg,#1877F2,#00c853);border:none;border-radius:14px;color:white;font-family:'Tajawal',sans-serif;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 4px 16px rgba(24,119,242,0.35);transition:opacity .2s;letter-spacing:0.5px;">نشر</button>
+      </div>
     </div>
   </div>
 </div>
@@ -7233,33 +7304,112 @@ function hideModal(id){
 
 let _postFeelingMode = false;
 let _postImageData = null;   // متوافق مع الكود القديم (أول صورة)
-let _postImagesData = [];    // 🆕 حتى 7 صور
+let _postImagesData = [];    // 🆕 حتى 5 صور
 let _postVideoData = null;
-const _MAX_POST_IMAGES = 7;
+const _MAX_POST_IMAGES = 5;
 
-/* 🆕 عرض معاينة الصور المتعددة */
+/* زر الحذف المشترك لكل الصور */
+const _closeBtn = 'position:absolute;top:6px;right:6px;width:26px;height:26px;background:rgba(0,0,0,0.65);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:white;font-weight:900;z-index:10;line-height:1;';
+
+/* 🆕 عرض معاينة الصور — شبكة بنمط فيسبوك */
 function _renderPostImagesPreview(){
   let container = document.getElementById('postMultiImgPreview');
-  if(!container){
-    const refEl = document.getElementById('postVideoPreview');
-    if(!refEl) return;
-    container = document.createElement('div');
-    container.id = 'postMultiImgPreview';
-    container.style.cssText = 'margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;';
-    refEl.parentNode.insertBefore(container, refEl);
+  if(!container) return;
+
+  /* تحديث عداد الصور */
+  const counter = document.getElementById('postImgCounter');
+  if(counter){
+    counter.innerText = _postImagesData.length > 0 ? `${_postImagesData.length}/${_MAX_POST_IMAGES}` : '';
   }
-  if(_postImagesData.length === 0){ container.style.display='none'; return; }
-  container.style.display = 'flex';
-  container.innerHTML = _postImagesData.map((url, i) => `
-    <div style="position:relative;width:${_postImagesData.length===1?'100%':'calc(33% - 4px)'};aspect-ratio:1;border-radius:10px;overflow:hidden;background:#F0F2F5;">
-      <img src="${url}" style="width:100%;height:100%;object-fit:cover;">
-      <div onclick="_removePostImage(${i})" style="position:absolute;top:4px;left:4px;width:22px;height:22px;background:rgba(0,0,0,0.65);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:white;font-weight:900;">✕</div>
-    </div>
-  `).join('') + (_postImagesData.length < _MAX_POST_IMAGES ? `
-    <label style="width:${_postImagesData.length===0?'100%':'calc(33% - 4px)'};aspect-ratio:1;border-radius:10px;border:2px dashed #A5D6A7;background:#E8F5E9;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:#00c853;font-size:11px;font-weight:700;gap:4px;">
-      <span style="font-size:22px;">➕</span>صورة (${_postImagesData.length}/${_MAX_POST_IMAGES})
-      <input type="file" accept="image/*" multiple style="display:none;" onchange="handlePostImage(event)">
-    </label>` : '');
+
+  /* تحديث حالة زر الصور */
+  const imgBtn = document.getElementById('postImgBtn');
+  if(imgBtn){
+    const inp = imgBtn.querySelector('input');
+    if(_postImagesData.length >= _MAX_POST_IMAGES){
+      imgBtn.style.opacity = '0.5';
+      if(inp) inp.disabled = true;
+    } else {
+      imgBtn.style.opacity = '1';
+      if(inp) inp.disabled = false;
+    }
+  }
+
+  if(_postImagesData.length === 0){
+    container.style.display = 'none';
+    container.innerHTML = '';
+    return;
+  }
+  container.style.display = 'block';
+
+  const n = _postImagesData.length;
+  let gridHtml = '';
+
+  /* ─── شبكة مثل فيسبوك تماماً ─── */
+  if(n === 1){
+    gridHtml = `
+      <div style="position:relative;width:100%;max-height:320px;border-radius:16px;overflow:hidden;">
+        <img src="${_postImagesData[0]}" loading="lazy" style="width:100%;height:auto;max-height:320px;object-fit:cover;display:block;">
+        <div onclick="_removePostImage(0)" style="${_closeBtn}">✕</div>
+      </div>`;
+  } else if(n === 2){
+    gridHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;border-radius:16px;overflow:hidden;">
+      ${_postImagesData.map((url,i)=>`
+        <div style="position:relative;aspect-ratio:1;overflow:hidden;">
+          <img src="${url}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+          <div onclick="_removePostImage(${i})" style="${_closeBtn}">✕</div>
+        </div>`).join('')}
+    </div>`;
+  } else if(n === 3){
+    gridHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:3px;border-radius:16px;overflow:hidden;">
+      <div style="position:relative;grid-row:span 2;overflow:hidden;aspect-ratio:0.75;">
+        <img src="${_postImagesData[0]}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+        <div onclick="_removePostImage(0)" style="${_closeBtn}">✕</div>
+      </div>
+      ${[1,2].map(i=>`
+        <div style="position:relative;overflow:hidden;aspect-ratio:1.5;">
+          <img src="${_postImagesData[i]}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+          <div onclick="_removePostImage(${i})" style="${_closeBtn}">✕</div>
+        </div>`).join('')}
+    </div>`;
+  } else if(n === 4){
+    gridHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;border-radius:16px;overflow:hidden;">
+      ${_postImagesData.map((url,i)=>`
+        <div style="position:relative;aspect-ratio:1;overflow:hidden;">
+          <img src="${url}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+          <div onclick="_removePostImage(${i})" style="${_closeBtn}">✕</div>
+        </div>`).join('')}
+    </div>`;
+  } else {
+    /* 5 صور: صف علوي 2 + صف سفلي 3 */
+    gridHtml = `<div style="display:grid;gap:3px;border-radius:16px;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
+        ${[0,1].map(i=>`
+          <div style="position:relative;aspect-ratio:1.3;overflow:hidden;">
+            <img src="${_postImagesData[i]}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+            <div onclick="_removePostImage(${i})" style="${_closeBtn}">✕</div>
+          </div>`).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;">
+        ${[2,3,4].map(i=>`
+          <div style="position:relative;aspect-ratio:1;overflow:hidden;">
+            <img src="${_postImagesData[i]}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+            <div onclick="_removePostImage(${i})" style="${_closeBtn}">✕</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  /* زر إضافة صورة إذا لم نصل الحد الأقصى */
+  if(n < _MAX_POST_IMAGES){
+    gridHtml += `
+      <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E8F5E9;border-radius:12px;cursor:pointer;font-size:13px;font-weight:800;color:#00c853;margin-top:8px;border:2px dashed #A5D6A7;">
+        ➕ إضافة صور (${n}/${_MAX_POST_IMAGES})
+        <input type="file" accept="image/*,image/heic,image/heif" multiple style="display:none;" onchange="handlePostImage(event)">
+      </label>`;
+  }
+
+  container.innerHTML = gridHtml;
 }
 
 function _removePostImage(idx){
@@ -7894,11 +8044,16 @@ function openCreatePost(type){
   const prev = document.getElementById('postImagePreview');
   if(prev) prev.style.display='none';
   const multiPrev = document.getElementById('postMultiImgPreview');
-  if(multiPrev) multiPrev.style.display='none';
+  if(multiPrev){ multiPrev.style.display='none'; multiPrev.innerHTML=''; }
   const vidPrev = document.getElementById('postVideoPreview');
   if(vidPrev) vidPrev.style.display='none';
   const badge = document.getElementById('cpFeelBadge');
   if(badge) badge.style.display='none';
+  const counter = document.getElementById('postImgCounter');
+  if(counter) counter.innerText='';
+  /* إعادة تفعيل زر الصور */
+  const imgBtn = document.getElementById('postImgBtn');
+  if(imgBtn){ imgBtn.style.opacity='1'; const inp=imgBtn.querySelector('input'); if(inp) inp.disabled=false; }
   const name = getCurrentUser();
   syncProfilePageAvatar(name);
   if(type==='achievement'){
@@ -14049,20 +14204,36 @@ function saveSocialPosts(arr){
   try {
     localStorage.setItem(_socialPostsKey, JSON.stringify(arr));
   } catch(e) {
-    /* localStorage ممتلئ — الآن فقط نحذف القديم */
-    console.warn('localStorage ممتلئ! جارٍ تنظيف المنشورات القديمة...');
-    /* احذف الأقدم من 30 يوم */
-    var cutoff = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    arr = arr.filter(function(p){ return (p.ts||0) >= cutoff; });
-    /* إذا لا يزال كثيراً احذف حتى يبقى 200 */
-    if(arr.length > 200){
-      arr = arr.slice().sort(function(a,b){ return (b.ts||0)-(a.ts||0); }).slice(0, 200);
-    }
+    /* localStorage ممتلئ — نظّف فقط المنشورات التلقائية والإعلانات */
+    console.warn('localStorage ممتلئ! جارٍ تنظيف المنشورات التلقائية فقط...');
+
+    /* 🛡️ المنشورات الحقيقية للأعضاء محمية — لا تُحذف تلقائياً أبداً */
+    /* نحذف فقط: isAutoPost أو isActivityAd أو isAd */
+    var memberPosts = arr.filter(function(p){
+      return !p.isAutoPost && !p.isActivityAd && !p.isAd;
+    });
+    var autoOnlyPosts = arr.filter(function(p){
+      return p.isAutoPost || p.isActivityAd || p.isAd;
+    });
+    /* احتفظ بأحدث 30 منشور تلقائي فقط */
+    var trimmedAuto = autoOnlyPosts.slice().sort(function(a,b){
+      return (b.ts||0)-(a.ts||0);
+    }).slice(0, 30);
+
+    var reduced = memberPosts.concat(trimmedAuto);
+    reduced.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+
     try {
-      localStorage.setItem(_socialPostsKey, JSON.stringify(arr));
-      if(typeof showToast==='function') showToast('🧹 تم تنظيف المنشورات القديمة تلقائياً');
+      localStorage.setItem(_socialPostsKey, JSON.stringify(reduced));
+      if(typeof showToast==='function') showToast('🧹 تم تنظيف المنشورات التلقائية القديمة — منشورات الأعضاء محفوظة ✅');
     } catch(e2) {
-      console.error('فشل الحفظ حتى بعد التنظيف:', e2);
+      /* إذا لا يزال ممتلئاً — احتفظ فقط بمنشورات الأعضاء */
+      try {
+        localStorage.setItem(_socialPostsKey, JSON.stringify(memberPosts));
+        console.warn('تم الاحتفاظ بمنشورات الأعضاء فقط بسبب امتلاء الذاكرة');
+      } catch(e3) {
+        console.error('فشل الحفظ حتى مع منشورات الأعضاء فقط:', e3);
+      }
     }
   }
 }
@@ -14241,7 +14412,8 @@ const _FB_POSTS_URL = 'https://connectdz-49fab-default-rtdb.firebaseio.com/socia
 
 async function _fetchFirebasePosts(){
   try{
-    const res = await fetch(_FB_POSTS_URL + '?orderBy="ts"&limitToLast=100');
+    /* ✅ رفع الحد إلى 500 لضمان جلب كل منشورات الأعضاء */
+    const res = await fetch(_FB_POSTS_URL + '?orderBy="ts"&limitToLast=500');
     if(!res.ok) return [];
     const data = await res.json();
     if(!data || typeof data !== 'object') return [];
@@ -14249,20 +14421,35 @@ async function _fetchFirebasePosts(){
   }catch(e){ return []; }
 }
 
-/* دمج منشورات Firebase مع المحلية (بدون تكرار بالـ id) */
+/* 🛡️ دمج منشورات Firebase مع المحلية — Firebase هو مصدر الحقيقة للمنشورات الجديدة */
 function _mergePosts(localPosts, fbPosts){
   const map = new Map();
-  localPosts.forEach(p => map.set(p.id, p));
+  /* أولاً: المحلية كقاعدة */
+  localPosts.forEach(p => { if(p && p.id) map.set(p.id, p); });
+  /* ثانياً: Firebase يُضيف ما لم يكن موجوداً، ويُحدِّث التفاعلات والتعليقات */
   fbPosts.forEach(p => {
-    if(!map.has(p.id)) map.set(p.id, p);
-    else {
-      // أحدث بيانات (تفاعلات وتعليقات) من Firebase
+    if(!p || !p.id) return;
+    if(!map.has(p.id)){
+      /* منشور موجود في Firebase وليس محلياً — أضفه (يشمل منشورات أعضاء آخرين) */
+      map.set(p.id, p);
+    } else {
+      /* المنشور موجود في الجهتين — خذ أفضل بيانات */
       const local = map.get(p.id);
-      const fbReacts = Object.values(p.reactions||{}).flat().length;
-      const localReacts = Object.values(local.reactions||{}).flat().length;
-      if(fbReacts > localReacts || (p.comments||[]).length > (local.comments||[]).length){
-        map.set(p.id, p);
+      const fbReacts = Object.values(p.reactions||{}).reduce((s,a)=>s+(Array.isArray(a)?a.length:0),0);
+      const localReacts = Object.values(local.reactions||{}).reduce((s,a)=>s+(Array.isArray(a)?a.length:0),0);
+      const fbComments = (p.comments||[]).length;
+      const localComments = (local.comments||[]).length;
+      /* استخدم Firebase إذا كان لديه تفاعلات أو تعليقات أكثر */
+      if(fbReacts > localReacts || fbComments > localComments){
+        /* احتفظ بالنص والصور من النسخة المحلية إذا كانت Firebase تفتقدها */
+        const merged = Object.assign({}, p);
+        if(!merged.text && local.text) merged.text = local.text;
+        if(!merged.image && local.image) merged.image = local.image;
+        if(!merged.images && local.images) merged.images = local.images;
+        if(!merged.video && local.video) merged.video = local.video;
+        map.set(p.id, merged);
       }
+      /* وإلا احتفظ بالمحلية كما هي */
     }
   });
   return Array.from(map.values()).sort((a,b)=>(b.ts||0)-(a.ts||0));
@@ -14295,12 +14482,9 @@ async function renderSocialFeed(){
   const fbPosts = await _fetchFirebasePosts();
   const allPostsRaw = _mergePosts(localPosts, fbPosts);
 
-  /* حفظ النسخة المدمجة محلياً للاستخدام في التعليقات والتفاعلات — احتفظ بكل المنشورات */
+  /* 🛡️ حفظ النسخة المدمجة — saveSocialPosts تحمي منشورات الأعضاء تلقائياً */
   if(fbPosts.length > 0){
-    try{ localStorage.setItem(_socialPostsKey, JSON.stringify(allPostsRaw)); }catch(e){
-      /* localStorage ممتلئ — احتفظ بأحدث 300 */
-      try{ localStorage.setItem(_socialPostsKey, JSON.stringify(allPostsRaw.slice(-300))); }catch(e2){}
-    }
+    saveSocialPosts(allPostsRaw);
   }
 
   const allPosts = allPostsRaw;
@@ -14743,12 +14927,24 @@ function refreshPostCard(postId){
 }
 
 function deleteSocialPost(postId){
-  if(!confirm('هل تريد حذف هذا المنشور؟')) return;
-  let posts = getSocialPosts();
-  posts = posts.filter(p=>p.id!==postId);
-  saveSocialPosts(posts);
-  // حذف من Firebase أيضاً
+  /* 🛡️ التحقق أن المستخدم هو كاتب المنشور فقط — لا يمكن لأحد حذف منشور غيره */
+  const currentUser = getCurrentUser();
+  const posts = getSocialPosts();
+  const targetPost = posts.find(p => p.id === postId);
+  if(!targetPost){
+    if(typeof showToast === 'function') showToast('⚠️ المنشور غير موجود محلياً، حاول تحديث الصفحة');
+    return;
+  }
+  if(targetPost.author !== currentUser){
+    if(typeof showToast === 'function') showToast('🚫 لا يمكنك حذف منشور غيرك');
+    return;
+  }
+  if(!confirm('هل تريد حذف هذا المنشور؟ لن يمكن استعادته.')) return;
+  const filtered = posts.filter(p => p.id !== postId);
+  saveSocialPosts(filtered);
+  /* حذف من Firebase أيضاً */
   if(typeof window._fbDeletePost === 'function') window._fbDeletePost(postId);
+  if(typeof showToast === 'function') showToast('🗑️ تم حذف منشورك');
   renderSocialFeed();
 }
 
