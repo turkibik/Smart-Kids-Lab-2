@@ -7680,8 +7680,8 @@ function renderProfilePosts(name){
           <div onclick="toggleReactPicker('${postId}')" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:${myReact?'#1877F2':'#65676B'};transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
             ${myReact||'👍'} ${myReact?'معجب':'إعجاب'}
           </div>
-          <div id="reactPicker_${postId}" style="display:none;position:absolute;bottom:40px;left:50%;transform:translateX(-50%);background:white;border-radius:30px;padding:8px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);gap:8px;z-index:100;border:1px solid #E4E6EB;white-space:nowrap;min-width:220px;overflow:visible;align-items:center;justify-content:center;">
-            ${reactEmojis.map(e=>`<span onclick="addProfilePostReaction('${name}',${i},'${e}')" style="font-size:26px;cursor:pointer;transition:.15s;display:inline-block;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`).join('')}
+          <div id="reactPicker_${postId}" style="display:none;position:absolute;bottom:40px;left:50%;transform:translateX(-50%);background:white;border-radius:30px;padding:8px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);display:flex;gap:8px;z-index:100;border:1px solid #E4E6EB;white-space:nowrap;">
+            ${reactEmojis.map(e=>`<span onclick="addProfilePostReaction('${name}',${i},'${e}')" style="font-size:24px;cursor:pointer;transition:.15s;display:inline-block;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`).join('')}
           </div>
         </div>
         <div onclick="toggleComments('${postId}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">💬 تعليق</div>
@@ -9908,51 +9908,36 @@ function showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div){
       return prevQs.length>0 && prevQs.every(x=>prevDone.includes(x.q));
     })();
 
-    // قفل المستويات 4+ يتطلب نقاط إجمالية: مستوى 4 = 1000، مستوى 5 = 2000، إلخ
-    let lockedByPoints = false;
-    let requiredPts = 0;
-    if(lvl >= 4){
-      requiredPts = (lvl - 3) * 1000;
-      const userTotalPts = _basePoints || 0;
-      if(userTotalPts < requiredPts) lockedByPoints = true;
-    }
+    /* ── شرط النقاط للمستوى 4 فما فوق ── */
+    const pointsRequired = lvl >= 4 ? (lvl - 3) * 1000 : 0;
+    const myTotalPts = _basePoints || parseInt(localStorage.getItem(_earnedKey(name))||'0');
+    const hasEnoughPoints = myTotalPts >= pointsRequired;
 
-    const locked=!prevCompleted || lockedByPoints;
+    /* المستوى مقفل إذا: لم يُكمل السابق، أو (مستوى 4+) نقاطه أقل من المطلوب */
+    const locked = !prevCompleted || (lvl >= 4 && !hasEnoughPoints);
+    const lockedByPoints = prevCompleted && lvl >= 4 && !hasEnoughPoints;
     const col=levelColors[(lvl-1)%levelColors.length];
     const prize=prizeLabels[(lvl-1)%prizeLabels.length];
 
     if(locked){
       const lockReason = lockedByPoints
-        ? `🔒 يحتاج ${requiredPts.toLocaleString()} نقطة إجمالية · رصيدك: ${(_basePoints||0).toLocaleString()}`
+        ? `تحتاج ${pointsRequired.toLocaleString()} نقطة — لديك ${myTotalPts.toLocaleString()}`
         : `أكمل المستوى ${lvl-1} لفتح هذا المستوى`;
-      const ptsNeeded = lockedByPoints ? requiredPts - (_basePoints||0) : 0;
+      const lockIcon = lockedByPoints ? '⭐' : '🔒';
       html+=`
-        <div style="background:rgba(13,17,23,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:14px 16px;margin-bottom:8px;opacity:0.65;cursor:not-allowed;position:relative;overflow:hidden;">
+        <div style="background:rgba(13,17,23,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:14px 16px;margin-bottom:8px;opacity:0.55;cursor:not-allowed;position:relative;overflow:hidden;">
           <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.01) 0px,rgba(255,255,255,0.01) 2px,transparent 2px,transparent 10px);pointer-events:none;"></div>
           <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">${lockedByPoints?'💎':'🔒'}</div>
+            <div style="width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">${lockIcon}</div>
             <div style="flex:1;">
               <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.35);">المستوى ${lvl} · ${prize}</div>
               <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:3px;">${lockReason}</div>
-              ${lockedByPoints && ptsNeeded > 0 ? `<div style="margin-top:5px;font-size:10px;color:rgba(245,197,24,0.5);background:rgba(245,197,24,0.06);border-radius:6px;padding:3px 7px;display:inline-block;">⭐ تحتاج ${ptsNeeded.toLocaleString()} نقطة إضافية لفتح هذا المستوى</div>` : ''}
+              ${lockedByPoints ? `<div style="margin-top:5px;height:3px;background:rgba(255,255,255,0.07);border-radius:10px;overflow:hidden;"><div style="width:${Math.min((myTotalPts/pointsRequired)*100,100)}%;height:100%;background:linear-gradient(90deg,#f5c518,#f97316);border-radius:10px;"></div></div>` : ''}
             </div>
-            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.2);background:rgba(255,255,255,0.04);border-radius:8px;padding:4px 8px;">مقفل</div>
+            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.2);background:rgba(255,255,255,0.04);border-radius:8px;padding:4px 8px;">${lockedByPoints ? '⭐ نقاط' : 'مقفل'}</div>
           </div>
         </div>`;
     } else if(completed){
-      // حساب إشارة المستوى التالي
-      const nextLvl = lvl + 1;
-      let nextUnlockHint = '';
-      if(nextLvl <= totalLevels && nextLvl >= 4){
-        const nextRequired = (nextLvl - 3) * 1000;
-        const userPts = _basePoints || 0;
-        if(userPts < nextRequired){
-          const stillNeeds = nextRequired - userPts;
-          nextUnlockHint = `<div style="margin-top:5px;font-size:10px;color:rgba(245,197,24,0.65);background:rgba(245,197,24,0.06);border-radius:6px;padding:3px 7px;display:inline-block;">🔓 المستوى ${nextLvl} يحتاج ${nextRequired.toLocaleString()} نقطة · تحتاج ${stillNeeds.toLocaleString()} نقطة إضافية</div>`;
-        } else {
-          nextUnlockHint = `<div style="margin-top:5px;font-size:10px;color:rgba(0,229,160,0.65);background:rgba(0,229,160,0.06);border-radius:6px;padding:3px 7px;display:inline-block;">🔓 المستوى ${nextLvl} مفتوح لك! ▶️</div>`;
-        }
-      }
       html+=`
         <div style="background:linear-gradient(135deg,rgba(0,229,160,0.12),rgba(15,155,15,0.08));border:1px solid rgba(0,229,160,0.35);border-radius:16px;padding:14px 16px;margin-bottom:8px;cursor:default;position:relative;overflow:hidden;">
           <div style="display:flex;align-items:center;gap:12px;">
@@ -9960,7 +9945,6 @@ function showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div){
             <div style="flex:1;">
               <div style="font-size:13px;font-weight:800;color:var(--accent);">المستوى ${lvl} · ${prize}</div>
               <div style="font-size:11px;color:rgba(0,229,160,0.7);margin-top:3px;">🎉 أجبت على جميع ${total} سؤال!</div>
-              ${nextUnlockHint}
               <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden;margin-top:6px;">
                 <div style="width:100%;height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:10px;"></div>
               </div>
@@ -9973,7 +9957,8 @@ function showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div){
         <div onclick="startLevel(${lvl},${QUESTIONS_PER_LEVEL})" style="background:linear-gradient(135deg,rgba(${hexToRgb(col.from)},0.15),rgba(${hexToRgb(col.to)},0.08));border:1px solid rgba(${hexToRgb(col.from)},0.4);border-radius:16px;padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;"
           onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)';"
           onmouseout="this.style.transform='';this.style.boxShadow='';">
-          <div style="display:flex;align-items:center;gap:12px;">
+          ${lvl >= 4 ? `<div style="position:absolute;top:8px;left:8px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:white;font-size:9px;font-weight:900;border-radius:6px;padding:2px 7px;">🔥 متقدم | خطأ1→−1 | خطأ2→−3</div>` : ''}
+          <div style="display:flex;align-items:center;gap:12px;${lvl >= 4 ? 'margin-top:18px;' : ''}">
             <div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,${col.from},${col.to});display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,0.3);">📚</div>
             <div style="flex:1;">
               <div style="font-size:13px;font-weight:800;color:var(--text);">المستوى ${lvl} · ${prize}</div>
@@ -10120,31 +10105,23 @@ function renderQuestion(){
       <span style="color:var(--accent);font-weight:800;font-size:12px;">🎯 جلسة: +${quizScore}</span>
     </div>
     <div style="display:flex;gap:7px;margin-bottom:12px;font-size:11px;text-align:center;">
+      ${currentQuizLevel >= 4 ? `
+      <div style="flex:1;background:rgba(0,200,80,0.08);border:1px solid rgba(0,200,80,0.2);border-radius:10px;padding:6px 4px;color:rgba(100,220,100,0.9);">✅ المحاولة 1 → نقاط كاملة</div>
+      <div style="flex:1;background:rgba(245,197,24,0.08);border:1px solid rgba(245,197,24,0.2);border-radius:10px;padding:6px 4px;color:#f5c518;">⚡ المحاولة 2 → نصف النقاط</div>
+      <div style="flex:1;background:rgba(229,45,39,0.1);border:1px solid rgba(229,45,39,0.3);border-radius:10px;padding:6px 4px;color:#f87171;">⚠️ خطأ 1 → −1 | خطأ 2 → −3</div>
+      ` : `
       <div style="flex:1;background:rgba(0,200,80,0.08);border:1px solid rgba(0,200,80,0.2);border-radius:10px;padding:6px 4px;color:rgba(100,220,100,0.9);">✅ المحاولة 1 → نقاط كاملة</div>
       <div style="flex:1;background:rgba(245,197,24,0.08);border:1px solid rgba(245,197,24,0.2);border-radius:10px;padding:6px 4px;color:#f5c518;">⚡ المحاولة 2 → نصف النقاط</div>
       <div style="flex:1;background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.2);border-radius:10px;padding:6px 4px;color:#f87171;">❌ المحاولة 3+ → −1 نقطة</div>
+      `}
     </div>
     <div class="quiz-q">❓ ${q.q}</div>
-    ${currentQuizLevel >= 4 ? `
-    <div id="quizOpts" style="margin-top:6px;">
-      <div style="font-size:11px;color:rgba(245,197,24,0.6);margin-bottom:8px;text-align:center;background:rgba(245,197,24,0.06);border-radius:8px;padding:5px 10px;">✍️ اكتب الإجابة الصحيحة مباشرة</div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <input id="directAnswerInput" type="text" placeholder="اكتب إجابتك هنا…"
-          style="flex:1;background:var(--surface2);border:2px solid var(--border);border-radius:12px;padding:13px 16px;font-size:14px;font-weight:700;color:var(--text);font-family:'Tajawal',sans-serif;outline:none;text-align:right;transition:border-color .2s;"
-          onfocus="this.style.borderColor='rgba(245,197,24,0.6)'" onblur="this.style.borderColor='var(--border)'"
-          onkeydown="if(event.key==='Enter'){document.getElementById('directAnswerBtn').click();event.preventDefault();}">
-        <button id="directAnswerBtn" onclick="answerQuizDirect(quizData[quizIdx]?.ans?.trim(),quizData[quizIdx]?.pts||10)"
-          style="background:linear-gradient(135deg,#f5c518,#f97316);border:none;border-radius:12px;padding:13px 18px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;color:#1a0a00;cursor:pointer;white-space:nowrap;transition:.15s;box-shadow:0 4px 14px rgba(245,197,24,0.35);"
-          onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">✅ تأكيد</button>
-      </div>
-      <div id="directAnswerFeedback" style="min-height:24px;margin-top:8px;text-align:center;font-size:12px;font-weight:700;"></div>
-    </div>` : `
     <div class="quiz-opts" id="quizOpts">
       ${opts.map((o,i)=>`
         <div class="quiz-opt" id="opt_${o.k}" onclick="answerQuiz('${o.k}','${q.ans.trim()}',${q.pts})">
           <span style="background:rgba(245,197,24,0.15);border-radius:6px;padding:2px 7px;font-size:11px;font-weight:800;color:#f5c518;min-width:22px;text-align:center;">${['أ','ب','ج'][i]}</span> ${o.t}
         </div>`).join('')}
-    </div>`}`;
+    </div>`;
 }
 
 /* ===== منطق الإجابة على الكويز - نظام من سيربح المليون ===== */
@@ -10199,79 +10176,29 @@ function answerQuiz(chosen, correct, pts){
     // تأثير وميض أحمر على خلفية الكارت
     showAnswerFlash(false);
 
-    // المحاولة الثالثة فما فوق: خصم 1 نقطة
-    if(attemptNum >= 2){
-      deductPoints(1);
-      _showPtsLabel('❌ خطأ — 1 نقطة', '#f87171');
+    // نظام الخصم:
+    // ▸ مستوى 4+: خطأ المحاولة 1 = −1 | خطأ المحاولة 2 = −3
+    // ▸ مستوى 1-3: خطأ المحاولة 1 = بدون خصم | خطأ المحاولة 2+ = −1
+    if(currentQuizLevel >= 4){
+      if(attemptNum === 1){
+        deductPoints(1);
+        _showPtsLabel('❌ خطأ — −1 نقطة', '#f87171');
+      } else if(attemptNum >= 2){
+        deductPoints(3);
+        _showPtsLabel('❌ خطأ مرة ثانية — −3 نقاط', '#ef4444');
+      }
     } else {
-      _showPtsLabel('❌ خطأ! حاول مجدداً', '#f87171');
+      if(attemptNum >= 2){
+        deductPoints(1);
+        _showPtsLabel('❌ خطأ — −1 نقطة', '#f87171');
+      } else {
+        _showPtsLabel('❌ خطأ! حاول مجدداً', '#f87171');
+      }
     }
 
     playQuizSound(false);
     // إعادة عرض نفس السؤال بعد 1.4 ثانية (دون تغيير quizIdx)
     setTimeout(()=>{ renderQuestion(); }, 1400);
-  }
-}
-
-/* ===== الإجابة المباشرة للمستوى 4+ ===== */
-function answerQuizDirect(correct, pts){
-  const input = document.getElementById('directAnswerInput');
-  const feedback = document.getElementById('directAnswerFeedback');
-  const btn = document.getElementById('directAnswerBtn');
-  if(!input || !correct) return;
-
-  const userAnswer = input.value.trim();
-  if(!userAnswer){ 
-    if(feedback){ feedback.style.color='#f5c518'; feedback.textContent='⚠️ الرجاء كتابة إجابتك أولاً'; }
-    input.focus(); return; 
-  }
-
-  // تعطيل الإدخال بعد الإجابة
-  input.disabled = true;
-  if(btn) btn.disabled = true;
-
-  const currentQ = quizData[quizIdx]?.q;
-  // مقارنة غير حساسة لحالة الحروف والمسافات
-  const normalize = s => (s||'').replace(/\s+/g,' ').trim().toLowerCase();
-  const isCorrect = normalize(userAnswer) === normalize(correct);
-
-  if(!_attemptCount[currentQ]) _attemptCount[currentQ] = 0;
-  _attemptCount[currentQ]++;
-  const attemptNum = _attemptCount[currentQ];
-
-  if(isCorrect){
-    input.style.borderColor = '#22c55e';
-    input.style.background = 'rgba(15,155,15,0.12)';
-    showAnswerFlash(true);
-    if(currentQ) markDone(currentQuizLevel, currentQ);
-
-    let earnedPts = 0;
-    if(attemptNum === 1){ earnedPts = pts || 10; }
-    else if(attemptNum === 2){ earnedPts = Math.ceil((pts||10)/2); }
-    if(earnedPts > 0){ quizScore += earnedPts; addPointsInstant(earnedPts); }
-
-    const ptsLabel = attemptNum===1 ? `✅ +${earnedPts} نقطة` : attemptNum===2 ? `✅ +${earnedPts} (نصف النقاط)` : `✅ صحيح (بدون نقاط)`;
-    _showPtsLabel(ptsLabel, '#4ade80');
-    if(feedback){ feedback.style.color='#4ade80'; feedback.textContent='✅ إجابة صحيحة! 🎉'; }
-    playQuizSound(true);
-    setTimeout(()=>{ quizIdx++; renderQuestion(); }, 1400);
-  } else {
-    input.style.borderColor = '#ef4444';
-    input.style.background = 'rgba(229,45,39,0.08)';
-    showAnswerFlash(false);
-    if(currentQ) _wrongAnsweredQs.add(currentQ);
-
-    if(attemptNum >= 2){ deductPoints(1); _showPtsLabel('❌ خطأ — 1 نقطة', '#f87171'); }
-    else { _showPtsLabel('❌ خطأ! حاول مجدداً', '#f87171'); }
-
-    if(feedback){ feedback.style.color='#f87171'; feedback.textContent='❌ إجابة خاطئة، حاول مرة أخرى'; }
-    playQuizSound(false);
-    // إعادة التفعيل للمحاولة التالية
-    setTimeout(()=>{
-      if(input){ input.disabled=false; input.value=''; input.style.borderColor='var(--border)'; input.style.background='var(--surface2)'; input.focus(); }
-      if(btn) btn.disabled=false;
-      if(feedback) feedback.textContent='';
-    }, 1400);
   }
 }
 
@@ -13976,6 +13903,53 @@ const _socialNotifsKey  = n => 'nld_snotifs_' + n.replace(/\s+/g,'_');
 
 /* ─── مساعدات ─── */
 function getSocialPosts(){ return JSON.parse(localStorage.getItem(_socialPostsKey)||'[]'); }
+
+/* ══════════════════════════════════════════════
+   📄 صفحات Firebase — جلب + حفظ
+   ══════════════════════════════════════════════ */
+window._fbSavePost = function(post){
+  try{
+    const fbP = Object.assign({}, post);
+    if(fbP.image && fbP.image.startsWith('data:')) fbP.image = null;
+    if(fbP.images) fbP.images = null;
+    if(fbP.video && fbP.video.startsWith('data:')) fbP.video = null;
+    fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts/${fbP.id}.json`,{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(fbP)
+    }).catch(()=>{});
+  }catch(e){}
+};
+
+window._fbDeletePost = function(postId){
+  try{
+    fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts/${postId}.json`,{
+      method:'DELETE'
+    }).catch(()=>{});
+  }catch(e){}
+};
+
+/* جلب منشورات صفحة معينة من Firebase */
+window._fbLoadPagePosts = async function(pageId){
+  try{
+    const res = await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/page_posts/${pageId}.json`);
+    if(!res.ok) return [];
+    const data = await res.json();
+    return data ? Object.values(data).filter(Boolean) : [];
+  }catch(e){ return []; }
+};
+
+/* حفظ منشور صفحة في Firebase */
+window._fbSavePagePost = function(pageId, post){
+  try{
+    const fbP = Object.assign({}, post);
+    if(fbP.image && fbP.image.startsWith('data:')) fbP.image = null;
+    fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/page_posts/${pageId}/${fbP.id}.json`,{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(fbP)
+    }).catch(()=>{});
+  }catch(e){}
+};
+
 function saveSocialPosts(arr){
   /* ── حاول الحفظ مباشرة أولاً ── */
   try {
@@ -14167,13 +14141,74 @@ function renderNotifsPanel(){
 }
 
 /* ══════════════════════════════════════════
+   🔥 جلب المنشورات من Firebase ودمجها مع المحلية
+   ══════════════════════════════════════════ */
+const _FB_POSTS_URL = 'https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json';
+
+async function _fetchFirebasePosts(){
+  try{
+    const res = await fetch(_FB_POSTS_URL + '?orderBy="ts"&limitToLast=100');
+    if(!res.ok) return [];
+    const data = await res.json();
+    if(!data || typeof data !== 'object') return [];
+    return Object.values(data).filter(p => p && p.id && p.author);
+  }catch(e){ return []; }
+}
+
+/* دمج منشورات Firebase مع المحلية (بدون تكرار بالـ id) */
+function _mergePosts(localPosts, fbPosts){
+  const map = new Map();
+  localPosts.forEach(p => map.set(p.id, p));
+  fbPosts.forEach(p => {
+    if(!map.has(p.id)) map.set(p.id, p);
+    else {
+      // أحدث بيانات (تفاعلات وتعليقات) من Firebase
+      const local = map.get(p.id);
+      const fbReacts = Object.values(p.reactions||{}).flat().length;
+      const localReacts = Object.values(local.reactions||{}).flat().length;
+      if(fbReacts > localReacts || (p.comments||[]).length > (local.comments||[]).length){
+        map.set(p.id, p);
+      }
+    }
+  });
+  return Array.from(map.values()).sort((a,b)=>(b.ts||0)-(a.ts||0));
+}
+
+/* تحديث دوري كل 30 ثانية */
+let _fbFeedRefreshTimer = null;
+function _startFbFeedPolling(){
+  if(_fbFeedRefreshTimer) return;
+  _fbFeedRefreshTimer = setInterval(()=>{
+    const container = document.getElementById('socialFeedContainer');
+    if(container && container.offsetParent !== null) renderSocialFeed();
+  }, 30000);
+}
+
+/* ══════════════════════════════════════════
    📰 الفيد الاجتماعي (كل المنشورات)
    ══════════════════════════════════════════ */
-function renderSocialFeed(){
+async function renderSocialFeed(){
   const container = document.getElementById('socialFeedContainer');
   if(!container) return;
-  const allPosts = getSocialPosts();
+
+  /* عرض مؤشر تحميل بسيط فقط إذا كان الفيد فارغاً */
+  const localPosts = getSocialPosts();
+  if(localPosts.length === 0){
+    container.innerHTML = `<div style="text-align:center;padding:24px;"><div style="font-size:30px;margin-bottom:8px;">⏳</div><div style="font-size:13px;color:#65676B;font-weight:700;">جاري تحميل المنشورات...</div></div>`;
+  }
+
+  /* جلب منشورات Firebase في الخلفية */
+  const fbPosts = await _fetchFirebasePosts();
+  const allPostsRaw = _mergePosts(localPosts, fbPosts);
+
+  /* حفظ النسخة المدمجة محلياً للاستخدام في التعليقات والتفاعلات */
+  if(fbPosts.length > 0){
+    try{ localStorage.setItem(_socialPostsKey, JSON.stringify(allPostsRaw.slice(0,200))); }catch(e){}
+  }
+
+  const allPosts = allPostsRaw;
   const myName = getCurrentUser();
+  _startFbFeedPolling();
   // ✅ عرض جميع المنشورات العامة من كل الأعضاء (ليس الأصدقاء فقط)
   const posts = allPosts.filter(p => {
     if(p.isActivityAd) return true;
@@ -14302,7 +14337,7 @@ function renderSocialPostCard(p){
         <div id="likeBtn_${p.id}" onmousedown="${myReact?'':'_startReactTimer(\''+p.id+'\')'}" onmouseup="${myReact?'':'_cancelReactTimer()'}" ontouchstart="${myReact?'':'_startReactTimer(\''+p.id+'\')'}" ontouchend="${myReact?'':'_cancelReactTimer()'}" onclick="${myReact?'':'_handleLikeClick(\''+p.id+'\')'}" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:${myReact?'default':'pointer'};font-size:13px;font-weight:700;color:${myReact?'#1877F2':'#65676B'};transition:.15s;user-select:none;-webkit-user-select:none;" ${myReact?'':'onmouseover="this.style.background=\'#F0F2F5\'" onmouseout="this.style.background=\'transparent\'"'}>
           ${myReact||'👍'} ${myReact?'معجب':'إعجاب'}
         </div>
-        <div id="reactPicker_${p.id}" style="display:none;position:absolute;bottom:48px;left:50%;transform:translateX(-50%);background:white;border-radius:30px;padding:10px 14px;box-shadow:0 6px 28px rgba(0,0,0,0.3);gap:10px;z-index:200;border:1px solid #E4E6EB;white-space:nowrap;flex-direction:row;animation:reactPickerIn .2s ease;min-width:240px;overflow:visible;">
+        <div id="reactPicker_${p.id}" style="display:none;position:absolute;bottom:48px;left:50%;transform:translateX(-50%);background:white;border-radius:30px;padding:10px 14px;box-shadow:0 6px 28px rgba(0,0,0,0.3);gap:10px;z-index:200;border:1px solid #E4E6EB;white-space:nowrap;flex-direction:row;animation:reactPickerIn .2s ease;min-width:200px;">
           ${reactEmojis.map(e=>`<span onclick="addReaction('${p.id}','${e}')" style="font-size:32px;cursor:pointer;transition:.15s;display:inline-block;line-height:1;" onmouseover="this.style.transform='scale(1.4) translateY(-5px)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`).join('')}
         </div>
       </div>
@@ -14425,14 +14460,10 @@ function getTopReactEmojis(reactions){
 function toggleReactPicker(postId){
   const picker = document.getElementById('reactPicker_'+postId);
   if(!picker) return;
-  const isVisible = picker.style.display === 'flex';
+  const isVisible = picker.style.display !== 'none' && picker.style.display !== '';
   // إخفاء جميع الـ pickers الأخرى
   document.querySelectorAll('[id^="reactPicker_"]').forEach(el=>{ el.style.display='none'; });
-  if(!isVisible){
-    picker.style.display = 'flex';
-    picker.style.alignItems = 'center';
-    picker.style.justifyContent = 'center';
-  }
+  picker.style.display = isVisible ? 'none' : 'flex';
 }
 
 function addReaction(postId, emoji){
@@ -14617,6 +14648,8 @@ function deleteSocialPost(postId){
   let posts = getSocialPosts();
   posts = posts.filter(p=>p.id!==postId);
   saveSocialPosts(posts);
+  // حذف من Firebase أيضاً
+  if(typeof window._fbDeletePost === 'function') window._fbDeletePost(postId);
   renderSocialFeed();
 }
 
@@ -14917,10 +14950,15 @@ function submitSocialPost(){
   // ✅ مزامنة المنشور مع Firebase لظهوره عند الأعضاء الآخرين
   try {
     const DB_ROOT = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+    // حذف الصور الكبيرة (base64) قبل الإرسال لـ Firebase لتجنب حد الحجم
+    const fbPost = Object.assign({}, newPost);
+    if(fbPost.image && fbPost.image.startsWith('data:')) fbPost.image = null;
+    if(fbPost.images) fbPost.images = null;
+    if(fbPost.video && fbPost.video.startsWith('data:')) fbPost.video = null;
     fetch(`${DB_ROOT}/social_posts/${newPost.id}.json`, {
       method: 'PUT',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(newPost)
+      body: JSON.stringify(fbPost)
     }).catch(()=>{});
   } catch(e) {}
   const profilePosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
