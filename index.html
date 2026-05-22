@@ -188,10 +188,10 @@ document.addEventListener('touchmove', function(e){
 
   /* 🔒 الأحجام القصوى الصارمة بالـ MB — مصدر وحيد لكل الكود */
   const HARD_LIMITS = {
-    image: 25, video: 200, audio: 50,
+    image: 25, video: 50, audio: 50,
     stories: 80, covers: 8, profiles: 5,
     'social-posts': 10, documents: 20, media: 50,
-    images: 25, videos: 200
+    images: 25, videos: 50
   };
 
   /* ✅ تصدير HARD_LIMITS عالمياً لاستخدامه في كامل الكود */
@@ -18744,7 +18744,7 @@ function _showStoryViewer(authorName, stories, startIdx){
       ${musicBar}
       <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;${s.type==='text'?`background:${s.bgColor||'linear-gradient(135deg,#1877F2,#0d5bda)'};`:s.type==='audio'?`background:${s.bgColor||'linear-gradient(135deg,#11998e,#38ef7d)'};`:''}">
         ${s.type==='video'
-          ? `<video id="storyVideo" src="${s.data}" autoplay ${s.muted!==false?'muted':''} playsinline style="max-width:100%;max-height:100vh;object-fit:contain;" onended="nextStory()"></video>`
+          ? `<video id="storyVideo" src="${s.data}" autoplay playsinline style="max-width:100%;max-height:100vh;object-fit:contain;" onended="nextStory()"></video><div id="storyMuteBtn" onclick="toggleStoryMute()" style="position:absolute;bottom:90px;left:14px;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;z-index:12;border:1.5px solid rgba(255,255,255,0.3);">🔊</div>`
           : s.type==='text'
             ? `<div style="text-align:center;padding:30px;max-width:85%;font-size:28px;font-weight:900;color:white;font-family:'Tajawal',sans-serif;text-shadow:0 2px 12px rgba(0,0,0,0.4);line-height:1.4;word-break:break-word;">${s.text||''}</div>`
             : s.type==='audio'
@@ -18823,6 +18823,16 @@ function _showStoryViewer(authorName, stories, startIdx){
     // pause/resume progress bar
     const fill = document.getElementById('sProg_'+currentIdx)?.querySelector('.story-progress-fill');
     if(fill){ fill.style.animationPlayState = _paused ? 'paused' : 'running'; }
+  };
+
+  // ── تبديل كتم/رفع صوت فيديو القصة (مثل فيسبوك) ──
+  let _storyMuted = false;
+  window.toggleStoryMute = ()=>{
+    _storyMuted = !_storyMuted;
+    const vid = document.getElementById('storyVideo');
+    const btn = document.getElementById('storyMuteBtn');
+    if(vid){ vid.muted = _storyMuted; }
+    if(btn){ btn.innerText = _storyMuted ? '🔇' : '🔊'; btn.title = _storyMuted ? 'رفع الصوت' : 'كتم الصوت'; }
   };
 
   window.toggleStoryReactPicker = ()=>{
