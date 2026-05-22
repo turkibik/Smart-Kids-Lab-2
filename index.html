@@ -5374,8 +5374,8 @@ function switchLoginTab(tab){
       <div id="postVideoPreview" style="display:none;margin-top:8px;border-radius:12px;overflow:hidden;position:relative;"><video id="postVideoPreviewEl" style="width:100%;max-height:200px;display:block;background:#000;" controls playsinline></video><div onclick="clearPostVideo()" style="position:absolute;top:6px;left:6px;width:26px;height:26px;background:rgba(0,0,0,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:white;">✕</div></div>
     </div>
     <div style="padding:0 20px;display:flex;gap:8px;margin-bottom:12px;">
-      <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#E8F5E9;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#00c853;border:1.5px solid #A5D6A7;">🖼️ صورة<input type="file" accept="image/*" style="display:none;" onchange="handlePostImage(event)"></label>
-      <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#FFEBEE;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#e53935;border:1.5px solid #FFCDD2;">🎬 فيديو<input type="file" accept="video/*" style="display:none;" onchange="handlePostVideo(event)"></label>
+      <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#E8F5E9;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#00c853;border:1.5px solid #A5D6A7;">🖼️ صور (7)<input type="file" accept="image/*" multiple style="display:none;" onchange="handlePostImage(event)"></label>
+      <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#FFEBEE;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#e53935;border:1.5px solid #FFCDD2;">🎬 فيديو (15ث)<input type="file" accept="video/*" style="display:none;" onchange="handlePostVideo(event)"></label>
       <div onclick="togglePostFeeling()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#FFF8E1;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;border:1.5px solid #FFE082;">😊 شعور</div>
     </div>
     <div style="padding:0 20px;">
@@ -7232,28 +7232,86 @@ function hideModal(id){
    ███████████████████████████████████████████████████████████████████ */
 
 let _postFeelingMode = false;
-let _postImageData = null;
+let _postImageData = null;   // متوافق مع الكود القديم (أول صورة)
+let _postImagesData = [];    // 🆕 حتى 7 صور
 let _postVideoData = null;
+const _MAX_POST_IMAGES = 7;
+
+/* 🆕 عرض معاينة الصور المتعددة */
+function _renderPostImagesPreview(){
+  let container = document.getElementById('postMultiImgPreview');
+  if(!container){
+    const refEl = document.getElementById('postVideoPreview');
+    if(!refEl) return;
+    container = document.createElement('div');
+    container.id = 'postMultiImgPreview';
+    container.style.cssText = 'margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;';
+    refEl.parentNode.insertBefore(container, refEl);
+  }
+  if(_postImagesData.length === 0){ container.style.display='none'; return; }
+  container.style.display = 'flex';
+  container.innerHTML = _postImagesData.map((url, i) => `
+    <div style="position:relative;width:${_postImagesData.length===1?'100%':'calc(33% - 4px)'};aspect-ratio:1;border-radius:10px;overflow:hidden;background:#F0F2F5;">
+      <img src="${url}" style="width:100%;height:100%;object-fit:cover;">
+      <div onclick="_removePostImage(${i})" style="position:absolute;top:4px;left:4px;width:22px;height:22px;background:rgba(0,0,0,0.65);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:white;font-weight:900;">✕</div>
+    </div>
+  `).join('') + (_postImagesData.length < _MAX_POST_IMAGES ? `
+    <label style="width:${_postImagesData.length===0?'100%':'calc(33% - 4px)'};aspect-ratio:1;border-radius:10px;border:2px dashed #A5D6A7;background:#E8F5E9;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:#00c853;font-size:11px;font-weight:700;gap:4px;">
+      <span style="font-size:22px;">➕</span>صورة (${_postImagesData.length}/${_MAX_POST_IMAGES})
+      <input type="file" accept="image/*" multiple style="display:none;" onchange="handlePostImage(event)">
+    </label>` : '');
+}
+
+function _removePostImage(idx){
+  _postImagesData.splice(idx, 1);
+  _postImageData = _postImagesData[0] || null;
+  _renderPostImagesPreview();
+}
 
 async function handlePostVideo(event){
   const file = event.target.files[0];
   if(!file) return;
-  if(file.size > 200 * 1024 * 1024){
-    if(typeof showToast==='function') showToast('❌ الفيديو كبير جداً! الحد الأقصى 200MB');
+
+  /* 🔒 التحقق من مدة الفيديو — 15 ثانية كحد أقصى */
+  try {
+    await new Promise((resolve, reject) => {
+      const tempVid = document.createElement('video');
+      tempVid.preload = 'metadata';
+      const url = URL.createObjectURL(file);
+      tempVid.onloadedmetadata = () => {
+        URL.revokeObjectURL(url);
+        if(tempVid.duration > 15){
+          reject(new Error(`⏱️ مدة الفيديو ${Math.round(tempVid.duration)} ثانية — الحد الأقصى 15 ثانية فقط!`));
+        } else {
+          resolve();
+        }
+      };
+      tempVid.onerror = () => { URL.revokeObjectURL(url); resolve(); }; // نكمل الرفع إذا تعذّر قراءة المدة
+      tempVid.src = url;
+    });
+  } catch(err) {
+    if(typeof showToast==='function') showToast(err.message);
+    event.target.value = '';
+    return;
+  }
+
+  if(file.size > 50 * 1024 * 1024){
+    if(typeof showToast==='function') showToast('❌ الفيديو كبير جداً! الحد الأقصى 50MB');
     event.target.value = '';
     return;
   }
   /* رفع الفيديو إلى Cloudinary مع شريط تقدم */
-  window._showStorageProgress('🎬 جارٍ رفع الفيديو...');
+  window._showStorageProgress('🎬 جارٍ رفع الفيديو (15 ث)...');
   try {
-    const result = await window.uploadToCloudinary(file, 'video', (pct) => {
+    const result = await window.uploadToCloudinary(file, 'videos', (pct) => {
       window._updateStorageProgress(pct);
     });
     window._hideStorageProgress();
     _postVideoData = result.url;
-    _postImageData = null;
+    _postImagesData = [];
     const imgPrev = document.getElementById('postImagePreview');
     if(imgPrev) imgPrev.style.display='none';
+    _renderPostImagesPreview();
     const vidPrev = document.getElementById('postVideoPreview');
     const vidEl = document.getElementById('postVideoPreviewEl');
     if(vidPrev && vidEl){ vidEl.src=_postVideoData; vidPrev.style.display='block'; }
@@ -7268,8 +7326,10 @@ async function handlePostVideo(event){
 
 function clearPostMedia(){
   _postImageData = null;
+  _postImagesData = [];
   const prev = document.getElementById('postImagePreview');
   if(prev) prev.style.display='none';
+  _renderPostImagesPreview();
 }
 
 function clearPostVideo(){
@@ -7777,46 +7837,64 @@ function togglePostFeeling(){
 }
 
 async function handlePostImage(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  if(file.size > 25 * 1024 * 1024){
-    if(typeof showToast==='function') showToast('⚠️ الصورة كبيرة! الحد الأقصى 25MB');
+  const files = Array.from(event.target.files || []);
+  if(!files.length) return;
+
+  /* 🔒 التحقق من الحد الأقصى 7 صور */
+  const remaining = _MAX_POST_IMAGES - _postImagesData.length;
+  if(remaining <= 0){
+    if(typeof showToast==='function') showToast(`⚠️ وصلت للحد الأقصى ${_MAX_POST_IMAGES} صور`);
     event.target.value = '';
     return;
   }
-  /* رفع صورة المنشور إلى Cloudinary مع ضغط */
-  window._showStorageProgress('🖼️ جارٍ رفع صورة المنشور...');
-  try {
-    const fileMB = file.size / (1024 * 1024);
-    const quality = fileMB > 3 ? 0.75 : 0.85;
-    const result = await window.uploadImageCompressed(file, 'social-posts', 1080, quality, (pct) => {
-      window._updateStorageProgress(pct);
-    });
-    window._hideStorageProgress();
-    _postImageData = result.url;
-    _postVideoData = null;
-    const vidPrev = document.getElementById('postVideoPreview');
-    if(vidPrev) vidPrev.style.display='none';
-    const prev = document.getElementById('postImagePreview');
-    const imgEl = document.getElementById('postImagePreviewImg');
-    if(prev && imgEl){ imgEl.src=_postImageData; prev.style.display='block'; }
-    if(typeof showToast==='function') showToast('✅ تم رفع الصورة بنجاح!');
-  } catch(err) {
-    window._hideStorageProgress();
-    console.error('❌ خطأ في رفع الصورة:', err);
-    if(typeof showToast==='function') showToast('❌ فشل رفع الصورة: ' + (err.message || 'خطأ غير معروف'));
+  const toUpload = files.slice(0, remaining);
+  if(files.length > remaining){
+    if(typeof showToast==='function') showToast(`⚠️ سيتم رفع ${toUpload.length} صورة فقط (الحد ${_MAX_POST_IMAGES})`);
   }
+
+  /* رفع كل صورة */
+  for(let i = 0; i < toUpload.length; i++){
+    const file = toUpload[i];
+    if(file.size > 25 * 1024 * 1024){
+      if(typeof showToast==='function') showToast(`⚠️ الصورة ${i+1} كبيرة (الحد 25MB)`);
+      continue;
+    }
+    window._showStorageProgress(`🖼️ رفع الصورة ${_postImagesData.length + 1}/${_MAX_POST_IMAGES}...`);
+    try {
+      const fileMB = file.size / (1024 * 1024);
+      const quality = fileMB > 3 ? 0.75 : 0.85;
+      const result = await window.uploadImageCompressed(file, 'social-posts', 1080, quality, (pct) => {
+        window._updateStorageProgress(pct);
+      });
+      _postImagesData.push(result.url);
+      _postImageData = _postImagesData[0];
+      _postVideoData = null;
+      const vidPrev = document.getElementById('postVideoPreview');
+      if(vidPrev) vidPrev.style.display='none';
+      _renderPostImagesPreview();
+    } catch(err) {
+      console.error('❌ خطأ في رفع الصورة:', err);
+      if(typeof showToast==='function') showToast('❌ فشل رفع صورة: ' + (err.message || 'خطأ'));
+    }
+  }
+  window._hideStorageProgress();
+  if(_postImagesData.length > 0) showToast(`✅ تم رفع ${_postImagesData.length} صورة!`);
   event.target.value = '';
+  /* إخفاء المعاينة القديمة */
+  const oldPrev = document.getElementById('postImagePreview');
+  if(oldPrev) oldPrev.style.display='none';
 }
 
 function openCreatePost(type){
-  _postFeelingMode = false; _postImageData = null; _postVideoData = null;
+  _postFeelingMode = false; _postImageData = null; _postImagesData = []; _postVideoData = null;
   const modal = document.getElementById('createPostModal');
   if(modal) modal.style.display='flex';
   const textEl = document.getElementById('postTextInput');
   if(textEl){ textEl.value=''; textEl.style.height='auto'; }
   const prev = document.getElementById('postImagePreview');
   if(prev) prev.style.display='none';
+  const multiPrev = document.getElementById('postMultiImgPreview');
+  if(multiPrev) multiPrev.style.display='none';
   const vidPrev = document.getElementById('postVideoPreview');
   if(vidPrev) vidPrev.style.display='none';
   const badge = document.getElementById('cpFeelBadge');
@@ -7841,38 +7919,54 @@ function closeCreatePost(){
 function submitPost(){
   const name = getCurrentUser();
   const text = (document.getElementById('postTextInput')||{}).value?.trim() || '';
-  if(!text && !_postImageData && !_postVideoData){ showToast('✏️ اكتب شيئاً أو أضف صورة/فيديو', 'warning'); return; }
+  if(!text && _postImagesData.length === 0 && !_postVideoData){ showToast('✏️ اكتب شيئاً أو أضف صورة/فيديو', 'warning'); return; }
   let posts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
   const now = new Date();
   const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
-  posts.push({
-    text, image: _postImageData, video: _postVideoData,
+  const newPost = {
+    text,
+    image: _postImagesData[0] || null,
+    images: _postImagesData.length > 0 ? [..._postImagesData] : null,
+    video: _postVideoData,
     feeling: _postFeelingMode ? _feelings[_feelingIdx] : null,
-    date: dateStr, ts: Date.now(), reactions:{}, comments:[]
-  });
-  /* حاول الحفظ مباشرة — احذف فقط إذا امتلأ التخزين */
+    date: dateStr, ts: Date.now(), reactions:{}, comments:[], views: 0
+  };
+  posts.push(newPost);
+  /* حفظ منشورات الملف الشخصي — لا حذف للمنشورات القديمة */
   try {
     localStorage.setItem(getProfilePostsKey(name), JSON.stringify(posts));
   } catch(e) {
-    /* localStorage ممتلئ — احذف الأقدم من 60 يوم */
-    var _prof_cutoff = Date.now() - (60 * 24 * 60 * 60 * 1000);
-    posts = posts.filter(function(p){ return (p.ts||0) >= _prof_cutoff; });
-    if(posts.length > 100) posts = posts.slice(-100);
+    /* localStorage ممتلئ — احتفظ بكل المنشورات لكن حاول ضغط البيانات */
+    console.warn('localStorage ممتلئ، جارٍ الضغط...');
     try {
       localStorage.setItem(getProfilePostsKey(name), JSON.stringify(posts));
     } catch(e2) {
       console.error('فشل حفظ منشورات الملف الشخصي:', e2);
     }
   }
-  // نشر في الفيد العام أيضاً
+  // نشر في الفيد العام أيضاً — منشورات دائمة لا تُحذف
   const socialPosts = getSocialPosts();
-  socialPosts.push({
+  const socialPost = {
     id: 'sp_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
-    author: name, text, image: _postImageData, video: _postVideoData,
+    author: name,
+    text,
+    image: _postImagesData[0] || null,
+    images: _postImagesData.length > 0 ? [..._postImagesData] : null,
+    video: _postVideoData,
     feeling: _postFeelingMode ? _feelings[_feelingIdx] : null,
-    date: dateStr, ts: Date.now(), reactions:{}, comments:[]
-  });
+    date: dateStr, ts: Date.now(), reactions:{}, comments:[], views: 0,
+    privacy: '🌐 عام'
+  };
+  socialPosts.push(socialPost);
   saveSocialPosts(socialPosts);
+  // مزامنة مع Firebase
+  try{
+    const _FB_DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+    fetch(`${_FB_DB}/social_posts/${socialPost.id}.json`,{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(socialPost)
+    }).catch(()=>{});
+  }catch(e){}
   ebPointsPost();
   closeCreatePost();
   renderProfilePosts(name);
@@ -14201,9 +14295,12 @@ async function renderSocialFeed(){
   const fbPosts = await _fetchFirebasePosts();
   const allPostsRaw = _mergePosts(localPosts, fbPosts);
 
-  /* حفظ النسخة المدمجة محلياً للاستخدام في التعليقات والتفاعلات */
+  /* حفظ النسخة المدمجة محلياً للاستخدام في التعليقات والتفاعلات — احتفظ بكل المنشورات */
   if(fbPosts.length > 0){
-    try{ localStorage.setItem(_socialPostsKey, JSON.stringify(allPostsRaw.slice(0,200))); }catch(e){}
+    try{ localStorage.setItem(_socialPostsKey, JSON.stringify(allPostsRaw)); }catch(e){
+      /* localStorage ممتلئ — احتفظ بأحدث 300 */
+      try{ localStorage.setItem(_socialPostsKey, JSON.stringify(allPostsRaw.slice(-300))); }catch(e2){}
+    }
   }
 
   const allPosts = allPostsRaw;
@@ -14224,18 +14321,18 @@ async function renderSocialFeed(){
     container.innerHTML=`<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. كن أول من ينشر!</div></div>`;
     return;
   }
-  // ✅ الترتيب: الإعلانات أولاً، ثم الأكثر تفاعلاً+مشاهدة، ثم حسب التعليقات
+  // ✅ الترتيب المحدّث: أعلى تعليق → أعلى إعجاب → أعلى مشاهدة
   const adPosts = posts.filter(p=>p.isActivityAd).slice().reverse();
   const normalPosts = posts.filter(p=>!p.isActivityAd).slice().sort((a,b)=>{
+    const aComments = (a.comments||[]).length;
+    const bComments = (b.comments||[]).length;
+    if(bComments !== aComments) return bComments - aComments;
+    // عند التساوي في التعليقات: الأكثر إعجاباً أولاً
     const aReacts = Object.values(a.reactions||{}).reduce((s,arr)=>s+(Array.isArray(arr)?arr.length:0),0);
     const bReacts = Object.values(b.reactions||{}).reduce((s,arr)=>s+(Array.isArray(arr)?arr.length:0),0);
-    const aViews = a.views || 0;
-    const bViews = b.views || 0;
-    const aScore = (aReacts * 3) + aViews;
-    const bScore = (bReacts * 3) + bViews;
-    if(bScore !== aScore) return bScore - aScore;
-    // عند التساوي: الأكثر تعليقاً أولاً
-    return (b.comments||[]).length - (a.comments||[]).length;
+    if(bReacts !== aReacts) return bReacts - aReacts;
+    // عند التساوي: الأكثر مشاهدة أولاً
+    return (b.views||0) - (a.views||0);
   });
   container.innerHTML = [...adPosts, ...normalPosts].map(p => renderSocialPostCard(p)).join('');
 }
@@ -14254,7 +14351,9 @@ function renderSocialPostCard(p){
           ? `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#e52d27,#fbbf24);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⚖️</div>`
           : p.autoCategory === 'ranking'
             ? `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏆</div>`
-            : `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏙️</div>`)
+            : p.autoCategory === 'points_info'
+              ? `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#a855f7);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">💡</div>`
+              : `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏙️</div>`)
       : (photo
         ? `<img loading="lazy" src="${photo}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;cursor:pointer;" onclick="viewMemberProfile('${p.author}')">`
         : `<div onclick="viewMemberProfile('${p.author}')" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;">${typeof getLeaderIcon==='function'?getLeaderIcon(p.author):'👑'}</div>`);
@@ -26981,11 +27080,14 @@ function _checkAndAutoPost(){
   }
 }
 
-/* ══ جدول الترتيب اليومي ساعة 22:00 ══ */
+/* ══ جدول الترتيب كل 7 ساعات مع تهنئة الثلاثة الأوائل ══ */
+const _RANKING_INTERVAL_KEY = 'cdz_ranking_last_ts';
+const _RANKING_INTERVAL_MS = 7 * 60 * 60 * 1000; // 7 ساعات
+
 async function _publishDailyRanking(){
-  const today = new Date().toISOString().slice(0,10);
-  const lastRankDate = localStorage.getItem(_RANKING_POST_KEY) || '';
-  if(lastRankDate === today) return; // نُشر اليوم
+  const now = Date.now();
+  const lastRankTs = parseInt(localStorage.getItem(_RANKING_INTERVAL_KEY) || '0');
+  if(now - lastRankTs < _RANKING_INTERVAL_MS) return; // لم يمر 7 ساعات بعد
 
   // جلب الترتيب من Firebase
   let members = [];
@@ -27002,47 +27104,85 @@ async function _publishDailyRanking(){
     }
   }catch(e){}
 
-  // بناء نص الجدول
+  // بناء نص جدول الترتيب
   const medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
-  let rankText = '🏆 جدول الترتيب اليومي\n\n';
-  rankText += new Date().toLocaleDateString('ar-DZ',{weekday:'long',day:'numeric',month:'long'}) + '\n\n';
+  const timeStr = new Date().toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+  let rankText = '🏆 تحديث جدول الترتيب\n\n';
+  rankText += new Date().toLocaleDateString('ar-DZ',{weekday:'long',day:'numeric',month:'long'}) + ' — ' + timeStr + '\n\n';
 
   if(members.length > 0){
     members.forEach((m, i) => {
       const pts = parseInt(m.points)||0;
       rankText += `${medals[i]} ${m.name} — ${pts.toLocaleString('ar-DZ')} نقطة\n`;
     });
-    rankText += '\n🎉 تهانينا للمتصدرين!\n\n';
-    // تحية خاصة للثلاثة الأوائل
-    if(members[0]) rankText += `🌟 ${members[0].name} أنت نجم اليوم! استمر في التألق!\n`;
-    if(members[1]) rankText += `💪 ${members[1].name} رائع! لا تتوقف عن المنافسة!\n`;
-    if(members[2]) rankText += `⚡ ${members[2].name} أداء مميز! الترتيب الأول في متناولك!\n`;
+    rankText += '\n━━━━━━━━━━━━━━━━━━\n';
+    // 🎉 تهنئة خاصة للثلاثة الأوائل
+    if(members[0]) rankText += `\n🌟 تهانينا ${members[0].name}! أنت في القمة، استمر في التألق وحافظ على مكانتك! 👑\n`;
+    if(members[1]) rankText += `\n💪 إبراز خاص لـ ${members[1].name}! أداء رائع، المركز الأول في متناول يدك! 🔥\n`;
+    if(members[2]) rankText += `\n⚡ مبروك ${members[2].name}! في منصة التتويج، لا تتوقف عن المنافسة! 🚀\n`;
+    rankText += '\n🎯 واصلوا المشاركة لتحسين ترتيبكم!\nيُحدَّث الجدول كل 7 ساعات ⏱️';
   } else {
     rankText += 'يجري تحميل بيانات الترتيب...\n\nتابع تحديثاتنا قريباً! 🎯';
   }
 
   _autoPublishPost({ text: rankText, feeling: '🏆 منافس' }, 'ranking');
-  localStorage.setItem(_RANKING_POST_KEY, today);
+  localStorage.setItem(_RANKING_INTERVAL_KEY, String(now));
 }
 
-/* ── فحص الساعة كل دقيقة ── */
+/* ── فحص كل 30 دقيقة إذا مرت 7 ساعات ── */
 function _checkRankingTime(){
-  const now = new Date();
-  if(now.getHours() === 22 && now.getMinutes() === 0){
-    _publishDailyRanking();
-  }
+  _publishDailyRanking();
 }
 
-/* ── تشغيل النظام ── */
+/* ══ منشورات النقاط والرصيد وتحديد المستوى ══ */
+const _POINTS_POST_KEY = 'cdz_points_post_ts';
+const _POINTS_POST_INTERVAL = 12 * 60 * 60 * 1000; // 12 ساعة
+
+const _POINTS_INFO_POSTS = [
+  {
+    text: '💡 كيف تُحسب نقاطك في Connect DZ؟\n\n✅ المشاركة في الكويز ← نقاط فورية\n✅ نشر منشور ← +5 نقاط\n✅ التعليق على منشور ← +2 نقاط\n✅ الإعجاب والتفاعل ← +1 نقطة\n✅ مشاركة المنشورات ← +3 نقاط\n✅ تسجيل الدخول اليومي ← نقاط مضاعفة\n\n🏆 كلما زادت نقاطك، ارتفع ترتيبك وزاد رصيدك!',
+    feeling: '📊 متعلِّم'
+  },
+  {
+    text: '💰 كيف يُحسب رصيدك المالي في Connect DZ؟\n\n🔢 الصيغة:\nرصيدك = (نقاطك ÷ 50) × السعر\n\n💵 السعر:\n• أوائل 15 مركز ← 35 دج لكل 50 نقطة\n• باقي الأعضاء ← 30 دج لكل 50 نقطة\n\nمثال: عضو عنده 500 نقطة\n500 ÷ 50 = 10 × 30 = 300 دج 💸\n\nتابع رصيدك من صفحتك الشخصية!',
+    feeling: '💰 مُتشجِّع'
+  },
+  {
+    text: '🎯 نظام المستويات في Connect DZ\n\n📊 كل 3000 نقطة = مستوى جديد!\n\n🌱 المستوى 1: 0 — 2999 نقطة\n⭐ المستوى 2: 3000 — 5999 نقطة\n🔥 المستوى 3: 6000 — 8999 نقطة\n💎 المستوى 4: 9000 — 11999 نقطة\n👑 المستوى 5+: 12000+ نقطة\n\n🚀 اسعَ لرفع مستواك وكسب الشارات الحصرية!\nمستواك يظهر في ملفك الشخصي 🏅',
+    feeling: '🚀 طموح'
+  },
+  {
+    text: '📈 نصائح لرفع رصيدك ونقاطك بسرعة!\n\n⚡ الطريقة الأسرع:\n1️⃣ شارك في كل كويز يومياً\n2️⃣ انشر محتوى مفيد بانتظام\n3️⃣ علّق وتفاعل مع منشورات الآخرين\n4️⃣ شارك المنشورات المميزة\n5️⃣ سجّل دخولك كل يوم\n\n🏆 الأعضاء الأكثر نشاطاً يظهرون في الصفحة الأولى من الجدول!\n\nابدأ الآن وكن في القمة! 💪',
+    feeling: '💡 ناصح'
+  },
+];
+
+async function _publishPointsInfoPost(){
+  const now = Date.now();
+  const lastTs = parseInt(localStorage.getItem(_POINTS_POST_KEY) || '0');
+  if(now - lastTs < _POINTS_POST_INTERVAL) return;
+
+  const tracker = _getTracker();
+  const idx = tracker.pointsIdx || 0;
+  _autoPublishPost(_POINTS_INFO_POSTS[idx % _POINTS_INFO_POSTS.length], 'points_info');
+  tracker.pointsIdx = (idx + 1) % _POINTS_INFO_POSTS.length;
+  _saveTracker(tracker);
+  localStorage.setItem(_POINTS_POST_KEY, String(now));
+}
+
+/* ── تحديث أيقونات المنشورات التلقائية من الصفحات ── */
 window.addEventListener('load', function(){
   // فحص النشر التلقائي بعد ثانيتين من التحميل
   setTimeout(_checkAndAutoPost, 2000);
   // فحص كل ساعة
   setInterval(_checkAndAutoPost, 60 * 60 * 1000);
-  // فحص وقت الجدول كل دقيقة
-  setInterval(_checkRankingTime, 60 * 1000);
-  // فحص فوري إذا الساعة 22:00
-  _checkRankingTime();
+  // فحص جدول الترتيب كل 30 دقيقة
+  setInterval(_checkRankingTime, 30 * 60 * 1000);
+  // فحص فوري عند التحميل
+  setTimeout(_checkRankingTime, 5000);
+  // نشر منشورات النقاط والمستوى والرصيد كل 12 ساعة
+  setTimeout(_publishPointsInfoPost, 10000);
+  setInterval(_publishPointsInfoPost, 12 * 60 * 60 * 1000);
 });
 
 console.log('🤖 [AutoPost] نظام المنشورات التلقائية — مفعّل');
