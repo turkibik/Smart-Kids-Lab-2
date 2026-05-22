@@ -7422,7 +7422,7 @@ async function handlePostVideo(event){
   const file = event.target.files[0];
   if(!file) return;
 
-  /* 🔒 التحقق من مدة الفيديو — 15 ثانية كحد أقصى */
+  /* 🔒 التحقق من مدة الفيديو — 60 ثانية (دقيقة واحدة) كحد أقصى */
   try {
     await new Promise((resolve, reject) => {
       const tempVid = document.createElement('video');
@@ -7430,8 +7430,8 @@ async function handlePostVideo(event){
       const url = URL.createObjectURL(file);
       tempVid.onloadedmetadata = () => {
         URL.revokeObjectURL(url);
-        if(tempVid.duration > 15){
-          reject(new Error(`⏱️ مدة الفيديو ${Math.round(tempVid.duration)} ثانية — الحد الأقصى 15 ثانية فقط!`));
+        if(tempVid.duration > 60){
+          reject(new Error(`⏱️ مدة الفيديو ${Math.round(tempVid.duration)} ثانية — الحد الأقصى دقيقة واحدة (60 ثانية)!`));
         } else {
           resolve();
         }
@@ -7445,13 +7445,13 @@ async function handlePostVideo(event){
     return;
   }
 
-  if(file.size > 50 * 1024 * 1024){
-    if(typeof showToast==='function') showToast('❌ الفيديو كبير جداً! الحد الأقصى 50MB');
+  if(file.size > 100 * 1024 * 1024){
+    if(typeof showToast==='function') showToast('❌ الفيديو كبير جداً! الحد الأقصى 100MB');
     event.target.value = '';
     return;
   }
   /* رفع الفيديو إلى Cloudinary مع شريط تقدم */
-  window._showStorageProgress('🎬 جارٍ رفع الفيديو (15 ث)...');
+  window._showStorageProgress('🎬 جارٍ رفع الفيديو (حد أقصى دقيقة)...');
   try {
     const result = await window.uploadToCloudinary(file, 'videos', (pct) => {
       window._updateStorageProgress(pct);
@@ -15073,19 +15073,49 @@ function handleScpImage(event){
 }
 function handleScpVideo(event){
   const file = event.target.files[0]; if(!file) return;
-  if(_scpVideoData){ showToast('⚠️ يمكنك رفع فيديو واحد فقط'); event.target.value=''; return; }
-  if(file.size > 20*1024*1024){ showToast('⚠️ حجم الفيديو كبير جداً (أقصى 20MB)'); return; }
-  const reader = new FileReader();
-  reader.onload = e=>{
-    _scpVideoData = e.target.result;
-    _scpImageData = null;
-    const prev = document.getElementById('scpImagePreview');
-    if(prev) prev.style.display='none';
-    const vprev = document.getElementById('scpVideoPreview');
-    const vid   = document.getElementById('scpVideoPreviewVid');
-    if(vprev && vid){ vid.src=_scpVideoData; vprev.style.display='block'; }
+  if(_scpVideoData){ showToast('\u26a0\ufe0f \u064a\u0645\u0643\u0646\u0643 \u0631\u0641\u0639 \u0641\u064a\u062f\u064a\u0648 \u0648\u0627\u062d\u062f \u0641\u0642\u0637'); event.target.value=''; return; }
+  /* \ud83d\udd12 \u0627\u0644\u062a\u062d\u0642\u0642 \u0645\u0646 \u0645\u062f\u0629 \u0627\u0644\u0641\u064a\u062f\u064a\u0648 \u2014 60 \u062b\u0627\u0646\u064a\u0629 (\u062f\u0642\u064a\u0642\u0629 \u0648\u0627\u062d\u062f\u0629) \u0643\u062d\u062f \u0623\u0642\u0635\u0649 */
+  const blobUrl = URL.createObjectURL(file);
+  const tempVid = document.createElement('video');
+  tempVid.preload = 'metadata';
+  tempVid.onloadedmetadata = async function(){
+    URL.revokeObjectURL(blobUrl);
+    if(tempVid.duration > 60){
+      showToast('\u23f1\ufe0f \u0645\u062f\u0629 \u0627\u0644\u0641\u064a\u062f\u064a\u0648 '+Math.round(tempVid.duration)+' \u062b\u0627\u0646\u064a\u0629 \u2014 \u0627\u0644\u062d\u062f \u0627\u0644\u0623\u0642\u0635\u0649 \u062f\u0642\u064a\u0642\u0629 \u0648\u0627\u062d\u062f\u0629 \u0641\u0642\u0637!');
+      event.target.value=''; return;
+    }
+    if(file.size > 100*1024*1024){ showToast('\u26a0\ufe0f \u062d\u062c\u0645 \u0627\u0644\u0641\u064a\u062f\u064a\u0648 \u0643\u0628\u064a\u0631 \u062c\u062f\u0627\u064b (\u0623\u0642\u0635\u0649 100MB)'); event.target.value=''; return; }
+    if(typeof window.uploadToCloudinary === 'function'){
+      window._showStorageProgress('\ud83c\udfac \u062c\u0627\u0631\u0650 \u0631\u0641\u0639 \u0627\u0644\u0641\u064a\u062f\u064a\u0648 (\u062d\u062f \u0623\u0642\u0635\u0649 \u062f\u0642\u064a\u0642\u0629)...');
+      try{
+        const result = await window.uploadToCloudinary(file, 'social-posts', function(pct){ window._updateStorageProgress(pct); });
+        window._hideStorageProgress();
+        _scpVideoData = result.url; _scpImageData = null;
+        var p1 = document.getElementById('scpImagePreview'); if(p1) p1.style.display='none';
+        var p2 = document.getElementById('scpMultiImgPreview'); if(p2) p2.style.display='none';
+        var vprev = document.getElementById('scpVideoPreview'); var vid = document.getElementById('scpVideoPreviewVid');
+        if(vprev && vid){ vid.src=_scpVideoData; vprev.style.display='block'; }
+        showToast('\u2705 \u062a\u0645 \u0631\u0641\u0639 \u0627\u0644\u0641\u064a\u062f\u064a\u0648 \u0628\u0646\u062c\u0627\u062d!');
+      }catch(err){ window._hideStorageProgress(); showToast('\u274c \u0641\u0634\u0644 \u0631\u0641\u0639 \u0627\u0644\u0641\u064a\u062f\u064a\u0648: '+(err.message||'\u062e\u0637\u0623')); }
+    } else {
+      var reader = new FileReader();
+      reader.onload = function(e){ _scpVideoData = e.target.result; _scpImageData = null;
+        var vprev = document.getElementById('scpVideoPreview'); var vid = document.getElementById('scpVideoPreviewVid');
+        if(vprev && vid){ vid.src=_scpVideoData; vprev.style.display='block'; } };
+      reader.readAsDataURL(file);
+    }
+    event.target.value='';
   };
-  reader.readAsDataURL(file);
+  tempVid.onerror = function(){
+    URL.revokeObjectURL(blobUrl);
+    var reader = new FileReader();
+    reader.onload = function(e){ _scpVideoData = e.target.result; _scpImageData = null;
+      var vprev = document.getElementById('scpVideoPreview'); var vid = document.getElementById('scpVideoPreviewVid');
+      if(vprev && vid){ vid.src=_scpVideoData; vprev.style.display='block'; } };
+    reader.readAsDataURL(file);
+    event.target.value='';
+  };
+  tempVid.src = blobUrl;
 }
 function openScpPrivacyPicker(){
   const options = [
@@ -16105,7 +16135,7 @@ function _startReactTimer(postId){
   _reactLongPress = false;
   _reactTimerHandle = setTimeout(()=>{
     _reactLongPress = true;
-    toggleReactPicker(postId);
+    _showReactPickerCenter(postId);
     // اهتزاز خفيف عند ظهور التفاعلات
     if(navigator.vibrate) navigator.vibrate(50);
   }, 600); // 600ms للضغط المطوّل
@@ -16115,38 +16145,50 @@ function _cancelReactTimer(){
   if(_reactTimerHandle){ clearTimeout(_reactTimerHandle); _reactTimerHandle = null; }
 }
 
-function _handleLikeClick(postId){
-  if(_reactLongPress){ _reactLongPress = false; return; } // تجاهل بعد الضغط المطوّل
-  const name = getCurrentUser(); if(!name) return;
-  const posts = getSocialPosts();
-  const post = posts.find(p=>p.id===postId);
-  if(!post) return;
-  if(!post.reactions) post.reactions = {};
-  const defaultEmoji = '👍';
-  if(!post.reactions[defaultEmoji]) post.reactions[defaultEmoji]=[];
-  const idx = post.reactions[defaultEmoji].indexOf(name);
-  if(idx === -1){
-    // إضافة إعجاب
-    post.reactions[defaultEmoji].push(name);
-    if(post.author !== name) addSocialNotif(post.author, `${name} أعجب بمنشورك 👍`, '👍');
-    ebPointsLike();
-    saveSocialPosts(posts);
-    refreshPostCard(postId);
-    // تأثير قفز صغير
-    const btn = document.getElementById('likeBtn_'+postId);
-    if(btn){ btn.style.transform='scale(1.2)'; setTimeout(()=>btn.style.transform='scale(1)',200); }
+/* ── عرض شريط التفاعلات في منتصف المنشور ── */
+function _showReactPickerCenter(postId){
+  // إخفاء أي picker مفتوح مسبقاً
+  document.querySelectorAll('[id^="reactPicker_"]').forEach(el=>{ el.style.display='none'; });
+  const picker = document.getElementById('reactPicker_'+postId);
+  if(!picker) return;
+  // حساب موضع المنشور
+  const postEl = document.getElementById('spost_'+postId);
+  if(postEl){
+    const rect = postEl.getBoundingClientRect();
+    const centerX = rect.left + rect.width/2;
+    const centerY = rect.top + rect.height/2;
+    picker.style.position = 'fixed';
+    picker.style.left = '50%';
+    picker.style.top = (centerY - 30) + 'px';
+    picker.style.bottom = 'auto';
+    picker.style.transform = 'translateX(-50%)';
+    picker.style.zIndex = '9999';
+    picker.style.display = 'flex';
+    // إغلاق عند النقر خارجه
+    setTimeout(()=>{
+      function _outsideClose(e){
+        if(!picker.contains(e.target)){
+          picker.style.display='none';
+          document.removeEventListener('click',_outsideClose,true);
+        }
+      }
+      document.addEventListener('click',_outsideClose,true);
+    },100);
   } else {
-    // إلغاء الإعجاب
-    post.reactions[defaultEmoji].splice(idx, 1);
-    saveSocialPosts(posts);
-    refreshPostCard(postId);
+    toggleReactPicker(postId);
   }
+}
+
+function _handleLikeClick(postId){
+  if(_reactLongPress){ _reactLongPress = false; return; }
+  // عند الضغط البسيط: إظهار شريط التفاعل في منتصف المنشور
+  _showReactPickerCenter(postId);
 }
 
 // إضافة animation للـ reactPicker
 (function(){
   const s=document.createElement('style');
-  s.textContent='@keyframes reactPickerIn{from{opacity:0;transform:translateX(-50%) translateY(8px) scale(0.8)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}';
+  s.textContent='@keyframes reactPickerIn{from{opacity:0;transform:translateX(-50%) translateY(20px) scale(0.6)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}} [id^=reactPicker_]{backdrop-filter:blur(12px);background:rgba(255,255,255,0.97)!important;border:none!important;box-shadow:0 8px 40px rgba(0,0,0,0.22),0 2px 8px rgba(0,0,0,0.12)!important;padding:12px 18px!important;gap:14px!important;border-radius:40px!important;}';
   document.head.appendChild(s);
 })();
 
