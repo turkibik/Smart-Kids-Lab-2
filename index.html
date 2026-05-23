@@ -21918,15 +21918,29 @@ function initDobSelects(){
 }
 
 /* ═══════════ الحسابات المحفوظة ═══════════ */
+function _getDeviceRegKey(){
+  const did = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||(function(){const id='did_'+Date.now().toString(36)+Math.random().toString(36).slice(2);localStorage.setItem('__deviceId',id);return id;})());
+  return REG_USERS_KEY + '_' + did;
+}
 function getRegUsers(){
+  /* أولاً: قراءة من المفتاح المقيّد بالجهاز */
+  const devKey = _getDeviceRegKey();
+  try{
+    const devUsers = JSON.parse(localStorage.getItem(devKey)||'null');
+    if(devUsers) return devUsers;
+  }catch{}
+  /* Fallback: المفتاح العام القديم (للتوافق مع الحسابات القديمة) */
   try{ return JSON.parse(localStorage.getItem(REG_USERS_KEY)||'[]'); }catch{ return []; }
 }
 function saveRegUser(userData){
   try {
+    /* حفظ في المفتاح المقيّد بالجهاز فقط */
+    const devKey = _getDeviceRegKey();
     const users = getRegUsers();
     const idx = users.findIndex(u=>u.email===userData.email);
     if(idx>=0) users[idx]=userData; else users.unshift(userData);
-    localStorage.setItem(REG_USERS_KEY, JSON.stringify(users));
+    localStorage.setItem(devKey, JSON.stringify(users));
+    /* لا نحدّث REG_USERS_KEY العام — كل جهاز يخزن حساباته بشكل منفصل */
   } catch(e) { console.warn('saveRegUser error:', e); }
 }
 function getSavedLoginAccounts(){
@@ -22186,7 +22200,7 @@ function applyUserPhotoEverywhere(photoUrl, fullName){
     // تحديث في قائمة المستخدمين المسجلين أيضاً
     const users = getRegUsers ? getRegUsers() : [];
     const idx = users.findIndex(u=>(u.firstName+' '+u.lastName)===fullName || u.email===currUser?.email);
-    if(idx>=0){ users[idx].photoUrl = photoUrl; localStorage.setItem('cdz_registered_users', JSON.stringify(users)); }
+    if(idx>=0){ users[idx].photoUrl = photoUrl; if(typeof saveRegUser==='function') saveRegUser(users[idx]); }
   }catch(e){}
   // تطبيق على جميع عناصر الصورة في الواجهة
   const avatarEls = document.querySelectorAll('.avatar,#userInitial,.user-avatar,[data-user-avatar],.profile-pic,.chat-avatar,#sideMenuAvatar,#scpAvatar,#fbProfileAvatar,#mpvAvatar');
@@ -22634,7 +22648,7 @@ window.saveUserPassword = function(){
   const newSessionToken = Date.now().toString(36) + Math.random().toString(36).slice(2);
   users[idx].password = btoa(unescape(encodeURIComponent(newPass)));
   users[idx].sessionToken = newSessionToken;
-  localStorage.setItem('cdz_registered_users', JSON.stringify(users));
+  saveRegUser(users[idx]);
 
   currUser.password = users[idx].password;
   currUser.sessionToken = newSessionToken;
@@ -22681,8 +22695,9 @@ window.logoutAllSessions = function(){
       <!-- حقل الإيميل -->
       <div style="margin-bottom:10px;">
         <label style="font-size:12px;font-weight:800;color:#444;display:block;margin-bottom:4px;">📧 البريد الإلكتروني</label>
-        <input id="_laEmail" type="email" value="${currUser.email}" readonly
-          style="width:100%;padding:10px 12px;border:1.5px solid #d0d0d0;border-radius:11px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;outline:none;background:#f5f5f5;color:#444;box-sizing:border-box;cursor:not-allowed;">
+        <input id="_laEmail" type="email" placeholder="أدخل بريدك الإلكتروني المسجّل" autocomplete="email"
+          style="width:100%;padding:10px 12px;border:1.5px solid #E4E6EB;border-radius:11px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;outline:none;background:#fff;color:#222;box-sizing:border-box;transition:.2s;"
+          oninput="this.style.borderColor=this.value.includes('@')?'#00c07a':'#E4E6EB'">
       </div>
 
       <!-- كلمة المرور الجديدة -->
@@ -22716,10 +22731,11 @@ window.logoutAllSessions = function(){
     </div>`;
   document.body.appendChild(ov);
   ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
-  setTimeout(()=>{ document.getElementById('_laNewPass')?.focus(); }, 200);
+  setTimeout(()=>{ document.getElementById('_laEmail')?.focus(); }, 200);
 };
 
 window._doLogoutAllSessions = function(btn){
+  const enteredEmail = ((document.getElementById('_laEmail')||{}).value || '').trim();
   const newPass  = (document.getElementById('_laNewPass')||{}).value || '';
   const confPass = (document.getElementById('_laConfPass')||{}).value || '';
   const msgEl    = document.getElementById('_laMsg');
@@ -22733,6 +22749,18 @@ window._doLogoutAllSessions = function(btn){
     msgEl.textContent      = txt;
   };
 
+  /* ── التحقق من الإيميل ── */
+  if(!enteredEmail || !enteredEmail.includes('@')){
+    showMsg('⚠️ أدخل بريدًا إلكترونيًا صحيحًا', false); return;
+  }
+
+  /* ── التحقق أن الإيميل مسجل في النظام ── */
+  const allUsers = getRegUsers();
+  const matchedUser = allUsers.find(u => u.email === enteredEmail);
+  if(!matchedUser){
+    showMsg('❌ هذا البريد الإلكتروني غير مسجّل في النظام', false); return;
+  }
+
   /* ── التحقق من المدخلات ── */
   if(!newPass || newPass.length < 6){ showMsg('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل', false); return; }
   if(newPass !== confPass){ showMsg('❌ كلمتا المرور غير متطابقتين', false); return; }
@@ -22741,6 +22769,11 @@ window._doLogoutAllSessions = function(btn){
 
   let currUser = null;
   try{ currUser = JSON.parse(localStorage.getItem('cdz_current_user_data')||'null'); }catch(e){}
+  /* نستخدم الإيميل المُدخل لإيجاد المستخدم */
+  if(!currUser || currUser.email !== enteredEmail){
+    /* المستخدم أدخل إيميله الصحيح المسجّل — نستخدمه مباشرة */
+    currUser = matchedUser;
+  }
   if(!currUser || !currUser.email){
     showMsg('⚠️ لا توجد جلسة نشطة', false);
     if(btn){ btn.disabled = false; btn.textContent = '💾 حفظ والخروج'; }
@@ -22757,7 +22790,7 @@ window._doLogoutAllSessions = function(btn){
   if(idx >= 0){
     users[idx].password     = encodedPass;
     users[idx].sessionToken = newSessionToken;
-    localStorage.setItem('cdz_registered_users', JSON.stringify(users));
+    saveRegUser(users[idx]);
   }
 
   /* رفع رمز الجلسة الجديد إلى Firebase لإبلاغ الأجهزة الأخرى */
@@ -22839,7 +22872,7 @@ window.handleForgotPassword=function(){
     const contact=document.getElementById('forgotContact').value.trim();
     const users=getRegUsers();
     const idx=users.findIndex(u=>u.email===contact||u.phone===contact);
-    if(idx>=0){users[idx].password=btoa(newPass);localStorage.setItem(REG_USERS_KEY,JSON.stringify(users));}
+    if(idx>=0){users[idx].password=btoa(newPass);saveRegUser(users[idx]);}
     toast('✅ تم تغيير كلمة المرور بنجاح');
     closeForgotPassword();
   }
@@ -29495,11 +29528,10 @@ window._submitEditMyInfo = async function(){
 
     /* ② تحديث قائمة المستخدمين المسجلين */
     try{
-      const users = JSON.parse(localStorage.getItem('cdz_registered_users')||'[]');
+      const users = getRegUsers ? getRegUsers() : JSON.parse(localStorage.getItem('cdz_registered_users')||'[]');
       const idx = users.findIndex(u => u.email === currUser.email || u.email === email);
-      if(idx >= 0){ users[idx] = Object.assign({}, users[idx], updatedUser); }
-      else { users.unshift(updatedUser); }
-      localStorage.setItem('cdz_registered_users', JSON.stringify(users));
+      if(idx >= 0){ users[idx] = Object.assign({}, users[idx], updatedUser); if(typeof saveRegUser==='function') saveRegUser(users[idx]); }
+      else { if(typeof saveRegUser==='function') saveRegUser(updatedUser); }
     }catch(e){ console.warn('update reg users:', e); }
 
     /* ③ تحديث اسم المستخدم في sklab_user_name */
