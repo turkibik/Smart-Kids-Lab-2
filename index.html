@@ -1237,6 +1237,7 @@ body{min-height:100%;background:var(--dark);color:var(--text);display:flex;justi
 }
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUpPanel{from{opacity:0;transform:translateY(60px)}to{opacity:1;transform:translateY(0)}}
 
 /* ─── Logo section ─── */
 .login-logo{text-align:center;margin-bottom:22px;}
@@ -4518,6 +4519,18 @@ function switchLoginTab(tab){
       <div style="font-size:16px;font-weight:900;color:#050505;">⚙️ الإعدادات والخصوصية</div>
     </div>
     <div style="flex:1;overflow-y:auto;padding:14px;">
+      <!-- ✅ تعديل معلوماتي -->
+      <div onclick="openEditMyInfoForm()" style="background:linear-gradient(135deg,rgba(24,119,242,0.08),rgba(13,91,218,0.08));border:1.5px solid rgba(24,119,242,0.25);border-radius:14px;padding:16px;margin-bottom:10px;cursor:pointer;transition:.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#0d5bda);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">✏️</div>
+          <div>
+            <div style="font-size:14px;font-weight:900;color:#050505;">تعديل معلوماتي</div>
+            <div style="font-size:11px;color:#65676B;margin-top:2px;">تعديل بيانات ملف الانخراط الخاص بك</div>
+          </div>
+          <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+        </div>
+      </div>
+
       <!-- ✅ إنشاء / تغيير كلمة المرور -->
       <div style="background:linear-gradient(135deg,rgba(0,229,160,0.08),rgba(0,180,130,0.08));border:1.5px solid rgba(0,229,160,0.25);border-radius:14px;padding:16px;margin-bottom:10px;">
         <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:10px;">🔑 إنشاء / تغيير كلمة المرور</div>
@@ -4770,8 +4783,12 @@ function switchLoginTab(tab){
         <div style="font-size:10px;font-weight:800;color:#0078FF;margin-bottom:8px;letter-spacing:1px;">نشطون الآن</div>
         <div id="smActiveList" style="display:flex;gap:14px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;"></div>
       </div>
-      <!-- قائمة المحادثات -->
-      <div id="smInboxList" style="flex:1;overflow-y:auto;background:#F0F2F5;padding:8px;"></div>
+      <!-- حاوية الفلاتر + قائمة المحادثات -->
+      <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+        <!-- شريط الفلاتر سيُضاف هنا تلقائياً بـ JS (_smEnsureFiltersBar) -->
+        <!-- قائمة المحادثات -->
+        <div id="smInboxList" style="flex:1;overflow-y:auto;background:#F0F2F5;padding:8px;"></div>
+      </div>
       <!-- زر محادثة جديدة -->
       <div style="padding:10px 14px;background:white;border-top:1px solid #E4E6EB;display:flex;align-items:center;gap:10px;position:relative;">
         <input id="smSearchInput" type="text" placeholder="ابحث عن عضو للدردشة…" oninput="filterSmInbox(this.value)" style="flex:1;padding:10px 14px;background:#F0F2F5;border:none;border-radius:22px;font-family:'Tajawal',sans-serif;font-size:13px;color:#050505;outline:none;text-align:right;">
@@ -17799,18 +17816,31 @@ function renderSocialMessengerPanel(){
   _renderSmInbox(getCurrentUser());
 }
 
-/* ══ _renderSmInbox — يقرأ من Supabase (فوري) بدلاً من localStorage ══ */
+/* ══ _renderSmInbox — نسخة موحّدة مع المسنجر: فلاتر + مجموعات + تصميم كامل ══ */
+const _SM = { filter: 'all' }; // all | groups | unread | restricted
+
 async function _renderSmInbox(myName, filter=''){
   const listEl = document.getElementById('smInboxList');
   if(!listEl) return;
   if(!myName){ listEl.innerHTML=`<div style="text-align:center;padding:40px 20px;font-size:13px;color:#65676B;">سجّل دخولك أولاً</div>`; return; }
 
-  /* عرض loading مؤقت */
-  if(!listEl.dataset.loaded){
-    listEl.innerHTML=`<div style="text-align:center;padding:30px;color:#65676B;font-size:13px;">⏳ جاري التحميل...</div>`;
-  }
+  /* ── ضمان شريط الفلاتر فوق smInboxList ── */
+  _smEnsureFiltersBar();
 
-  /* ── جلب من Supabase (المصدر الرئيسي) ── */
+  /* ── جلب المجموعات من Firebase ── */
+  let groups = [];
+  try{
+    const DB_URL = "https://connectdz-49fab-default-rtdb.firebaseio.com";
+    const r = await fetch(`${DB_URL}/cdz_groups.json`);
+    const data = await r.json();
+    if(data && typeof data === 'object'){
+      groups = Object.entries(data)
+        .map(([id,g])=>({...g,id}))
+        .filter(g => g && Array.isArray(g.members) && g.members.includes(myName));
+    }
+  }catch(e){}
+
+  /* ── جلب المحادثات الفردية ── */
   const convMap = {};
   try{
     if(typeof sbGetInbox === 'function'){
@@ -17834,7 +17864,7 @@ async function _renderSmInbox(myName, filter=''){
     }
   }catch(e){}
 
-  /* ── احتياطي: localStorage إذا فشل Supabase ── */
+  /* ── احتياطي: localStorage ── */
   if(Object.keys(convMap).length === 0){
     const _smAllKeys = new Set();
     try{ for(let i=0;i<localStorage.length;i++){ const _k=localStorage.key(i); if(_k) _smAllKeys.add(_k); } }catch(e){}
@@ -17856,39 +17886,146 @@ async function _renderSmInbox(myName, filter=''){
   let convList = Object.values(convMap).sort((a,b)=>new Date(b.last.timestamp)-new Date(a.last.timestamp));
   if(filter.trim()) convList = convList.filter(c=>c.other.toLowerCase().includes(filter.toLowerCase()));
 
-  listEl.dataset.loaded = '1';
-
-  if(convList.length===0){
-    listEl.innerHTML=`<div style="text-align:center;padding:50px 20px;"><div style="font-size:48px;margin-bottom:12px;">💬</div><div style="font-size:14px;font-weight:700;color:#65676B;">ابدأ محادثة جديدة</div><div style="font-size:12px;color:#65676B;margin-top:6px;">استخدم زر ✏️ للتحدث مع أحد الأعضاء</div></div>`;
-    return;
+  /* ── تطبيق الفلتر ── */
+  let filteredList = convList;
+  const activeFilter = _SM.filter;
+  if(activeFilter === 'unread'){
+    filteredList = convList.filter(c => c.unread>0);
+  } else if(activeFilter === 'groups'){
+    filteredList = [];
+  } else if(activeFilter === 'restricted'){
+    filteredList = convList.filter(c => {
+      try{ return JSON.parse(localStorage.getItem('_msng_restricted')||'[]').includes(c.other); }catch(e){ return false; }
+    });
   }
 
-  listEl.innerHTML = convList.map(({other, last, unread})=>{
-    const photo = localStorage.getItem('nld_photo_'+other.replace(/\s+/g,'_'));
-    const icon = typeof getLeaderIcon==='function' ? getLeaderIcon(other) : '👑';
-    const avatarHtml = photo
-      ? `<img loading="lazy" src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-      : `<div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#00B2FF,#0078FF);display:flex;align-items:center;justify-content:center;font-size:22px;">${other==='المدير'?'🛡️':icon}</div>`;
-    const msgText = last.message || last.text || '';
-    const msgPreview = msgText
-      ? (msgText.length>35 ? msgText.substring(0,35)+'…' : msgText)
-      : (last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت');
-    const ts = last.timestamp ? new Date(last.timestamp).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'}) : '';
-    const isMine = last.from === myName;
-    const safeName = other.replace(/'/g,"\\'");
-    return `<div onclick="openChatFromSocial('${safeName}')" style="display:flex;align-items:center;gap:12px;background:white;padding:12px 14px;border-radius:14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:.15s;position:relative;" onmouseover="this.style.background='#F7F8FA'" onmouseout="this.style.background='white'">
-      <div style="position:relative;flex-shrink:0;">${avatarHtml}${!isMine && unread>0 ? `<div style="position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid white;"></div>` : ''}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:14px;font-weight:${unread>0?'900':'700'};color:#050505;margin-bottom:2px;">${other}</div>
-        <div style="font-size:12px;color:${unread>0?'#050505':'#65676B'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:${unread>0?'700':'400'};">${isMine?'أنت: ':''}${msgPreview}</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-        <div style="font-size:10px;color:#65676B;">${ts}</div>
-        ${unread>0?`<div style="min-width:20px;height:20px;border-radius:10px;background:#1877F2;color:white;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 5px;">${unread}</div>`:''}
-      </div>
-    </div>`;
-  }).join('');
+  listEl.dataset.loaded = '1';
+
+  /* ── بناء HTML ── */
+  let html = '';
+
+  /* عرض المجموعات في الكل أو فلتر المجموعات */
+  if(groups.length > 0 && (activeFilter === 'all' || activeFilter === 'groups')){
+    groups.forEach(g=>{
+      const msgs = g.messages || [];
+      const last = msgs[msgs.length-1];
+      const lastText = last ? (last.text || (last.type==='image'?'🖼️ صورة':last.type==='video'?'🎬 فيديو':'🎙️ صوت')) : 'لا توجد رسائل بعد';
+      const unreadGrp = msgs.filter(m=>m.from!==myName && !(m.readBy||[]).includes(myName)).length;
+      const isMyMsg = last && last.from === myName;
+      const ts = last ? _smFormatTime(last.ts ? new Date(last.ts) : new Date()) : '';
+      const safeName = (g.name||'مجموعة').replace(/'/g,"\\'");
+      html += `<div class="msng-inbox-item${unreadGrp>0?' unread-item':''}"
+        onclick="window.openGroupChat&&openGroupChat('${g.id}')"
+        style="border-right:3px solid #a855f7;">
+        <div class="msng-avatar-wrap">
+          <div class="msng-avatar" style="background:linear-gradient(135deg,#a855f7,#7c3aed);font-size:24px;">${g.icon||'👥'}</div>
+          <div class="msng-group-badge">👥</div>
+        </div>
+        <div class="msng-body">
+          <div class="msng-name" style="display:flex;align-items:center;gap:6px;">
+            <span>${g.name||'مجموعة'}</span>
+            <span class="grp-tag">جماعية</span>
+          </div>
+          <div class="msng-preview">
+            ${isMyMsg?'<span style="color:#0078FF;font-size:12px;">أنت: </span>':''}
+            <span>${last&&last.from&&!isMyMsg?last.from+': ':''}${lastText.length>35?lastText.substring(0,35)+'…':lastText}</span>
+          </div>
+        </div>
+        <div class="msng-right">
+          <span class="msng-time${unreadGrp>0?' unread-time':''}">${ts}</span>
+          ${unreadGrp>0?`<span class="msng-badge">${unreadGrp>99?'99+':unreadGrp}</span>`:''}
+        </div>
+      </div>`;
+    });
+  }
+
+  /* عرض المحادثات الفردية */
+  if(filteredList.length > 0){
+    filteredList.forEach(({other, last, unread})=>{
+      const photo = localStorage.getItem('nld_photo_'+other.replace(/\s+/g,'_'));
+      const icon = typeof getLeaderIcon==='function' ? getLeaderIcon(other) : '👑';
+      const msgText = last.message || last.text || '';
+      const isMyMsg = last.from === myName;
+      const msgPreview = msgText
+        ? (msgText.length>35 ? msgText.substring(0,35)+'…' : msgText)
+        : (last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت');
+      const ts = last.timestamp ? _smFormatTime(new Date(last.timestamp)) : '';
+      const safeName = other.replace(/'/g,"\\'");
+      html += `<div class="msng-inbox-item${unread>0?' unread-item':''}"
+        onclick="openChatFromSocial('${safeName}')">
+        <div class="msng-avatar-wrap">
+          ${photo
+            ? `<div class="msng-avatar"><img src="${photo}" alt="${other}"></div>`
+            : `<div class="msng-avatar" style="background:linear-gradient(135deg,${other==='المدير'?'#ef4444,#b91c1c':'#00B2FF,#0078FF'});font-size:22px;">${other==='المدير'?'🛡️':icon}</div>`}
+        </div>
+        <div class="msng-body">
+          <div class="msng-name">${other}</div>
+          <div class="msng-preview">
+            ${isMyMsg?'<span style="color:#0078FF;font-size:11px;">أنت: </span>':''}
+            <span>${msgPreview}</span>
+          </div>
+        </div>
+        <div class="msng-right">
+          <span class="msng-time${unread>0?' unread-time':''}">${ts}</span>
+          ${unread>0?`<span class="msng-badge">${unread>99?'99+':unread}</span>`:''}
+        </div>
+      </div>`;
+    });
+  } else if(groups.length === 0 || activeFilter === 'groups' && groups.length === 0) {
+    if(activeFilter === 'groups'){
+      html += `<div style="text-align:center;padding:50px 20px;"><div style="font-size:48px;margin-bottom:12px;">👥</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد مجموعات بعد</div><div style="font-size:12px;color:#65676B;margin-top:6px;">أنشئ مجموعة من زر +</div></div>`;
+    } else if(filteredList.length === 0 && groups.length === 0){
+      html = `<div style="text-align:center;padding:50px 20px;"><div style="font-size:48px;margin-bottom:12px;">💬</div><div style="font-size:14px;font-weight:700;color:#65676B;">${activeFilter==='unread'?'لا توجد رسائل غير مقروءة':'ابدأ محادثة جديدة'}</div><div style="font-size:12px;color:#65676B;margin-top:6px;">استخدم زر + للتحدث مع أحد الأعضاء</div></div>`;
+    }
+  }
+
+  listEl.innerHTML = html;
 }
+
+/* ── تنسيق الوقت لـ smInbox ── */
+function _smFormatTime(date){
+  if(!(date instanceof Date) || isNaN(date)) return '';
+  const now = new Date();
+  const diff = now - date;
+  const mins = Math.floor(diff/60000);
+  if(mins < 1) return 'الآن';
+  if(mins < 60) return mins + 'د';
+  const hours = Math.floor(diff/3600000);
+  if(hours < 24) return date.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+  const days = Math.floor(diff/86400000);
+  if(days === 1) return 'أمس';
+  if(days < 7) return ['أحد','إثن','ثلا','أرب','خمي','جمع','سبت'][date.getDay()];
+  return date.toLocaleDateString('ar-DZ',{day:'2-digit',month:'2-digit'});
+}
+
+/* ── ضمان شريط الفلاتر فوق smInboxList ── */
+function _smEnsureFiltersBar(){
+  const listEl = document.getElementById('smInboxList');
+  if(!listEl) return;
+  const existingBar = document.getElementById('_smFiltersBar');
+  if(existingBar) return; // موجود بالفعل
+
+  const filtersBar = document.createElement('div');
+  filtersBar.id = '_smFiltersBar';
+  filtersBar.className = 'msng-filters';
+  filtersBar.style.cssText = 'flex-shrink:0;';
+  filtersBar.innerHTML = `
+    <button class="msng-filter-btn${_SM.filter==='all'?' active':''}" onclick="_smSetFilter('all')">💬 الكل</button>
+    <button class="msng-filter-btn${_SM.filter==='groups'?' active':''}" onclick="_smSetFilter('groups')">👥 مجموعات</button>
+    <button class="msng-filter-btn${_SM.filter==='unread'?' active':''}" onclick="_smSetFilter('unread')">🔵 غير مقروء</button>
+  `;
+  listEl.parentNode.insertBefore(filtersBar, listEl);
+}
+
+/* ── تغيير فلتر smInbox ── */
+window._smSetFilter = function(f){
+  _SM.filter = f;
+  document.querySelectorAll('#_smFiltersBar .msng-filter-btn').forEach(btn=>btn.classList.remove('active'));
+  const activeBtn = document.querySelector(`#_smFiltersBar .msng-filter-btn[onclick*="${f}"]`);
+  if(activeBtn) activeBtn.classList.add('active');
+  const myN = typeof getCurrentUser==='function' ? getCurrentUser() : null;
+  if(myN) _renderSmInbox(myN);
+};
 
 function filterSmInbox(q){
   _renderSmInbox(getCurrentUser(), q);
@@ -27334,10 +27471,14 @@ window.openCreateGroupScreen = function(){
     await _saveGroup(group);
     ov.remove();
     showToast('✅ تم إنشاء مجموعة "'+name+'"');
+    /* تحديث قائمة المحادثات فوراً في المسنجر والصفحة الرئيسية */
+    if(typeof window._msngRebuildInbox === 'function') window._msngRebuildInbox();
+    const smMyN = typeof getCurrentUser==='function' ? getCurrentUser() : null;
+    if(smMyN && typeof _renderSmInbox === 'function') _renderSmInbox(smMyN);
     /* فتح المجموعة مباشرة */
-    openGroupChat(group.id);
-    /* تحديث قائمة المجموعات */
-    _renderGroupsInInbox();
+    setTimeout(function(){ openGroupChat(group.id); }, 400);
+    /* تحديث قائمة المجموعات (legacy) */
+    if(typeof _renderGroupsInInbox === 'function') _renderGroupsInInbox();
   };
 };
 
@@ -28411,13 +28552,15 @@ window._msngRebuildInbox = async function(){
     filteredList = convList.filter(c => c.unread>0 || _MP.unreadOverride.has(c.other));
   } else if(_MP.filter === 'restricted'){
     filteredList = convList.filter(c => _MP.restricted.has(c.other));
+  } else if(_MP.filter === 'groups'){
+    filteredList = []; // فلتر المجموعات يعرض المجموعات فقط
   }
 
   /* ── بناء HTML ── */
   let html = '';
 
-  /* المجموعات أولاً */
-  if(groups.length > 0 && _MP.filter === 'all'){
+  /* المجموعات: في الكل أو فلتر المجموعات */
+  if(groups.length > 0 && (_MP.filter === 'all' || _MP.filter === 'groups')){
     groups.forEach(g=>{
       const msgs = g.messages || [];
       const last = msgs[msgs.length-1];
@@ -28505,6 +28648,12 @@ window._msngRebuildInbox = async function(){
         </div>
       </div>`;
     });
+  } else if(groups.length === 0 && _MP.filter === 'groups') {
+    html = `<div style="text-align:center;padding:50px 20px;">
+      <div style="font-size:56px;margin-bottom:14px;">👥</div>
+      <div style="font-size:15px;font-weight:800;color:#1C1E21;margin-bottom:6px;">لا توجد مجموعات بعد</div>
+      <div style="font-size:13px;color:#65676B;">أنشئ مجموعة جديدة من زر +</div>
+    </div>`;
   } else if(groups.length === 0) {
     html = `<div style="text-align:center;padding:50px 20px;">
       <div style="font-size:56px;margin-bottom:14px;">💬</div>
@@ -28601,6 +28750,7 @@ function _msngEnsureFiltersBar(){
   filtersBar.className = 'msng-filters';
   filtersBar.innerHTML = `
     <button class="msng-filter-btn${_MP.filter==='all'?' active':''}" onclick="_msngSetFilter('all')">💬 الكل</button>
+    <button class="msng-filter-btn${_MP.filter==='groups'?' active':''}" onclick="_msngSetFilter('groups')" id="_msngGroupsFilterBtn">👥 مجموعات</button>
     <button class="msng-filter-btn${_MP.filter==='unread'?' active':''}" onclick="_msngSetFilter('unread')" id="_msngUnreadFilterBtn">
       🔵 غير مقروء
     </button>
@@ -28786,60 +28936,8 @@ window._msngStopPolling = function(){
   if(_MP.pollTimer){ clearInterval(_MP.pollTimer); _MP.pollTimer = null; }
 };
 
-/* ══ تحسين _renderSmInbox لإضافة المجموعات ══ */
-const _origSmInbox = window._renderSmInbox;
-window._renderSmInbox = async function(myName, filter){
-  if(_origSmInbox) await _origSmInbox(myName, filter);
-
-  /* إضافة المجموعات إلى smInboxList */
-  const listEl = document.getElementById('smInboxList');
-  if(!listEl || !myName) return;
-
-  let groups = [];
-  try{
-    const DB_URL = "https://connectdz-49fab-default-rtdb.firebaseio.com";
-    const r = await fetch(`${DB_URL}/cdz_groups.json`);
-    const data = await r.json();
-    if(data && typeof data === 'object'){
-      groups = Object.entries(data)
-        .map(([id,g])=>({...g,id}))
-        .filter(g => g && Array.isArray(g.members) && g.members.includes(myName));
-    }
-  }catch(e){}
-
-  if(groups.length === 0) return;
-
-  const grpHtml = groups.map(g=>{
-    const msgs = g.messages || [];
-    const last = msgs[msgs.length-1];
-    const lastText = last ? (last.text || (last.type==='image'?'🖼️ صورة':last.type==='video'?'🎬 فيديو':'🎙️')) : 'لا رسائل';
-    const unreadGrp = msgs.filter(m=>m.from!==myName && !(m.readBy||[]).includes(myName)).length;
-    const ts = last ? _msngFormatTime(last.ts ? new Date(last.ts) : new Date()) : '';
-    return `<div onclick="openGroupChat&&openGroupChat('${g.id}')"
-      style="display:flex;align-items:center;gap:12px;background:white;padding:12px 14px;border-radius:14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:.15s;border-right:3px solid #a855f7;"
-      onmouseover="this.style.background='#F7F8FA'" onmouseout="this.style.background='white'">
-      <div style="position:relative;flex-shrink:0;">
-        <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:24px;">${g.icon||'👥'}</div>
-        <div style="position:absolute;bottom:-1px;right:-1px;width:18px;height:18px;border-radius:50%;background:#7c3aed;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;">👥</div>
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:14px;font-weight:${unreadGrp>0?'900':'700'};color:#050505;margin-bottom:2px;display:flex;align-items:center;gap:6px;">
-          ${g.name||'مجموعة'}
-          <span style="font-size:9px;font-weight:800;color:#7c3aed;background:rgba(168,85,247,0.12);border-radius:4px;padding:1px 5px;">جماعية</span>
-        </div>
-        <div style="font-size:12px;color:${unreadGrp>0?'#050505':'#65676B'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:${unreadGrp>0?'700':'400'};">
-          ${last&&last.from&&last.from!==myName?last.from+': ':''}${lastText}
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-        <div style="font-size:10px;color:${unreadGrp>0?'#7c3aed':'#65676B'};">${ts}</div>
-        ${unreadGrp>0?`<div style="min-width:20px;height:20px;border-radius:10px;background:#7c3aed;color:white;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 5px;">${unreadGrp}</div>`:''}
-      </div>
-    </div>`;
-  }).join('');
-
-  listEl.insertAdjacentHTML('afterbegin', grpHtml);
-};
+/* ══ _renderSmInbox موحّد مع المسنجر — لا نعيد تعريفه هنا ══ */
+/* تم تحديث _renderSmInbox الأصلي ليشمل الفلاتر والمجموعات */
 
 /* ══ إصلاح openGroupChat ليعمل كمحادثة عادية ══ */
 window.openGroupChat = window.openGroupChat || function(groupId){
@@ -28970,6 +29068,345 @@ window.addEventListener('load', function(){
 });
 
 console.log('💬 [MessengerPro] نظام المسنجر المطور — مفعّل ✅');
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ✏️ تعديل معلوماتي — نظام تعديل بيانات الانخراط
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ════════════════════════════════════
+   دالة فتح نموذج تعديل المعلومات
+   ════════════════════════════════════ */
+window.openEditMyInfoForm = function(){
+  /* إغلاق لوحة الإعدادات أولاً */
+  const settingsPanel = document.getElementById('sideSettingsPanel');
+  if(settingsPanel) settingsPanel.style.display = 'none';
+
+  /* جلب بيانات المستخدم الحالي */
+  let userData = {};
+  try { userData = JSON.parse(localStorage.getItem('cdz_current_user_data') || '{}'); } catch(e){}
+
+  /* جلب بيانات الانخراط من nld_join_requests */
+  const userName = localStorage.getItem('sklab_user_name') || '';
+  let joinData = {};
+  try {
+    const requests = JSON.parse(localStorage.getItem('nld_join_requests') || '[]');
+    const found = requests.find(r => r.name === userName || (userData.firstName && r.name === userData.firstName + ' ' + userData.lastName));
+    if(found) joinData = found;
+  } catch(e){}
+
+  /* دمج البيانات */
+  const d = Object.assign({}, joinData, {
+    name      : userName || (userData.firstName ? userData.firstName+' '+userData.lastName : ''),
+    email     : userData.email || joinData.email || '',
+    phone     : userData.phone || joinData.phone || '',
+    birth     : userData.birthdate || joinData.birth || '',
+    address   : userData.address || joinData.address || '',
+    nid       : userData.nid || joinData.nid || '',
+    blood     : userData.blood || joinData.blood || '',
+    gender    : userData.gender || joinData.gender || '',
+    category  : userData.category || joinData.category || '',
+    level     : userData.level || joinData.level || '',
+    wilaya    : userData.wilaya || joinData.wilaya || '',
+    commune   : userData.commune || joinData.commune || '',
+    darChab   : userData.darChab || joinData.darChab || '',
+    hobbies   : userData.hobbies || joinData.hobbies || '',
+    leadership: userData.leadership || joinData.leadership || '',
+    skBefore  : userData.skBefore || joinData.skBefore || '',
+    health    : userData.health || joinData.health || '',
+    liked     : userData.liked || joinData.liked || '',
+    suggest   : userData.suggest || joinData.suggest || '',
+    rating    : userData.rating || joinData.rating || '',
+    photoUrl  : userData.photoUrl || joinData.photoUrl || '',
+    birthCertUrl: userData.birthCertUrl || joinData.birthCertUrl || '',
+    idCardUrl : userData.idCardUrl || joinData.idCardUrl || '',
+  });
+
+  /* ── مساعدات بناء الحقول ── */
+  const style_input = `width:100%;padding:11px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;box-sizing:border-box;`;
+  const style_select = `width:100%;padding:11px 14px;background:#1a2230;border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;text-align:right;`;
+  const style_textarea = `width:100%;padding:11px 14px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:13px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;resize:none;min-height:70px;text-align:right;box-sizing:border-box;`;
+
+  const inp = (id, type, ph, val='', extra='') =>
+    `<input id="${id}" type="${type}" placeholder="${ph}" value="${val.replace(/"/g,'&quot;')}" ${extra}
+      style="${style_input}" oninput="this.style.borderColor='rgba(0,229,160,0.4)'">`;
+
+  const sel = (id, opts, ph, cur='') =>
+    `<select id="${id}" style="${style_select}" onchange="this.style.borderColor='rgba(0,229,160,0.4)'">
+      <option value="" disabled ${!cur?'selected':''}>${ph}</option>
+      ${opts.map(o=>`<option value="${o}" ${o===cur?'selected':''}>${o}</option>`).join('')}
+    </select>`;
+
+  const ta = (id, ph, val='') =>
+    `<textarea id="${id}" placeholder="${ph}" style="${style_textarea}" oninput="this.style.borderColor='rgba(0,229,160,0.4)'">${val}</textarea>`;
+
+  const lbl = (t, req='') =>
+    `<div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">${t}${req?' <span style="color:#f87171;">*</span>':''}</div>`;
+
+  const blk = (l, html, req='') => `<div>${lbl(l,req)}${html}</div>`;
+
+  const imgBox = (boxId, fileId, urlId, label, curUrl, icon) => `
+    <div>
+      <div style="font-size:11px;font-weight:700;color:#00e5a0;margin-bottom:5px;letter-spacing:.5px;">${label}</div>
+      <div id="${boxId}" onclick="document.getElementById('${fileId}').click()"
+        style="width:100%;padding:14px;background:rgba(255,255,255,0.05);border:1.5px dashed ${curUrl?'rgba(0,229,160,1)':'rgba(0,229,160,0.35)'};border-radius:13px;color:${curUrl?'#00e5a0':'#8b949e'};font-family:'Tajawal',sans-serif;font-size:13px;text-align:center;cursor:pointer;">
+        ${curUrl ? '✅ تم الرفع — اضغط لتغيير الصورة' : `${icon} اضغط لرفع الصورة`}
+      </div>
+      <input id="${fileId}" type="file" accept="image/*" style="display:none"
+        onchange="_editRegUploadImg(this,'${boxId}','${urlId}')">
+      <input id="${urlId}" type="hidden" value="${curUrl}">
+    </div>`;
+
+  /* إزالة overlay قديم إن وُجد */
+  document.getElementById('_editInfoOverlay')?.remove();
+
+  const ov = document.createElement('div');
+  ov.id = '_editInfoOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.78);backdrop-filter:blur(12px);z-index:99999;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .25s ease;';
+
+  ov.innerHTML = `
+    <div style="background:linear-gradient(160deg,#0d1117,#161b22);border:1px solid rgba(0,229,160,0.3);border-radius:26px 26px 0 0;padding:24px 20px 36px;width:100%;max-width:500px;box-shadow:0 -20px 60px rgba(0,0,0,0.6);animation:slideUpPanel .3s ease;max-height:92vh;overflow-y:auto;">
+
+      <!-- مقبض السحب -->
+      <div style="width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin:0 auto 18px;"></div>
+
+      <!-- العنوان -->
+      <div style="text-align:center;margin-bottom:22px;">
+        <div style="font-size:36px;margin-bottom:8px;">✏️</div>
+        <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:4px;">تعديل معلوماتي</div>
+        <div style="font-size:11px;color:#8b949e;">عدّل بياناتك واضغط حفظ التغييرات</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+
+        ${blk('الاسم واللقب', inp('_editName','text','أدخل اسمك الكامل', d.name), '*')}
+        ${blk('البريد الإلكتروني', inp('_editEmail','email','example@email.com', d.email), '*')}
+        ${blk('رقم الهاتف', inp('_editPhone','tel','0XXXXXXXXX', d.phone), '*')}
+        ${blk('تاريخ الميلاد', inp('_editBirth','date','', d.birth))}
+        ${blk('عنوان الإقامة', inp('_editAddress','text','الحي، المدينة', d.address))}
+        ${blk('رقم بطاقة التعريف (16 رقم)', inp('_editNid','text','XXXXXXXXXXXXXXXX', d.nid, 'maxlength="18"'))}
+        ${blk('زمرة الدم', sel('_editBlood',['A+','A-','B+','B-','AB+','AB-','O+','O-'],'اختر زمرة الدم', d.blood))}
+        ${blk('الجنس', sel('_editGender',['ذكر','أنثى'],'اختر الجنس', d.gender))}
+        ${blk('تحديد الفئة', sel('_editCategory',['طفل (6-12)','مراهق (13-17)','شاب (18-25)','بالغ (+26)'],'اختر الفئة العمرية', d.category))}
+        ${blk('المستوى الدراسي', sel('_editLevel',['ابتدائي','متوسط','ثانوي','جامعي','خريج','أخرى'],'اختر المستوى', d.level))}
+        ${blk('الولاية', inp('_editWilaya','text','مثال: تلمسان', d.wilaya))}
+        ${blk('البلدية', inp('_editCommune','text','مثال: منصورة', d.commune))}
+        ${blk('هل أنت منخرط بدار الشباب؟', sel('_editDarChab',['نعم','لا'],'اختر', d.darChab))}
+        ${blk('هواياتك', ta('_editHobbies','اذكر هواياتك...', d.hobbies))}
+        ${blk('مهاراتك القيادية', ta('_editLeadership','اذكر مهاراتك القيادية...', d.leadership))}
+        ${blk('هل شاركت من قبل في الطفل الذكي؟', sel('_editSkBefore',['نعم','لا'],'اختر', d.skBefore))}
+        ${blk('هل تعاني من أمراض؟ اذكرها', inp('_editHealth','text','اذكر المرض أو اكتب: لا', d.health))}
+        ${blk('ماذا أعجبك في Smart Kids؟', ta('_editLiked','اكتب ما أعجبك...', d.liked))}
+        ${blk('ماذا تقترح لتطوير Smart Kids؟', ta('_editSuggest','اكتب اقتراحك...', d.suggest))}
+        ${blk('رأيك في مستوى Smart Kids', sel('_editRating',['ممتاز','جيد جداً','جيد','مقبول','ضعيف'],'قيّم المستوى', d.rating))}
+
+        <!-- صور الملف -->
+        ${imgBox('_editPhotoBox','_editPhotoFile','_editPhotoUrl','الصورة الشمسية (صورة شخصية)', d.photoUrl,'📷')}
+        ${imgBox('_editBirthCertBox','_editBirthCertFile','_editBirthCertUrl','شهادة الميلاد (صورة)', d.birthCertUrl,'📄')}
+        ${imgBox('_editIdCardBox','_editIdCardFile','_editIdCardUrl','بطاقة التعريف (القصر / ولي الأمر)', d.idCardUrl,'🪦')}
+
+        <!-- رسالة النتيجة -->
+        <div id="_editMsg" style="display:none;padding:10px 14px;border-radius:11px;font-size:13px;font-weight:700;text-align:center;"></div>
+
+        <!-- أزرار الإجراءات -->
+        <button id="_editSaveBtn" onclick="_submitEditMyInfo()"
+          style="width:100%;padding:14px;background:linear-gradient(135deg,#00e5a0,#00b894);border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;color:#050a0e;cursor:pointer;box-shadow:0 6px 20px rgba(0,229,160,0.35);margin-top:4px;transition:.2s;"
+          onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+          💾 حفظ التغييرات
+        </button>
+        <button onclick="document.getElementById('_editInfoOverlay').remove()"
+          style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#8b949e;cursor:pointer;transition:.2s;"
+          onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'">
+          إلغاء
+        </button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(ov);
+  /* إغلاق بالضغط على الخلفية */
+  ov.addEventListener('click', e => { if(e.target === ov) ov.remove(); });
+};
+
+/* ════════════════════════════════════
+   رفع صورة من نموذج التعديل
+   ════════════════════════════════════ */
+window._editRegUploadImg = async function(input, boxId, urlId){
+  const file = input.files[0];
+  if(!file) return;
+  const box = document.getElementById(boxId);
+  if(box){ box.style.borderColor='rgba(0,229,160,0.7)'; box.innerText='⏳ جاري الرفع...'; }
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset','connectdz_unsigned');
+    fd.append('folder','connectdz/documents');
+    const res = await fetch('https://api.cloudinary.com/v1_1/dzjutgs7s/image/upload',{method:'POST',body:fd});
+    const data = await res.json();
+    if(data.secure_url){
+      document.getElementById(urlId).value = data.secure_url;
+      if(box){
+        box.style.borderColor='rgba(0,229,160,1)';
+        box.style.background='rgba(0,229,160,0.08)';
+        box.style.color='#00e5a0';
+        box.innerText='✅ تم الرفع بنجاح';
+      }
+    } else { throw new Error('فشل الرفع'); }
+  } catch(err){
+    if(box){ box.style.borderColor='rgba(248,113,113,0.7)'; box.style.color='#f87171'; box.innerText='❌ فشل الرفع — حاول مجدداً'; }
+  }
+};
+
+/* ════════════════════════════════════
+   حفظ التعديلات
+   ════════════════════════════════════ */
+window._submitEditMyInfo = async function(){
+  const g = id => (document.getElementById(id)?.value||'').trim();
+
+  const name        = g('_editName');
+  const email       = g('_editEmail');
+  const phone       = g('_editPhone');
+  const birth       = g('_editBirth');
+  const address     = g('_editAddress');
+  const nid         = g('_editNid');
+  const blood       = g('_editBlood');
+  const gender      = g('_editGender');
+  const category    = g('_editCategory');
+  const level       = g('_editLevel');
+  const wilaya      = g('_editWilaya');
+  const commune     = g('_editCommune');
+  const darChab     = g('_editDarChab');
+  const hobbies     = g('_editHobbies');
+  const leadership  = g('_editLeadership');
+  const skBefore    = g('_editSkBefore');
+  const health      = g('_editHealth');
+  const liked       = g('_editLiked');
+  const suggest     = g('_editSuggest');
+  const rating      = g('_editRating');
+  const photoUrl    = g('_editPhotoUrl');
+  const birthCertUrl= g('_editBirthCertUrl');
+  const idCardUrl   = g('_editIdCardUrl');
+
+  const msgEl = document.getElementById('_editMsg');
+  const btn   = document.getElementById('_editSaveBtn');
+
+  /* تحقق من الحقول الإلزامية */
+  if(!name || !email || !phone){
+    if(msgEl){ msgEl.style.display='block'; msgEl.style.background='rgba(229,45,39,0.15)'; msgEl.style.border='1px solid rgba(229,45,39,0.3)'; msgEl.style.color='#f87171'; msgEl.innerText='⚠️ يرجى ملء الاسم والبريد الإلكتروني والهاتف'; }
+    return;
+  }
+
+  if(btn){ btn.disabled=true; btn.innerText='⏳ جاري الحفظ...'; }
+
+  try {
+    /* ① تحديث cdz_current_user_data */
+    let currUser = {};
+    try{ currUser = JSON.parse(localStorage.getItem('cdz_current_user_data')||'{}'); }catch(e){}
+
+    const nameParts = name.split(' ');
+    const firstName = nameParts[0] || name;
+    const lastName  = nameParts.slice(1).join(' ') || '';
+
+    const updatedUser = Object.assign({}, currUser, {
+      firstName, lastName, email, phone,
+      birthdate: birth, address, nid, blood, gender, category, level,
+      wilaya, commune, darChab, hobbies, leadership, skBefore, health,
+      liked, suggest, rating, photoUrl, birthCertUrl, idCardUrl
+    });
+
+    localStorage.setItem('cdz_current_user_data', JSON.stringify(updatedUser));
+
+    /* ② تحديث قائمة المستخدمين المسجلين */
+    try{
+      const users = JSON.parse(localStorage.getItem('cdz_registered_users')||'[]');
+      const idx = users.findIndex(u => u.email === currUser.email || u.email === email);
+      if(idx >= 0){ users[idx] = Object.assign({}, users[idx], updatedUser); }
+      else { users.unshift(updatedUser); }
+      localStorage.setItem('cdz_registered_users', JSON.stringify(users));
+    }catch(e){ console.warn('update reg users:', e); }
+
+    /* ③ تحديث اسم المستخدم في sklab_user_name */
+    localStorage.setItem('sklab_user_name', name);
+
+    /* ④ تحديث nld_join_requests إن وُجد سجل مطابق */
+    try{
+      const requests = JSON.parse(localStorage.getItem('nld_join_requests')||'[]');
+      const oldName  = localStorage.getItem('sklab_user_name') || name;
+      const ri = requests.findIndex(r => r.name === oldName || r.email === currUser.email);
+      if(ri >= 0){
+        requests[ri] = Object.assign({}, requests[ri], { name, email, phone, birth, address, nid, blood, gender, category, level, wilaya, commune, darChab, hobbies, leadership, skBefore, health, liked, suggest, rating, photoUrl, birthCertUrl, idCardUrl });
+        localStorage.setItem('nld_join_requests', JSON.stringify(requests));
+      }
+    }catch(e){ console.warn('update join requests:', e); }
+
+    /* ⑤ تطبيق الصورة في الواجهة إن تغيّرت */
+    if(photoUrl && typeof applyUserPhotoEverywhere === 'function'){
+      applyUserPhotoEverywhere(photoUrl, name);
+    }
+
+    /* ⑥ إشعار SheetDB بالتحديث */
+    try {
+      const now = new Date();
+      await fetch('https://sheetdb.io/api/v1/sc1z9g0cnu62a/Email Address/' + encodeURIComponent(email), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: {
+            'الاسم واللقب'                                       : name,
+            'تاريخ الميلاد'                                      : birth,
+            'عنوان الاقامة'                                      : address,
+            'رقم بطاقة التعريف ( 16 رقم )'                      : nid,
+            'زمرة الدم'                                          : blood,
+            'الجنس'                                              : gender,
+            'تحديد الفئة'                                        : category,
+            'المستوى الدراسي'                                    : level,
+            'الولاية'                                            : wilaya,
+            'البلدية'                                            : commune,
+            'رقم الهاتف'                                         : phone,
+            'هل انت منخرط بدار الشباب'                          : darChab,
+            'هواياتك'                                            : hobbies,
+            'مهاراتك القيادية'                                   : leadership,
+            'هل شاركت من قبل في الطفل الذكي'                   : skBefore,
+            'تعاني من امراض اذكرها'                             : health,
+            'ماذا اعجبك في Smart Kids'                          : liked,
+            'ماذا تقترح حتى يتم تطوير Smart Kids'              : suggest,
+            'Smart Kids رأيك في مستوى'                         : rating,
+            'الصورة الشمسية'                                     : photoUrl,
+            'شهادة الميلاد'                                       : birthCertUrl,
+            'بطاقة التعريف ( القصر ولي امر )'                    : idCardUrl,
+            'آخر تعديل'                                          : now.toISOString()
+          }
+        })
+      });
+      console.log('✅ SheetDB: تم تحديث البيانات');
+    } catch(sheetErr){
+      console.warn('⚠️ SheetDB PATCH فشل (غير حرج):', sheetErr.message);
+    }
+
+    /* ✅ نجاح */
+    if(msgEl){
+      msgEl.style.display='block';
+      msgEl.style.background='rgba(0,229,160,0.12)';
+      msgEl.style.border='1px solid rgba(0,229,160,0.3)';
+      msgEl.style.color='#00e5a0';
+      msgEl.innerText='✅ تم حفظ التغييرات بنجاح!';
+    }
+    if(typeof showToast === 'function') showToast('✅ تم حفظ معلوماتك بنجاح!');
+
+    setTimeout(() => {
+      document.getElementById('_editInfoOverlay')?.remove();
+    }, 1800);
+
+  } catch(e){
+    if(msgEl){ msgEl.style.display='block'; msgEl.style.background='rgba(229,45,39,0.15)'; msgEl.style.border='1px solid rgba(229,45,39,0.3)'; msgEl.style.color='#f87171'; msgEl.innerText='⚠️ حدث خطأ، حاول مجدداً'; }
+    if(btn){ btn.disabled=false; btn.innerText='💾 حفظ التغييرات'; }
+  }
+};
+
+console.log('✏️ [EditMyInfo] نظام تعديل المعلومات — مفعّل ✅');
 })();
 </script>
 </body>
