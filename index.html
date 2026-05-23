@@ -27397,42 +27397,45 @@ window.openGroupChat = async function(groupId){
       ._cdzGReactBtn:hover{ transform:scale(1.2); }
       ._cdzGTyping{ font-size:11px;color:#8a8a8a;padding:4px 16px;font-style:italic; }
     </style>
-    <!-- هيدر المجموعة -->
-    <div id="_cdzGrpHeader" style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:${themeGrad};color:white;flex-shrink:0;box-shadow:0 3px 14px rgba(0,0,0,0.2);">
-      <div onclick="document.getElementById('_cdzGroupChatScreen').remove()" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;font-weight:700;">‹</div>
-      <div style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">${group.icon||'👥'}</div>
+    <!-- هيدر اللمة الجماعية — مثل محادثة عادية -->
+    <div id="_cdzGrpHeader" style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:white;border-bottom:1px solid rgba(0,0,0,0.08);flex-shrink:0;box-shadow:0 1px 8px rgba(0,0,0,0.07);">
+      <div onclick="document.getElementById('_cdzGroupChatScreen').remove()" style="width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;font-weight:700;color:#555;">‹</div>
+      <div style="width:44px;height:44px;border-radius:50%;background:${themeGrad};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 3px 12px rgba(168,85,247,0.35);">${group.icon||'👥'}</div>
       <div style="flex:1;overflow:hidden;" onclick="_openGroupInfo('${groupId}')">
-        <div style="font-size:16px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${group.name}</div>
-        <div id="_cdzGrpSubtitle" style="font-size:11px;opacity:.85;">${group.members.length} عضو ${group.locked?'🔒':''}</div>
+        <div style="font-size:15px;font-weight:900;color:#1C1E21;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px;">
+          ${group.name}
+          <span style="font-size:10px;font-weight:800;color:#7c3aed;background:rgba(168,85,247,0.12);border-radius:5px;padding:1px 6px;flex-shrink:0;">لمة جماعية</span>
+        </div>
+        <div id="_cdzGrpSubtitle" style="font-size:11px;color:#7c3aed;font-weight:700;">${group.members.length} أعضاء ${group.locked?'🔒':''}</div>
       </div>
-      ${isAdmin?`<div onclick="_openGroupSettings('${groupId}')" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;" title="إعدادات المجموعة">⚙️</div>`:''}
+      ${isAdmin?`<div onclick="_openGroupSettings('${groupId}')" style="width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;" title="إعدادات اللمة">⚙️</div>`:''}
     </div>
-    <!-- رسائل المجموعة -->
-    <div id="_cdzGrpMessages" style="flex:1;overflow-y:auto;padding:12px 12px 4px;background:#f0f2f5;"></div>
+    <!-- رسائل اللمة -->
+    <div id="_cdzGrpMessages" style="flex:1;overflow-y:auto;padding:12px 12px 4px;background:linear-gradient(180deg,#f0f4ff 0%,#f7f8ff 100%);"></div>
     <!-- مؤشر الكتابة -->
-    <div id="_cdzGrpTypingBar" class="_cdzGTyping" style="background:#f0f2f5;flex-shrink:0;min-height:18px;"></div>
-    <!-- منطقة الإدخال -->
-    <div style="padding:8px 10px;background:white;border-top:1px solid #E4E6EB;display:flex;align-items:flex-end;gap:8px;flex-shrink:0;">
+    <div id="_cdzGrpTypingBar" class="_cdzGTyping" style="background:transparent;flex-shrink:0;min-height:18px;padding:2px 14px;font-size:11px;color:#65676B;font-style:italic;"></div>
+    <!-- منطقة الإدخال — مثل محادثة عادية -->
+    <div style="padding:10px 12px;background:rgba(255,255,255,0.97);border-top:1px solid rgba(0,0,0,0.08);display:flex;align-items:flex-end;gap:8px;flex-shrink:0;box-shadow:0 -2px 12px rgba(0,0,0,0.05);">
       <!-- زر المرفقات -->
       <div style="position:relative;flex-shrink:0;">
-        <div onclick="document.getElementById('_cdzGrpAttachMenu').style.display==='block'?document.getElementById('_cdzGrpAttachMenu').style.display='none':document.getElementById('_cdzGrpAttachMenu').style.display='block'" style="width:38px;height:38px;border-radius:50%;background:rgba(168,85,247,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;">📎</div>
+        <div onclick="document.getElementById('_cdzGrpAttachMenu').style.display==='block'?document.getElementById('_cdzGrpAttachMenu').style.display='none':document.getElementById('_cdzGrpAttachMenu').style.display='block'" style="width:40px;height:40px;border-radius:50%;background:rgba(0,120,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:.2s;">📎</div>
         <div id="_cdzGrpAttachMenu" style="display:none;position:fixed;bottom:70px;background:rgba(13,17,23,0.97);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:8px;box-shadow:0 -10px 30px rgba(0,0,0,0.5);z-index:20000;white-space:nowrap;">
           <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:white;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">
-            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:16px;">🖼️</span>صورة
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:16px;">🖼️</span>إرسال صورة
             <input type="file" accept="image/*" style="display:none;" onchange="_sendGrpMedia(event,'image','${groupId}')">
           </label>
           <label style="display:flex;align-items:center;gap:9px;padding:9px 13px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:700;color:white;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">
-            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:16px;">🎬</span>فيديو
+            <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:16px;">🎬</span>إرسال فيديو
             <input type="file" accept="video/*" style="display:none;" onchange="_sendGrpMedia(event,'video','${groupId}')">
           </label>
         </div>
       </div>
       <!-- ميكروفون -->
-      <div id="_cdzGrpMicBtn" onclick="_toggleGrpVoice('${groupId}')" style="position:relative;width:38px;height:38px;border-radius:50%;background:rgba(168,85,247,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;">🎙️
-        <div id="_cdzGrpMicDot" style="display:none;position:absolute;top:2px;right:2px;width:9px;height:9px;border-radius:50%;background:#ef4444;border:2px solid white;animation:pulse 1s infinite;"></div>
+      <div id="_cdzGrpMicBtn" onclick="_toggleGrpVoice('${groupId}')" style="position:relative;width:40px;height:40px;border-radius:50%;background:rgba(0,120,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;transition:.2s;">🎙️
+        <div id="_cdzGrpMicDot" style="display:none;position:absolute;top:2px;right:2px;width:10px;height:10px;border-radius:50%;background:#ef4444;border:2px solid white;animation:pulse 1s infinite;"></div>
       </div>
-      <textarea id="_cdzGrpInput" placeholder="اكتب رسالة للمجموعة…" style="flex:1;background:#F0F2F5;border:none;border-radius:20px;padding:9px 14px;color:#1C1E21;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;resize:none;max-height:90px;min-height:38px;line-height:1.5;text-align:right;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,90)+'px';_cdzGrpTypingSignal('${groupId}')"></textarea>
-      <div onclick="_sendGrpText('${groupId}')" style="width:38px;height:38px;border-radius:50%;background:${themeGrad};display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;box-shadow:0 4px 12px rgba(168,85,247,0.4);">➤</div>
+      <textarea id="_cdzGrpInput" placeholder="اكتب رسالة…" style="flex:1;background:#F0F2F5;border:none;border-radius:22px;padding:10px 16px;color:#1C1E21;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;resize:none;max-height:100px;min-height:40px;line-height:1.5;text-align:right;transition:box-shadow .2s;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';_cdzGrpTypingSignal('${groupId}')" onfocus="this.style.boxShadow='0 0 0 2px rgba(0,120,255,0.18)'" onblur="this.style.boxShadow='none'"></textarea>
+      <div onclick="_sendGrpText('${groupId}')" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00B2FF,#0078FF);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;box-shadow:0 4px 14px rgba(0,120,255,0.4);transition:.15s;">➤</div>
     </div>
   `;
   document.body.appendChild(ov);
@@ -28058,5 +28061,916 @@ console.log('🤖 [AutoPost] نظام المنشورات التلقائية — 
 })();
 </script>
 
+<!-- ══════════════════════════════════════════════════════════════
+     💬 MESSENGER PRO — تحديث شامل للمسنجر
+     الميزات: تصميم حقيقي، رسائل غير مقروءة، رسائل مقيدة،
+     مجموعة جماعية، polling سريع، عرض كل المحادثات
+══════════════════════════════════════════════════════════════ -->
+<style>
+/* ═══════════════════════════════════════════════
+   MESSENGER PRO — CSS
+═══════════════════════════════════════════════ */
+
+/* ── قائمة المحادثات الجديدة ── */
+.msng-inbox-item {
+  display:flex;align-items:center;gap:12px;
+  padding:11px 16px;cursor:pointer;
+  transition:background .12s;
+  position:relative;
+  border-bottom:1px solid rgba(0,0,0,0.05);
+  background:white;
+}
+.msng-inbox-item:active { background:#f0f7ff; }
+.msng-inbox-item.unread-item { background:#f0f7ff; }
+.msng-inbox-item.unread-item .msng-name { font-weight:900; }
+.msng-inbox-item.unread-item .msng-preview { font-weight:700; color:#1C1E21; }
+
+.msng-avatar-wrap { position:relative; flex-shrink:0; }
+.msng-avatar {
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,#00B2FF,#0078FF);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;overflow:hidden;
+}
+.msng-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+.msng-online-dot {
+  position:absolute;bottom:2px;right:2px;
+  width:13px;height:13px;border-radius:50%;
+  background:#22c55e;border:2.5px solid white;
+}
+.msng-group-badge {
+  position:absolute;bottom:-1px;right:-1px;
+  width:20px;height:20px;border-radius:50%;
+  background:linear-gradient(135deg,#a855f7,#7c3aed);
+  border:2px solid white;display:flex;
+  align-items:center;justify-content:center;
+  font-size:10px;
+}
+
+.msng-body { flex:1;min-width:0; }
+.msng-name {
+  font-size:15px;font-weight:700;
+  color:#1C1E21;margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.msng-preview {
+  font-size:13px;color:#65676B;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:flex;align-items:center;gap:4px;
+}
+.msng-preview .tick { font-size:12px; }
+.msng-preview .tick.seen { color:#0078FF; }
+.msng-preview .tick.sent { color:#aaa; }
+
+.msng-right {
+  display:flex;flex-direction:column;
+  align-items:flex-end;gap:5px;flex-shrink:0;
+}
+.msng-time { font-size:11px;color:#65676B; }
+.msng-time.unread-time { color:#0078FF;font-weight:800; }
+.msng-badge {
+  min-width:20px;height:20px;border-radius:10px;
+  background:linear-gradient(135deg,#0099ff,#0055cc);
+  color:white;font-size:11px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 6px;
+}
+.msng-muted-icon { font-size:14px;color:#aaa; }
+
+/* ── فلاتر أعلى القائمة ── */
+.msng-filters {
+  display:flex;gap:6px;padding:8px 14px 8px;
+  border-bottom:1px solid rgba(0,0,0,0.07);
+  background:white;overflow-x:auto;scrollbar-width:none;
+  flex-shrink:0;
+}
+.msng-filter-btn {
+  padding:6px 14px;border-radius:20px;
+  border:1.5px solid #E4E6EB;
+  font-family:'Tajawal',sans-serif;
+  font-size:12px;font-weight:800;
+  color:#65676B;background:white;
+  cursor:pointer;white-space:nowrap;
+  transition:.15s;
+}
+.msng-filter-btn.active {
+  background:#0078FF;border-color:#0078FF;color:white;
+}
+
+/* ── شريط البحث ── */
+.msng-search-bar {
+  padding:8px 14px;background:white;
+  border-bottom:1px solid rgba(0,0,0,0.07);flex-shrink:0;
+}
+.msng-search-input {
+  width:100%;padding:9px 16px 9px 36px;
+  background:#F0F2F5;border:none;border-radius:22px;
+  font-family:'Tajawal',sans-serif;font-size:14px;
+  color:#1C1E21;outline:none;text-align:right;
+  box-sizing:border-box;
+}
+
+/* ── رسائل مقيدة بادج ── */
+.msng-restricted-badge {
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);
+  border-radius:8px;padding:2px 8px;
+  font-size:10px;font-weight:800;color:#ef4444;
+}
+
+/* ── نافذة رسائل مقيدة ── */
+#msngRestrictedModal {
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.65);backdrop-filter:blur(16px);
+  z-index:29000;align-items:flex-end;justify-content:center;
+}
+#msngRestrictedModal.open { display:flex; }
+.msng-restricted-sheet {
+  width:100%;max-width:480px;
+  background:white;border-radius:24px 24px 0 0;
+  padding:0 0 32px;animation:slideUp .3s cubic-bezier(.32,.72,0,1);
+  max-height:80vh;overflow-y:auto;
+}
+
+/* ── شاشة تفاصيل المحادثة ── */
+#chatScreen {
+  position:fixed!important;top:0!important;
+  left:50%!important;transform:translateX(-50%)!important;
+  width:100%!important;max-width:480px!important;
+  height:100%!important;z-index:3000!important;
+  display:none;flex-direction:column!important;
+}
+#chatScreen.open { display:flex!important; }
+
+/* ── تحسين فقاعات الرسائل ── */
+.chat-bubble.me {
+  background:linear-gradient(135deg,#0099ff,#0055cc)!important;
+  border-radius:18px 4px 18px 18px!important;
+}
+.chat-bubble.them {
+  background:#F0F2F5!important;
+  border-radius:4px 18px 18px 18px!important;
+}
+
+/* ── تأثير الضغط المطول ── */
+.msng-inbox-item:active { transform:scale(.98); }
+
+/* ── علامة مقروء/غير مقروء بجانب الرسالة ── */
+.msg-read-receipt { font-size:11px;margin-right:2px; }
+.msg-read-receipt.read { color:#0078FF; }
+.msg-read-receipt.sent { color:#aaa; }
+
+/* ── مؤشر المجموعة الجماعية ── */
+.grp-tag {
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:10px;font-weight:800;
+  color:#7c3aed;background:rgba(168,85,247,0.12);
+  border-radius:6px;padding:1px 7px;
+}
+
+/* ── تحسين chatScreen header ── */
+#chatScreen > div:first-child {
+  background:white!important;
+  border-bottom:1px solid rgba(0,0,0,0.08)!important;
+  box-shadow:0 1px 8px rgba(0,0,0,0.07)!important;
+}
+
+/* ── زر الوضع غير مقروء في قائمة المحادثات ── */
+.msng-action-row {
+  display:flex;align-items:center;gap:6px;
+  padding:6px 14px;flex-shrink:0;
+  border-bottom:1px solid rgba(0,0,0,0.05);
+  background:white;
+}
+.msng-action-btn {
+  display:flex;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:20px;
+  border:1.5px solid #E4E6EB;background:white;
+  font-family:'Tajawal',sans-serif;
+  font-size:12px;font-weight:800;color:#1C1E21;
+  cursor:pointer;transition:.15s;
+}
+.msng-action-btn:active { background:#F0F2F5; }
+.msng-action-btn.danger { border-color:rgba(239,68,68,0.35);color:#ef4444; }
+
+/* ── overlay ضغط مطول ── */
+#msngLongPressMenu {
+  display:none;position:fixed;
+  background:white;border-radius:18px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.22);
+  z-index:30000;padding:8px;min-width:200px;
+  animation:fadeUp .15s ease;
+}
+.msng-lp-item {
+  display:flex;align-items:center;gap:12px;
+  padding:11px 14px;border-radius:12px;
+  cursor:pointer;font-size:14px;font-weight:700;
+  font-family:'Tajawal',sans-serif;color:#1C1E21;
+  transition:.1s;
+}
+.msng-lp-item:active { background:#F0F2F5; }
+.msng-lp-item.danger { color:#ef4444; }
+
+/* ── مؤشر الكتابة محادثة فردية ── */
+#chatTypingBar {
+  padding:4px 16px;font-size:11px;color:#65676B;
+  font-style:italic;flex-shrink:0;min-height:20px;
+  background:transparent;
+}
+
+/* مؤشر "يكتب..." بنقاط متحركة */
+.typing-dots span {
+  display:inline-block;width:5px;height:5px;
+  border-radius:50%;background:#aaa;margin:0 1px;
+  animation:dotBounce 1.2s infinite;
+}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dotBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+/* إصلاح مجموعة جماعية */
+._cdzGBubbleMy {
+  background:linear-gradient(135deg,#0099ff,#0055cc)!important;
+  color:white!important;
+  border-radius:18px 4px 18px 18px!important;
+  margin-right:auto!important;margin-left:0!important;
+}
+._cdzGBubbleOther {
+  background:#F0F2F5!important;color:#1C1E21!important;
+  border-radius:4px 18px 18px 18px!important;
+  margin-left:auto!important;margin-right:0!important;
+}
+</style>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   💬 MESSENGER PRO — JavaScript
+   - عرض كل المحادثات بتصميم حقيقي
+   - فلاتر: الكل / غير مقروء / مقيدة
+   - زر "وضع غير مقروء" على كل محادثة (ضغط مطول)
+   - مجموعة جماعية تعمل كأي محادثة
+   - polling سريع كل 2 ثانية
+══════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ── حالة المسنجر ── */
+const _MP = {
+  filter: 'all', // all | unread | restricted
+  restricted: new Set(JSON.parse(localStorage.getItem('_msng_restricted')||'[]')),
+  unreadOverride: new Set(JSON.parse(localStorage.getItem('_msng_unread_override')||'[]')),
+  pollTimer: null,
+};
+
+/* ── حفظ الحالة ── */
+function _mpSave(){
+  localStorage.setItem('_msng_restricted', JSON.stringify([..._MP.restricted]));
+  localStorage.setItem('_msng_unread_override', JSON.stringify([..._MP.unreadOverride]));
+}
+
+/* ══ إعادة بناء inboxList بتصميم المسنجر الحقيقي ══ */
+window._msngRebuildInbox = async function(){
+  const listEl = document.getElementById('inboxList');
+  if(!listEl) return;
+
+  const myName = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
+  if(!myName){
+    listEl.innerHTML = `<div style="text-align:center;padding:50px 20px;color:#65676B;font-size:14px;">سجّل دخولك أولاً</div>`;
+    return;
+  }
+
+  /* ── إضافة شريط الفلاتر وشريط البحث ── */
+  _msngEnsureFiltersBar();
+
+  /* ── جمع المحادثات من localStorage + Supabase ── */
+  const convMap = {};
+
+  /* من localStorage */
+  const allKeys = new Set();
+  try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k) allKeys.add(k); } }catch(e){}
+  for(const k of allKeys){
+    if(!k || !k.startsWith('nld_p2p_')) continue;
+    let msgs;
+    try{ msgs = JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ continue; }
+    const relevant = msgs.filter(m=>m.from===myName||m.to===myName);
+    if(relevant.length===0) continue;
+    const last = relevant[relevant.length-1];
+    const other = last.from===myName ? last.to : last.from;
+    if(!other || other===myName) continue;
+    const unread = relevant.filter(m=>m.to===myName&&!m.read).length;
+    if(!convMap[other] || new Date(last.timestamp)>new Date(convMap[other].last.timestamp)){
+      convMap[other] = { other, last, unread, msgs: relevant };
+    } else {
+      convMap[other].unread = Math.max(convMap[other].unread, unread);
+    }
+  }
+
+  /* من Supabase إذا متوفر */
+  try{
+    if(typeof sbGetInbox === 'function'){
+      const sbMsgs = await sbGetInbox(myName);
+      if(Array.isArray(sbMsgs)){
+        sbMsgs.forEach(m=>{
+          if(!m || (!m.from && !m.to)) return;
+          const other = m.from===myName ? m.to : m.from;
+          if(!other || other===myName) return;
+          if(!convMap[other] || (m.timestamp||'')>(convMap[other].last.timestamp||'')){
+            convMap[other] = convMap[other] || { other, last: m, unread: 0, msgs: [] };
+            convMap[other].last = m;
+          }
+          if(m.to===myName && !m.read){
+            convMap[other] = convMap[other] || { other, last: m, unread: 0, msgs: [] };
+            convMap[other].unread = (convMap[other].unread||0)+1;
+          }
+        });
+      }
+    }
+  }catch(e){}
+
+  /* ── جلب المجموعات الجماعية ── */
+  let groups = [];
+  try{
+    const DB_URL = "https://connectdz-49fab-default-rtdb.firebaseio.com";
+    const r = await fetch(`${DB_URL}/cdz_groups.json`);
+    const data = await r.json();
+    if(data && typeof data === 'object'){
+      groups = Object.entries(data)
+        .map(([id,g])=>({...g,id}))
+        .filter(g => g && Array.isArray(g.members) && g.members.includes(myName));
+    }
+  }catch(e){}
+
+  /* ── قائمة المحادثات المرتبة ── */
+  let convList = Object.values(convMap).sort((a,b)=>{
+    return new Date(b.last.timestamp||0) - new Date(a.last.timestamp||0);
+  });
+
+  /* ── تطبيق فلتر غير مقروء ── */
+  let filteredList = convList;
+  if(_MP.filter === 'unread'){
+    filteredList = convList.filter(c => c.unread>0 || _MP.unreadOverride.has(c.other));
+  } else if(_MP.filter === 'restricted'){
+    filteredList = convList.filter(c => _MP.restricted.has(c.other));
+  }
+
+  /* ── بناء HTML ── */
+  let html = '';
+
+  /* المجموعات أولاً */
+  if(groups.length > 0 && _MP.filter === 'all'){
+    groups.forEach(g=>{
+      const msgs = g.messages || [];
+      const last = msgs[msgs.length-1];
+      const lastText = last ? (last.text || (last.type==='image'?'🖼️ صورة':last.type==='video'?'🎬 فيديو':'🎙️ صوت')) : 'لا توجد رسائل بعد';
+      const lastSender = last ? last.from : '';
+      const isMyMsg = lastSender === myName;
+      const ts = last ? _msngFormatTime(last.ts ? new Date(last.ts) : new Date()) : '';
+      const unreadGrp = msgs.filter(m=>m.from!==myName && !(m.readBy||[]).includes(myName)).length;
+      const isRestricted = _MP.restricted.has('__grp__'+g.id);
+
+      html += `<div class="msng-inbox-item${unreadGrp>0?' unread-item':''}"
+        onclick="window.openGroupChat&&openGroupChat('${g.id}')"
+        oncontextmenu="_msngLongPress(event,'__grp__${g.id}','${(g.name||'').replace(/'/g,"\\'")}','grp');return false;"
+        ontouchstart="_msngTouchStart(event,'__grp__${g.id}','${(g.name||'').replace(/'/g,"\\'")}','grp')"
+        ontouchend="_msngTouchEnd()"
+        style="border-right:3px solid #a855f7;">
+        <div class="msng-avatar-wrap">
+          <div class="msng-avatar" style="background:linear-gradient(135deg,#a855f7,#7c3aed);font-size:24px;">${g.icon||'👥'}</div>
+          <div class="msng-group-badge">👥</div>
+        </div>
+        <div class="msng-body">
+          <div class="msng-name" style="display:flex;align-items:center;gap:6px;">
+            <span>${g.name||'مجموعة'}</span>
+            <span class="grp-tag">جماعية</span>
+            ${isRestricted?'<span class="msng-restricted-badge">🔇 مقيدة</span>':''}
+          </div>
+          <div class="msng-preview">
+            ${isMyMsg?'<span style="color:#0078FF;font-size:12px;">أنت: </span>':''}
+            <span>${lastSender&&!isMyMsg?lastSender+': ':''}${lastText.length>35?lastText.substring(0,35)+'…':lastText}</span>
+          </div>
+        </div>
+        <div class="msng-right">
+          <span class="msng-time${unreadGrp>0?' unread-time':''}">${ts}</span>
+          ${unreadGrp>0?`<span class="msng-badge">${unreadGrp>99?'99+':unreadGrp}</span>`:''}
+        </div>
+      </div>`;
+    });
+  }
+
+  /* المحادثات الفردية */
+  if(filteredList.length > 0){
+    filteredList.forEach(({other, last, unread})=>{
+      const photo = localStorage.getItem('nld_photo_'+other.replace(/\s+/g,'_'));
+      const icon = (typeof getLeaderIcon==='function') ? getLeaderIcon(other) : '👤';
+      const isOnline = _msngIsOnline(other);
+      const msgText = last.message || last.text || '';
+      const isRestricted = _MP.restricted.has(other);
+      const hasUnreadOverride = _MP.unreadOverride.has(other);
+      const effectiveUnread = unread + (hasUnreadOverride ? 1 : 0);
+      const isMyMsg = last.from === myName;
+
+      let preview = msgText
+        ? (msgText.length>38 ? msgText.substring(0,38)+'…' : msgText)
+        : (last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت');
+
+      const ts = last.timestamp ? _msngFormatTime(new Date(last.timestamp)) : '';
+      const safeName = other.replace(/'/g,"\\'");
+
+      html += `<div class="msng-inbox-item${effectiveUnread>0?' unread-item':''}"
+        onclick="_msngOpenChat('${safeName}')"
+        oncontextmenu="_msngLongPress(event,'${safeName}','${safeName}','p2p');return false;"
+        ontouchstart="_msngTouchStart(event,'${safeName}','${safeName}','p2p')"
+        ontouchend="_msngTouchEnd()">
+        <div class="msng-avatar-wrap">
+          ${photo
+            ? `<div class="msng-avatar"><img src="${photo}" alt="${other}"></div>`
+            : `<div class="msng-avatar" style="background:linear-gradient(135deg,${other==='المدير'?'#ef4444,#b91c1c':'#00B2FF,#0078FF'});font-size:22px;">${other==='المدير'?'🛡️':icon}</div>`}
+          ${isOnline ? '<div class="msng-online-dot"></div>' : ''}
+        </div>
+        <div class="msng-body">
+          <div class="msng-name">
+            ${other}
+            ${isRestricted?'<span class="msng-restricted-badge" style="margin-right:6px;">🔇 مقيد</span>':''}
+          </div>
+          <div class="msng-preview">
+            ${isMyMsg ? '<span class="tick'+(last.read?' seen':' sent')+'">'+(last.read?'✓✓':'✓')+'</span>' : ''}
+            <span>${isMyMsg?'أنت: ':''}${preview}</span>
+          </div>
+        </div>
+        <div class="msng-right">
+          <span class="msng-time${effectiveUnread>0?' unread-time':''}">${ts}</span>
+          ${effectiveUnread>0
+            ? `<span class="msng-badge">${effectiveUnread>99?'99+':effectiveUnread}</span>`
+            : (isRestricted?'<span class="msng-muted-icon">🔇</span>':'')}
+        </div>
+      </div>`;
+    });
+  } else if(groups.length === 0) {
+    html = `<div style="text-align:center;padding:50px 20px;">
+      <div style="font-size:56px;margin-bottom:14px;">💬</div>
+      <div style="font-size:15px;font-weight:800;color:#1C1E21;margin-bottom:6px;">
+        ${_MP.filter==='unread'?'لا توجد رسائل غير مقروءة':_MP.filter==='restricted'?'لا توجد رسائل مقيدة':'لا توجد محادثات بعد'}
+      </div>
+      <div style="font-size:13px;color:#65676B;">ابدأ محادثة جديدة من زر +</div>
+    </div>`;
+  }
+
+  listEl.innerHTML = html;
+
+  /* ── شارة إجمالي غير المقروء ── */
+  const totalUnread = convList.reduce((s,c)=>s+c.unread,0);
+  const badge = document.getElementById('totalUnreadBadge');
+  if(badge){
+    if(totalUnread > 0){
+      badge.style.display = 'inline-flex';
+      badge.innerText = totalUnread > 99 ? '99+' : totalUnread;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+};
+
+/* ── تنسيق الوقت مثل Messenger ── */
+function _msngFormatTime(date){
+  if(!(date instanceof Date) || isNaN(date)) return '';
+  const now = new Date();
+  const diff = now - date;
+  const mins = Math.floor(diff/60000);
+  if(mins < 1) return 'الآن';
+  if(mins < 60) return mins + 'د';
+  const hours = Math.floor(diff/3600000);
+  if(hours < 24) return date.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+  const days = Math.floor(diff/86400000);
+  if(days === 1) return 'أمس';
+  if(days < 7) return ['أحد','إثن','ثلا','أرب','خمي','جمع','سبت'][date.getDay()];
+  return date.toLocaleDateString('ar-DZ',{day:'2-digit',month:'2-digit'});
+}
+
+/* ── فحص حالة الاتصال ── */
+function _msngIsOnline(name){
+  try{
+    const norm = name.replace(/\s+/g,'_');
+    const ts = parseInt(localStorage.getItem('nld_online_'+norm)||'0');
+    return ts && (Date.now() - ts < 120000); // 2 دقيقة
+  }catch(e){ return false; }
+}
+
+/* ── فتح محادثة ── */
+window._msngOpenChat = function(name){
+  if(typeof openChatFromSocial === 'function'){
+    openChatFromSocial(name);
+  } else if(typeof openP2PChat === 'function'){
+    openP2PChat(name, false);
+  }
+};
+
+/* ── ضمان شريط الفلاتر وشريط البحث ── */
+function _msngEnsureFiltersBar(){
+  const modal = document.getElementById('messagesModal');
+  if(!modal) return;
+  const container = modal.querySelector('.modal-inner-wrap');
+
+  /* حذف القديم إذا موجود */
+  const existingFilters = document.getElementById('_msngFiltersBar');
+  const existingSearch = document.getElementById('_msngSearchBar');
+  const existingActions = document.getElementById('_msngActionsRow');
+  if(existingFilters) existingFilters.remove();
+  if(existingSearch) existingSearch.remove();
+  if(existingActions) existingActions.remove();
+
+  const listEl = document.getElementById('inboxList');
+  if(!listEl) return;
+
+  /* شريط البحث */
+  const searchBar = document.createElement('div');
+  searchBar.id = '_msngSearchBar';
+  searchBar.className = 'msng-search-bar';
+  searchBar.innerHTML = `
+    <div style="position:relative;">
+      <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:15px;color:#aaa;">🔍</span>
+      <input class="msng-search-input" id="_msngSearchInput"
+        placeholder="ابحث في المحادثات…"
+        oninput="_msngSearchFilter(this.value)"
+        style="padding-right:38px;">
+    </div>`;
+  listEl.parentNode.insertBefore(searchBar, listEl);
+
+  /* شريط الفلاتر */
+  const filtersBar = document.createElement('div');
+  filtersBar.id = '_msngFiltersBar';
+  filtersBar.className = 'msng-filters';
+  filtersBar.innerHTML = `
+    <button class="msng-filter-btn${_MP.filter==='all'?' active':''}" onclick="_msngSetFilter('all')">💬 الكل</button>
+    <button class="msng-filter-btn${_MP.filter==='unread'?' active':''}" onclick="_msngSetFilter('unread')" id="_msngUnreadFilterBtn">
+      🔵 غير مقروء
+    </button>
+    <button class="msng-filter-btn${_MP.filter==='restricted'?' active':''}" onclick="_msngSetFilter('restricted')">🔇 مقيدة</button>
+  `;
+  listEl.parentNode.insertBefore(filtersBar, listEl);
+}
+
+/* ── تغيير الفلتر ── */
+window._msngSetFilter = function(f){
+  _MP.filter = f;
+  /* تحديث أزرار الفلاتر */
+  document.querySelectorAll('.msng-filter-btn').forEach(btn=>{
+    btn.classList.remove('active');
+  });
+  const activeBtn = document.querySelector(`.msng-filter-btn[onclick*="${f}"]`);
+  if(activeBtn) activeBtn.classList.add('active');
+  window._msngRebuildInbox();
+};
+
+/* ── بحث في المحادثات ── */
+window._msngSearchFilter = function(q){
+  const items = document.querySelectorAll('.msng-inbox-item');
+  items.forEach(item=>{
+    const nameEl = item.querySelector('.msng-name');
+    const previewEl = item.querySelector('.msng-preview');
+    const name = nameEl ? nameEl.textContent : '';
+    const preview = previewEl ? previewEl.textContent : '';
+    const match = !q || name.includes(q) || preview.includes(q);
+    item.style.display = match ? 'flex' : 'none';
+  });
+};
+
+/* ══ قائمة الضغط المطول ══ */
+let _msngLPTimer = null;
+let _msngLPTarget = null;
+
+window._msngTouchStart = function(e, key, label, type){
+  _msngLPTarget = { key, label, type };
+  _msngLPTimer = setTimeout(()=>{
+    const touch = e.touches[0];
+    if(touch) _msngLongPress({ clientX: touch.clientX, clientY: touch.clientY }, key, label, type);
+  }, 600);
+};
+
+window._msngTouchEnd = function(){
+  if(_msngLPTimer){ clearTimeout(_msngLPTimer); _msngLPTimer = null; }
+};
+
+window._msngLongPress = function(e, key, label, type){
+  if(_msngLPTimer){ clearTimeout(_msngLPTimer); _msngLPTimer = null; }
+
+  /* إزالة القديم */
+  const old = document.getElementById('msngLongPressMenu');
+  if(old) old.remove();
+
+  const isRestricted = _MP.restricted.has(key);
+  const hasUnreadOverride = _MP.unreadOverride.has(key);
+
+  const menu = document.createElement('div');
+  menu.id = 'msngLongPressMenu';
+  menu.style.cssText = `display:block;position:fixed;z-index:30000;background:white;
+    border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,0.22);padding:8px;
+    min-width:210px;animation:fadeUp .15s ease;font-family:'Tajawal',sans-serif;`;
+
+  /* تحديد الموضع */
+  const x = Math.min(e.clientX, window.innerWidth - 230);
+  const y = Math.min(e.clientY, window.innerHeight - 220);
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+
+  menu.innerHTML = `
+    <div style="padding:8px 14px 6px;font-size:13px;font-weight:900;color:#1C1E21;border-bottom:1px solid #F0F2F5;margin-bottom:4px;">${label}</div>
+    <div class="msng-lp-item" onclick="_msngMarkUnread('${key}');_msngCloseLPMenu()">
+      <span style="font-size:18px;">${hasUnreadOverride?'✅':'🔵'}</span>
+      <span>${hasUnreadOverride?'وضع كمقروء':'وضع كغير مقروء'}</span>
+    </div>
+    <div class="msng-lp-item" onclick="_msngToggleRestrict('${key}');_msngCloseLPMenu()">
+      <span style="font-size:18px;">${isRestricted?'🔔':'🔇'}</span>
+      <span>${isRestricted?'رفع القيد':'تقييد الرسائل'}</span>
+    </div>
+    ${type==='p2p' ? `
+    <div class="msng-lp-item" onclick="_msngOpenChat('${key}');_msngCloseLPMenu()">
+      <span style="font-size:18px;">💬</span>
+      <span>فتح المحادثة</span>
+    </div>` : ''}
+    <div class="msng-lp-item danger" onclick="_msngDeleteConv('${key}','${label}',${type==='grp'?'true':'false'});_msngCloseLPMenu()">
+      <span style="font-size:18px;">🗑️</span>
+      <span>حذف المحادثة</span>
+    </div>
+  `;
+
+  document.body.appendChild(menu);
+
+  /* إغلاق عند الضغط خارجه */
+  setTimeout(()=>{
+    document.addEventListener('click', _msngCloseLPMenu, {once:true});
+    document.addEventListener('touchstart', _msngCloseLPMenu, {once:true});
+  }, 100);
+};
+
+window._msngCloseLPMenu = function(){
+  const menu = document.getElementById('msngLongPressMenu');
+  if(menu) menu.remove();
+};
+
+/* ── وضع كغير مقروء / مقروء ── */
+window._msngMarkUnread = function(key){
+  if(_MP.unreadOverride.has(key)){
+    _MP.unreadOverride.delete(key);
+    if(typeof showToast==='function') showToast('✅ تم وضع المحادثة كمقروءة');
+  } else {
+    _MP.unreadOverride.add(key);
+    if(typeof showToast==='function') showToast('🔵 تم وضع المحادثة كغير مقروءة');
+  }
+  _mpSave();
+  window._msngRebuildInbox();
+};
+
+/* ── تقييد / رفع تقييد ── */
+window._msngToggleRestrict = function(key){
+  if(_MP.restricted.has(key)){
+    _MP.restricted.delete(key);
+    if(typeof showToast==='function') showToast('🔔 تم رفع القيد عن الرسائل');
+  } else {
+    _MP.restricted.add(key);
+    if(typeof showToast==='function') showToast('🔇 تم تقييد الرسائل');
+  }
+  _mpSave();
+  window._msngRebuildInbox();
+};
+
+/* ── حذف محادثة ── */
+window._msngDeleteConv = function(key, label, isGroup){
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:35000;background:rgba(0,0,0,0.7);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;';
+  ov.innerHTML = `
+    <div style="background:white;border-radius:22px;padding:26px 22px;text-align:center;width:86%;max-width:310px;box-shadow:0 30px 70px rgba(0,0,0,0.4);animation:fadeUp .3s ease;font-family:'Tajawal',sans-serif;">
+      <div style="font-size:38px;margin-bottom:12px;">🗑️</div>
+      <div style="font-size:16px;font-weight:900;color:#1C1E21;margin-bottom:8px;">حذف المحادثة</div>
+      <div style="font-size:13px;color:#65676B;margin-bottom:20px;">هل تريد حذف محادثتك مع <strong>${label}</strong>؟</div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="this.closest('[style*=fixed]').remove()"
+          style="flex:1;padding:12px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#65676B;cursor:pointer;">إلغاء</button>
+        <button onclick="
+          if(!${isGroup}){
+            const myN=typeof getCurrentUser==='function'?getCurrentUser():null;
+            if(myN){
+              const allKeys=[];
+              try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k)allKeys.push(k);}}catch(e){}
+              allKeys.filter(k=>k&&k.startsWith('nld_p2p_')&&k.includes('${key.replace(/'/g,"\\'")}')).forEach(k=>localStorage.removeItem(k));
+            }
+          }
+          this.closest('[style*=fixed]').remove();
+          window._msngRebuildInbox&&window._msngRebuildInbox();
+          if(typeof showToast==='function')showToast('🗑️ تم حذف المحادثة');"
+          style="flex:1;padding:12px;background:linear-gradient(135deg,#dc2626,#b91c1c);border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;color:white;cursor:pointer;">حذف ✓</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+};
+
+/* ══ Polling سريع كل 3 ثوانٍ عند فتح المسنجر ══ */
+window._msngStartPolling = function(){
+  window._msngStopPolling();
+  _MP.pollTimer = setInterval(()=>{
+    /* تحديث إذا المسنجر مفتوح */
+    const modal = document.getElementById('messagesModal');
+    if(modal && modal.style.display !== 'none'){
+      window._msngRebuildInbox();
+    }
+    /* تحديث في smInboxList أيضاً */
+    const smList = document.getElementById('smInboxList');
+    if(smList && smList.offsetParent !== null){
+      const myN = typeof getCurrentUser==='function' ? getCurrentUser() : null;
+      if(myN && typeof _renderSmInbox==='function') _renderSmInbox(myN);
+    }
+  }, 3000);
+};
+
+window._msngStopPolling = function(){
+  if(_MP.pollTimer){ clearInterval(_MP.pollTimer); _MP.pollTimer = null; }
+};
+
+/* ══ تحسين _renderSmInbox لإضافة المجموعات ══ */
+const _origSmInbox = window._renderSmInbox;
+window._renderSmInbox = async function(myName, filter){
+  if(_origSmInbox) await _origSmInbox(myName, filter);
+
+  /* إضافة المجموعات إلى smInboxList */
+  const listEl = document.getElementById('smInboxList');
+  if(!listEl || !myName) return;
+
+  let groups = [];
+  try{
+    const DB_URL = "https://connectdz-49fab-default-rtdb.firebaseio.com";
+    const r = await fetch(`${DB_URL}/cdz_groups.json`);
+    const data = await r.json();
+    if(data && typeof data === 'object'){
+      groups = Object.entries(data)
+        .map(([id,g])=>({...g,id}))
+        .filter(g => g && Array.isArray(g.members) && g.members.includes(myName));
+    }
+  }catch(e){}
+
+  if(groups.length === 0) return;
+
+  const grpHtml = groups.map(g=>{
+    const msgs = g.messages || [];
+    const last = msgs[msgs.length-1];
+    const lastText = last ? (last.text || (last.type==='image'?'🖼️ صورة':last.type==='video'?'🎬 فيديو':'🎙️')) : 'لا رسائل';
+    const unreadGrp = msgs.filter(m=>m.from!==myName && !(m.readBy||[]).includes(myName)).length;
+    const ts = last ? _msngFormatTime(last.ts ? new Date(last.ts) : new Date()) : '';
+    return `<div onclick="openGroupChat&&openGroupChat('${g.id}')"
+      style="display:flex;align-items:center;gap:12px;background:white;padding:12px 14px;border-radius:14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:.15s;border-right:3px solid #a855f7;"
+      onmouseover="this.style.background='#F7F8FA'" onmouseout="this.style.background='white'">
+      <div style="position:relative;flex-shrink:0;">
+        <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:24px;">${g.icon||'👥'}</div>
+        <div style="position:absolute;bottom:-1px;right:-1px;width:18px;height:18px;border-radius:50%;background:#7c3aed;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:9px;color:white;">👥</div>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:${unreadGrp>0?'900':'700'};color:#050505;margin-bottom:2px;display:flex;align-items:center;gap:6px;">
+          ${g.name||'مجموعة'}
+          <span style="font-size:9px;font-weight:800;color:#7c3aed;background:rgba(168,85,247,0.12);border-radius:4px;padding:1px 5px;">جماعية</span>
+        </div>
+        <div style="font-size:12px;color:${unreadGrp>0?'#050505':'#65676B'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:${unreadGrp>0?'700':'400'};">
+          ${last&&last.from&&last.from!==myName?last.from+': ':''}${lastText}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+        <div style="font-size:10px;color:${unreadGrp>0?'#7c3aed':'#65676B'};">${ts}</div>
+        ${unreadGrp>0?`<div style="min-width:20px;height:20px;border-radius:10px;background:#7c3aed;color:white;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 5px;">${unreadGrp}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  listEl.insertAdjacentHTML('afterbegin', grpHtml);
+};
+
+/* ══ إصلاح openGroupChat ليعمل كمحادثة عادية ══ */
+window.openGroupChat = window.openGroupChat || function(groupId){
+  if(typeof window._cdzOpenGroupChat === 'function'){
+    window._cdzOpenGroupChat(groupId);
+  }
+};
+
+/* ── ربط الدالة الأصلية ── */
+window._cdzOpenGroupChat = window._cdzOpenGroupChat || null;
+document.addEventListener('DOMContentLoaded', function(){
+  /* ابحث عن دالة فتح المجموعة */
+  if(typeof window.openCreateGroupScreen === 'function'){
+    /* تحقق من وجود دالة openGroupChat في الكود الأصلي */
+    const allFuncs = Object.keys(window);
+    const grpFn = allFuncs.find(k=> k.includes('Group') && k.includes('Chat') && typeof window[k]==='function');
+    if(grpFn && grpFn !== 'openGroupChat'){
+      window.openGroupChat = window[grpFn];
+    }
+  }
+});
+
+/* ══ Override openMessages لتشغيل _msngRebuildInbox ══ */
+const _origOpenMessages = window.openMessages;
+window.openMessages = function(){
+  if(_origOpenMessages) _origOpenMessages();
+  setTimeout(window._msngRebuildInbox, 100);
+  window._msngStartPolling();
+};
+
+const _origCloseMessages = window.closeMessagesModal;
+window.closeMessagesModal = function(){
+  if(_origCloseMessages) _origCloseMessages();
+  window._msngStopPolling();
+};
+
+/* ══ إصلاح نظام المجموعة الجماعية ══ */
+/* إعادة تسمية المجموعة من "لمة جماعية" بدلاً من "مجموعة" */
+const _origCreateGroupScreen = window.openCreateGroupScreen;
+window.openCreateGroupScreen = function(){
+  if(_origCreateGroupScreen) _origCreateGroupScreen();
+  /* تغيير النصوص بعد إنشاء الشاشة */
+  setTimeout(()=>{
+    const nameInput = document.getElementById('_cdzGrpName');
+    if(nameInput && !nameInput.value){
+      nameInput.placeholder = 'اسم اللمة الجماعية…';
+    }
+    const titleEl = document.querySelector('#_cdzGroupCreate div[style*="font-size:17px"]');
+    if(titleEl && titleEl.innerText.includes('إنشاء مجموعة')){
+      titleEl.innerText = 'إنشاء لمة جماعية';
+    }
+    /* تغيير وصف شاشة الإنشاء */
+    const subEl = document.querySelector('#_cdzGroupCreate div[style*="font-size:11px"][style*="opacity"]');
+    if(subEl) subEl.innerText = 'اختر الأعضاء وامنحها اسماً';
+  }, 200);
+};
+
+/* ══ تتبع حالة الاتصال ══ */
+(function _trackOnline(){
+  const myN = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+  if(!myN) return;
+  const norm = myN.replace(/\s+/g,'_');
+  function _updatePresence(){
+    localStorage.setItem('nld_online_'+norm, String(Date.now()));
+  }
+  _updatePresence();
+  setInterval(_updatePresence, 30000);
+  document.addEventListener('visibilitychange', ()=>{
+    if(!document.hidden) _updatePresence();
+  });
+})();
+
+/* ══ إضافة "رسائل مقيدة" في قائمة الثلاث نقاط للمحادثة الفردية ══ */
+const _origToggleChatDots = window.toggleChatDotsMenu;
+window.toggleChatDotsMenu = function(){
+  if(_origToggleChatDots) _origToggleChatDots();
+  /* إضافة زر الرسائل المقيدة إذا لم يكن موجوداً */
+  setTimeout(()=>{
+    const menu = document.getElementById('chatDotsMenu');
+    if(!menu || document.getElementById('_msngRestrictBtn')) return;
+    const target = window._currentChatTarget;
+    if(!target) return;
+    const isRestricted = _MP.restricted.has(target);
+    const btn = document.createElement('div');
+    btn.id = '_msngRestrictBtn';
+    btn.className = 'cdm-item';
+    btn.innerHTML = `
+      <div class="cdm-icon" style="background:${isRestricted?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};">${isRestricted?'🔔':'🔇'}</div>
+      <div>
+        <div>${isRestricted?'رفع تقييد الرسائل':'تقييد الرسائل'}</div>
+        <div style="font-size:11px;color:#65676B;font-weight:500;">${isRestricted?'السماح بالإشعارات':'إسكات الإشعارات'}</div>
+      </div>`;
+    btn.onclick = function(){
+      _msngToggleRestrict(target);
+      const menuEl = document.getElementById('chatDotsMenu');
+      if(menuEl) menuEl.classList.remove('open');
+      const existing = document.getElementById('_msngRestrictBtn');
+      if(existing) existing.remove();
+    };
+    const firstItem = menu.querySelector('.cdm-item');
+    if(firstItem) menu.insertBefore(btn, firstItem.nextSibling);
+    else menu.appendChild(btn);
+  }, 50);
+};
+
+/* ══ تحديث renderInboxList الأصلي ليستخدم النظام الجديد ══ */
+const _origRenderInboxList = window.renderInboxList;
+window.renderInboxList = async function(){
+  await window._msngRebuildInbox();
+};
+
+/* ══ تشغيل تلقائي ══ */
+window.addEventListener('load', function(){
+  setTimeout(()=>{
+    /* تحديث polling عند فتح المسنجر */
+    const modal = document.getElementById('messagesModal');
+    if(modal){
+      const origOpen = window.openMessages;
+      /* لا نعيد override إذا تم بالفعل */
+    }
+    /* تتبع حالة الاتصال */
+    const myN = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+    if(myN){
+      const norm = myN.replace(/\s+/g,'_');
+      localStorage.setItem('nld_online_'+norm, String(Date.now()));
+    }
+  }, 2000);
+});
+
+console.log('💬 [MessengerPro] نظام المسنجر المطور — مفعّل ✅');
+})();
+</script>
 </body>
 </html>
