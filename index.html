@@ -7945,7 +7945,7 @@ function renderProfilePosts(name){
         ${avatarHtml}
         <div style="flex:1;">
           <div style="font-size:14px;font-weight:900;color:#050505;">${name}</div>
-          <div style="font-size:11px;color:#65676B;">${p.date} • 🌐</div>
+          <div style="font-size:11px;color:#65676B;"><span data-post-ts="${p.ts||''}">${_timeAgo(p.ts||p.date)}</span> • 🌐</div>
         </div>
         <div onclick="deletePost('${name}',${i})" style="width:30px;height:30px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:#65676B;">🗑️</div>
       </div>
@@ -14601,11 +14601,46 @@ function _startFbFeedPolling(){
     const container = document.getElementById('socialFeedContainer');
     if(container && container.offsetParent !== null) renderSocialFeed();
   }, 30000);
+  /* ✅ تحديث الأوقات كل 60 ثانية بدون إعادة جلب Firebase */
+  setInterval(()=>{
+    document.querySelectorAll('[data-post-ts]').forEach(el=>{
+      const ts = parseInt(el.getAttribute('data-post-ts'));
+      if(!isNaN(ts)) el.textContent = _timeAgo(ts);
+    });
+  }, 60000);
 }
 
 /* ══════════════════════════════════════════
    📰 الفيد الاجتماعي (كل المنشورات)
    ══════════════════════════════════════════ */
+/* ══════════════════════════════════════════
+   ⏰ دالة حساب الوقت النسبي (مثل فيسبوك)
+   ══════════════════════════════════════════ */
+function _timeAgo(tsOrDateStr){
+  let ts = tsOrDateStr;
+  /* إذا كانت قيمة عددية (timestamp) نستخدمها مباشرة */
+  if(typeof ts !== 'number'){
+    /* محاولة تحويل نص التاريخ المخزّن */
+    const parsed = Date.parse(ts);
+    ts = isNaN(parsed) ? Date.now() : parsed;
+  }
+  const diff = Math.floor((Date.now() - ts) / 1000); /* بالثواني */
+  if(diff < 5)   return 'الآن';
+  if(diff < 60)  return 'منذ ' + diff + ' ث';
+  const mins = Math.floor(diff / 60);
+  if(mins < 60)  return 'منذ ' + mins + (mins===1?' دقيقة':' دقيقة');
+  const hrs = Math.floor(mins / 60);
+  if(hrs < 24)   return 'منذ ' + hrs + (hrs===1?' ساعة':' ساعة');
+  const days = Math.floor(hrs / 24);
+  if(days < 7)   return 'منذ ' + days + (days===1?' يوم':' أيام');
+  const weeks = Math.floor(days / 7);
+  if(weeks < 4)  return 'منذ ' + weeks + (weeks===1?' أسبوع':' أسابيع');
+  const months = Math.floor(days / 30);
+  if(months < 12) return 'منذ ' + months + (months===1?' شهر':' أشهر');
+  const years = Math.floor(days / 365);
+  return 'منذ ' + years + (years===1?' سنة':' سنوات');
+}
+
 async function renderSocialFeed(){
   const container = document.getElementById('socialFeedContainer');
   if(!container) return;
@@ -14704,7 +14739,7 @@ function renderSocialPostCard(p){
         ${avatarHtml}
         <div style="flex:1;">
           <div style="font-size:14px;font-weight:900;color:#050505;cursor:${isAd?'default':'pointer'};" ${isAd?'':` onclick="viewMemberProfile('${p.author}')"`}>${p.author}${!isAd && typeof getAdminVerifiedBadgeHtml==='function' ? getAdminVerifiedBadgeHtml(p.author) : ''}</div>
-          <div style="font-size:11px;color:#65676B;">${p.date} • ${isAd?'📢 إعلان':(p.privacy||'🌐 عام')}</div>
+          <div style="font-size:11px;color:#65676B;"><span data-post-ts="${p.ts||''}">${_timeAgo(p.ts||p.date)}</span> • ${isAd?'📢 إعلان':(p.privacy||'🌐 عام')}</div>
         </div>
         ${!isAd ? `<div style="position:relative;">
           <div onclick="togglePostMenu('${p.id}')" style="width:32px;height:32px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:900;color:#65676B;letter-spacing:1px;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">⋮</div>
@@ -20033,6 +20068,17 @@ function doLogout(){
   hideOnlineDot();
   localStorage.removeItem('sklab_user_name');
   localStorage.removeItem('sklab_admin_email');
+
+  /* 🔒 إذا جاء الخروج من "خروج جميع الجلسات" → نحذف الحسابات المحفوظة للأمان */
+  if(window._logoutFromAllSessions){
+    window._logoutFromAllSessions = false;
+    try {
+      const did = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+      localStorage.removeItem('cdz_saved_login_accounts_' + did);
+      localStorage.removeItem('nld_saved_accounts');
+      localStorage.removeItem('sklab_saved_accounts');
+    } catch(e){}
+  }
   _isAdmin = false;
   _allMembersCache = [];
 
@@ -23015,13 +23061,9 @@ window.saveUserPassword = function(){
 
 /* ═══════════ خروج من جميع الجلسات ═══════════ */
 window.logoutAllSessions = function(){
-  /* جلب بيانات المستخدم الحالي */
+  /* جلب بيانات المستخدم الحالي — اختياري، لا يوقف العملية */
   let currUser = null;
   try{ currUser = JSON.parse(localStorage.getItem('cdz_current_user_data')||'null'); }catch(e){}
-  if(!currUser || !currUser.email){
-    toast('⚠️ يجب تسجيل الدخول أولاً');
-    return;
-  }
 
   /* عرض نموذج الإيميل + كلمة المرور الجديدة */
   const ov = document.createElement('div');
@@ -23140,6 +23182,14 @@ window._doLogoutAllSessions = function(btn){
   localStorage.removeItem('cdz_current_user_data');
   localStorage.removeItem('sklab_user_name');
 
+  /* 🔒 حذف الحسابات المحفوظة لأسباب أمنية (تُضاف من جديد بعد تسجيل الدخول) */
+  try {
+    const did = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+    localStorage.removeItem('cdz_saved_login_accounts_' + did);
+    localStorage.removeItem('nld_saved_accounts'); /* القديم */
+    localStorage.removeItem('sklab_saved_accounts'); /* القديم */
+  } catch(e) {}
+
   showMsg('✅ تم الحفظ بنجاح! جارٍ التحويل لتسجيل الدخول…', true);
 
   /* ── التحويل لصفحة تسجيل الدخول بعد لحظة ── */
@@ -23150,6 +23200,7 @@ window._doLogoutAllSessions = function(btn){
 
     /* تسجيل الخروج الكامل باستخدام الدالة الموجودة */
     if(typeof doLogout === 'function'){
+      window._logoutFromAllSessions = true;
       doLogout();
     } else {
       /* Fallback يدوي */
@@ -23328,7 +23379,9 @@ window.deleteLoginAccount = function(idx, type, name){
   if(type==='reg'){
     const accs = getSavedLoginAccounts();
     accs.splice(idx,1);
-    localStorage.setItem('cdz_saved_login_accounts', JSON.stringify(accs));
+    /* ✅ حفظ في المفتاح الصحيح المرتبط بالجهاز */
+    const did = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+    localStorage.setItem('cdz_saved_login_accounts_' + did, JSON.stringify(accs));
   } else if(type==='legacy'){
     const key = 'sklab_saved_accounts';
     try{
