@@ -4056,7 +4056,9 @@ body.member-mode #onlineBar{
         <div class="fb-input-label"><span>البريد الإلكتروني</span><span class="fb-input-label-icon">📧</span></div>
         <input type="text" id="fbEmailPhone2" class="fb-input"
           placeholder="example@email.com"
+          oninput="(function(el){var v=el.value.trim();var ok=/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);el.style.borderColor=v.length===0?'':(ok?'#00c07a':'#e53935');var h=document.getElementById('_fbEmailHint2');if(h)h.style.display=(v.length>0&&!ok)?'block':'none';})(this)"
           onkeydown="if(event.key==='Enter')document.getElementById('fbPassword2').focus()">
+        <div id="_fbEmailHint2" style="display:none;font-size:11px;color:#e53935;font-weight:700;margin-top:4px;padding-right:4px;">⚠️ تأكد من صيغة الإيميل (مثال: name@email.com)</div>
       </div>
       <div class="fb-input-wrapper">
         <div class="fb-input-label"><span>كلمة المرور</span><span class="fb-input-label-icon">🔒</span></div>
@@ -7305,22 +7307,35 @@ function playGoldSound(){
 
 /* ===== INIT ===== */
 window.onload=()=>{
-  const saved=localStorage.getItem("sklab_user_name");
-  if(saved){
-    document.getElementById("loginSubtitle").innerText="سعداء بعودتك! 👋";
-    document.getElementById("authFields").innerHTML=`<div class="input-wrap"><span class="input-icon">👤</span><input type="text" id="loginNameOnly" value="${saved}" onkeydown="if(event.key==='Enter')handleAuthAction()"></div>`;
-    document.getElementById("switchAcc").style.display="block";
-    // دخول تلقائي فوري بشريط تحميل — بدون تحقق شبكي
-    setTimeout(()=>loginWithSavedAccount(saved), 80);
-  } else {
-    // إضافة Enter للحقول العادية
-    setTimeout(()=>{
-      const em=document.getElementById("loginEmail");
-      const pw=document.getElementById("loginPassword");
-      if(em) em.onkeydown=e=>{if(e.key==='Enter')handleAuthAction();};
-      if(pw) pw.onkeydown=e=>{if(e.key==='Enter')handleAuthAction();};
-    },50);
+  /* ══════════════════════════════════════════════════════
+     🔒 حذف جميع الحسابات المحفوظة عند كل تحميل
+     يُطلب من الجميع تسجيل الدخول من جديد دائماً
+  ══════════════════════════════════════════════════════ */
+  // مسح الجلسة النشطة
+  localStorage.removeItem('sklab_user_name');
+  localStorage.removeItem('sklab_admin_email');
+  localStorage.removeItem('cdz_current_user_data');
+  // مسح كل مفاتيح الحسابات المحفوظة (القديمة والجديدة)
+  const keysToRemove = [];
+  for(let i=0; i<localStorage.length; i++){
+    const k = localStorage.key(i);
+    if(k && (
+      k.startsWith('nld_saved_accounts') ||
+      k.startsWith('cdz_saved_login_accounts') ||
+      k.startsWith('sklab_saved_accounts')
+    )){
+      keysToRemove.push(k);
+    }
   }
+  keysToRemove.forEach(k => localStorage.removeItem(k));
+
+  // إضافة Enter للحقول العادية
+  setTimeout(()=>{
+    const em=document.getElementById("loginEmail");
+    const pw=document.getElementById("loginPassword");
+    if(em) em.onkeydown=e=>{if(e.key==='Enter')handleAuthAction();};
+    if(pw) pw.onkeydown=e=>{if(e.key==='Enter')handleAuthAction();};
+  },50);
 };
 
 function clearSavedData(){localStorage.removeItem("sklab_user_name");location.reload();}
@@ -9300,8 +9315,7 @@ function processEntry(val,type){
 }
 
 function renderApp(name,pts,isReg, externalEarned){
-  // حفظ الحساب في القائمة المحفوظة
-  if(name && name !== 'زائر') saveAccount(name);
+  // 🔒 لا نحفظ الحساب في القائمة — تسجيل الدخول يدوي دائماً
   // إزالة لوحة المدير السريعة إن بقيت من جلسة سابقة
   const oldCard=document.getElementById('adminQuickCard');
   if(oldCard) oldCard.remove();
@@ -22539,7 +22553,18 @@ window.fbDoLogin = async function(){
   const anyMatch = users.find(u=>u.email===emailTrimmed);
   if(btn){ btn.classList.remove('loading'); btn.textContent='تسجيل الدخول'; }
   if(anyMatch){
-    if(typeof showToast==='function') showToast('❌ كلمة المرور غير صحيحة');
+    if(typeof showToast==='function'){
+      showToast('❌ كلمة المرور غير صحيحة\n🔑 تأكد من كلمة المرور التي سجّلت بها\n💡 أو اضغط "هل نسيت كلمة المرور؟"');
+    }
+    /* تظليل حقل كلمة المرور باللون الأحمر */
+    const passField = document.getElementById('fbPassword');
+    if(passField){
+      passField.style.borderColor = '#e53935';
+      passField.style.boxShadow = '0 0 0 2px rgba(229,57,53,0.25)';
+      passField.value = '';
+      setTimeout(()=>passField.focus(), 100);
+      setTimeout(()=>{ passField.style.borderColor=''; passField.style.boxShadow=''; }, 3000);
+    }
     return;
   }
 
@@ -22554,8 +22579,14 @@ function fbLoginUser(user){
   localStorage.setItem('sklab_user_name', fullName);
   // حفظ بيانات المستخدم الكاملة
   localStorage.setItem(REG_CURR_KEY, JSON.stringify(user));
-  // حفظ في الحسابات السريعة
-  addSavedLoginAccount(user);
+  // 🔒 حفظ في قائمة التبديل الداخلية فقط (داخل التطبيق) — بحد أقصى 3 حسابات
+  try {
+    const appAccs = JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
+    const entry = { name: fullName, email: user.email, photo: user.photoUrl||'', ts: Date.now() };
+    const idx = appAccs.findIndex(a => a.email === user.email);
+    if(idx >= 0) appAccs[idx] = entry; else appAccs.unshift(entry);
+    localStorage.setItem('cdz_app_accounts', JSON.stringify(appAccs.slice(0, 3)));
+  } catch(e) { console.warn('cdz_app_accounts save error:', e); }
   // تطبيق الصورة في كل مكان
   if(user.photoUrl) applyUserPhotoEverywhere(user.photoUrl, fullName);
   /* ✅ استعادة المنشورات من Firebase عند تسجيل الدخول لضمان ظهورها دائماً */
@@ -22888,7 +22919,7 @@ window.completeRegistration = async function(){
     const userDataToSave = {...userData};
     delete userDataToSave.photoPreview;
     saveRegUser(userDataToSave);
-    addSavedLoginAccount(userDataToSave);
+    // 🔒 لا نحفظ في الحسابات السريعة — تسجيل الدخول يدوي دائماً
     localStorage.setItem(REG_CURR_KEY, JSON.stringify(userDataToSave));
     // تحديث userData بدون photoPreview
     Object.assign(userData, userDataToSave);
@@ -23334,7 +23365,17 @@ window.fbDoLogin2 = async function(){
 
   const anyMatch = users.find(u=>u.email===ep);
   if(anyMatch){
-    if(typeof showToast==='function') showToast('❌ كلمة المرور غير صحيحة');
+    if(typeof showToast==='function'){
+      showToast('❌ كلمة المرور غير صحيحة\n🔑 تأكد من كلمة المرور التي سجّلت بها\n💡 أو اضغط "هل نسيت كلمة المرور؟"');
+    }
+    const passField2 = document.getElementById('fbPassword2');
+    if(passField2){
+      passField2.style.borderColor = '#e53935';
+      passField2.style.boxShadow = '0 0 0 2px rgba(229,57,53,0.25)';
+      passField2.value = '';
+      setTimeout(()=>passField2.focus(), 100);
+      setTimeout(()=>{ passField2.style.borderColor=''; passField2.style.boxShadow=''; }, 3000);
+    }
     return;
   }
 
@@ -24366,27 +24407,19 @@ function _loadSavedAccountsInDropdown(){
   const container = document.getElementById('pdSavedAccounts');
   if(!container) return;
   try{
-    // ── الحسابات الجديدة (مسجلة بإيميل)
-    const regAccs  = JSON.parse(localStorage.getItem('cdz_saved_login_accounts')||'[]');
-    // ── الحسابات القديمة (اسم فقط) — نستخدم getSavedAccounts() التي تقرأ بالمفتاح الصحيح مع deviceId
-    const legacyArr = (typeof getSavedAccounts === 'function') ? getSavedAccounts() : [];
+    // ── الحسابات المحفوظة داخل التطبيق فقط (حد أقصى 3)
+    const regAccs  = JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
     const current   = localStorage.getItem('sklab_user_name')||'';
-
-    // تجنب التكرار: استبعاد من له نظير في regAccs
-    const regNames = new Set(regAccs.map(a=>a.name));
-    const legacyAccs = legacyArr.filter(a=>!regNames.has(a.name||a));
 
     container.style.flexDirection = 'column';
 
-    if(!regAccs.length && !legacyAccs.length){
-      container.innerHTML = `<div style="font-size:12px;color:#65676B;padding:8px 4px;text-align:center;">لا توجد حسابات محفوظة على هذا الجهاز</div>`;
+    if(!regAccs.length){
+      container.innerHTML = `<div style="font-size:12px;color:#65676B;padding:8px 4px;text-align:center;">لا توجد حسابات محفوظة</div>`;
       return;
     }
 
-    // ── نفس CSS بطاقات صفحة تسجيل الدخول
     const cardBase = `display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;cursor:pointer;transition:.15s;position:relative;width:100%;box-sizing:border-box;margin-bottom:0;`;
 
-    // حسابات جديدة (مسجلة بإيميل + كلمة مرور)
     const regHTML = regAccs.map((acc, i) => {
       const isCurr = acc.name === current;
       const bg     = isCurr ? 'rgba(231,243,255,0.95)' : '#F0F2F5';
@@ -24396,9 +24429,9 @@ function _loadSavedAccountsInDropdown(){
         ? `<img src="${acc.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" loading="lazy">`
         : `<span style="font-size:20px;">${typeof getLeaderIcon==='function'?getLeaderIcon(acc.name):'👤'}</span>`;
       return `
-        <div onclick="fbQuickLogin(${i});closeProfileDropdown();"
-          oncontextmenu="event.preventDefault();showDeleteAccountMenu(${i},'reg')"
-          data-long-press-idx="${i}" data-long-press-type="reg"
+        <div onclick="_switchAppAccount(${i});closeProfileDropdown();"
+          oncontextmenu="event.preventDefault();_deleteAppAccount(${i})"
+          data-long-press-idx="${i}" data-long-press-type="app"
           onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()"
           style="${cardBase}background:${bg};border:${border};"
           onmouseover="this.style.background='rgba(231,243,255,0.95)';this.style.borderColor='#1877F2';"
@@ -24412,55 +24445,67 @@ function _loadSavedAccountsInDropdown(){
           </div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
             ${isCurr?`<span style="font-size:9px;color:#1877F2;font-weight:800;background:#E7F3FF;border-radius:6px;padding:2px 7px;white-space:nowrap;">✓ حالي</span>`:`<span style="font-size:18px;color:#BCC0C4;">›</span>`}
-            <button onclick="event.stopPropagation();showDeleteAccountMenu(${i},'reg')"
+            <button onclick="event.stopPropagation();_deleteAppAccount(${i})"
               style="width:28px;height:28px;border-radius:8px;border:none;background:rgba(220,38,38,0.1);color:#ef4444;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;"
               onmouseover="this.style.background='rgba(220,38,38,0.22)'" onmouseout="this.style.background='rgba(220,38,38,0.1)'" title="حذف">🗑️</button>
           </div>
         </div>`;
     }).join('');
 
-    // حسابات قديمة (اسم فقط)
-    const regNamesSet = new Set(regAccs.map(a => a.name));
-    const legacyFiltered = legacyAccs.filter(a => !regNamesSet.has(a.name||a));
-    const legacyHTML = legacyFiltered.map((acc, i) => {
-      const name   = acc.name || acc;
-      const isCurr = name === current;
-      const bg     = isCurr ? 'rgba(231,243,255,0.95)' : '#F0F2F5';
-      const border = isCurr ? '1.5px solid #1877F2'    : '1.5px solid transparent';
-      const ring   = isCurr ? 'box-shadow:0 0 0 2.5px #1877F2,0 0 0 4.5px white;' : '';
-      const icon   = typeof getLeaderIcon==='function' ? getLeaderIcon(name) : '👤';
-      const photo  = localStorage.getItem('nld_photo_'+name.replace(/\s+/g,'_'));
-      const avatarInner = photo
-        ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" loading="lazy">`
-        : `<span style="font-size:20px;">${icon}</span>`;
-      const safeName = name.replace(/'/g,"\\'");
-      return `
-        <div onclick="loginWithSavedAccount('${safeName}');closeProfileDropdown();"
-          oncontextmenu="event.preventDefault();showDeleteAccountMenu(${i},'legacy','${safeName}')"
-          data-long-press-idx="${i}" data-long-press-type="legacy" data-long-press-name="${safeName}"
-          onpointerdown="startLongPressAcc(this)" onpointerup="cancelLongPressAcc()" onpointercancel="cancelLongPressAcc()"
-          style="${cardBase}background:${bg};border:${border};"
-          onmouseover="this.style.background='rgba(231,243,255,0.95)';this.style.borderColor='#1877F2';"
-          onmouseout="this.style.background='${bg}';this.style.borderColor='${isCurr?'#1877F2':'transparent'}';">
-          <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;${ring}">
-            ${avatarInner}
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:14px;font-weight:900;color:#050505;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-            ${isCurr?`<span style="font-size:9px;color:#1877F2;font-weight:800;background:#E7F3FF;border-radius:6px;padding:2px 7px;white-space:nowrap;">✓ حالي</span>`:`<span style="font-size:18px;color:#BCC0C4;">›</span>`}
-            <button onclick="event.stopPropagation();showDeleteAccountMenu(${i},'legacy','${safeName}')"
-              style="width:28px;height:28px;border-radius:8px;border:none;background:rgba(220,38,38,0.1);color:#ef4444;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;"
-              onmouseover="this.style.background='rgba(220,38,38,0.22)'" onmouseout="this.style.background='rgba(220,38,38,0.1)'" title="حذف">🗑️</button>
-          </div>
-        </div>`;
-    }).join('');
-
-    container.innerHTML = regHTML + legacyHTML;
+    container.innerHTML = regHTML;
 
   } catch(e){ console.warn('_loadSavedAccountsInDropdown error:', e); }
 }
+
+/* ══ تبديل الحساب من القائمة الداخلية — يطلب كلمة المرور ══ */
+window._switchAppAccount = async function(idx){
+  const accs = JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
+  const acc  = accs[idx];
+  if(!acc) return;
+  const current = localStorage.getItem('sklab_user_name')||'';
+  if(acc.name === current){ if(typeof showToast==='function') showToast('✓ أنت بالفعل في هذا الحساب'); return; }
+
+  /* طلب كلمة المرور */
+  const pass = await showPrompt('تبديل الحساب', 'كلمة المرور...', '🔐', 'أدخل كلمة مرور حساب ' + acc.name);
+  if(!pass) return;
+
+  const users = (typeof getRegUsers==='function') ? getRegUsers() : [];
+  const user  = users.find(u => u.email===acc.email && u.password===btoa(unescape(encodeURIComponent(pass))));
+  if(!user){
+    /* كلمة مرور مؤقتة */
+    if(pass === '000000'){
+      const tmpUser = users.find(u => u.email===acc.email);
+      if(tmpUser){ fbLoginUser(tmpUser); return; }
+    }
+    if(typeof showToast==='function') showToast('❌ كلمة المرور غير صحيحة');
+    return;
+  }
+  fbLoginUser(user);
+};
+
+/* ══ حذف حساب من القائمة الداخلية ══ */
+window._deleteAppAccount = function(idx){
+  const overlay = document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999999;background:rgba(5,10,14,0.7);display:flex;align-items:flex-end;justify-content:center;';
+  overlay.innerHTML=`
+    <div style="background:#0d1117;border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;border:1px solid rgba(255,255,255,0.1);border-bottom:none;">
+      <div style="width:38px;height:4px;background:rgba(255,255,255,0.15);border-radius:10px;margin:0 auto 20px;"></div>
+      <div style="font-size:16px;font-weight:900;color:#e8eaed;text-align:center;margin-bottom:6px;">🗑️ إزالة الحساب من القائمة</div>
+      <div style="font-size:13px;color:#8b949e;text-align:center;margin-bottom:20px;">لن يُحذف الحساب نهائياً — فقط يُزال من قائمة التبديل السريع</div>
+      <button onclick="(function(){
+        var accs=JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
+        accs.splice(${idx},1);
+        localStorage.setItem('cdz_app_accounts',JSON.stringify(accs));
+        document.querySelector('[data-cdz-del-overlay]').remove();
+        _loadSavedAccountsInDropdown();
+        if(typeof showToast==='function') showToast('✅ تم إزالة الحساب من القائمة');
+      })()" style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#e53935,#b71c1c);color:#fff;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px;">🗑️ نعم، إزالة</button>
+      <button onclick="this.closest('[data-cdz-del-overlay]').remove()" style="width:100%;padding:14px;border:1px solid rgba(255,255,255,0.1);border-radius:14px;background:transparent;color:#8b949e;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">إلغاء</button>
+    </div>`;
+  overlay.setAttribute('data-cdz-del-overlay','1');
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+};
 
 /* إخفاء صفحة الفيسبوك للذهاب للوحة التحكم */
 window.hideSocialHomeForDashboard = function(){
