@@ -22654,60 +22654,154 @@ window.saveUserPassword = function(){
 
 /* ═══════════ خروج من جميع الجلسات ═══════════ */
 window.logoutAllSessions = function(){
-  /* عرض تأكيد */
+  /* جلب بيانات المستخدم الحالي */
+  let currUser = null;
+  try{ currUser = JSON.parse(localStorage.getItem('cdz_current_user_data')||'null'); }catch(e){}
+  if(!currUser || !currUser.email){
+    toast('⚠️ يجب تسجيل الدخول أولاً');
+    return;
+  }
+
+  /* عرض نموذج الإيميل + كلمة المرور الجديدة */
   const ov = document.createElement('div');
-  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:20px;';
+  ov.id = '_logoutAllOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;padding:20px;';
   ov.innerHTML = `
-    <div style="background:white;border-radius:20px;padding:24px;max-width:320px;width:100%;text-align:center;font-family:'Tajawal',sans-serif;">
-      <div style="font-size:36px;margin-bottom:12px;">🔓</div>
-      <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:8px;">خروج من جميع الجلسات</div>
-      <div style="font-size:13px;color:#65676B;margin-bottom:20px;line-height:1.7;">سيتم إغلاق حسابك على جميع الأجهزة الأخرى. ستبقى مسجلاً على هذا الجهاز فقط.</div>
+    <div style="background:white;border-radius:22px;padding:26px 22px;max-width:340px;width:100%;font-family:'Tajawal',sans-serif;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-size:38px;margin-bottom:8px;">🔒</div>
+        <div style="font-size:16px;font-weight:900;color:#050505;">خروج من جميع الجلسات</div>
+        <div style="font-size:12px;color:#65676B;margin-top:6px;line-height:1.7;">
+          أدخل بريدك الإلكتروني وكلمة المرور الجديدة.<br>
+          سيتم <strong style="color:#e53935;">الخروج من جميع الأجهزة</strong> بما فيها هذا الجهاز<br>
+          وستُحوَّل لصفحة تسجيل الدخول تلقائياً.
+        </div>
+      </div>
+
+      <!-- حقل الإيميل -->
+      <div style="margin-bottom:10px;">
+        <label style="font-size:12px;font-weight:800;color:#444;display:block;margin-bottom:4px;">📧 البريد الإلكتروني</label>
+        <input id="_laEmail" type="email" value="${currUser.email}" readonly
+          style="width:100%;padding:10px 12px;border:1.5px solid #d0d0d0;border-radius:11px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;outline:none;background:#f5f5f5;color:#444;box-sizing:border-box;cursor:not-allowed;">
+      </div>
+
+      <!-- كلمة المرور الجديدة -->
+      <div style="margin-bottom:10px;">
+        <label style="font-size:12px;font-weight:800;color:#444;display:block;margin-bottom:4px;">🔑 كلمة المرور الجديدة</label>
+        <input id="_laNewPass" type="password" placeholder="6 أحرف على الأقل" autocomplete="new-password"
+          style="width:100%;padding:10px 12px;border:1.5px solid #E4E6EB;border-radius:11px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;outline:none;box-sizing:border-box;transition:.2s;"
+          oninput="document.getElementById('_laNewPass').style.borderColor=this.value.length>=6?'#00c07a':'#E4E6EB'">
+      </div>
+
+      <!-- تأكيد كلمة المرور -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px;font-weight:800;color:#444;display:block;margin-bottom:4px;">🔄 تأكيد كلمة المرور</label>
+        <input id="_laConfPass" type="password" placeholder="أعد كتابة كلمة المرور" autocomplete="new-password"
+          style="width:100%;padding:10px 12px;border:1.5px solid #E4E6EB;border-radius:11px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;outline:none;box-sizing:border-box;transition:.2s;"
+          oninput="var m=document.getElementById('_laNewPass').value;document.getElementById('_laConfPass').style.borderColor=(this.value&&this.value===m)?'#00c07a':(this.value.length>0?'#e53935':'#E4E6EB')">
+      </div>
+
+      <!-- رسالة خطأ -->
+      <div id="_laMsg" style="display:none;padding:9px 12px;border-radius:10px;font-size:12px;font-weight:700;margin-bottom:12px;"></div>
+
+      <!-- أزرار -->
       <div style="display:flex;gap:10px;">
-        <button onclick="this.closest('div[style*=\"fixed\"]').remove()"
+        <button onclick="document.getElementById('_logoutAllOv').remove()"
           style="flex:1;padding:12px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;color:#65676B;cursor:pointer;">إلغاء</button>
-        <button id="_logoutAllConfirmBtn"
-          style="flex:1;padding:12px;background:linear-gradient(135deg,#e53935,#c62828);border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;"
-          onclick="window._doLogoutAllSessions(this)">خروج من الكل</button>
+        <button id="_laConfirmBtn" onclick="window._doLogoutAllSessions(this)"
+          style="flex:1;padding:12px;background:linear-gradient(135deg,#e53935,#c62828);border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;box-shadow:0 4px 14px rgba(229,57,53,0.35);">
+          💾 حفظ والخروج
+        </button>
       </div>
     </div>`;
   document.body.appendChild(ov);
   ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+  setTimeout(()=>{ document.getElementById('_laNewPass')?.focus(); }, 200);
 };
 
 window._doLogoutAllSessions = function(btn){
-  if(btn){ btn.disabled=true; btn.textContent='⏳ جارٍ التنفيذ...'; }
+  const newPass  = (document.getElementById('_laNewPass')||{}).value || '';
+  const confPass = (document.getElementById('_laConfPass')||{}).value || '';
+  const msgEl    = document.getElementById('_laMsg');
+
+  const showMsg = (txt, ok) => {
+    if(!msgEl) return;
+    msgEl.style.display = 'block';
+    msgEl.style.background = ok ? 'rgba(0,192,122,0.12)' : 'rgba(229,57,53,0.12)';
+    msgEl.style.border     = ok ? '1px solid rgba(0,192,122,0.4)' : '1px solid rgba(229,57,53,0.4)';
+    msgEl.style.color      = ok ? '#00875a' : '#c62828';
+    msgEl.textContent      = txt;
+  };
+
+  /* ── التحقق من المدخلات ── */
+  if(!newPass || newPass.length < 6){ showMsg('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل', false); return; }
+  if(newPass !== confPass){ showMsg('❌ كلمتا المرور غير متطابقتين', false); return; }
+
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ جارٍ التنفيذ...'; }
 
   let currUser = null;
   try{ currUser = JSON.parse(localStorage.getItem('cdz_current_user_data')||'null'); }catch(e){}
-  if(!currUser || !currUser.email){ toast('⚠️ لا توجد جلسة نشطة'); document.querySelector('div[style*="position:fixed"][style*="z-index:99999"]')?.remove(); return; }
+  if(!currUser || !currUser.email){
+    showMsg('⚠️ لا توجد جلسة نشطة', false);
+    if(btn){ btn.disabled = false; btn.textContent = '💾 حفظ والخروج'; }
+    return;
+  }
 
-  /* تجديد رمز الجلسة — يُبطل كل الجلسات القديمة في أجهزة أخرى */
+  /* ── تحديث كلمة المرور وتجديد رمز الجلسة ── */
+  const encodedPass    = btoa(unescape(encodeURIComponent(newPass)));
   const newSessionToken = 'ses_' + Date.now().toString(36) + Math.random().toString(36).slice(2);
+
+  /* تحديث في قائمة المستخدمين المسجلين */
   const users = getRegUsers();
-  const idx = users.findIndex(u=>u.email===currUser.email);
-  if(idx>=0){
+  const idx = users.findIndex(u => u.email === currUser.email);
+  if(idx >= 0){
+    users[idx].password     = encodedPass;
     users[idx].sessionToken = newSessionToken;
     localStorage.setItem('cdz_registered_users', JSON.stringify(users));
   }
-  currUser.sessionToken = newSessionToken;
-  localStorage.setItem('cdz_current_user_data', JSON.stringify(currUser));
 
-  /* حفظ الرمز الجديد لهذا الجهاز */
-  const did = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
-  const sessionKey = 'cdz_session_' + currUser.email.replace(/[^a-z0-9]/gi,'_');
-  localStorage.setItem(sessionKey, newSessionToken + '|' + did);
-
-  /* رفع رمز الجلسة إلى Firebase لإبلاغ الأجهزة الأخرى */
-  const DB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-  const safeEmail = currUser.email.replace(/[.#$\[\]]/g,'_');
+  /* رفع رمز الجلسة الجديد إلى Firebase لإبلاغ الأجهزة الأخرى */
+  const DB_BASE   = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  const safeEmail = currUser.email.replace(/[.#$\[\]]/g, '_');
   fetch(`${DB_BASE}/sessions/${safeEmail}.json`, {
-    method: 'PUT',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ token: newSessionToken, revokedAt: new Date().toISOString() })
+    method  : 'PUT',
+    headers : {'Content-Type':'application/json'},
+    body    : JSON.stringify({ token: newSessionToken, revokedAt: new Date().toISOString() })
   }).catch(()=>{});
 
-  document.querySelector('div[style*="position:fixed"][style*="z-index:99999"]')?.remove();
-  toast('✅ تم الخروج من جميع الأجهزة الأخرى بنجاح! أنت الآن على هذا الجهاز فقط.');
+  /* ── مسح جلسة الجهاز الحالي تماماً ── */
+  const sessionKey = 'cdz_session_' + currUser.email.replace(/[^a-z0-9]/gi,'_');
+  localStorage.removeItem(sessionKey);
+  localStorage.removeItem('cdz_current_user_data');
+  localStorage.removeItem('sklab_user_name');
+
+  showMsg('✅ تم الحفظ بنجاح! جارٍ التحويل لتسجيل الدخول…', true);
+
+  /* ── التحويل لصفحة تسجيل الدخول بعد لحظة ── */
+  const _savedEmail = currUser.email;
+  setTimeout(() => {
+    document.getElementById('_logoutAllOv')?.remove();
+
+    /* تسجيل الخروج الكامل باستخدام الدالة الموجودة */
+    if(typeof doLogout === 'function'){
+      doLogout();
+    } else {
+      /* Fallback يدوي */
+      const appEl = document.getElementById('app');
+      const loginEl = document.getElementById('login');
+      if(appEl){ appEl.style.display = 'none'; }
+      if(loginEl){ loginEl.style.display = 'flex'; loginEl.style.flexDirection = 'column'; }
+    }
+
+    /* تعبئة خانة الإيميل مسبقاً في صفحة الدخول + تعبئة حقل الـ New Login */
+    setTimeout(() => {
+      const fbInp = document.getElementById('fbEmailPhone');
+      if(fbInp){ fbInp.value = _savedEmail; fbInp.readOnly = false; }
+      /* تركيز على حقل كلمة المرور مباشرة */
+      const pwInp = document.getElementById('fbPassword');
+      if(pwInp) pwInp.focus();
+    }, 300);
+  }, 1400);
 };
 
 /* ═══════════ نسيان كلمة المرور ═══════════ */
