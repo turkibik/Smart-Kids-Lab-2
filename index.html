@@ -178,20 +178,22 @@ document.addEventListener('touchmove', function(e){
 
   /* 🔒 أنواع الملفات المسموحة فقط */
   const ALLOWED_MIME = [
-    'image/jpeg','image/png','image/gif','image/webp',
-    'video/mp4','video/webm',
-    'audio/mpeg','audio/mp4','audio/ogg','audio/wav'
+    'image/jpeg','image/png','image/gif','image/webp','image/heic','image/heif',
+    'video/mp4','video/webm','video/quicktime','video/x-msvideo','video/avi',
+    'video/3gpp','video/3gp','video/x-matroska','video/mkv','video/x-flv',
+    'video/x-ms-wmv','video/ts','video/mpeg','video/ogg','video/mov',
+    'audio/mpeg','audio/mp4','audio/ogg','audio/wav','audio/webm','audio/flac','audio/aac'
   ];
 
   /* 🔒 الامتدادات المسموحة — فحص مزدوج مع MIME */
-  const ALLOWED_EXT = ['jpg','jpeg','png','gif','webp','mp4','webm','mp3','m4a','ogg','wav'];
+  const ALLOWED_EXT = ['jpg','jpeg','png','gif','webp','heic','heif','mp4','webm','mov','avi','mkv','3gp','flv','wmv','ts','mpeg','mpg','mp3','m4a','ogg','wav','flac','aac','opus'];
 
   /* 🔒 الأحجام القصوى الصارمة بالـ MB — مصدر وحيد لكل الكود */
   const HARD_LIMITS = {
-    image: 25, video: 50, audio: 50,
-    stories: 80, covers: 8, profiles: 5,
-    'social-posts': 10, documents: 20, media: 50,
-    images: 25, videos: 50
+    image: 25, video: 100, audio: 50,
+    stories: 100, covers: 8, profiles: 5,
+    'social-posts': 100, documents: 20, media: 100,
+    images: 25, videos: 100
   };
 
   /* ✅ تصدير HARD_LIMITS عالمياً لاستخدامه في كامل الكود */
@@ -251,7 +253,8 @@ document.addEventListener('touchmove', function(e){
     }
     /* فحص الامتداد — منع التزوير (file.jpg في الحقيقة exe) */
     const ext = (file.name || '').split('.').pop().toLowerCase();
-    if(!ALLOWED_EXT.includes(ext)){
+    /* ✅ نسمح بكل امتدادات الفيديو والصوت الشائعة */
+    if(!ALLOWED_EXT.includes(ext) && !isVideoMime && !isAudioMime){
       throw new Error('❌ امتداد الملف غير مسموح: .' + ext);
     }
     /* فحص اسم الملف — منع path traversal */
@@ -327,10 +330,12 @@ document.addEventListener('touchmove', function(e){
 
         const matched = MAGIC_SIGNATURES.some(sig => hex.startsWith(sig)) || isWebpContent || isHeic;
 
-        /* للصور: نثق بـ MIME type إذا فشل التوقيع (بعض هواتف أندرويد تُغيّر البيانات) */
+        /* نثق بـ MIME type للصور والفيديو والصوت إذا فشل التوقيع (هواتف أندرويد/iOS تُغيّر أحياناً التوقيع) */
         const isTrustedImageMime = ['image/jpeg','image/png','image/gif','image/webp','image/heic','image/heif','image/jpg'].includes(file.type);
+        const isTrustedVideoMime = file.type.startsWith('video/');
+        const isTrustedAudioMime = file.type.startsWith('audio/');
 
-        if(matched || isTrustedImageMime){
+        if(matched || isTrustedImageMime || isTrustedVideoMime || isTrustedAudioMime){
           resolve(true);
         } else {
           reject(new Error('❌ نوع الملف غير مدعوم: ' + (file.name || file.type)));
@@ -7422,36 +7427,16 @@ async function handlePostVideo(event){
   const file = event.target.files[0];
   if(!file) return;
 
-  /* 🔒 التحقق من مدة الفيديو — 60 ثانية (دقيقة واحدة) كحد أقصى */
-  try {
-    await new Promise((resolve, reject) => {
-      const tempVid = document.createElement('video');
-      tempVid.preload = 'metadata';
-      const url = URL.createObjectURL(file);
-      tempVid.onloadedmetadata = () => {
-        URL.revokeObjectURL(url);
-        if(tempVid.duration > 60){
-          reject(new Error(`⏱️ مدة الفيديو ${Math.round(tempVid.duration)} ثانية — الحد الأقصى دقيقة واحدة (60 ثانية)!`));
-        } else {
-          resolve();
-        }
-      };
-      tempVid.onerror = () => { URL.revokeObjectURL(url); resolve(); }; // نكمل الرفع إذا تعذّر قراءة المدة
-      tempVid.src = url;
-    });
-  } catch(err) {
-    if(typeof showToast==='function') showToast(err.message);
-    event.target.value = '';
-    return;
-  }
-
+  /* ✅ فحص الحجم الأقصى 100MB */
   if(file.size > 100 * 1024 * 1024){
     if(typeof showToast==='function') showToast('❌ الفيديو كبير جداً! الحد الأقصى 100MB');
     event.target.value = '';
     return;
   }
-  /* رفع الفيديو إلى Cloudinary مع شريط تقدم */
-  window._showStorageProgress('🎬 جارٍ رفع الفيديو (حد أقصى دقيقة)...');
+
+  /* ✅ رفع الفيديو — كل الصيغ مدعومة (mp4، mov، avi، mkv، webm...) */
+  const sizeMB = (file.size / (1024*1024)).toFixed(1);
+  window._showStorageProgress(`🎬 جارٍ رفع الفيديو (${sizeMB}MB)...`);
   try {
     const result = await window.uploadToCloudinary(file, 'videos', (pct) => {
       window._updateStorageProgress(pct);
@@ -7465,7 +7450,7 @@ async function handlePostVideo(event){
     const vidPrev = document.getElementById('postVideoPreview');
     const vidEl = document.getElementById('postVideoPreviewEl');
     if(vidPrev && vidEl){ vidEl.src=_postVideoData; vidPrev.style.display='block'; }
-    if(typeof showToast==='function') showToast('✅ تم رفع الفيديو بنجاح!');
+    if(typeof showToast==='function') showToast('✅ تم رفع الفيديو بنجاح! جاهز للنشر 🎬');
   } catch(err) {
     window._hideStorageProgress();
     console.error('❌ خطأ في رفع الفيديو:', err);
@@ -17759,6 +17744,40 @@ function openMyStoryOrCreate(){
   }
 }
 
+async function _loadStoriesFromFirebase(myName){
+  /* جلب قصص جميع الأعضاء من Firebase ودمجها مع localStorage */
+  try{
+    const _FB_STORIES = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+    const res = await fetch(`${_FB_STORIES}/stories.json?shallow=false`, {signal: AbortSignal.timeout(4000)});
+    if(!res.ok) return;
+    const data = await res.json();
+    if(!data || typeof data !== 'object') return;
+    Object.entries(data).forEach(([safeKey, stories])=>{
+      if(!Array.isArray(stories) || stories.length === 0) return;
+      /* استعادة اسم المستخدم من المفتاح */
+      const userName = safeKey.replace(/_/g,' ');
+      if(userName === myName) return; /* قصصي تُحفظ محلياً */
+      const localKey = 'nld_stories_' + safeKey;
+      /* دمج: نحتفظ بالمحلية إذا كانت أحدث أو لها data أكبر */
+      try{
+        const localStories = JSON.parse(localStorage.getItem(localKey)||'[]');
+        const localIds = new Set(localStories.map(s=>s.id));
+        /* نضيف فقط القصص الجديدة من Firebase التي ليست محلياً */
+        let changed = false;
+        stories.forEach(s=>{
+          if(s && s.id && !localIds.has(s.id) && s.data){
+            localStories.push(s);
+            changed = true;
+          }
+        });
+        if(changed){
+          localStorage.setItem(localKey, JSON.stringify(localStories));
+        }
+      }catch(e){}
+    });
+  }catch(e){}
+}
+
 function renderStoriesBar(myName){
   if(!myName) return;
   // تحديث صورة يومياتي
@@ -17772,6 +17791,18 @@ function renderStoriesBar(myName){
   const container = document.getElementById('friendsStoriesContainer');
   if(!container) return;
 
+  /* ✅ جلب القصص من Firebase أولاً ثم رسم الشريط */
+  _loadStoriesFromFirebase(myName).then(()=>{
+    _renderStoriesBarLocal(myName, container);
+  }).catch(()=>{
+    _renderStoriesBarLocal(myName, container);
+  });
+
+  /* رسم فوري من localStorage بينما تُجلب Firebase */
+  _renderStoriesBarLocal(myName, container);
+}
+
+function _renderStoriesBarLocal(myName, container){
   // جمع جميع الأعضاء الذين لديهم قصص نشطة (من الـ localStorage)
   const allUsersWithStories = [];
   for(let i=0;i<localStorage.length;i++){
@@ -17830,6 +17861,31 @@ function getMyStories(name){
 
 function saveMyStories(name, arr){
   localStorage.setItem(_storiesKey(name), JSON.stringify(arr));
+  /* ✅ مزامنة القصص مع Firebase لتظهر للأصدقاء */
+  try{
+    const _FB_STORIES = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+    const safeKey = name.replace(/[^a-zA-Z0-9؀-ۿ]/g,'_');
+    /* نزامن فقط القصص التي لها رابط URL (ليس base64 ضخم) */
+    const syncArr = arr.map(s => {
+      const safe = Object.assign({}, s);
+      /* إذا كان data بيانات base64 ضخمة، لا نزامنها (حفظت في Cloudinary) */
+      if(safe.data && safe.data.startsWith('data:') && safe.data.length > 500000){
+        safe.data = null; // لا نرسل base64 ضخم لـ Firebase
+      }
+      /* musicData أيضاً لا نزامنها إذا كانت base64 */
+      if(safe.musicData && safe.musicData.startsWith('data:') && safe.musicData.length > 100000){
+        safe.musicData = null;
+      }
+      return safe;
+    }).filter(s => s.data); /* نزامن فقط القصص التي لها رابط */
+    if(syncArr.length > 0){
+      fetch(`${_FB_STORIES}/stories/${safeKey}.json`,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(syncArr)
+      }).catch(()=>{});
+    }
+  }catch(e){}
 }
 
 function _refreshMyStoryAvatar(name){
@@ -18352,17 +18408,18 @@ window._publishVideoStory = async function(name){
         duration: d.duration, reactions:{}
       };
       stories.push(story);
-      saveMyStories(name, stories);
+      saveMyStories(name, stories); /* ✅ يزامن مع Firebase تلقائياً */
       _refreshMyStoryAvatar(name);
       document.getElementById('_videoStoryPreview')?.remove();
       URL.revokeObjectURL(d.blobUrl);
       delete window._pendingVideoStory;
-      showToast('✅ تمت إضافة الفيديو لقصتك! ☁️');
-      setTimeout(()=>renderStoriesBar(name), 100);
+      showToast('✅ تمت إضافة الفيديو لقصتك! ☁️ سيظهر للأصدقاء');
+      setTimeout(()=>renderStoriesBar(name), 300);
       return;
     }catch(err){
       window._hideStorageProgress();
-      showToast('⚠️ فشل رفع الفيديو، جاري الحفظ محلياً...');
+      showToast('⚠️ فشل رفع الفيديو: ' + (err.message||''));
+      console.error('Story video upload error:', err);
     }
   }
 
@@ -18645,6 +18702,9 @@ function _openStoryEditorWithImage(name, imageData){
 
     /* ── حفظ القصة ── */
     const stories = getMyStories(name);
+    /* ✅ musicData: نُفضّل رابط URL المرفوع على base64 */
+    const finalMusicData = d.musicData && !d.musicData.startsWith('data:') ? d.musicData
+      : (d.music && !d.music.startsWith('data:') ? d.music : (d.musicData || d.music || null));
     const story = {
       id: 's'+Date.now(),
       type: 'image',
@@ -18657,7 +18717,7 @@ function _openStoryEditorWithImage(name, imageData){
       textSize: d.textSize || 'medium',
       filter: d.filter !== 'none' ? d.filter : null,
       music: d.musicName || null,
-      musicData: d.music || null,
+      musicData: finalMusicData,
       stickers: d.stickers || [],
       duration: 5,
       reactions: {}
