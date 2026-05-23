@@ -1095,9 +1095,10 @@ window.uploadStoryMusic = async function(file) {
 .story-viewer{
   position:fixed;inset:0;background:#000;z-index:99998;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  animation:fadeIn .25s ease;
+  animation:storyViewerIn .3s cubic-bezier(.34,1.56,.64,1);
   overflow:hidden;
 }
+@keyframes storyViewerIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
 /* Story media container fills entire screen like Instagram */
 .story-viewer .sv-media-wrap{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -1107,9 +1108,32 @@ window.uploadStoryMusic = async function(file) {
 .story-viewer .sv-media-wrap img{
   width:100%;height:100%;object-fit:cover;display:block;
 }
-.story-viewer .sv-media-wrap video{
-  background:#000;
+.story-viewer .sv-media-wrap video{ background:#000; }
+/* Gradient overlay top & bottom for readability */
+.story-viewer::before{
+  content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,transparent 25%,transparent 70%,rgba(0,0,0,.7) 100%);
 }
+/* Story comment bottom sheet */
+.sv-comments-panel{
+  position:absolute;bottom:0;left:0;right:0;z-index:50;
+  background:rgba(15,15,15,.96);backdrop-filter:blur(20px);
+  border-radius:24px 24px 0 0;
+  max-height:60vh;display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
+}
+.sv-comments-panel.open{transform:translateY(0);}
+.sv-viewers-panel{
+  position:absolute;bottom:0;left:0;right:0;z-index:50;
+  background:rgba(15,15,15,.96);backdrop-filter:blur(20px);
+  border-radius:24px 24px 0 0;
+  max-height:55vh;display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
+}
+.sv-viewers-panel.open{transform:translateY(0);}
+/* Story reaction burst animation */
+@keyframes reactBurst{0%{transform:scale(0) rotate(-20deg);opacity:0}60%{transform:scale(1.3) rotate(5deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
+.sv-react-burst{animation:reactBurst .4s cubic-bezier(.34,1.56,.64,1) forwards;}
 
 /* ===== Night Mode CSS for socialHomeCard ===== */
 #socialHomeCard.night-mode { background:#18191A !important; color:#E4E6EB !important; }
@@ -1139,15 +1163,17 @@ window.uploadStoryMusic = async function(file) {
 #socialHomeCard.night-mode svg:not([style*="fill:#1877"]) { fill:#B0B3B8 !important; }
 
 .story-progress-bar{
-  position:absolute;top:12px;left:10px;right:10px;
-  display:flex;gap:4px;z-index:10;
+  position:absolute;top:56px;left:10px;right:10px;
+  display:flex;gap:3px;z-index:30;
 }
 .story-progress-seg{
-  flex:1;height:3px;background:rgba(255,255,255,0.4);border-radius:2px;overflow:hidden;
+  flex:1;height:2.5px;background:rgba(255,255,255,0.35);border-radius:3px;overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,0.3);
 }
 .story-progress-fill{
-  height:100%;background:white;border-radius:2px;
+  height:100%;background:white;border-radius:3px;
   animation:storyFill 5s linear forwards;
+  box-shadow:0 0 6px rgba(255,255,255,0.7);
 }
 @keyframes storyFill{from{width:0%}to{width:100%}}
 
@@ -14609,7 +14635,7 @@ function renderSocialPostCard(p){
 
     <!-- إحصائيات التفاعل -->
     ${totalReacts>0 || comments.length>0 ? `<div style="padding:6px 14px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #F0F2F5;">
-      <div style="font-size:12px;color:#65676B;">${totalReacts>0?`<span>${getTopReactEmojis(reactions)} ${totalReacts}</span>`:''}${totalReacts>0&&comments.length>0?' · ':''} ${comments.length>0?`${comments.length} تعليق`:''}</div>
+      <div style="font-size:12px;color:#65676B;cursor:${totalReacts>0?'pointer':'default'};" ${totalReacts>0?`onclick="showReactionsModal('${p.id}')"`:''}>${totalReacts>0?`<span style="font-weight:700;">${getTopReactEmojis(reactions)} ${totalReacts}</span>`:''}${totalReacts>0&&comments.length>0?' · ':''} ${comments.length>0?`<span style="cursor:pointer;font-weight:700;" onclick="toggleComments('${p.id}')">${comments.length} تعليق</span>`:''}</div>
     </div>` : ''}
 
     <!-- أزرار التفاعل -->
@@ -14622,7 +14648,7 @@ function renderSocialPostCard(p){
           ${reactEmojis.map(e=>`<span onclick="addReaction('${p.id}','${e}')" style="font-size:32px;cursor:pointer;transition:.15s;display:inline-block;line-height:1;" onmouseover="this.style.transform='scale(1.4) translateY(-5px)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`).join('')}
         </div>
       </div>
-      <div onclick="toggleComments('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">💬 تعليق</div>
+      <div onclick="openCommentsModal('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">💬 تعليق</div>
       <div onclick="sharePost('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">↗️ مشاركة</div>
       <div onclick="showPostViewStats('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;color:#6366f1;transition:.15s;border-right:1px solid #E4E6EB;" onmouseover="this.style.background='#f0f0ff'" onmouseout="this.style.background='transparent'">👁️ <span id="postViews_${p.id}">${(p.views||0)}</span></div>
     </div>
@@ -14947,6 +14973,257 @@ function deleteSocialPost(postId){
 }
 
 /* ── إنشاء منشور اجتماعي ── */
+
+/* ════ نافذة التفاعلات - تعرض كل المتفاعلين مع أسمائهم ════ */
+function showReactionsModal(postId){
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  const reactions = post.reactions || {};
+  const old = document.getElementById('_reactionsOverlay'); if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = '_reactionsOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;';
+
+  /* جمع كل المتفاعلين مع الإيموجي */
+  const allReactions = [];
+  Object.entries(reactions).forEach(([emoji, users])=>{
+    (users||[]).forEach(u=>{ allReactions.push({ emoji, user: u }); });
+  });
+
+  /* إحصائيات لكل إيموجي */
+  const emojiStats = {};
+  allReactions.forEach(r=>{ emojiStats[r.emoji] = (emojiStats[r.emoji]||0)+1; });
+
+  ov.innerHTML = `
+    <div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;font-family:'Tajawal',sans-serif;max-height:70vh;display:flex;flex-direction:column;animation:slideUpModal .3s cubic-bezier(.4,0,.2,1);">
+      <div style="padding:14px 16px 0;text-align:center;">
+        <div style="width:40px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 14px;"></div>
+        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:10px;">التفاعلات</div>
+        <!-- فلتر الإيموجيات -->
+        <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none;justify-content:center;flex-wrap:wrap;">
+          <div id="rfAll" onclick="filterReactions('all','${postId}')" style="padding:6px 16px;border-radius:20px;background:#1877F2;color:white;font-size:13px;font-weight:800;cursor:pointer;border:2px solid #1877F2;flex-shrink:0;">الكل ${allReactions.length}</div>
+          ${Object.entries(emojiStats).map(([e,c])=>`<div onclick="filterReactions('${e}','${postId}')" style="padding:6px 14px;border-radius:20px;background:#F0F2F5;font-size:13px;font-weight:800;cursor:pointer;border:2px solid transparent;flex-shrink:0;">${e} ${c}</div>`).join('')}
+        </div>
+      </div>
+      <div id="rModalList" style="overflow-y:auto;padding:0 14px 16px;flex:1;">
+        ${allReactions.length===0
+          ? '<div style="text-align:center;padding:30px;color:#65676B;">لا توجد تفاعلات بعد</div>'
+          : allReactions.map(r=>{
+              const ph = typeof getProfilePhoto==='function' ? getProfilePhoto(r.user) : null;
+              return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #F0F2F5;">
+                <div style="position:relative;width:44px;height:44px;flex-shrink:0;">
+                  <div style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;">
+                    ${ph?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;">`:typeof getLeaderIcon==='function'?getLeaderIcon(r.user):'👤'}
+                  </div>
+                  <div style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.15);">${r.emoji}</div>
+                </div>
+                <div style="font-size:14px;font-weight:800;color:#050505;">${r.user}</div>
+              </div>`;
+            }).join('')
+        }
+      </div>
+      <div style="padding:12px 16px calc(env(safe-area-inset-bottom,0px)+10px);border-top:1px solid #F0F2F5;">
+        <button onclick="document.getElementById('_reactionsOverlay').remove()" style="width:100%;padding:13px;background:#F0F2F5;border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#050505;cursor:pointer;">إغلاق</button>
+      </div>
+    </div>`;
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+}
+
+window.filterReactions = function(emoji, postId){
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  const reactions = post.reactions || {};
+  const list = document.getElementById('rModalList');
+  if(!list) return;
+  const allReactions = [];
+  Object.entries(reactions).forEach(([e, users])=>{
+    if(emoji==='all' || e===emoji){
+      (users||[]).forEach(u=>{ allReactions.push({ emoji:e, user:u }); });
+    }
+  });
+  list.innerHTML = allReactions.length===0
+    ? '<div style="text-align:center;padding:30px;color:#65676B;">لا توجد تفاعلات</div>'
+    : allReactions.map(r=>{
+        const ph = typeof getProfilePhoto==='function' ? getProfilePhoto(r.user) : null;
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #F0F2F5;">
+          <div style="position:relative;width:44px;height:44px;flex-shrink:0;">
+            <div style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;">
+              ${ph?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;">`:typeof getLeaderIcon==='function'?getLeaderIcon(r.user):'👤'}
+            </div>
+            <div style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,0.15);">${r.emoji}</div>
+          </div>
+          <div style="font-size:14px;font-weight:800;color:#050505;">${r.user}</div>
+        </div>`;
+      }).join('');
+};
+
+/* ════ نافذة التعليقات - Bottom Sheet كامل ════ */
+function openCommentsModal(postId){
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  const name = getCurrentUser();
+  const comments = post.comments || [];
+  const old = document.getElementById('_commentsOverlay'); if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = '_commentsOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;';
+
+  const ph = typeof getProfilePhoto==='function' ? getProfilePhoto(name) : null;
+
+  function renderCommentsList(){
+    return post.comments.length===0
+      ? '<div style="text-align:center;padding:30px;color:#65676B;font-size:13px;">لا توجد تعليقات بعد. كن أول من يعلّق!</div>'
+      : post.comments.map(c=>{
+          const cPh = typeof getProfilePhoto==='function' ? getProfilePhoto(c.author) : null;
+          const isMe = c.author === name;
+          const cId = c.id || c.ts;
+          const timeStr = c.ts ? new Date(c.ts).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'}) : '';
+          return `<div id="cmnt_${cId}" style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;">
+            <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+              ${cPh?`<img src="${cPh}" style="width:100%;height:100%;object-fit:cover;">`:typeof getLeaderIcon==='function'?getLeaderIcon(c.author):'👤'}
+            </div>
+            <div style="flex:1;">
+              <div style="background:#F0F2F5;border-radius:16px;padding:8px 12px;">
+                <div style="font-size:12px;font-weight:800;color:#050505;margin-bottom:3px;">${c.author}</div>
+                ${c.audio
+                  ? `<audio src="${c.audio}" controls style="width:100%;max-width:220px;height:32px;border-radius:8px;"></audio>`
+                  : `<div id="cmntTxt_${cId}" style="font-size:13px;color:#050505;line-height:1.5;">${c.text||''}</div>`
+                }
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:3px 8px;">
+                <span style="font-size:10px;color:#65676B;">${timeStr}</span>
+                ${isMe ? `
+                  <span onclick="editCommentInModal('${postId}','${cId}')" style="font-size:11px;color:#1877F2;cursor:pointer;font-weight:700;">تعديل</span>
+                  <span onclick="deleteCommentInModal('${postId}','${cId}')" style="font-size:11px;color:#e53935;cursor:pointer;font-weight:700;">حذف</span>
+                ` : ''}
+              </div>
+            </div>
+          </div>`;
+        }).join('');
+  }
+
+  ov.innerHTML = `
+    <div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;font-family:'Tajawal',sans-serif;max-height:82vh;display:flex;flex-direction:column;animation:slideUpModal .3s cubic-bezier(.4,0,.2,1);">
+      <div style="padding:12px 16px 0;text-align:center;border-bottom:1px solid #F0F2F5;">
+        <div style="width:40px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 10px;"></div>
+        <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:12px;">التعليقات</div>
+      </div>
+      <div id="_cmntList" style="flex:1;overflow-y:auto;padding:12px 14px 8px;">${renderCommentsList()}</div>
+      <!-- إدخال التعليق -->
+      <div style="padding:10px 14px calc(env(safe-area-inset-bottom,0px)+10px);border-top:1px solid #F0F2F5;display:flex;align-items:center;gap:8px;">
+        <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+          ${ph?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;">`:typeof getLeaderIcon==='function'&&name?getLeaderIcon(name):'👤'}
+        </div>
+        <div style="flex:1;background:#F0F2F5;border-radius:22px;display:flex;align-items:center;padding:0 8px 0 8px;gap:4px;">
+          <input id="_cmntModalInput" type="text" placeholder="اكتب تعليقاً…" style="flex:1;border:none;background:transparent;padding:10px 4px;font-family:'Tajawal',sans-serif;font-size:13px;color:#050505;outline:none;text-align:right;" onkeydown="if(event.key==='Enter'){_submitModalComment('${postId}');event.preventDefault();}">
+          <button onclick="startVoiceComment('${postId}')" style="background:linear-gradient(135deg,#a855f7,#7c3aed);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:14px;">🎙️</button>
+          <button onclick="_submitModalComment('${postId}')" style="background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+            <svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='white'><path d='M2 21l21-9L2 3v7l15 2-15 2v7z'/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+  setTimeout(()=>{ document.getElementById('_cmntModalInput')?.focus(); }, 300);
+}
+
+window._submitModalComment = function(postId){
+  const inp = document.getElementById('_cmntModalInput');
+  const text = inp ? inp.value.trim() : '';
+  if(!text) return;
+  const name = getCurrentUser();
+  if(!name) return;
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  if(!post.comments) post.comments = [];
+  const commentId = 'c'+Date.now();
+  post.comments.push({ id:commentId, author:name, text, ts:Date.now() });
+  saveSocialPosts(posts);
+  if(inp) inp.value='';
+  if(post.author!==name) addSocialNotif(post.author, `${name} علّق على منشورك: "${text.substring(0,30)}…"`, '💬');
+  ebPointsComment();
+  /* تحديث قائمة التعليقات في النافذة */
+  const list = document.getElementById('_cmntList');
+  if(list){
+    const ph = typeof getProfilePhoto==='function' ? getProfilePhoto(name) : null;
+    const timeStr = new Date().toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+    const div = document.createElement('div');
+    div.id = 'cmnt_'+commentId;
+    div.style.cssText = 'display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;';
+    div.innerHTML = `
+      <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+        ${ph?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;">`:typeof getLeaderIcon==='function'?getLeaderIcon(name):'👤'}
+      </div>
+      <div style="flex:1;">
+        <div style="background:#F0F2F5;border-radius:16px;padding:8px 12px;">
+          <div style="font-size:12px;font-weight:800;color:#050505;margin-bottom:3px;">${name}</div>
+          <div id="cmntTxt_${commentId}" style="font-size:13px;color:#050505;line-height:1.5;">${text}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:3px 8px;">
+          <span style="font-size:10px;color:#65676B;">${timeStr}</span>
+          <span onclick="editCommentInModal('${postId}','${commentId}')" style="font-size:11px;color:#1877F2;cursor:pointer;font-weight:700;">تعديل</span>
+          <span onclick="deleteCommentInModal('${postId}','${commentId}')" style="font-size:11px;color:#e53935;cursor:pointer;font-weight:700;">حذف</span>
+        </div>
+      </div>`;
+    const empty = list.querySelector('[style*="لا توجد تعليقات"]');
+    if(empty) empty.remove();
+    list.appendChild(div);
+    list.scrollTop = list.scrollHeight;
+  }
+  /* تحديث عداد التعليقات في المنشور */
+  refreshPostCard(postId);
+  showToast('💬 تم إرسال تعليقك');
+};
+
+window.editCommentInModal = function(postId, commentId){
+  const textEl = document.getElementById('cmntTxt_'+commentId);
+  if(!textEl) return;
+  const oldText = textEl.innerText;
+  const newText = prompt('تعديل التعليق:', oldText);
+  if(!newText || newText.trim()===oldText) return;
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post||!post.comments) return;
+  const comment = post.comments.find(c=>(c.id||c.ts)+''===commentId+'');
+  if(!comment) return;
+  comment.text = newText.trim();
+  saveSocialPosts(posts);
+  textEl.innerText = newText.trim();
+  refreshPostCard(postId);
+  showToast('✅ تم تعديل التعليق');
+};
+
+window.deleteCommentInModal = function(postId, commentId){
+  if(!confirm('هل تريد حذف هذا التعليق؟')) return;
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post||!post.comments) return;
+  post.comments = post.comments.filter(c=>(c.id||c.ts)+''!==commentId+'');
+  saveSocialPosts(posts);
+  const el = document.getElementById('cmnt_'+commentId);
+  if(el) el.remove();
+  refreshPostCard(postId);
+  showToast('🗑️ تم حذف التعليق');
+};
+
+/* CSS: slideUpModal animation */
+(function(){
+  if(document.getElementById('_modalAnimStyle')) return;
+  const style = document.createElement('style');
+  style.id = '_modalAnimStyle';
+  style.textContent = `
+    @keyframes slideUpModal{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+  `;
+  document.head.appendChild(style);
+})();
+
 let _scpFeelingMode = false;
 let _scpImageData = null;
 let _scpVideoData = null;
@@ -17749,7 +18026,9 @@ function showSocialHome(){
    ═══════════════════════════════════════════════════════════ */
 function openMyStoryOrCreate(){
   const name = getCurrentUser(); if(!name) return;
-  const stories = getMyStories(name);
+  let stories = getMyStories(name);
+  /* ✅ الأحدث أولاً */
+  stories = stories.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
   if(stories.length > 0){
     _showStoryViewer(name, stories, 0);
   } else {
@@ -17831,7 +18110,15 @@ function _renderStoriesBarLocal(myName, container){
   }
 
   if(allUsersWithStories.length===0){ container.innerHTML=''; return; }
+  /* ✅ ترتيب الأحدث أولاً بناءً على آخر قصة */
+  allUsersWithStories.sort((a,b)=>{
+    const aLast = Math.max(...a.stories.map(s=>s.ts||0));
+    const bLast = Math.max(...b.stories.map(s=>s.ts||0));
+    return bLast - aLast;
+  });
   container.innerHTML = allUsersWithStories.map(({name: friend, stories: fStories})=>{
+    /* ✅ ترتيب قصص كل شخص: الأحدث أولاً */
+    fStories = fStories.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
     const fPhoto = typeof getProfilePhoto==='function' ? getProfilePhoto(friend) : null;
     const fIcon = typeof getLeaderIcon==='function' ? getLeaderIcon(friend) : '👑';
     const lastStory = fStories[fStories.length-1];
@@ -17850,7 +18137,7 @@ function _renderStoriesBarLocal(myName, container){
     }
     const shortName = friend.split(' ')[0];
     const safeFriend = friend.replace(/'/g,"\\'");
-    return `<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;" onclick="_showStoryViewer('${safeFriend}',getMyStories('${safeFriend}').filter(s=>Date.now()<s.expires),0)">
+    return `<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;" onclick="_showStoryViewer('${safeFriend}',getMyStories('${safeFriend}').filter(s=>Date.now()<s.expires).sort((a,b)=>(b.ts||0)-(a.ts||0)),0)">
       <div style="position:relative;width:68px;height:110px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#e3f0ff,#c8dfff);border:2.5px solid #1877F2;">
         <div style="width:100%;height:70%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:${thumbBg};">${thumbContent}</div>
         <div style="position:absolute;bottom:0;width:100%;height:40%;background:white;display:flex;align-items:center;justify-content:center;padding:0 3px;">
@@ -18873,7 +19160,11 @@ function _showStoryViewer(authorName, stories, startIdx){
     }
 
     ov.innerHTML = `
-      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+      <style>
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes svNameIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+      </style>
+
       <!-- شريط التقدم -->
       <div class="story-progress-bar" style="z-index:30;">${progress}</div>
 
@@ -18885,32 +19176,111 @@ function _showStoryViewer(authorName, stories, startIdx){
       ${musicBar}
 
       <!-- رأس القصة: أفاتار + اسم + أزرار -->
-      <div style="position:absolute;top:22px;left:0;right:0;z-index:30;display:flex;align-items:center;gap:10px;padding:0 14px;margin-top:8px;">
-        ${authorAvatar}
-        <div style="flex:1;">
-          <div style="font-size:14px;font-weight:900;color:white;text-shadow:0 1px 6px rgba(0,0,0,0.7);">${authorName}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.8);">${ts}</div>
+      <div style="position:absolute;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;gap:10px;padding:14px 14px 0;padding-top:calc(env(safe-area-inset-top,0px) + 72px);">
+        <div style="width:40px;height:40px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 10px rgba(0,0,0,0.4);flex-shrink:0;">
+          ${authorPhoto
+            ? `<img loading="lazy" src="${authorPhoto}" style="width:100%;height:100%;object-fit:cover;">`
+            : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;">${typeof getLeaderIcon==='function'?getLeaderIcon(authorName):'👑'}</div>`
+          }
         </div>
-        <div onclick="toggleStoryPause()" id="storyPauseBtn" style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;border:1px solid rgba(255,255,255,0.3);">⏸</div>
-        <div onclick="closeStoryViewer()" style="width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;font-weight:900;color:white;border:2px solid rgba(255,255,255,0.4);">✕</div>
+        <div style="flex:1;animation:svNameIn .3s ease;">
+          <div style="font-size:14px;font-weight:800;color:white;letter-spacing:.2px;text-shadow:0 1px 8px rgba(0,0,0,0.6);">${authorName}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.72);margin-top:1px;">${ts}</div>
+        </div>
+        <div onclick="toggleStoryPause()" id="storyPauseBtn" style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.38);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;border:1px solid rgba(255,255,255,0.25);backdrop-filter:blur(8px);">⏸</div>
+        <div onclick="closeStoryViewer()" style="width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.38);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:white;border:1px solid rgba(255,255,255,0.25);backdrop-filter:blur(8px);">✕</div>
       </div>
 
       <!-- قاع القصة: رد + تفاعل + مشاركة -->
-      <div style="position:absolute;bottom:0;left:0;right:0;z-index:30;padding:12px 14px 20px;">
-        <!-- تفاعلات -->
-        <div id="storyReactPicker" style="display:none;gap:8px;justify-content:center;margin-bottom:10px;">
-          ${reactEmojis.map(e=>`<div onclick="reactToStory('${e}')" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:.15s;border:2px solid ${myReact===e?'white':'transparent'};backdrop-filter:blur(4px);" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">${e}</div>`).join('')}
+      <div style="position:absolute;bottom:0;left:0;right:0;z-index:30;padding:12px 14px calc(env(safe-area-inset-bottom,0px) + 18px);">
+        <!-- تفاعلات picker -->
+        <div id="storyReactPicker" style="display:none;gap:8px;justify-content:center;margin-bottom:12px;background:rgba(0,0,0,0.5);border-radius:40px;padding:10px 14px;backdrop-filter:blur(12px);">
+          ${reactEmojis.map(e=>`<div onclick="reactToStory('${e}')" class="sv-react-burst" style="width:46px;height:46px;border-radius:50%;background:${myReact===e?'rgba(255,255,255,0.3)':'rgba(255,255,255,0.12)'};display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;transition:.15s;border:2px solid ${myReact===e?'rgba(255,255,255,0.8)':'transparent'};backdrop-filter:blur(4px);" onmouseover="this.style.transform='scale(1.35)'" onmouseout="this.style.transform='scale(1)'">${e}</div>`).join('')}
         </div>
+
+        <!-- شريط الأدوات السفلي -->
         <div style="display:flex;align-items:center;gap:8px;">
-          <div onclick="toggleStoryReactPicker()" style="flex:1;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.4);border-radius:24px;padding:10px 16px;font-size:13px;color:rgba(255,255,255,0.75);cursor:pointer;text-align:right;font-family:'Tajawal',sans-serif;backdrop-filter:blur(6px);">💬 رد على القصة…</div>
-          ${topReacts ? `<div style="background:rgba(0,0,0,0.45);border-radius:20px;padding:5px 10px;display:flex;align-items:center;gap:4px;backdrop-filter:blur(4px);">${topReacts}</div>` : ''}
-          <div onclick="shareStory()" style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;border:1px solid rgba(255,255,255,0.3);">↗️</div>
+          <!-- حقل الرد -->
+          <div onclick="openStoryComments()" style="flex:1;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.32);border-radius:26px;padding:10px 16px;font-size:13px;color:rgba(255,255,255,0.75);cursor:pointer;font-family:'Tajawal',sans-serif;backdrop-filter:blur(8px);display:flex;align-items:center;gap:8px;">
+            <span style="font-size:15px;">💬</span>
+            <span>${s.comments&&s.comments.length ? s.comments.length+' تعليق' : 'أضف تعليقاً…'}</span>
+          </div>
+
+          <!-- زر التفاعل -->
+          <div onclick="toggleStoryReactPicker()" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:${myReact?'22':'18'}px;border:1.5px solid rgba(255,255,255,0.28);backdrop-filter:blur(8px);transition:.2s;" title="تفاعل">
+            ${myReact || '❤️'}
+          </div>
+
+          <!-- زر المشاهدين (للمالك فقط) -->
+          ${meUser===authorName ? `
+          <div onclick="openStoryViewers()" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;cursor:pointer;border:1.5px solid rgba(255,255,255,0.28);backdrop-filter:blur(8px);" title="من شاهد">
+            <span style="font-size:16px;">👁️</span>
+            ${(s.viewers||[]).length>0?`<span style="position:absolute;font-size:9px;font-weight:900;color:white;background:#1877F2;border-radius:10px;padding:1px 4px;margin-top:-28px;margin-right:-20px;">${(s.viewers||[]).length}</span>`:''}
+          </div>` : ''}
+
+          <!-- زر المشاركة -->
+          <div onclick="shareStory()" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;border:1.5px solid rgba(255,255,255,0.28);backdrop-filter:blur(8px);">↗️</div>
+        </div>
+        ${topReacts ? `<div style="margin-top:8px;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;">${topReacts}</div>` : ''}
+      </div>
+
+      <!-- لوحة التعليقات -->
+      <div id="svCommentsPanel" class="sv-comments-panel">
+        <div style="padding:12px 16px 6px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:15px;font-weight:800;color:white;">💬 التعليقات</div>
+          <div onclick="closeStoryComments()" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;font-size:14px;">✕</div>
+        </div>
+        <div style="width:36px;height:3px;background:rgba(255,255,255,0.2);border-radius:2px;margin:0 auto 10px;"></div>
+        <div id="svCommentsList" style="flex:1;overflow-y:auto;padding:0 14px 10px;max-height:35vh;">
+          ${(s.comments||[]).length===0
+            ? '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.4);font-size:13px;">لا توجد تعليقات بعد</div>'
+            : (s.comments||[]).map(c=>`
+              <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;">
+                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;overflow:hidden;">
+                  ${(()=>{ const ph=typeof getProfilePhoto==='function'?getProfilePhoto(c.author):null; return ph?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;">`:typeof getLeaderIcon==='function'?getLeaderIcon(c.author):'👤'; })()}
+                </div>
+                <div style="flex:1;background:rgba(255,255,255,0.08);border-radius:14px;padding:8px 12px;">
+                  <div style="font-size:12px;font-weight:800;color:rgba(255,255,255,0.9);margin-bottom:3px;">${c.author}</div>
+                  <div style="font-size:13px;color:rgba(255,255,255,0.75);line-height:1.5;">${c.text}</div>
+                </div>
+              </div>`).join('')
+          }
+        </div>
+        <div style="padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 10px);border-top:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.22);border-radius:22px;display:flex;align-items:center;padding:0 12px;gap:6px;">
+            <input id="svCommentInput" type="text" placeholder="اكتب تعليقاً…" style="flex:1;border:none;background:transparent;padding:10px 0;font-family:'Tajawal',sans-serif;font-size:13px;color:white;outline:none;text-align:right;" onkeydown="if(event.key==='Enter'){submitStoryComment();event.preventDefault();}">
+          </div>
+          <div onclick="submitStoryComment()" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#a855f7);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 10px rgba(24,119,242,0.4);">
+            <svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='white'><path d='M2 21l21-9L2 3v7l15 2-15 2v7z'/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- لوحة المشاهدين -->
+      <div id="svViewersPanel" class="sv-viewers-panel">
+        <div style="padding:12px 16px 6px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:15px;font-weight:800;color:white;">👁️ من شاهد القصة</div>
+          <div onclick="closeStoryViewers()" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;font-size:14px;">✕</div>
+        </div>
+        <div style="width:36px;height:3px;background:rgba(255,255,255,0.2);border-radius:2px;margin:0 auto 10px;"></div>
+        <div style="overflow-y:auto;padding:0 14px calc(env(safe-area-inset-bottom,0px) + 16px);max-height:42vh;">
+          ${(s.viewers||[]).length===0
+            ? '<div style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-size:13px;">لا توجد مشاهدات بعد</div>'
+            : (s.viewers||[]).map(v=>`
+              <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+                <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:15px;overflow:hidden;flex-shrink:0;">
+                  ${(()=>{ const ph=typeof getProfilePhoto==='function'?getProfilePhoto(v):null; return ph?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;">`:typeof getLeaderIcon==='function'?getLeaderIcon(v):'👤'; })()}
+                </div>
+                <div style="font-size:14px;font-weight:700;color:white;">${v}</div>
+                <div style="margin-right:auto;font-size:11px;color:rgba(255,255,255,0.45);">شاهد ✓</div>
+              </div>`).join('')
+          }
         </div>
       </div>
 
       <!-- منطقة التنقل: يسار = التالي، يمين = السابق (مثل إنستغرام) -->
-      <div onclick="prevStory()" style="position:absolute;top:70px;right:0;width:30%;height:65%;cursor:pointer;z-index:15;"></div>
-      <div onclick="nextStory()" style="position:absolute;top:70px;left:0;width:70%;height:65%;cursor:pointer;z-index:15;"></div>
+      <div onclick="prevStory()" style="position:absolute;top:70px;right:0;width:30%;height:60%;cursor:pointer;z-index:20;"></div>
+      <div onclick="nextStory()" style="position:absolute;top:70px;left:0;width:70%;height:60%;cursor:pointer;z-index:20;"></div>
     `;
 
     /* ✅ تحميل الفيديو بعد إدراج HTML لضمان وجود العنصر في DOM */
@@ -19069,7 +19439,69 @@ function _showStoryViewer(authorName, stories, startIdx){
     const vid = document.getElementById('storyVideo');
     if(vid){ vid.pause(); vid.src=''; }
     ov.remove();
-    ['nextStory','prevStory','closeStoryViewer','toggleStoryPause','toggleStoryReactPicker','reactToStory','shareStory','toggleStoryMute'].forEach(f=>{ try{delete window[f];}catch(e){} });
+    ['nextStory','prevStory','closeStoryViewer','toggleStoryPause','toggleStoryReactPicker','reactToStory','shareStory','toggleStoryMute','openStoryComments','closeStoryComments','submitStoryComment','openStoryViewers','closeStoryViewers'].forEach(f=>{ try{delete window[f];}catch(e){} });
+  };
+
+  /* ── تعليقات القصة ── */
+  window.openStoryComments = ()=>{
+    toggleStoryPause(); // إيقاف مؤقت عند فتح التعليقات
+    const panel = document.getElementById('svCommentsPanel');
+    if(panel){ panel.classList.add('open'); setTimeout(()=>{ const inp=document.getElementById('svCommentInput'); if(inp) inp.focus(); },350); }
+  };
+  window.closeStoryComments = ()=>{
+    const panel = document.getElementById('svCommentsPanel');
+    if(panel) panel.classList.remove('open');
+    if(_paused) toggleStoryPause(); // استئناف
+  };
+  window.submitStoryComment = ()=>{
+    const inp = document.getElementById('svCommentInput');
+    const text = inp ? inp.value.trim() : '';
+    if(!text) return;
+    const commenter = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+    if(!commenter) return;
+    const s = stories[currentIdx];
+    if(!s.comments) s.comments = [];
+    s.comments.push({ author: commenter, text, ts: Date.now() });
+    /* حفظ التعليق */
+    const storyKey = typeof _storiesKey==='function' ? _storiesKey(authorName) : ('nld_stories_'+authorName.replace(/\s+/g,'_'));
+    try{
+      const allSt = JSON.parse(localStorage.getItem(storyKey)||'[]');
+      const target = allSt.find(st=>st.id===s.id);
+      if(target){ target.comments = s.comments; localStorage.setItem(storyKey, JSON.stringify(allSt)); }
+    }catch(e){}
+    if(inp) inp.value='';
+    /* تحديث قائمة التعليقات */
+    const list = document.getElementById('svCommentsList');
+    if(list){
+      const item = document.createElement('div');
+      item.style.cssText='display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;';
+      const ph = typeof getProfilePhoto==='function' ? getProfilePhoto(commenter) : null;
+      item.innerHTML=`
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;overflow:hidden;">
+          ${ph?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;">`:(typeof getLeaderIcon==='function'?getLeaderIcon(commenter):'👤')}
+        </div>
+        <div style="flex:1;background:rgba(255,255,255,0.08);border-radius:14px;padding:8px 12px;">
+          <div style="font-size:12px;font-weight:800;color:rgba(255,255,255,0.9);margin-bottom:3px;">${commenter}</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.75);line-height:1.5;">${text}</div>
+        </div>`;
+      const empty = list.querySelector('[style*="لا توجد تعليقات"]');
+      if(empty) empty.remove();
+      list.appendChild(item);
+      list.scrollTop = list.scrollHeight;
+    }
+    if(typeof showToast==='function') showToast('💬 تم إرسال التعليق');
+    /* إشعار */
+    if(authorName !== commenter && typeof addSocialNotif==='function') addSocialNotif(authorName, `${commenter} علّق على قصتك: "${text.substring(0,25)}…"`, '💬');
+  };
+
+  /* ── مشاهدو القصة ── */
+  window.openStoryViewers = ()=>{
+    const panel = document.getElementById('svViewersPanel');
+    if(panel) panel.classList.add('open');
+  };
+  window.closeStoryViewers = ()=>{
+    const panel = document.getElementById('svViewersPanel');
+    if(panel) panel.classList.remove('open');
   };
 
   /* ── لوحة المفاتيح ── */
