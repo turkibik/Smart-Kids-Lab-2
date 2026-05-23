@@ -1096,6 +1096,19 @@ window.uploadStoryMusic = async function(file) {
   position:fixed;inset:0;background:#000;z-index:99998;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   animation:fadeIn .25s ease;
+  overflow:hidden;
+}
+/* Story media container fills entire screen like Instagram */
+.story-viewer .sv-media-wrap{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:#000;
+}
+.story-viewer .sv-media-wrap video,
+.story-viewer .sv-media-wrap img{
+  width:100%;height:100%;object-fit:cover;display:block;
+}
+.story-viewer .sv-media-wrap video{
+  background:#000;
 }
 
 /* ===== Night Mode CSS for socialHomeCard ===== */
@@ -18753,92 +18766,195 @@ function openMyStory(){
 }
 
 function _showStoryViewer(authorName, stories, startIdx){
-  let currentIdx = startIdx;
+  if(!stories || stories.length === 0){ if(typeof showToast==='function') showToast('لا توجد قصص نشطة'); return; }
+  let currentIdx = startIdx || 0;
   let _storyTimer = null;
-  let _storyDuration = 5000; // default 5s for images
+  let _paused = false;
+  let _storyMuted = false;
+  let _progressStart = null;
+  let _progressRaf = null;
 
   const ov = document.createElement('div');
   ov.className = 'story-viewer';
   ov.id = 'storyViewerOverlay';
 
+  /* ── أدوات مساعدة ── */
+  function _stopTimer(){
+    if(_storyTimer){ clearTimeout(_storyTimer); _storyTimer=null; }
+    if(_progressRaf){ cancelAnimationFrame(_progressRaf); _progressRaf=null; }
+  }
+  function _stopBgAudio(){
+    const a = document.getElementById('_storyBgAudio');
+    if(a){ a.pause(); a.remove(); }
+  }
+
   function buildViewer(idx){
+    _stopTimer();
     const s = stories[idx];
-    const duration = s.type==='video' ? (s.duration||30)*1000 : 5000;
-    _storyDuration = duration;
+    if(!s){ closeStoryViewer(); return; }
+    const isVideo = s.type==='video';
+    const isAudio = s.type==='audio';
+    const isText  = s.type==='text';
+    const isImg   = !isVideo && !isAudio && !isText;
+    const duration = isVideo ? (s.duration||30)*1000 : 5000;
+
+    /* ── شريط التقدم ── */
     const progress = stories.map((_,i)=>`
       <div class="story-progress-seg">
-        <div class="story-progress-fill" id="sProg_${i}" style="${i<idx?'width:100%;animation:none;':i===idx?`animation:storyFill ${duration/1000}s linear forwards;`:' width:0%;animation:none;'}"></div>
+        <div class="story-progress-fill" id="sProg_${i}" style="${i<idx?'width:100%;animation:none;':i===idx?`animation:storyFill ${duration/1000}s linear forwards;`:'width:0%;animation:none;'}"></div>
       </div>`).join('');
+
+    /* ── أفاتار صاحب القصة ── */
     const authorPhoto = typeof getProfilePhoto==='function' ? getProfilePhoto(authorName) : null;
     const authorAvatar = authorPhoto
-      ? `<img loading="lazy" src="${authorPhoto}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">`
-      : `<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;">${typeof getLeaderIcon==='function'?getLeaderIcon(authorName):'👑'}</div>`;
-    const ts = new Date(s.ts).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+      ? `<img loading="lazy" src="${authorPhoto}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid white;">`
+      : `<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid white;">${typeof getLeaderIcon==='function'?getLeaderIcon(authorName):'👑'}</div>`;
+    const ts = new Date(s.ts||Date.now()).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
 
-    // Reactions summary
+    /* ── الردود والتفاعلات ── */
     const reactEmojis = ['❤️','😮','😂','😢','👏','🔥'];
-    const myReact = (s.reactions && s.reactions[getCurrentUser()]) ? s.reactions[getCurrentUser()] : '';
+    const meUser = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+    const myReact = (s.reactions && s.reactions[meUser]) ? s.reactions[meUser] : '';
     const reactCounts = {};
     if(s.reactions){ Object.values(s.reactions).forEach(e=>{ reactCounts[e]=(reactCounts[e]||0)+1; }); }
-    const topReacts = Object.entries(reactCounts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e,c])=>`<span style="font-size:14px;">${e}</span><span style="font-size:11px;color:rgba(255,255,255,0.8);margin-left:2px;">${c}</span>`).join(' ');
+    const topReacts = Object.entries(reactCounts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e,c])=>`<span style="font-size:16px;">${e}</span><span style="font-size:11px;color:rgba(255,255,255,0.85);margin-left:2px;">${c}</span>`).join(' ');
 
-    // Text overlay on story
-    const textOverlay = s.text ? `<div style="position:absolute;bottom:130px;left:50%;transform:translateX(-50%);max-width:85%;text-align:center;padding:10px 16px;background:rgba(0,0,0,0.6);border-radius:12px;font-size:17px;font-weight:700;color:white;text-shadow:0 1px 4px rgba(0,0,0,0.5);z-index:8;line-height:1.4;">${s.text}</div>` : '';
+    /* ── نص القصة فوق المحتوى ── */
+    const textOverlay = (s.text && !isText && !isAudio)
+      ? `<div style="position:absolute;bottom:130px;left:50%;transform:translateX(-50%);max-width:88%;text-align:center;padding:10px 16px;background:rgba(0,0,0,0.55);border-radius:14px;font-size:17px;font-weight:700;color:white;text-shadow:0 1px 4px rgba(0,0,0,0.5);z-index:20;line-height:1.5;">${s.text}</div>`
+      : '';
 
-    // Music indicator
-    const musicBar = s.music ? `<div style="position:absolute;top:70px;right:12px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.55);border-radius:20px;padding:5px 10px;z-index:9;"><span style="font-size:14px;animation:spin 2s linear infinite;display:inline-block;">🎵</span><span style="font-size:11px;color:white;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.music}</span></div>` : '';
+    /* ── موسيقى ── */
+    const musicBar = s.music ? `<div style="position:absolute;top:68px;right:12px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.55);border-radius:20px;padding:5px 10px;z-index:20;"><span style="font-size:14px;animation:spin 2s linear infinite;display:inline-block;">🎵</span><span style="font-size:11px;color:white;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.music}</span></div>` : '';
 
-    ov.innerHTML=`
-      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-      <div class="story-progress-bar">${progress}</div>
-      <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:94%;max-width:460px;z-index:10;display:flex;align-items:center;gap:10px;padding:0 4px;">
-        ${authorName !== getCurrentUser() ? `<div onclick="closeStoryViewer()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;font-weight:900;color:white;flex-shrink:0;">‹</div>` : ''}
-        ${authorAvatar}
-        <div style="flex:1;">
-          <div style="font-size:14px;font-weight:900;color:white;text-shadow:0 1px 6px rgba(0,0,0,0.6);">${authorName}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.8);">${ts}</div>
+    /* ── محتوى الوسائط ── */
+    let mediaContent = '';
+    if(isVideo){
+      /* ✅ الإصلاح الجذري: الفيديو يملأ الشاشة كالإنستغرام */
+      mediaContent = `
+        <video id="storyVideo"
+          playsinline
+          autoplay
+          webkit-playsinline
+          x5-playsinline
+          preload="auto"
+          style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;z-index:1;"
+          onended="nextStory()"
+          onerror="document.getElementById('svVideoErr')&&(document.getElementById('svVideoErr').style.display='flex')">
+        </video>
+        <!-- خطأ بديل إذا فشل الفيديو -->
+        <div id="svVideoErr" style="display:none;position:absolute;inset:0;z-index:5;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#111;">
+          <div style="font-size:48px;">🎬</div>
+          <div style="font-size:14px;color:#aaa;font-family:'Tajawal',sans-serif;">تعذّر تشغيل الفيديو</div>
+          <button onclick="nextStory()" style="padding:8px 20px;background:#1877F2;color:white;border:none;border-radius:20px;font-size:13px;cursor:pointer;font-family:'Tajawal',sans-serif;">التالي ←</button>
         </div>
-        <div onclick="toggleStoryPause()" id="storyPauseBtn" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;margin-left:4px;">⏸</div>
-        <div onclick="closeStoryViewer()" style="width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;font-weight:900;color:white;flex-shrink:0;border:2px solid rgba(255,255,255,0.4);">❌</div>
-      </div>
-      ${musicBar}
-      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;${s.type==='text'?`background:${s.bgColor||'linear-gradient(135deg,#1877F2,#0d5bda)'};`:s.type==='audio'?`background:${s.bgColor||'linear-gradient(135deg,#11998e,#38ef7d)'};`:''}">
-        ${s.type==='video'
-          ? `<video id="storyVideo" src="${s.data}" autoplay playsinline style="max-width:100%;max-height:100vh;object-fit:contain;" onended="nextStory()"></video><div id="storyMuteBtn" onclick="toggleStoryMute()" style="position:absolute;bottom:90px;left:14px;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;z-index:12;border:1.5px solid rgba(255,255,255,0.3);">🔊</div>`
-          : s.type==='text'
-            ? `<div style="text-align:center;padding:30px;max-width:85%;font-size:28px;font-weight:900;color:white;font-family:'Tajawal',sans-serif;text-shadow:0 2px 12px rgba(0,0,0,0.4);line-height:1.4;word-break:break-word;">${s.text||''}</div>`
-            : s.type==='audio'
-              ? `<div style="display:flex;flex-direction:column;align-items:center;gap:20px;padding:30px;"><div style="font-size:72px;animation:onlinePulse 2s infinite;">🎙️</div><div style="font-size:18px;font-weight:800;color:white;font-family:'Tajawal',sans-serif;">${s.text||'قصة صوتية'}</div><audio id="storyAudio" src="${s.data}" autoplay controls style="width:85%;border-radius:12px;"></audio></div>`
-              : `<img loading="lazy" src="${s.data}" style="max-width:100%;max-height:100vh;object-fit:contain;" onclick="nextStory()">`
-        }
-        ${s.type !== 'text' && s.type !== 'audio' ? textOverlay : ''}
-      </div>
-
-      <!-- Bottom reactions bar -->
-      <div style="position:absolute;bottom:0;left:0;right:0;z-index:10;padding:14px 16px;background:linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%);">
-        <!-- Reaction picker -->
-        <div id="storyReactPicker" style="display:none;flex;gap:8px;justify-content:center;margin-bottom:10px;">
-          ${reactEmojis.map(e=>`<div onclick="reactToStory('${e}')" style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:.2s;border:2px solid ${myReact===e?'white':'transparent'};" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'">${e}</div>`).join('')}
-        </div>
-        <!-- Bottom action bar -->
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div onclick="toggleStoryReactPicker()" style="flex:1;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.35);border-radius:24px;padding:9px 16px;font-size:13px;color:rgba(255,255,255,0.7);cursor:pointer;text-align:right;font-family:'Tajawal',sans-serif;">💬 رد على القصة…</div>
-          ${topReacts ? `<div style="background:rgba(0,0,0,0.4);border-radius:20px;padding:5px 10px;display:flex;align-items:center;gap:4px;">${topReacts}</div>` : ''}
-          <div onclick="shareStory()" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;">↗️</div>
-        </div>
-      </div>
-
-      <!-- Navigation zones -->
-      <div onclick="prevStory()" style="position:absolute;top:70px;right:0;width:35%;height:60%;cursor:pointer;z-index:5;"></div>
-      <div onclick="nextStory()" style="position:absolute;top:70px;left:0;width:65%;height:60%;cursor:pointer;z-index:5;"></div>
-    `;
-
-    // مؤقت للصور
-    if(s.type==='image'){
-      _storyTimer = setTimeout(()=>nextStory(), 5000);
+        <div id="storyMuteBtn" onclick="toggleStoryMute()" style="position:absolute;bottom:100px;left:14px;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;z-index:25;border:1.5px solid rgba(255,255,255,0.3);">🔊</div>`;
+    } else if(isText){
+      mediaContent = `
+        <div style="position:absolute;inset:0;background:${s.bgColor||'linear-gradient(135deg,#1877F2,#0d5bda)'};display:flex;align-items:center;justify-content:center;z-index:1;">
+          <div style="text-align:center;padding:30px;max-width:88%;font-size:30px;font-weight:900;color:white;font-family:'Tajawal',sans-serif;text-shadow:0 2px 14px rgba(0,0,0,0.4);line-height:1.5;word-break:break-word;">${s.text||''}</div>
+        </div>`;
+    } else if(isAudio){
+      mediaContent = `
+        <div style="position:absolute;inset:0;background:${s.bgColor||'linear-gradient(135deg,#11998e,#38ef7d)'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;z-index:1;">
+          <div style="font-size:80px;animation:onlinePulse 2s infinite;">🎙️</div>
+          <div style="font-size:20px;font-weight:800;color:white;font-family:'Tajawal',sans-serif;text-align:center;padding:0 30px;">${s.text||'قصة صوتية'}</div>
+          <audio id="storyAudio" src="${s.data||''}" autoplay controls style="width:85%;border-radius:12px;max-width:320px;"></audio>
+        </div>`;
+    } else {
+      /* صورة */
+      mediaContent = `
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000;z-index:1;">
+          <img id="storyImg" src="${s.data||''}"
+            style="width:100%;height:100%;object-fit:cover;display:block;"
+            onerror="this.style.objectFit='contain';this.style.background='#111';"
+            onclick="nextStory()">
+        </div>`;
     }
 
-    // ── تسجيل المشاهد في القصة (مرة واحدة لكل مشاهد) ──
+    ov.innerHTML = `
+      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+      <!-- شريط التقدم -->
+      <div class="story-progress-bar" style="z-index:30;">${progress}</div>
+
+      <!-- الطبقة الإعلامية -->
+      ${mediaContent}
+
+      <!-- نص القصة -->
+      ${textOverlay}
+      ${musicBar}
+
+      <!-- رأس القصة: أفاتار + اسم + أزرار -->
+      <div style="position:absolute;top:22px;left:0;right:0;z-index:30;display:flex;align-items:center;gap:10px;padding:0 14px;margin-top:8px;">
+        ${authorAvatar}
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:900;color:white;text-shadow:0 1px 6px rgba(0,0,0,0.7);">${authorName}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.8);">${ts}</div>
+        </div>
+        <div onclick="toggleStoryPause()" id="storyPauseBtn" style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;border:1px solid rgba(255,255,255,0.3);">⏸</div>
+        <div onclick="closeStoryViewer()" style="width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;font-weight:900;color:white;border:2px solid rgba(255,255,255,0.4);">✕</div>
+      </div>
+
+      <!-- قاع القصة: رد + تفاعل + مشاركة -->
+      <div style="position:absolute;bottom:0;left:0;right:0;z-index:30;padding:12px 14px 20px;">
+        <!-- تفاعلات -->
+        <div id="storyReactPicker" style="display:none;gap:8px;justify-content:center;margin-bottom:10px;">
+          ${reactEmojis.map(e=>`<div onclick="reactToStory('${e}')" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:.15s;border:2px solid ${myReact===e?'white':'transparent'};backdrop-filter:blur(4px);" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">${e}</div>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div onclick="toggleStoryReactPicker()" style="flex:1;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.4);border-radius:24px;padding:10px 16px;font-size:13px;color:rgba(255,255,255,0.75);cursor:pointer;text-align:right;font-family:'Tajawal',sans-serif;backdrop-filter:blur(6px);">💬 رد على القصة…</div>
+          ${topReacts ? `<div style="background:rgba(0,0,0,0.45);border-radius:20px;padding:5px 10px;display:flex;align-items:center;gap:4px;backdrop-filter:blur(4px);">${topReacts}</div>` : ''}
+          <div onclick="shareStory()" style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;border:1px solid rgba(255,255,255,0.3);">↗️</div>
+        </div>
+      </div>
+
+      <!-- منطقة التنقل: يسار = التالي، يمين = السابق (مثل إنستغرام) -->
+      <div onclick="prevStory()" style="position:absolute;top:70px;right:0;width:30%;height:65%;cursor:pointer;z-index:15;"></div>
+      <div onclick="nextStory()" style="position:absolute;top:70px;left:0;width:70%;height:65%;cursor:pointer;z-index:15;"></div>
+    `;
+
+    /* ✅ تحميل الفيديو بعد إدراج HTML لضمان وجود العنصر في DOM */
+    if(isVideo){
+      const vid = document.getElementById('storyVideo');
+      if(vid){
+        const src = s.data || s.url || s.videoUrl || '';
+        if(src){
+          vid.src = src;
+          vid.load();
+          const playPromise = vid.play();
+          if(playPromise && typeof playPromise.then === 'function'){
+            playPromise.catch(err=>{
+              console.warn('story video play blocked:', err);
+              /* أضف زر تشغيل يدوي */
+              const errDiv = document.getElementById('svVideoErr');
+              if(errDiv){
+                errDiv.style.display='flex';
+                errDiv.innerHTML = `<div style="font-size:64px;cursor:pointer;" onclick="document.getElementById('storyVideo')&&document.getElementById('storyVideo').play();document.getElementById('svVideoErr').style.display='none';">▶️</div><div style="font-size:13px;color:#aaa;margin-top:8px;font-family:'Tajawal',sans-serif;">اضغط للتشغيل</div>`;
+              }
+            });
+          }
+          /* ── مزامنة شريط التقدم مع مدة الفيديو الحقيقية ── */
+          vid.addEventListener('loadedmetadata', ()=>{
+            const realDur = vid.duration || 30;
+            const fill = document.getElementById('sProg_'+idx);
+            if(fill){
+              const fillInner = fill.querySelector('.story-progress-fill') || fill;
+              fillInner.style.animation = `storyFill ${realDur}s linear forwards`;
+            }
+          }, {once:true});
+        } else {
+          const errDiv = document.getElementById('svVideoErr');
+          if(errDiv) errDiv.style.display='flex';
+        }
+      }
+      /* للفيديو: المؤقت يُدار عبر حدث onended */
+    } else if(isImg){
+      _storyTimer = setTimeout(()=>nextStory(), 5000);
+    } else if(isAudio || isText){
+      _storyTimer = setTimeout(()=>nextStory(), 7000);
+    }
+
+    /* ── تسجيل المشاهد ── */
     (function _recordStoryViewer(){
       const viewer = typeof getCurrentUser==='function' ? getCurrentUser() : '';
       if(!viewer || viewer==='زائر' || viewer===authorName) return;
@@ -18854,9 +18970,8 @@ function _showStoryViewer(authorName, stories, startIdx){
       }catch(e){}
     })();
 
-    // ── تشغيل الموسيقى إذا كانت موجودة ──
-    const prevAudio = document.getElementById('_storyBgAudio');
-    if(prevAudio){ prevAudio.pause(); prevAudio.remove(); }
+    /* ── موسيقى الخلفية ── */
+    _stopBgAudio();
     if(s.musicData){
       const audio = document.createElement('audio');
       audio.id = '_storyBgAudio';
@@ -18869,30 +18984,35 @@ function _showStoryViewer(authorName, stories, startIdx){
     }
   }
 
-  let _paused = false;
+  /* ── وظائف التحكم ── */
   window.toggleStoryPause = ()=>{
     _paused = !_paused;
     const btn = document.getElementById('storyPauseBtn');
     if(btn) btn.innerText = _paused ? '▶' : '⏸';
     const vid = document.getElementById('storyVideo');
-    if(vid){ _paused ? vid.pause() : vid.play(); }
+    if(vid){ _paused ? vid.pause() : vid.play().catch(()=>{}); }
+    const aud = document.getElementById('storyAudio');
+    if(aud){ _paused ? aud.pause() : aud.play().catch(()=>{}); }
+    const bgAud = document.getElementById('_storyBgAudio');
+    if(bgAud){ _paused ? bgAud.pause() : bgAud.play().catch(()=>{}); }
     if(_storyTimer){ clearTimeout(_storyTimer); _storyTimer=null; }
-    if(!_paused && stories[currentIdx].type==='image'){
-      _storyTimer = setTimeout(()=>nextStory(), 3000);
+    if(!_paused){
+      const s = stories[currentIdx];
+      if(s && (s.type==='image'||!s.type)){ _storyTimer = setTimeout(()=>nextStory(), 3000); }
     }
-    // pause/resume progress bar
-    const fill = document.getElementById('sProg_'+currentIdx)?.querySelector('.story-progress-fill');
-    if(fill){ fill.style.animationPlayState = _paused ? 'paused' : 'running'; }
+    const fill = document.getElementById('sProg_'+currentIdx);
+    if(fill){
+      const inner = fill.querySelector ? fill.querySelector('.story-progress-fill') : fill;
+      if(inner) inner.style.animationPlayState = _paused ? 'paused' : 'running';
+    }
   };
 
-  // ── تبديل كتم/رفع صوت فيديو القصة (مثل فيسبوك) ──
-  let _storyMuted = false;
   window.toggleStoryMute = ()=>{
     _storyMuted = !_storyMuted;
     const vid = document.getElementById('storyVideo');
     const btn = document.getElementById('storyMuteBtn');
-    if(vid){ vid.muted = _storyMuted; }
-    if(btn){ btn.innerText = _storyMuted ? '🔇' : '🔊'; btn.title = _storyMuted ? 'رفع الصوت' : 'كتم الصوت'; }
+    if(vid) vid.muted = _storyMuted;
+    if(btn) btn.innerText = _storyMuted ? '🔇' : '🔊';
   };
 
   window.toggleStoryReactPicker = ()=>{
@@ -18903,13 +19023,11 @@ function _showStoryViewer(authorName, stories, startIdx){
   window.reactToStory = (emoji)=>{
     const s = stories[currentIdx];
     if(!s.reactions) s.reactions={};
-    const name = getCurrentUser();
+    const name = typeof getCurrentUser==='function' ? getCurrentUser() : '';
     s.reactions[name] = emoji;
-    // save
-    const key = _storiesKey(authorName);
-    const allStories = getMyStories(authorName);
+    const allStories = typeof getMyStories==='function' ? getMyStories(authorName) : [];
     const target = allStories.find(st=>st.id===s.id);
-    if(target){ target.reactions = s.reactions; saveMyStories(authorName, allStories); }
+    if(target){ target.reactions = s.reactions; if(typeof saveMyStories==='function') saveMyStories(authorName, allStories); }
     if(typeof showToast==='function') showToast('تفاعلت بـ '+emoji);
     buildViewer(currentIdx);
   };
@@ -18919,39 +19037,50 @@ function _showStoryViewer(authorName, stories, startIdx){
     const shareText = `📸 قصة ${authorName} على Connect DZ!\nشاهد القصة: ${window.location.href}`;
     if(navigator.share){
       navigator.share({ title:'قصة من '+authorName+' على Connect DZ', text:shareText, url:window.location.href }).catch(()=>{
-        // fallback to clipboard
-        navigator.clipboard?.writeText(shareText).then(()=>showToast('🔗 تم نسخ رابط القصة — يمكنك مشاركتها أينما تريد!'));
+        navigator.clipboard?.writeText(shareText).then(()=>{ if(typeof showToast==='function') showToast('🔗 تم نسخ رابط القصة!'); });
       });
     } else if(navigator.clipboard){
-      navigator.clipboard.writeText(shareText).then(()=>showToast('🔗 تم نسخ رابط القصة — شاركها بلا حدود! ↗️'));
-    } else {
-      showToast('↗️ شارك القصة مع الجميع!');
+      navigator.clipboard.writeText(shareText).then(()=>{ if(typeof showToast==='function') showToast('🔗 تم نسخ رابط القصة!'); });
     }
-    // تسجيل المشاركة
     if(s){ if(!s.shares) s.shares=0; s.shares++; }
   };
 
   window.nextStory = ()=>{
-    const bgAudio = document.getElementById('_storyBgAudio');
-    if(bgAudio){ bgAudio.pause(); bgAudio.remove(); }
-    if(_storyTimer) clearTimeout(_storyTimer);
+    _stopBgAudio();
+    _stopTimer();
+    const vid = document.getElementById('storyVideo');
+    if(vid){ vid.pause(); }
     currentIdx++;
     if(currentIdx >= stories.length){ closeStoryViewer(); return; }
     buildViewer(currentIdx);
   };
+
   window.prevStory = ()=>{
-    if(_storyTimer) clearTimeout(_storyTimer);
+    _stopTimer();
+    const vid = document.getElementById('storyVideo');
+    if(vid){ vid.pause(); }
     currentIdx = Math.max(0, currentIdx-1);
     buildViewer(currentIdx);
   };
+
   window.closeStoryViewer = ()=>{
-    // إيقاف موسيقى الخلفية
-    const bgAudio = document.getElementById('_storyBgAudio');
-    if(bgAudio){ bgAudio.pause(); bgAudio.remove(); }
-    if(_storyTimer) clearTimeout(_storyTimer);
+    _stopBgAudio();
+    _stopTimer();
+    const vid = document.getElementById('storyVideo');
+    if(vid){ vid.pause(); vid.src=''; }
     ov.remove();
-    ['nextStory','prevStory','closeStoryViewer','toggleStoryPause','toggleStoryReactPicker','reactToStory','shareStory'].forEach(f=>{ try{delete window[f];}catch(e){} });
+    ['nextStory','prevStory','closeStoryViewer','toggleStoryPause','toggleStoryReactPicker','reactToStory','shareStory','toggleStoryMute'].forEach(f=>{ try{delete window[f];}catch(e){} });
   };
+
+  /* ── لوحة المفاتيح ── */
+  function _keyHandler(e){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown') nextStory();
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp') prevStory();
+    else if(e.key==='Escape') closeStoryViewer();
+    else if(e.key===' '){ e.preventDefault(); toggleStoryPause(); }
+  }
+  document.addEventListener('keydown', _keyHandler);
+  ov.addEventListener('_destroy',()=>document.removeEventListener('keydown',_keyHandler));
 
   document.body.appendChild(ov);
   buildViewer(currentIdx);
