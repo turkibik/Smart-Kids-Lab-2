@@ -4543,6 +4543,10 @@ function switchLoginTab(tab){
         <button onclick="saveUserPassword()"
           style="width:100%;padding:12px;background:linear-gradient(135deg,#00e5a0,#00b894);border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#050a0e;cursor:pointer;box-shadow:0 4px 14px rgba(0,229,160,0.3);transition:.2s;"
           onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">💾 حفظ كلمة المرور</button>
+        <!-- زر خروج من جميع الجلسات -->
+        <button onclick="logoutAllSessions()"
+          style="width:100%;padding:11px;margin-top:8px;background:rgba(229,57,53,0.08);border:1.5px solid rgba(229,57,53,0.3);border-radius:10px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#e53935;cursor:pointer;transition:.2s;"
+          onmouseover="this.style.background='rgba(229,57,53,0.15)'" onmouseout="this.style.background='rgba(229,57,53,0.08)'">🔓 خروج من جميع الجلسات</button>
       </div>
       <div style="background:#F0F2F5;border-radius:12px;padding:14px 16px;margin-bottom:10px;">
         <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:8px;">🔒 الخصوصية</div>
@@ -21926,15 +21930,21 @@ function saveRegUser(userData){
   } catch(e) { console.warn('saveRegUser error:', e); }
 }
 function getSavedLoginAccounts(){
-  try{ return JSON.parse(localStorage.getItem(REG_SAVED_KEY)||'[]'); }catch{ return []; }
+  try{
+    const did = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+    const key = REG_SAVED_KEY + '_' + did;
+    return JSON.parse(localStorage.getItem(key)||'[]');
+  }catch{ return []; }
 }
 function addSavedLoginAccount(userData){
   try {
+    const did = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+    const key = REG_SAVED_KEY + '_' + did;
     const accs = getSavedLoginAccounts();
     const idx = accs.findIndex(a=>a.email===userData.email);
-    const entry = { name: userData.firstName+' '+userData.lastName, email: userData.email, photo: userData.photoUrl||'', ts: Date.now() };
+    const entry = { name: userData.firstName+' '+userData.lastName, email: userData.email, photo: userData.photoUrl||'', ts: Date.now(), device: did };
     if(idx>=0) accs[idx]=entry; else accs.unshift(entry);
-    localStorage.setItem(REG_SAVED_KEY, JSON.stringify(accs.slice(0,5)));
+    localStorage.setItem(key, JSON.stringify(accs.slice(0,5)));
   } catch(e) { console.warn('addSavedLoginAccount error:', e); }
 }
 
@@ -21960,9 +21970,9 @@ function renderSavedLoginAccounts(){
     return;
   }
 
-  // مستخدم عائد: إخفاء حقول البريد وكلمة المرور، إظهار الحسابات فقط
+  // مستخدم عائد: إظهار الحسابات المحفوظة + الإبقاء على حقول الدخول
   section.style.display='block';
-  if(newUserSection) newUserSection.style.display='none';
+  if(newUserSection) newUserSection.style.display='block';
   if(addDiv){
     const divEl = document.getElementById('addAccDivider');
     const btnEl = document.getElementById('addAccountBtn');
@@ -22023,19 +22033,49 @@ function renderSavedLoginAccounts(){
   list.innerHTML = regHTML + legacyHTML;
 }
 
-/* ═══════════ تسجيل الدخول السريع بحساب محفوظ ═══════════ */
+/* ═══════════ تسجيل الدخول السريع بحساب محفوظ — يطلب كلمة السر دائماً ═══════════ */
 window.fbQuickLogin = function(idx){
   const accs = getSavedLoginAccounts();
   const acc  = accs[idx];
   if(!acc) return;
-  const users = getRegUsers();
-  const user  = users.find(u=>u.email===acc.email);
-  if(user){
-    fbLoginUser(user);
-  } else {
-    // Legacy: try original enter() flow
-    document.getElementById('loginEmail').value = acc.email;
-    if(typeof handleAuthAction==='function') handleAuthAction();
+
+  /* ملء الإيميل وإظهار حقول الدخول مع طلب كلمة السر */
+  const newUserSection = document.getElementById('newUserLoginSection');
+  const emailInp = document.getElementById('fbEmailPhone');
+  const passInp  = document.getElementById('fbPassword');
+
+  if(newUserSection) newUserSection.style.display = 'block';
+  if(emailInp){
+    emailInp.value = acc.email;
+    emailInp.readOnly = true;
+    emailInp.style.background = 'rgba(0,229,160,0.06)';
+    emailInp.style.borderColor = 'rgba(0,229,160,0.4)';
+  }
+  if(passInp){
+    passInp.value = '';
+    setTimeout(()=>passInp.focus(), 120);
+  }
+
+  /* تغيير نص الزر ليوضح الحساب المحدد */
+  const btn = document.getElementById('mainAuthBtn');
+  if(btn) btn.textContent = '🔐 تسجيل الدخول كـ ' + acc.name;
+
+  /* زر إلغاء الاختيار */
+  const cancelId = '__quickLoginCancel';
+  let existCancel = document.getElementById(cancelId);
+  if(!existCancel){
+    existCancel = document.createElement('div');
+    existCancel.id = cancelId;
+    existCancel.style.cssText = 'text-align:center;margin-top:8px;font-size:12px;color:#8b949e;cursor:pointer;font-weight:700;';
+    existCancel.textContent = '← اختر حساباً آخر';
+    existCancel.onclick = function(){
+      if(emailInp){ emailInp.readOnly=false; emailInp.value=''; emailInp.style.background=''; emailInp.style.borderColor=''; }
+      if(passInp) passInp.value='';
+      if(btn) btn.textContent='تسجيل الدخول';
+      existCancel.remove();
+    };
+    const loginSection = document.getElementById('newUserLoginSection');
+    if(loginSection) loginSection.appendChild(existCancel);
   }
 };
 
@@ -22050,18 +22090,23 @@ window.fbDoLogin = async function(){
   const password   = (document.getElementById('fbPassword')||{}).value?.trim();
   const btn = document.getElementById('mainAuthBtn');
 
-  if(!emailPhone){ if(typeof showToast==='function') showToast('⚠️ أدخل البريد أو رقم الهاتف'); return; }
+  /* ① الإيميل إجباري */
+  if(!emailPhone){ if(typeof showToast==='function') showToast('⚠️ أدخل البريد الإلكتروني'); return; }
 
-  // ✅ التحقق من صيغة البريد الإلكتروني إذا يحتوي على @
-  if(emailPhone.includes('@') && !_isValidEmail(emailPhone)){
-    if(typeof showToast==='function') showToast('⚠️ صيغة البريد الإلكتروني غير صحيحة');
+  /* ② التحقق من صيغة البريد الإلكتروني */
+  if(!emailPhone.includes('@') || !_isValidEmail(emailPhone)){
+    if(typeof showToast==='function') showToast('⚠️ أدخل بريدًا إلكترونيًا صحيحًا');
     return;
   }
 
+  /* ③ كلمة السر إجبارية */
+  if(!password){ if(typeof showToast==='function') showToast('⚠️ أدخل كلمة المرور'); return; }
+
   if(btn){ btn.classList.add('loading'); btn.textContent='جارٍ التحقق…'; }
 
-  // ① تحقق من admin
   const emailTrimmed = emailPhone.trim();
+
+  // تحقق من admin
   if(typeof ADMIN_CODE!=='undefined' && (emailTrimmed===ADMIN_CODE||emailTrimmed.toLowerCase()===(typeof ADMIN_EMAIL!=='undefined'?ADMIN_EMAIL:'').toLowerCase())){
     document.getElementById('loginEmail').value = emailTrimmed;
     if(btn){ btn.classList.remove('loading'); btn.textContent='تسجيل الدخول'; }
@@ -22069,70 +22114,47 @@ window.fbDoLogin = async function(){
     return;
   }
 
-  // ② تحقق من المستخدمين المسجلين
   const users = getRegUsers();
 
-  // ✅ كلمة المرور الأولى المؤقتة: 000000
-  // تسمح لأي مستخدم مسجل بالدخول لأول مرة ثم تذكّره بإنشاء كلمة مرور خاصة
+  /* ④ كلمة مرور مؤقتة 000000 */
   if(password === '000000'){
-    const matchUser = users.find(u => u.email===emailTrimmed || u.phone===emailTrimmed);
+    const matchUser = users.find(u => u.email===emailTrimmed);
     if(matchUser){
       if(btn){ btn.classList.remove('loading'); btn.textContent='تسجيل الدخول'; }
-      // تحقق هل سبق له إنشاء كلمة مرور خاصة
-      const hasCustomPass = matchUser.password && matchUser.password !== btoa('') && matchUser.password !== btoa('000000');
       fbLoginUser(matchUser);
+      const hasCustomPass = matchUser.password && matchUser.password !== btoa('') && matchUser.password !== btoa('000000');
       if(!hasCustomPass){
         setTimeout(()=>{
-          if(typeof showToast==='function') showToast('🔑 مرحباً! كلمة المرور المؤقتة: 000000\n⚠️ يجب عليك إنشاء كلمة مرور خاصة بك من الإعدادات');
-          // فتح نافذة إنشاء كلمة المرور تلقائياً بعد ثانيتين
-          setTimeout(()=>{
-            const passSection = document.getElementById('profilePassSection');
-            if(passSection){ passSection.scrollIntoView({behavior:'smooth'}); }
-            if(typeof showToast==='function') showToast('⬆️ انتقل إلى الإعدادات ← إنشاء كلمة مرور لحماية حسابك');
-          }, 2500);
+          if(typeof showToast==='function') showToast('🔑 دخلت بكلمة المرور المؤقتة\n⚠️ يجب عليك إنشاء كلمة مرور خاصة من الإعدادات');
+          setTimeout(()=>{ if(typeof showToast==='function') showToast('⬆️ انتقل إلى الإعدادات ← إنشاء كلمة مرور'); }, 2500);
         }, 1200);
       }
       return;
     }
   }
 
-  // ✅ هل الإيميل موجود لكن بدون كلمة سر؟
-  const userNoPass = users.find(u=>(u.email===emailTrimmed||u.phone===emailTrimmed) && (!u.password || u.password===btoa('')));
-  if(userNoPass){
-    if(btn){ btn.classList.remove('loading'); btn.textContent='تسجيل الدخول'; }
-    fbLoginUser(userNoPass);
-    if(typeof showToast==='function') showToast('⚠️ تنبيه: عليك إنشاء كلمة مرور خاصة بك من داخل إعدادات الخصوصية');
-    return;
-  }
-
-  // ✅ التحقق من الإيميل + كلمة السر
-  if(!password && emailPhone.includes('@')){
-    const knownUser = users.find(u=>u.email===emailTrimmed||u.phone===emailTrimmed);
-    if(knownUser && knownUser.password && knownUser.password!==btoa('')){
-      if(btn){ btn.classList.remove('loading'); btn.textContent='تسجيل الدخول'; }
-      if(typeof showToast==='function') showToast('⚠️ أدخل كلمة المرور');
-      return;
-    }
-  }
-
-  const user  = users.find(u=>(u.email===emailTrimmed||u.phone===emailTrimmed)&&u.password===btoa(password||''));
+  /* ⑤ التحقق من الإيميل + كلمة السر */
+  const user = users.find(u=>u.email===emailTrimmed && u.password===btoa(unescape(encodeURIComponent(password))));
   if(user){
     if(btn){ btn.classList.remove('loading'); btn.textContent='تسجيل الدخول'; }
+    /* إزالة readOnly من حقل الإيميل إن وُجد */
+    const emailInp = document.getElementById('fbEmailPhone');
+    if(emailInp){ emailInp.readOnly=false; emailInp.style.background=''; emailInp.style.borderColor=''; }
+    document.getElementById('__quickLoginCancel')?.remove();
     fbLoginUser(user);
     return;
   }
 
-  // ✅ إذا وُجد الإيميل لكن كلمة السر خاطئة — لا تكمل للـ legacy
-  const anyMatch = users.find(u=>u.email===emailTrimmed||u.phone===emailTrimmed);
+  /* ⑥ الإيميل موجود لكن كلمة السر خاطئة */
+  const anyMatch = users.find(u=>u.email===emailTrimmed);
+  if(btn){ btn.classList.remove('loading'); btn.textContent='تسجيل الدخول'; }
   if(anyMatch){
-    if(btn){ btn.classList.remove('loading'); btn.textContent='تسجيل الدخول'; }
     if(typeof showToast==='function') showToast('❌ كلمة المرور غير صحيحة');
     return;
   }
 
-  // ③ Legacy flow (CSV-based)
+  /* ⑦ Legacy flow (CSV-based) */
   document.getElementById('loginEmail').value = emailTrimmed;
-  if(btn){ btn.classList.remove('loading'); btn.textContent='تسجيل الدخول'; }
   if(typeof enter==='function') await enter();
   else if(typeof handleAuthAction==='function') handleAuthAction();
 };
@@ -22593,7 +22615,6 @@ window.saveUserPassword = function(){
   if(!newPass || newPass.length < 6){ toast('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
   if(newPass !== confirmPass){ toast('❌ كلمتا المرور غير متطابقتان'); return; }
 
-  // جلب بيانات المستخدم الحالي
   let currUser = null;
   try{ currUser = JSON.parse(localStorage.getItem('cdz_current_user_data')||'null'); }catch(e){}
 
@@ -22602,7 +22623,6 @@ window.saveUserPassword = function(){
     return;
   }
 
-  // تحديث كلمة السر في قائمة المستخدمين
   const users = getRegUsers();
   const idx = users.findIndex(u => u.email === currUser.email);
   if(idx < 0){
@@ -22610,20 +22630,84 @@ window.saveUserPassword = function(){
     return;
   }
 
+  /* ── تحديث كلمة السر وتجديد رمز الجلسة ── */
+  const newSessionToken = Date.now().toString(36) + Math.random().toString(36).slice(2);
   users[idx].password = btoa(unescape(encodeURIComponent(newPass)));
+  users[idx].sessionToken = newSessionToken;
   localStorage.setItem('cdz_registered_users', JSON.stringify(users));
 
-  // تحديث بيانات الجلسة الحالية
   currUser.password = users[idx].password;
+  currUser.sessionToken = newSessionToken;
   localStorage.setItem('cdz_current_user_data', JSON.stringify(currUser));
 
-  // مسح الحقول
+  /* حفظ رمز الجلسة الحالية في هذا الجهاز */
+  const did = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+  localStorage.setItem('cdz_session_' + currUser.email.replace(/[^a-z0-9]/gi,'_'), newSessionToken + '|' + did);
+
   const pi = document.getElementById('newPassInput');
   const pc = document.getElementById('newPassConfirm');
   if(pi){ pi.value=''; pi.style.borderColor='#E4E6EB'; }
   if(pc) pc.value='';
 
-  toast('✅ تم حفظ كلمة المرور بنجاح! يمكنك الآن الدخول بـ بريدك + كلمة المرور');
+  toast('✅ تم حفظ كلمة المرور بنجاح!');
+};
+
+/* ═══════════ خروج من جميع الجلسات ═══════════ */
+window.logoutAllSessions = function(){
+  /* عرض تأكيد */
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:20px;';
+  ov.innerHTML = `
+    <div style="background:white;border-radius:20px;padding:24px;max-width:320px;width:100%;text-align:center;font-family:'Tajawal',sans-serif;">
+      <div style="font-size:36px;margin-bottom:12px;">🔓</div>
+      <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:8px;">خروج من جميع الجلسات</div>
+      <div style="font-size:13px;color:#65676B;margin-bottom:20px;line-height:1.7;">سيتم إغلاق حسابك على جميع الأجهزة الأخرى. ستبقى مسجلاً على هذا الجهاز فقط.</div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="this.closest('div[style*=\"fixed\"]').remove()"
+          style="flex:1;padding:12px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;color:#65676B;cursor:pointer;">إلغاء</button>
+        <button id="_logoutAllConfirmBtn"
+          style="flex:1;padding:12px;background:linear-gradient(135deg,#e53935,#c62828);border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;"
+          onclick="window._doLogoutAllSessions(this)">خروج من الكل</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+};
+
+window._doLogoutAllSessions = function(btn){
+  if(btn){ btn.disabled=true; btn.textContent='⏳ جارٍ التنفيذ...'; }
+
+  let currUser = null;
+  try{ currUser = JSON.parse(localStorage.getItem('cdz_current_user_data')||'null'); }catch(e){}
+  if(!currUser || !currUser.email){ toast('⚠️ لا توجد جلسة نشطة'); document.querySelector('div[style*="position:fixed"][style*="z-index:99999"]')?.remove(); return; }
+
+  /* تجديد رمز الجلسة — يُبطل كل الجلسات القديمة في أجهزة أخرى */
+  const newSessionToken = 'ses_' + Date.now().toString(36) + Math.random().toString(36).slice(2);
+  const users = getRegUsers();
+  const idx = users.findIndex(u=>u.email===currUser.email);
+  if(idx>=0){
+    users[idx].sessionToken = newSessionToken;
+    localStorage.setItem('cdz_registered_users', JSON.stringify(users));
+  }
+  currUser.sessionToken = newSessionToken;
+  localStorage.setItem('cdz_current_user_data', JSON.stringify(currUser));
+
+  /* حفظ الرمز الجديد لهذا الجهاز */
+  const did = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+  const sessionKey = 'cdz_session_' + currUser.email.replace(/[^a-z0-9]/gi,'_');
+  localStorage.setItem(sessionKey, newSessionToken + '|' + did);
+
+  /* رفع رمز الجلسة إلى Firebase لإبلاغ الأجهزة الأخرى */
+  const DB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  const safeEmail = currUser.email.replace(/[.#$\[\]]/g,'_');
+  fetch(`${DB_BASE}/sessions/${safeEmail}.json`, {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ token: newSessionToken, revokedAt: new Date().toISOString() })
+  }).catch(()=>{});
+
+  document.querySelector('div[style*="position:fixed"][style*="z-index:99999"]')?.remove();
+  toast('✅ تم الخروج من جميع الأجهزة الأخرى بنجاح! أنت الآن على هذا الجهاز فقط.');
 };
 
 /* ═══════════ نسيان كلمة المرور ═══════════ */
@@ -22714,29 +22798,25 @@ window.hideAddAccountFields = function(){
 window.fbDoLogin2 = async function(){
   const ep = (document.getElementById('fbEmailPhone2')||{}).value?.trim();
   const pw = (document.getElementById('fbPassword2')||{}).value?.trim();
-  if(!ep){ if(typeof showToast==='function') showToast('⚠️ أدخل البريد أو رقم الهاتف'); return; }
 
-  // ✅ التحقق من صيغة البريد الإلكتروني
-  if(ep.includes('@') && !_isValidEmail(ep)){
-    if(typeof showToast==='function') showToast('⚠️ صيغة البريد الإلكتروني غير صحيحة');
+  if(!ep){ if(typeof showToast==='function') showToast('⚠️ أدخل البريد الإلكتروني'); return; }
+  if(!ep.includes('@') || !_isValidEmail(ep)){
+    if(typeof showToast==='function') showToast('⚠️ أدخل بريدًا إلكترونيًا صحيحًا');
     return;
   }
+  if(!pw){ if(typeof showToast==='function') showToast('⚠️ أدخل كلمة المرور'); return; }
 
-  // ابحث في المستخدمين المسجلين
   const users = getRegUsers();
+  const user = users.find(u=>u.email===ep && u.password===btoa(unescape(encodeURIComponent(pw))));
+  if(user){ fbLoginUser(user); hideAddAccountFields(); return; }
 
-  // ✅ مستخدم موجود بدون كلمة سر
-  const userNoPass = users.find(u=>(u.email===ep||u.phone===ep) && (!u.password || u.password===btoa('')));
-  if(userNoPass){
-    fbLoginUser(userNoPass);
-    if(typeof showToast==='function') showToast('⚠️ تنبيه: عليك إنشاء كلمة مرور خاصة بك من داخل إعدادات الخصوصية');
-    return;
+  /* كلمة مرور مؤقتة */
+  if(pw === '000000'){
+    const matchUser = users.find(u=>u.email===ep);
+    if(matchUser){ fbLoginUser(matchUser); hideAddAccountFields(); return; }
   }
 
-  // ✅ إذا وُجد الإيميل لكن كلمة السر خاطئة — لا تكمل للـ legacy
-  const user = users.find(u=>(u.email===ep||u.phone===ep)&&u.password===btoa(pw||''));
-  if(user){ fbLoginUser(user); return; }
-  const anyMatch = users.find(u=>u.email===ep||u.phone===ep);
+  const anyMatch = users.find(u=>u.email===ep);
   if(anyMatch){
     if(typeof showToast==='function') showToast('❌ كلمة المرور غير صحيحة');
     return;
