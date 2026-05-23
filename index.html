@@ -4019,7 +4019,9 @@ body.member-mode #onlineBar{
           </div>
           <input type="text" id="fbEmailPhone" class="fb-input"
             placeholder="example@email.com"
+            oninput="(function(el){var v=el.value.trim();var ok=/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);el.style.borderColor=v.length===0?'':(ok?'#00c07a':'#e53935');var h=document.getElementById('_fbEmailHint');if(h)h.style.display=(v.length>0&&!ok)?'block':'none';})(this)"
             onkeydown="if(event.key==='Enter')document.getElementById('fbPassword').focus()">
+          <div id="_fbEmailHint" style="display:none;font-size:11px;color:#e53935;font-weight:700;margin-top:4px;padding-right:4px;">⚠️ تأكد من صيغة الإيميل (مثال: name@email.com)</div>
         </div>
         <!-- حقل كلمة المرور -->
         <div class="fb-input-wrapper">
@@ -4543,6 +4545,10 @@ function switchLoginTab(tab){
         <button onclick="saveUserPassword()"
           style="width:100%;padding:12px;background:linear-gradient(135deg,#00e5a0,#00b894);border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#050a0e;cursor:pointer;box-shadow:0 4px 14px rgba(0,229,160,0.3);transition:.2s;"
           onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">💾 حفظ كلمة المرور</button>
+        <!-- زر الأرشيف -->
+        <button onclick="window.openArchivedPosts()"
+          style="width:100%;padding:11px;margin-top:8px;background:rgba(24,119,242,0.08);border:1.5px solid rgba(24,119,242,0.3);border-radius:10px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#1877F2;cursor:pointer;transition:.2s;"
+          onmouseover="this.style.background='rgba(24,119,242,0.15)'" onmouseout="this.style.background='rgba(24,119,242,0.08)'">🗃️ أرشيف المنشورات المحذوفة</button>
         <!-- زر خروج من جميع الجلسات -->
         <button onclick="logoutAllSessions()"
           style="width:100%;padding:11px;margin-top:8px;background:rgba(229,57,53,0.08);border:1.5px solid rgba(229,57,53,0.3);border-radius:10px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#e53935;cursor:pointer;transition:.2s;"
@@ -7902,13 +7908,30 @@ function getProfilePostsKey(name){ return _profilePostsKey + name.replace(/\s+/g
 function renderProfilePosts(name){
   const feed = document.getElementById('profilePostsFeed');
   if(!feed) return;
-  const posts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
+  const allPosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
+  /* إخفاء المنشورات المؤرشفة من العرض */
+  const posts = allPosts.filter(p => !p._archived);
+  const archivedCount = allPosts.filter(p => p._archived).length;
+
+  /* زر الأرشيف إن وجدت منشورات مؤرشفة */
+  const archiveBtnHtml = archivedCount > 0 ? `
+    <div onclick="window.openArchivedPosts()" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(135deg,rgba(24,119,242,0.08),rgba(0,200,83,0.05));border-radius:12px;border:1px dashed rgba(24,119,242,0.3);margin-bottom:10px;cursor:pointer;">
+      <span style="font-size:20px;">🗃️</span>
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#1877F2;">${archivedCount} منشور مؤرشف</div>
+        <div style="font-size:11px;color:#65676B;">اضغط لعرض واسترجاع منشوراتك المحذوفة</div>
+      </div>
+      <span style="margin-right:auto;font-size:16px;color:#1877F2;">›</span>
+    </div>` : '';
+
   if(posts.length===0){
-    feed.innerHTML=`<div style="background:white;padding:30px 20px;text-align:center;margin:0 0 8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. شارك أول منشور!</div></div>`;
+    feed.innerHTML=archiveBtnHtml+`<div style="background:white;padding:30px 20px;text-align:center;margin:0 0 8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. شارك أول منشور!</div></div>`;
     return;
   }
-  feed.innerHTML = posts.slice().reverse().map((p,ri)=>{
-    const i = posts.length-1-ri;
+
+  const postsHtml = posts.slice().reverse().map((p,ri)=>{
+    /* نجد الفهرس الحقيقي في allPosts */
+    const i = allPosts.indexOf(p);
     const photo = getProfilePhoto ? getProfilePhoto(name) : null;
     const avatarHtml = photo ? `<img loading="lazy" src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;">${getLeaderIcon(name)}</div>`;
     const postId = 'pp_'+name.replace(/\s+/g,'_')+'_'+i;
@@ -7954,6 +7977,7 @@ function renderProfilePosts(name){
       </div>
     </div>`;
   }).join('');
+  feed.innerHTML = archiveBtnHtml + postsHtml;
 }
 
 function addProfilePostReaction(ownerName, idx, emoji){
@@ -8014,9 +8038,74 @@ function togglePostLike(btn){
 
 function deletePost(name, idx){
   const posts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
-  posts.splice(idx,1);
+  const post = posts[idx];
+  if(!post) return;
+
+  /* نافذة تأكيد مع خيار الاسترجاع */
+  const oldOv = document.getElementById('_delProfPostOv'); if(oldOv) oldOv.remove();
+  const ov = document.createElement('div');
+  ov.id = '_delProfPostOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .15s ease;';
+  ov.innerHTML = `
+    <div style="background:white;border-radius:20px;padding:24px 20px;max-width:320px;width:100%;font-family:'Tajawal',sans-serif;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;">
+      <div style="font-size:40px;margin-bottom:10px;">🗑️</div>
+      <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:6px;">حذف المنشور</div>
+      <div style="font-size:12px;color:#65676B;line-height:1.7;margin-bottom:18px;">
+        سيُحفظ المنشور في الأرشيف ويمكنك<br>
+        <strong style="color:#1877F2;">استعادته</strong> لاحقاً من إعداداتك.
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('_delProfPostOv').remove()"
+          style="flex:1;padding:12px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;color:#65676B;cursor:pointer;">إلغاء</button>
+        <button onclick="window._archiveProfPost('${name}',${idx})"
+          style="flex:1;padding:12px;background:linear-gradient(135deg,#e53935,#c62828);border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;">
+          🗃️ حذف وأرشفة
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+}
+
+window._archiveProfPost = function(name, idx){
+  document.getElementById('_delProfPostOv')?.remove();
+  const posts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
+  const post = posts[idx];
+  if(!post) return;
+
+  /* أرشفة محلية */
+  const archiveKey = 'cdz_archived_posts_' + name.replace(/\s+/g,'_');
+  let archived = [];
+  try{ archived = JSON.parse(localStorage.getItem(archiveKey)||'[]'); }catch(e){}
+  /* اعطِ المنشور id إن لم يكن له */
+  if(!post.id) post.id = 'pp_'+Date.now()+'_'+idx;
+  archived.unshift({ ...post, author: name, _archivedAt: new Date().toISOString(), _archivedBy: name });
+  try{ localStorage.setItem(archiveKey, JSON.stringify(archived.slice(0,200))); }catch(e){}
+
+  /* وضع علامة مؤرشف في الملف الشخصي */
+  posts[idx]._archived = true;
+  posts[idx]._archivedAt = new Date().toISOString();
   localStorage.setItem(getProfilePostsKey(name), JSON.stringify(posts));
+
+  /* أرشفة في Firebase */
+  const DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  fetch(`${DB}/archived_posts/${post.id}.json`, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ ...post, author: name, _archivedAt: new Date().toISOString(), _archivedBy: name })
+  }).catch(()=>{});
+
+  /* إزالة من الفيد الاجتماعي إن وجد */
+  const socialPosts = getSocialPosts();
+  const spIdx = socialPosts.findIndex(p => p.id === post.id || (p.ts === post.ts && p.author === name));
+  if(spIdx >= 0){
+    fetch(`${DB}/social_posts/${socialPosts[spIdx].id}.json`, {method:'DELETE'}).catch(()=>{});
+    socialPosts.splice(spIdx, 1);
+    saveSocialPosts(socialPosts);
+  }
+
+  if(typeof showToast === 'function') showToast('🗃️ تم أرشفة المنشور — يمكنك استعادته من الإعدادات');
   renderProfilePosts(name);
+  if(typeof renderSocialFeed === 'function') renderSocialFeed();
 }
 
 const _feelings = ['😊 سعيد','😍 متحمس','🔥 نشيط','💪 مصمم','🤩 رائع','🎉 منتصر','🧠 مفكر','😤 مجتهد','🌟 متألق'];
@@ -14462,39 +14551,43 @@ async function _fetchFirebasePosts(){
     if(!res.ok) return [];
     const data = await res.json();
     if(!data || typeof data !== 'object') return [];
-    return Object.values(data).filter(p => p && p.id && p.author);
+    return Object.values(data).filter(p => p && p.id && p.author && !p._archived);
   }catch(e){ return []; }
 }
 
-/* 🛡️ دمج منشورات Firebase مع المحلية — Firebase هو مصدر الحقيقة للمنشورات الجديدة */
+/* 🛡️ دمج منشورات Firebase مع المحلية — Firebase هو مصدر الحقيقة الدائمة */
 function _mergePosts(localPosts, fbPosts){
   const map = new Map();
-  /* أولاً: المحلية كقاعدة */
+  /* أولاً: المحلية كقاعدة (تحتفظ بالصور base64 المحلية) */
   localPosts.forEach(p => { if(p && p.id) map.set(p.id, p); });
-  /* ثانياً: Firebase يُضيف ما لم يكن موجوداً، ويُحدِّث التفاعلات والتعليقات */
+  /* ثانياً: Firebase يُضيف ما لم يكن موجوداً ويُحدِّث التفاعلات والتعليقات دائماً */
   fbPosts.forEach(p => {
     if(!p || !p.id) return;
     if(!map.has(p.id)){
-      /* منشور موجود في Firebase وليس محلياً — أضفه (يشمل منشورات أعضاء آخرين) */
+      /* منشور في Firebase وليس محلياً — أضفه دائماً (منشورات أعضاء آخرين) */
       map.set(p.id, p);
     } else {
-      /* المنشور موجود في الجهتين — خذ أفضل بيانات */
+      /* المنشور موجود في الجهتين — ادمج أفضل ما في كل نسخة */
       const local = map.get(p.id);
       const fbReacts = Object.values(p.reactions||{}).reduce((s,a)=>s+(Array.isArray(a)?a.length:0),0);
       const localReacts = Object.values(local.reactions||{}).reduce((s,a)=>s+(Array.isArray(a)?a.length:0),0);
       const fbComments = (p.comments||[]).length;
       const localComments = (local.comments||[]).length;
-      /* استخدم Firebase إذا كان لديه تفاعلات أو تعليقات أكثر */
-      if(fbReacts > localReacts || fbComments > localComments){
-        /* احتفظ بالنص والصور من النسخة المحلية إذا كانت Firebase تفتقدها */
-        const merged = Object.assign({}, p);
-        if(!merged.text && local.text) merged.text = local.text;
-        if(!merged.image && local.image) merged.image = local.image;
-        if(!merged.images && local.images) merged.images = local.images;
-        if(!merged.video && local.video) merged.video = local.video;
-        map.set(p.id, merged);
-      }
-      /* وإلا احتفظ بالمحلية كما هي */
+      /* دائماً: خذ الأفضل من كل جانب */
+      const merged = Object.assign({}, p);
+      /* النص: احتفظ بالمحلي إن كان Firebase يفتقده */
+      if(!merged.text && local.text) merged.text = local.text;
+      /* الصور: المحلية أولاً (قد تحتوي base64)، Firebase ثانياً (روابط Cloudinary) */
+      if(local.image) merged.image = local.image;
+      else if(!merged.image) merged.image = null;
+      if(local.images && local.images.length > 0) merged.images = local.images;
+      if(local.video) merged.video = local.video;
+      /* التفاعلات والتعليقات: خذ الأكثر */
+      if(fbReacts >= localReacts) merged.reactions = p.reactions || local.reactions || {};
+      else merged.reactions = local.reactions || {};
+      if(fbComments >= localComments) merged.comments = p.comments || local.comments || [];
+      else merged.comments = local.comments || [];
+      map.set(p.id, merged);
     }
   });
   return Array.from(map.values()).sort((a,b)=>(b.ts||0)-(a.ts||0));
@@ -14517,20 +14610,22 @@ async function renderSocialFeed(){
   const container = document.getElementById('socialFeedContainer');
   if(!container) return;
 
-  /* عرض مؤشر تحميل بسيط فقط إذا كان الفيد فارغاً */
+  /* ✅ عرض المنشورات المحلية فوراً إن وُجدت (تجربة سريعة) */
   const localPosts = getSocialPosts();
   if(localPosts.length === 0){
     container.innerHTML = `<div style="text-align:center;padding:24px;"><div style="font-size:30px;margin-bottom:8px;">⏳</div><div style="font-size:13px;color:#65676B;font-weight:700;">جاري تحميل المنشورات...</div></div>`;
+  } else {
+    /* عرض المحلية فوراً ثم نحدّث بعد Firebase */
+    container.innerHTML = localPosts.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map(p=>renderSocialPostCard(p)).join('');
   }
 
-  /* جلب منشورات Firebase في الخلفية */
+  /* ✅ جلب منشورات Firebase دائماً — هو المصدر الحقيقي */
   const fbPosts = await _fetchFirebasePosts();
+  /* دمج: Firebase يُضيف ما ليس محلياً، المحلية تحتفظ بالصور (base64) */
   const allPostsRaw = _mergePosts(localPosts, fbPosts);
 
-  /* 🛡️ حفظ النسخة المدمجة — saveSocialPosts تحمي منشورات الأعضاء تلقائياً */
-  if(fbPosts.length > 0){
-    saveSocialPosts(allPostsRaw);
-  }
+  /* ✅ حفظ النسخة المدمجة دائماً بغض النظر عن عدد منشورات Firebase */
+  saveSocialPosts(allPostsRaw);
 
   const allPosts = allPostsRaw;
   const myName = getCurrentUser();
@@ -14628,7 +14723,10 @@ function renderSocialPostCard(p){
             </div>
             <div style="height:1px;background:#F0F2F5;margin:0 12px;"></div>
             <div onclick="deleteSocialPost('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#e53935;transition:.15s;" onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background='transparent'">
-              <span style="font-size:18px;">🗑️</span> حذف المنشور
+              <span style="font-size:18px;">🗃️</span> حذف وأرشفة (قابل للاسترجاع)
+            </div>
+            <div onclick="window.openArchivedPosts();closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#1877F2;transition:.15s;" onmouseover="this.style.background='#F0F7FF'" onmouseout="this.style.background='transparent'">
+              <span style="font-size:18px;">↩️</span> عرض المنشورات المؤرشفة
             </div>` : `
             <div onclick="copyPostLink('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
               <span style="font-size:18px;">🔗</span> نسخ رابط المنشور
@@ -14972,25 +15070,223 @@ function refreshPostCard(postId){
 }
 
 function deleteSocialPost(postId){
-  /* 🛡️ التحقق أن المستخدم هو كاتب المنشور فقط — لا يمكن لأحد حذف منشور غيره */
+  /* 🛡️ التحقق أن المستخدم هو كاتب المنشور فقط */
   const currentUser = getCurrentUser();
   const posts = getSocialPosts();
   const targetPost = posts.find(p => p.id === postId);
   if(!targetPost){
-    if(typeof showToast === 'function') showToast('⚠️ المنشور غير موجود محلياً، حاول تحديث الصفحة');
+    if(typeof showToast === 'function') showToast('⚠️ المنشور غير موجود');
     return;
   }
   if(targetPost.author !== currentUser){
     if(typeof showToast === 'function') showToast('🚫 لا يمكنك حذف منشور غيرك');
     return;
   }
-  if(!confirm('هل تريد حذف هذا المنشور؟ لن يمكن استعادته.')) return;
+
+  /* ── نافذة تأكيد مخصصة مع خيار الاسترجاع ── */
+  const oldOv = document.getElementById('_delPostOv'); if(oldOv) oldOv.remove();
+  const ov = document.createElement('div');
+  ov.id = '_delPostOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .15s ease;';
+  ov.innerHTML = `
+    <div style="background:white;border-radius:20px;padding:24px 20px;max-width:320px;width:100%;font-family:'Tajawal',sans-serif;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;">
+      <div style="font-size:40px;margin-bottom:10px;">🗑️</div>
+      <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:6px;">حذف المنشور</div>
+      <div style="font-size:12px;color:#65676B;line-height:1.7;margin-bottom:18px;">
+        لن يُحذف المنشور نهائياً — سيُحفظ في الأرشيف ويمكنك<br>
+        <strong style="color:#1877F2;">استعادته</strong> في أي وقت من إعداداتك.
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('_delPostOv').remove()"
+          style="flex:1;padding:12px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;color:#65676B;cursor:pointer;">إلغاء</button>
+        <button onclick="window._archiveSocialPost('${postId}')"
+          style="flex:1;padding:12px;background:linear-gradient(135deg,#e53935,#c62828);border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;box-shadow:0 4px 14px rgba(229,57,53,0.35);">
+          🗃️ حذف وأرشفة
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+}
+
+/* ══ أرشفة المنشور (soft delete) — يُحفظ في Firebase/archived_posts ولا يُحذف نهائياً ══ */
+window._archiveSocialPost = function(postId){
+  document.getElementById('_delPostOv')?.remove();
+  const currentUser = getCurrentUser();
+  const posts = getSocialPosts();
+  const targetPost = posts.find(p => p.id === postId);
+  if(!targetPost) return;
+
+  /* ① أرشفة محلياً */
+  const archiveKey = 'cdz_archived_posts_' + (currentUser||'').replace(/\s+/g,'_');
+  let archived = [];
+  try{ archived = JSON.parse(localStorage.getItem(archiveKey)||'[]'); }catch(e){}
+  archived.unshift({ ...targetPost, _archivedAt: new Date().toISOString(), _archivedBy: currentUser });
+  try{ localStorage.setItem(archiveKey, JSON.stringify(archived.slice(0,200))); }catch(e){}
+
+  /* ② إزالة من الفيد المحلي */
   const filtered = posts.filter(p => p.id !== postId);
   saveSocialPosts(filtered);
-  /* حذف من Firebase أيضاً */
-  if(typeof window._fbDeletePost === 'function') window._fbDeletePost(postId);
-  if(typeof showToast === 'function') showToast('🗑️ تم حذف منشورك');
+
+  /* ③ أرشفة في Firebase (نقل لـ archived_posts بدل حذف نهائي) */
+  const DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  fetch(`${DB}/archived_posts/${postId}.json`, {
+    method: 'PUT', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ ...targetPost, _archivedAt: new Date().toISOString(), _archivedBy: currentUser })
+  }).catch(()=>{});
+  /* حذف من social_posts في Firebase */
+  fetch(`${DB}/social_posts/${postId}.json`, { method: 'DELETE' }).catch(()=>{});
+
+  /* ④ أرشفة في منشورات الملف الشخصي — وضع علامة محذوف */
+  try{
+    const profKey = getProfilePostsKey(targetPost.author);
+    let profPosts = JSON.parse(localStorage.getItem(profKey)||'[]');
+    const pi = profPosts.findIndex(p => p.id === postId || (p.ts === targetPost.ts && p.text === targetPost.text));
+    if(pi >= 0){
+      profPosts[pi]._archived = true;
+      profPosts[pi]._archivedAt = new Date().toISOString();
+      localStorage.setItem(profKey, JSON.stringify(profPosts));
+    }
+  }catch(e){}
+
+  if(typeof showToast === 'function') showToast('🗃️ تم أرشفة المنشور — يمكنك استعادته من الإعدادات');
   renderSocialFeed();
+}
+
+/* ══ استرجاع منشور من الأرشيف ══ */
+window._restoreSocialPost = function(postId){
+  const currentUser = getCurrentUser();
+  const archiveKey = 'cdz_archived_posts_' + (currentUser||'').replace(/\s+/g,'_');
+  let archived = [];
+  try{ archived = JSON.parse(localStorage.getItem(archiveKey)||'[]'); }catch(e){}
+  const post = archived.find(p => p.id === postId);
+  if(!post){ showToast('⚠️ المنشور غير موجود في الأرشيف'); return; }
+
+  /* إزالة علامات الأرشيف */
+  const restored = Object.assign({}, post);
+  delete restored._archivedAt; delete restored._archivedBy; delete restored._archived;
+
+  /* ① إعادة للفيد المحلي */
+  const posts = getSocialPosts();
+  if(!posts.find(p => p.id === postId)){
+    posts.unshift(restored);
+    saveSocialPosts(posts);
+  }
+
+  /* ② إعادة لـ Firebase/social_posts */
+  const DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  fetch(`${DB}/social_posts/${postId}.json`, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(restored)
+  }).catch(()=>{});
+  /* حذف من الأرشيف */
+  fetch(`${DB}/archived_posts/${postId}.json`, { method:'DELETE' }).catch(()=>{});
+
+  /* ③ إعادة للملف الشخصي */
+  try{
+    const profKey = getProfilePostsKey(restored.author);
+    let profPosts = JSON.parse(localStorage.getItem(profKey)||'[]');
+    const pi = profPosts.findIndex(p => p.id === postId);
+    if(pi >= 0){ delete profPosts[pi]._archived; delete profPosts[pi]._archivedAt; }
+    else { profPosts.push(restored); }
+    localStorage.setItem(profKey, JSON.stringify(profPosts));
+  }catch(e){}
+
+  /* ④ إزالة من الأرشيف المحلي */
+  const newArchived = archived.filter(p => p.id !== postId);
+  try{ localStorage.setItem(archiveKey, JSON.stringify(newArchived)); }catch(e){}
+
+  if(typeof showToast === 'function') showToast('✅ تم استرجاع المنشور بنجاح!');
+  renderSocialFeed();
+  /* تحديث واجهة الأرشيف إن كانت مفتوحة */
+  if(document.getElementById('_archiveOv')) window.openArchivedPosts();
+}
+
+/* ══ واجهة عرض الأرشيف ══ */
+window.openArchivedPosts = function(){
+  const currentUser = getCurrentUser();
+  const archiveKey = 'cdz_archived_posts_' + (currentUser||'').replace(/\s+/g,'_');
+  let archived = [];
+  try{ archived = JSON.parse(localStorage.getItem(archiveKey)||'[]'); }catch(e){}
+
+  /* جلب من Firebase أيضاً */
+  const DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  fetch(`${DB}/archived_posts.json?orderBy="_archivedBy"&equalTo="${currentUser}"`)
+    .then(r=>r.json()).then(data=>{
+      if(data && typeof data === 'object'){
+        const fbArchived = Object.values(data).filter(p=>p && p._archivedBy === currentUser);
+        fbArchived.forEach(p=>{
+          if(!archived.find(a=>a.id===p.id)) archived.unshift(p);
+        });
+        archived.sort((a,b)=>new Date(b._archivedAt||0)-new Date(a._archivedAt||0));
+        try{ localStorage.setItem(archiveKey, JSON.stringify(archived.slice(0,200))); }catch(e){}
+        _renderArchiveOv(archived);
+      }
+    }).catch(()=>{ _renderArchiveOv(archived); });
+
+  _renderArchiveOv(archived);
+};
+
+function _renderArchiveOv(archived){
+  const oldOv = document.getElementById('_archiveOv'); if(oldOv) oldOv.remove();
+  const ov = document.createElement('div');
+  ov.id = '_archiveOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.65);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;';
+
+  const myPosts = archived.filter(p => p._archivedBy === getCurrentUser());
+  const postsHTML = myPosts.length === 0
+    ? '<div style="text-align:center;padding:40px 20px;"><div style="font-size:48px;margin-bottom:10px;">📭</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات مؤرشفة</div></div>'
+    : myPosts.map(p => `
+      <div style="background:#F8F9FA;border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid #E4E6EB;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:4px;">${p.author}</div>
+            <div style="font-size:11px;color:#8B949E;margin-bottom:6px;">${p.date} • أُرشف ${p._archivedAt ? new Date(p._archivedAt).toLocaleDateString('ar-DZ') : ''}</div>
+            ${p.text ? `<div style="font-size:13px;color:#050505;line-height:1.5;margin-bottom:8px;">${p.text.substring(0,120)}${p.text.length>120?'…':''}</div>` : ''}
+            ${p.image ? `<img src="${p.image}" loading="lazy" style="width:60px;height:60px;object-fit:cover;border-radius:8px;margin-bottom:8px;">` : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="window._restoreSocialPost('${p.id}')"
+            style="flex:1;padding:9px;background:linear-gradient(135deg,#00c853,#00875a);border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;color:white;cursor:pointer;">
+            ↩️ استرجاع
+          </button>
+          <button onclick="window._permanentDeletePost('${p.id}')"
+            style="flex:1;padding:9px;background:#F0F2F5;border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;color:#e53935;cursor:pointer;">
+            🗑️ حذف نهائي
+          </button>
+        </div>
+      </div>`).join('');
+
+  ov.innerHTML = `
+    <div style="background:white;border-radius:22px 22px 0 0;padding:20px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto;font-family:'Tajawal',sans-serif;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="font-size:16px;font-weight:900;color:#050505;">🗃️ الأرشيف (${myPosts.length} منشور)</div>
+        <button onclick="document.getElementById('_archiveOv').remove()"
+          style="width:32px;height:32px;border-radius:50%;border:none;background:#F0F2F5;cursor:pointer;font-size:18px;color:#65676B;">✕</button>
+      </div>
+      <div style="font-size:12px;color:#65676B;background:#E8F4FF;border-radius:10px;padding:10px 14px;margin-bottom:14px;line-height:1.6;">
+        💡 منشوراتك المؤرشفة محفوظة في قاعدة البيانات ولن تُحذف. يمكنك استرجاعها في أي وقت.
+      </div>
+      ${postsHTML}
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+}
+
+/* ══ حذف نهائي من الأرشيف (خيار اختياري للمستخدم) ══ */
+window._permanentDeletePost = function(postId){
+  if(!confirm('هل أنت متأكد؟ سيُحذف المنشور نهائياً ولا يمكن استعادته.')) return;
+  const currentUser = getCurrentUser();
+  const archiveKey = 'cdz_archived_posts_' + (currentUser||'').replace(/\s+/g,'_');
+  let archived = [];
+  try{ archived = JSON.parse(localStorage.getItem(archiveKey)||'[]'); }catch(e){}
+  const newArchived = archived.filter(p => p.id !== postId);
+  try{ localStorage.setItem(archiveKey, JSON.stringify(newArchived)); }catch(e){}
+  const DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  fetch(`${DB}/archived_posts/${postId}.json`, { method:'DELETE' }).catch(()=>{});
+  if(typeof showToast === 'function') showToast('🗑️ تم الحذف النهائي');
+  if(document.getElementById('_archiveOv')) window.openArchivedPosts();
 }
 
 /* ── إنشاء منشور اجتماعي ── */
@@ -15548,7 +15844,6 @@ function submitSocialPost(){
   const posts = getSocialPosts();
   const now = new Date();
   const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
-  // بناء نص الموقع والوسوم
   let fullText = text;
   const newPost = {
     id: 'sp_' + Date.now() + '_' + Math.random().toString(36).substr(2,5),
@@ -15568,13 +15863,16 @@ function submitSocialPost(){
   };
   posts.push(newPost);
   saveSocialPosts(posts);
-  // ✅ مزامنة المنشور مع Firebase لظهوره عند الأعضاء الآخرين
+  /* ✅ مزامنة دائمة مع Firebase — نحتفظ بروابط Cloudinary (https://) ونحذف فقط base64 */
   try {
     const DB_ROOT = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-    // حذف الصور الكبيرة (base64) قبل الإرسال لـ Firebase لتجنب حد الحجم
     const fbPost = Object.assign({}, newPost);
+    /* نحذف فقط بيانات base64 الكبيرة — روابط Cloudinary (https://) تبقى */
     if(fbPost.image && fbPost.image.startsWith('data:')) fbPost.image = null;
-    if(fbPost.images) fbPost.images = null;
+    if(fbPost.images){
+      const filteredImgs = fbPost.images.filter(img => img && !img.startsWith('data:'));
+      fbPost.images = filteredImgs.length > 0 ? filteredImgs : null;
+    }
     if(fbPost.video && fbPost.video.startsWith('data:')) fbPost.video = null;
     fetch(`${DB_ROOT}/social_posts/${newPost.id}.json`, {
       method: 'PUT',
@@ -15582,9 +15880,12 @@ function submitSocialPost(){
       body: JSON.stringify(fbPost)
     }).catch(()=>{});
   } catch(e) {}
-  const profilePosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
-  profilePosts.push({ text: fullText, image: _scpImageData, images: newPost.images, video: _scpVideoData, feeling: newPost.feeling, location: _scpLocation, taggedFriends: newPost.taggedFriends, privacy: _scpPrivacy, date: dateStr, ts: Date.now() });
-  localStorage.setItem(getProfilePostsKey(name), JSON.stringify(profilePosts));
+  /* حفظ في منشورات الملف الشخصي */
+  try {
+    const profilePosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
+    profilePosts.push({ id: newPost.id, text: fullText, image: _scpImageData, images: newPost.images, video: _scpVideoData, feeling: newPost.feeling, location: _scpLocation, taggedFriends: newPost.taggedFriends, privacy: _scpPrivacy, date: dateStr, ts: Date.now() });
+    localStorage.setItem(getProfilePostsKey(name), JSON.stringify(profilePosts));
+  } catch(e) {}
   closeSocialCreatePost();
   renderSocialFeed();
   ebPointsPost();
@@ -19778,10 +20079,39 @@ function doLogout(){
   document.getElementById('adminToggleBtn').style.display='none';
   const nb2=document.getElementById('adminNavBtn'); if(nb2) nb2.style.display='none';
   const broadcastBtn2=document.getElementById('adminBroadcastBtn'); if(broadcastBtn2) broadcastBtn2.style.display='none';
+  /* ✅ استعادة حقلي تسجيل الدخول الرسميين مع التحقق من صيغة الإيميل */
   document.getElementById('authFields').innerHTML=`
-    <div class="input-wrap">
-      <span class="input-icon">📧</span>
-      <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" onkeydown="if(event.key==='Enter')handleAuthAction();">
+    <div class="fb-input-wrapper">
+      <div class="fb-input-label">
+        <span>البريد الإلكتروني</span>
+        <span class="fb-input-label-icon">📧</span>
+      </div>
+      <input type="text" id="fbEmailPhone" class="fb-input"
+        placeholder="example@email.com"
+        oninput="(function(el){
+          var v=el.value.trim();
+          var valid=/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(v);
+          el.style.borderColor = v.length===0 ? '' : (valid ? '#00c07a' : '#e53935');
+          var hint=document.getElementById('_emailHint');
+          if(hint) hint.style.display = (v.length>0 && !valid) ? 'block' : 'none';
+        })(this)"
+        onkeydown="if(event.key==='Enter')document.getElementById('fbPassword').focus()">
+      <div id="_emailHint" style="display:none;font-size:11px;color:#e53935;font-weight:700;margin-top:4px;padding-right:4px;">⚠️ تأكد من صيغة الإيميل (مثال: name@email.com)</div>
+    </div>
+    <div class="fb-input-wrapper">
+      <div class="fb-input-label">
+        <span>كلمة المرور</span>
+        <span class="fb-input-label-icon">🔒</span>
+      </div>
+      <div class="fb-pw-wrapper">
+        <input type="password" id="fbPassword" class="fb-input"
+          placeholder="••••••••"
+          onkeydown="if(event.key==='Enter')fbDoLogin()">
+        <button class="fb-pw-toggle" type="button" onclick="togglePasswordVisibility('fbPassword',this)" tabindex="-1">👁</button>
+      </div>
+    </div>
+    <div class="fb-forgot">
+      <a onclick="openForgotPassword()">هل نسيت كلمة المرور؟</a>
     </div>`;
   document.getElementById('loginSubtitle').innerText='مختبر الشباب للذكاء والتعلم والإبداع';
   document.getElementById('switchAcc').style.display='none';
@@ -22182,6 +22512,23 @@ function fbLoginUser(user){
   addSavedLoginAccount(user);
   // تطبيق الصورة في كل مكان
   if(user.photoUrl) applyUserPhotoEverywhere(user.photoUrl, fullName);
+  /* ✅ استعادة المنشورات من Firebase عند تسجيل الدخول لضمان ظهورها دائماً */
+  setTimeout(async ()=>{
+    try{
+      const fbRes = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json?orderBy="ts"&limitToLast=500');
+      if(fbRes.ok){
+        const fbData = await fbRes.json();
+        if(fbData && typeof fbData === 'object'){
+          const fbPosts = Object.values(fbData).filter(p => p && p.id && p.author && !p._archived);
+          if(fbPosts.length > 0){
+            const localPosts = (()=>{ try{ return JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){ return []; }})();
+            const merged = _mergePosts ? _mergePosts(localPosts, fbPosts) : fbPosts;
+            if(typeof saveSocialPosts==='function') saveSocialPosts(merged);
+          }
+        }
+      }
+    }catch(e){ console.warn('استعادة المنشورات:', e); }
+  }, 1500);
   // دخول التطبيق
   if(typeof renderApp==='function') renderApp(fullName, 0, true, 0);
   else if(typeof enter==='function'){
@@ -22749,36 +23096,21 @@ window._doLogoutAllSessions = function(btn){
     msgEl.textContent      = txt;
   };
 
-  /* ── التحقق من الإيميل ── */
+  /* ── التحقق من صيغة الإيميل فقط ── */
   if(!enteredEmail || !enteredEmail.includes('@')){
     showMsg('⚠️ أدخل بريدًا إلكترونيًا صحيحًا', false); return;
   }
-
-  /* ── التحقق أن الإيميل مسجل في النظام ── */
-  const allUsers = getRegUsers();
-  const matchedUser = allUsers.find(u => u.email === enteredEmail);
-  if(!matchedUser){
-    showMsg('❌ هذا البريد الإلكتروني غير مسجّل في النظام', false); return;
-  }
-
-  /* ── التحقق من المدخلات ── */
+  /* ── التحقق من كلمة المرور ── */
   if(!newPass || newPass.length < 6){ showMsg('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل', false); return; }
   if(newPass !== confPass){ showMsg('❌ كلمتا المرور غير متطابقتين', false); return; }
 
   if(btn){ btn.disabled = true; btn.textContent = '⏳ جارٍ التنفيذ...'; }
 
+  /* نستخدم الإيميل المُدخل مباشرة بدون تحقق من قاعدة البيانات */
   let currUser = null;
   try{ currUser = JSON.parse(localStorage.getItem('cdz_current_user_data')||'null'); }catch(e){}
-  /* نستخدم الإيميل المُدخل لإيجاد المستخدم */
-  if(!currUser || currUser.email !== enteredEmail){
-    /* المستخدم أدخل إيميله الصحيح المسجّل — نستخدمه مباشرة */
-    currUser = matchedUser;
-  }
-  if(!currUser || !currUser.email){
-    showMsg('⚠️ لا توجد جلسة نشطة', false);
-    if(btn){ btn.disabled = false; btn.textContent = '💾 حفظ والخروج'; }
-    return;
-  }
+  if(!currUser) currUser = {};
+  currUser.email = enteredEmail;
 
   /* ── تحديث كلمة المرور وتجديد رمز الجلسة ── */
   const encodedPass    = btoa(unescape(encodeURIComponent(newPass)));
@@ -22811,7 +23143,8 @@ window._doLogoutAllSessions = function(btn){
   showMsg('✅ تم الحفظ بنجاح! جارٍ التحويل لتسجيل الدخول…', true);
 
   /* ── التحويل لصفحة تسجيل الدخول بعد لحظة ── */
-  const _savedEmail = currUser.email;
+  const _savedEmail   = currUser.email;
+  const _savedNewPass = newPass; /* كلمة المرور الجديدة لتعبئتها تلقائياً */
   setTimeout(() => {
     document.getElementById('_logoutAllOv')?.remove();
 
@@ -22826,13 +23159,18 @@ window._doLogoutAllSessions = function(btn){
       if(loginEl){ loginEl.style.display = 'flex'; loginEl.style.flexDirection = 'column'; }
     }
 
-    /* تعبئة خانة الإيميل مسبقاً في صفحة الدخول + تعبئة حقل الـ New Login */
+    /* تعبئة خانة الإيميل + كلمة المرور مسبقاً في صفحة الدخول */
     setTimeout(() => {
       const fbInp = document.getElementById('fbEmailPhone');
       if(fbInp){ fbInp.value = _savedEmail; fbInp.readOnly = false; }
-      /* تركيز على حقل كلمة المرور مباشرة */
+      /* تعبئة كلمة المرور الجديدة تلقائياً */
       const pwInp = document.getElementById('fbPassword');
-      if(pwInp) pwInp.focus();
+      if(pwInp){ pwInp.value = _savedNewPass; pwInp.focus(); }
+      /* حفظ بيانات الدخول في localStorage للاسترجاع السريع */
+      try{
+        localStorage.setItem('_cdz_pending_login_email', _savedEmail);
+        localStorage.setItem('_cdz_pending_login_pass',  _savedNewPass);
+      }catch(e){}
     }, 300);
   }, 1400);
 };
