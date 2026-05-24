@@ -7770,7 +7770,7 @@ async function _computeAndShowBalance(){
     ]);
 
     // بناء قائمة الأعضاء مرتبة حسب النقاط (لتحديد الأوائل 15)
-    const _EXCLUDED = ['لؤي','لؤي عماري','ممتاز'];
+    const _EXCLUDED = ['لؤي','لؤي عماري','ممتاز','وفاء وفاء'];
     const allRows = [];
     const seen = new Set();
 
@@ -9656,7 +9656,8 @@ async function loadMembers(){
     const dataRows=t1.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
       const c=csvParse(r);
       const name=(c[2]||'').trim();
-      if(!name||name==='ممتاز'||name==='لؤي'||name==='لؤي عماري') return null;
+      const _EXCL_NAMES = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء'];
+      if(!name||_EXCL_NAMES.includes(name)) return null;
       const age=parseAge(c[3]);
       const pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
       return {name,age,pts};
@@ -9669,7 +9670,8 @@ async function loadMembers(){
     const smartRows=t2.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
       const c=csvParse(r);
       const name=(c[2]||'').trim();
-      if(!name||name==='ممتاز'||name==='لؤي'||name==='لؤي عماري') return null;
+      const _EXCL_NAMES2 = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء'];
+      if(!name||_EXCL_NAMES2.includes(name)) return null;
       const age=parseAge(c[3]);
       const pts=ptsMap[norm(name)]||0;
       return {name,age,pts};
@@ -9812,7 +9814,7 @@ async function loadRanking(){
       const c=csvParse(r);
       const n=(c[2]||'').trim();
       const p=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
-      if(!n||n==='ممتاز'||n==='لؤي'||n==='لؤي عماري') return null;
+      if(!n||n==='ممتاز'||n==='لؤي'||n==='لؤي عماري'||n==='وفاء وفاء') return null;
       return {n,p};
     }).filter(Boolean);
 
@@ -9825,7 +9827,7 @@ async function loadRanking(){
     const fromSmart=t2.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
       const cols=csvParse(r);
       const n=(cols[2]||'').trim();
-      if(!n||n==='ممتاز'||n==='لؤي'||n==='لؤي عماري'||namesInData.has(norm(n))) return null;
+      if(!n||n==='ممتاز'||n==='لؤي'||n==='لؤي عماري'||n==='وفاء وفاء'||namesInData.has(norm(n))) return null;
       const p=ptsMapR[norm(n)]||0;
       namesInData.add(norm(n));
       return {n,p};
@@ -9840,7 +9842,7 @@ async function loadRanking(){
       }
     });
     // دمج وترتيب - نقاط الكويز تُضاف لجدول الترتيب (الإجمالي = جدول + كويز)
-    const _EXCLUDED_NAMES = ['لؤي','لؤي عماري'];
+    const _EXCLUDED_NAMES = ['لؤي','لؤي عماري','وفاء وفاء'];
     const list=Object.values(mergedMap).filter(x=>!_EXCLUDED_NAMES.some(ex=>x.n.trim()===ex||x.n.trim().startsWith(ex+' '))).map(x=>{
       const qPts=getSharedQuizPts(x.n);
       return {n:x.n, p:x.p, sheetP:x.p, quizP:qPts, total:x.p}; // ترتيب بنقاط الجدول فقط
@@ -9964,7 +9966,7 @@ async function isEarlyBirdUser(){
       fetch(smartUrl).then(r=>r.text()).catch(()=>null)
     ]);
     if(!r1 && !r2){ window._earlyBirdCache=false; return false; }
-    const _EB_EXCL = ['لؤي','لؤي عماري','ممتاز'];
+    const _EB_EXCL = ['لؤي','لؤي عماري','ممتاز','وفاء وفاء'];
     const seen2 = new Set();
     const mergedMembers = [];
     [r1||'', r2||''].forEach(txt=>{
@@ -11169,7 +11171,7 @@ async function _fetchAllMembers(){
     [...r1.split('\n').slice(1),...r2.split('\n').slice(1)].forEach(row=>{
       if(!row.trim()) return;
       const c=csvParse(row); const n=norm(c[2]||'');
-      if(n && n!=='ممتاز' && !seen.has(n.toLowerCase())){ seen.add(n.toLowerCase()); names.push(n); }
+      if(n && n!=='ممتاز' && n!=='لؤي عماري' && n!=='لؤي' && n!=='وفاء وفاء' && !seen.has(n.toLowerCase())){ seen.add(n.toLowerCase()); names.push(n); }
     });
     _allMembersCache = names;
     return names;
@@ -16293,9 +16295,21 @@ function removeFriend(friendName){
    🛡️ شارة توثيق المدير — تظهر في كل الملفات
    ══════════════════════════════════════════════════════════════════ */
 
+/* ✅ الأعضاء الأصليون المعتمدون — حسابات وحيدة ومسجلة رسمياً */
+const _VERIFIED_MEMBERS = [
+  'حمودي عبد المومن',
+  'شيماء سفيسيفي'
+];
+
 /** هل هذا الاسم هو المدير؟ */
 function _isAdminUser(name){
   return name === 'المدير' || name === 'admin' || name === 'ADMIN';
+}
+
+/** هل هذا العضو موثق رسمياً (حساب أصلي وحيد)؟ */
+function _isVerifiedMember(name){
+  if(!name) return false;
+  return _VERIFIED_MEMBERS.some(v => v.trim() === name.trim());
 }
 
 /** تحديث شارة التوثيق في نافذة ملف العضو */
@@ -16315,6 +16329,19 @@ function _updateMpvAdminBadge(memberName){
     badge.style.whiteSpace = 'nowrap';
     badge.style.boxShadow = '0 2px 10px rgba(24,119,242,0.5)';
     badge.innerHTML = '✓ مدير موثّق';
+  } else if(_isVerifiedMember(memberName)){
+    // شارة توثيق خاصة بالأعضاء الأصليين المعتمدين
+    badge.style.display = 'block';
+    badge.style.background = 'linear-gradient(135deg,#00c853,#00695c)';
+    badge.style.color = 'white';
+    badge.style.border = '2px solid rgba(255,255,255,0.3)';
+    badge.style.borderRadius = '20px';
+    badge.style.padding = '4px 12px';
+    badge.style.fontSize = '12px';
+    badge.style.fontWeight = '900';
+    badge.style.whiteSpace = 'nowrap';
+    badge.style.boxShadow = '0 2px 10px rgba(0,200,83,0.5)';
+    badge.innerHTML = '✅ عضو أصلي موثّق';
   } else {
     // شارة توثيق عادية (300 نجمة)
     const totalStarsKey = 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
@@ -16330,10 +16357,15 @@ function _updateMpvAdminBadge(memberName){
   }
 }
 
-/** إضافة شارة المدير عند عرض منشور أو تعليق للمدير */
+/** إضافة شارة المدير أو العضو الأصلي عند عرض منشور أو تعليق */
 function getAdminVerifiedBadgeHtml(authorName){
-  if(!_isAdminUser(authorName)) return '';
-  return `<span title="حساب المدير الرسمي" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:linear-gradient(135deg,#1877F2,#0052cc);color:white;border-radius:50%;font-size:9px;font-weight:900;margin-right:4px;box-shadow:0 1px 5px rgba(24,119,242,0.5);vertical-align:middle;flex-shrink:0;">✓</span>`;
+  if(_isAdminUser(authorName)){
+    return `<span title="حساب المدير الرسمي" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:linear-gradient(135deg,#1877F2,#0052cc);color:white;border-radius:50%;font-size:9px;font-weight:900;margin-right:4px;box-shadow:0 1px 5px rgba(24,119,242,0.5);vertical-align:middle;flex-shrink:0;">✓</span>`;
+  }
+  if(_isVerifiedMember(authorName)){
+    return `<span title="عضو أصلي موثّق" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:linear-gradient(135deg,#00c853,#00695c);color:white;border-radius:50%;font-size:9px;font-weight:900;margin-right:4px;box-shadow:0 1px 5px rgba(0,200,83,0.5);vertical-align:middle;flex-shrink:0;">✓</span>`;
+  }
+  return '';
 }
 
 /* ══ نهاية شارة المدير ══ */
@@ -28347,7 +28379,7 @@ window.openCreateGroupScreen = function(){
             const cols = r.split(',');
             const n = (cols[2]||'').replace(/"/g,'').trim();
             return n;
-          }).filter(n=>n&&n!=='ممتاز'&&n!=='لؤي'&&n!=='لؤي عماري');
+          }).filter(n=>n&&n!=='ممتاز'&&n!=='لؤي'&&n!=='لؤي عماري'&&n!=='وفاء وفاء');
           if(freshNames.length) names = freshNames;
         }
       }catch(e){}
@@ -30365,6 +30397,274 @@ window._submitEditMyInfo = async function(){
 };
 
 console.log('✏️ [EditMyInfo] نظام تعديل المعلومات — مفعّل ✅');
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ✅ إصلاح شامل — Connect DZ v9.0
+     1. تفعيل نقاط النظام القديم (أعضاء بالاسم فقط)
+     2. إجمالي النقاط في الملف الشخصي
+     3. الرصيد في جدول الترتيب
+     4. الأعضاء الأصليون المعتمدون
+══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ═══ 1) تفعيل نقاط النظام القديم ═══
+   الأعضاء القدامى يسجلون بالاسم → نجلب نقاطهم من Google Sheets مباشرة
+   ونعرض النقاط والرصيد بشكل صحيح حتى لو لم يكن لديهم حساب جديد */
+
+const _OLD_SYSTEM_DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+async function _fixOldSystemPointsDisplay(){
+  const name = localStorage.getItem('sklab_user_name') || '';
+  if(!name || name === 'زائر' || name === 'المدير') return;
+
+  /* تحقق من وجود نقاط محلية أو في الواجهة */
+  const mainPts = document.getElementById('mainPoints');
+  const cardPts = document.getElementById('cardPoints');
+  const cardBal = document.getElementById('cardBalance');
+
+  /* إذا كانت النقاط تظهر بالفعل فلا نتدخل */
+  if(mainPts && mainPts.innerText && mainPts.innerText !== '0 نقطة' && mainPts.innerText !== '--') return;
+
+  /* جلب من dataUrl */
+  const dataUrl = window.dataUrl || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
+  const norm = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+
+  function csvParse(line){
+    const res=[]; let cur=''; let q=false;
+    for(let i=0;i<=line.length;i++){
+      const ch=line[i];
+      if(ch==='"'){q=!q;}
+      else if((ch===','||ch===undefined)&&!q){res.push(cur.replace(/^"|"$/g,'').trim());cur='';}
+      else{cur+=ch||'';}
+    }
+    return res;
+  }
+
+  try{
+    const t = await fetch(dataUrl).then(r=>r.text()).catch(()=>'');
+    const rows = t.split('\n');
+    for(let i=1;i<rows.length;i++){
+      if(!rows[i].trim()) continue;
+      const c = csvParse(rows[i]);
+      if(norm(c[2]||'') === norm(name)){
+        const pts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+        const earned = parseInt(localStorage.getItem('nld_earned_'+name.replace(/\s+/g,'_'))||'0');
+        const total = pts + earned;
+
+        if(total > 0){
+          if(mainPts) mainPts.innerHTML = `${total.toLocaleString()} <span>نقطة</span>`;
+          if(cardPts) cardPts.innerText = total.toLocaleString() + ' نقطة';
+
+          const rate = window._userBalanceRate || 30;
+          const balance = ((pts/50)*rate).toFixed(2);
+          if(cardBal) cardBal.innerText = balance + ' دج';
+
+          /* تحديث بطاقة الملف الشخصي */
+          const mgPts = document.getElementById('mgStatPoints');
+          if(mgPts) mgPts.innerText = pts.toLocaleString();
+          const mgBal = document.getElementById('mgStatBalance');
+          if(mgBal) mgBal.innerText = balance + ' دج';
+
+          /* المستوى */
+          const LEVEL_PTS = 3000;
+          const level = Math.floor(total/LEVEL_PTS)+1;
+          const ptsInLevel = total % LEVEL_PTS;
+          const lvlEl = document.getElementById('levelBadge');
+          if(lvlEl) lvlEl.innerText = `⭐ المستوى ${level}`;
+          const bar = document.getElementById('mainBar');
+          if(bar) bar.style.width = Math.min((ptsInLevel/LEVEL_PTS)*100,100)+'%';
+          const mgLvl = document.getElementById('mgStatLevel');
+          if(mgLvl) mgLvl.innerText = String(level);
+
+          /* حفظ في cache */
+          window._sheetPtsCache = pts;
+          window._basePoints = total;
+        }
+        break;
+      }
+    }
+  }catch(e){ console.warn('[OldSystemFix] error:', e); }
+}
+
+/* ═══ 2) إجمالي النقاط في الملف الشخصي (الصفحة الرئيسية) ═══ */
+
+function _updateProfileTotalPoints(){
+  const name = localStorage.getItem('sklab_user_name') || '';
+  if(!name || name === 'زائر' || name === 'المدير') return;
+
+  const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+  const quizPts  = parseInt(localStorage.getItem('nld_earned_'+name.replace(/\s+/g,'_'))||'0');
+  const total    = sheetPts + quizPts;
+
+  /* عناصر الملف الشخصي الاجتماعي (صفحتي) */
+  const fbPtsEl = document.getElementById('fbWalletPoints');
+  if(fbPtsEl && total > 0) fbPtsEl.innerText = total.toLocaleString() + ' نقطة';
+
+  const fbBalEl = document.getElementById('fbWalletBalance');
+  if(fbBalEl && sheetPts >= 0){
+    const rate = window._userBalanceRate || 30;
+    const bal  = ((sheetPts/50)*rate).toFixed(2);
+    if(parseFloat(bal) > 0) fbBalEl.innerText = bal + ' دج';
+  }
+
+  /* شريط التقدم في المحفظة */
+  const fbProg = document.getElementById('fbWalletProgressBar');
+  const fbProgLabel = document.getElementById('fbWalletProgressLabel');
+  if(fbProg){
+    const pct = Math.min((total/150)*100, 100);
+    fbProg.style.width = pct + '%';
+    if(fbProgLabel) fbProgLabel.innerText = `${total} / 150 ⭐`;
+  }
+
+  /* إحصائيات بطاقة الملف الشخصي */
+  const mgPts = document.getElementById('mgStatPoints');
+  if(mgPts && sheetPts > 0) mgPts.innerText = sheetPts.toLocaleString();
+
+  const mgBal = document.getElementById('mgStatBalance');
+  if(mgBal && sheetPts >= 0){
+    const rate = window._userBalanceRate || 30;
+    const bal  = ((sheetPts/50)*rate).toFixed(2);
+    if(parseFloat(bal) > 0) mgBal.innerText = bal + ' دج';
+  }
+
+  /* النقاط الرئيسية */
+  const mainPtsEl = document.getElementById('mainPoints');
+  if(mainPtsEl && total > 0 && (!mainPtsEl.innerText || mainPtsEl.innerText === '0 نقطة')){
+    mainPtsEl.innerHTML = `${total.toLocaleString()} <span>نقطة</span>`;
+  }
+}
+
+/* ═══ 3) الرصيد في جدول الترتيب ═══
+   الرصيد يُعرض في بطاقة cardBalance ويجب أن يكون مرتبطاً بنقاط جدول الترتيب */
+
+function _fixRankingBalance(){
+  const name = localStorage.getItem('sklab_user_name') || '';
+  if(!name || name === 'زائر' || name === 'المدير') return;
+
+  const rankPts = window._rankPtsCache || window._sheetPtsCache || 0;
+  const rate    = window._userBalanceRate || 30;
+  const balance = ((rankPts/50)*rate).toFixed(2);
+
+  const cardBal = document.getElementById('cardBalance');
+  if(cardBal && parseFloat(balance) > 0){
+    cardBal.innerText = balance + ' دج';
+  }
+}
+
+/* ═══ 4) تشغيل كل الإصلاحات ═══ */
+
+/* عند تحميل الصفحة */
+window.addEventListener('load', function(){
+  setTimeout(_fixOldSystemPointsDisplay, 3000);
+  setTimeout(_updateProfileTotalPoints, 2500);
+  setTimeout(_fixRankingBalance, 4000);
+});
+
+/* عند فتح تبويب صفحتي */
+(function(){
+  const _origTab9 = window.switchSocialTab;
+  window.switchSocialTab = function(tab){
+    if(typeof _origTab9 === 'function') _origTab9.apply(this, arguments);
+    if(tab === 'myprofile'){
+      setTimeout(_updateProfileTotalPoints, 200);
+      setTimeout(_fixOldSystemPointsDisplay, 500);
+      setTimeout(_fixRankingBalance, 800);
+    }
+  };
+})();
+
+/* عند فتح نافذة الرصيد */
+(function(){
+  const _origShowBal = window.showBalanceModal;
+  window.showBalanceModal = function(){
+    if(typeof _origShowBal === 'function') _origShowBal.apply(this, arguments);
+    setTimeout(_updateProfileTotalPoints, 100);
+    setTimeout(_fixRankingBalance, 200);
+  };
+})();
+
+/* تحديث دوري كل 60 ثانية */
+setInterval(function(){
+  _updateProfileTotalPoints();
+  _fixRankingBalance();
+}, 60000);
+
+/* كشف التغيير في _sheetPtsCache */
+(function(){
+  let _lastSheetPts = -1;
+  setInterval(function(){
+    const cur = window._sheetPtsCache;
+    if(cur !== undefined && cur !== _lastSheetPts){
+      _lastSheetPts = cur;
+      setTimeout(_updateProfileTotalPoints, 50);
+      setTimeout(_fixRankingBalance, 100);
+    }
+  }, 500);
+})();
+
+/* ═══ 5) حذف الحسابات المحظورة من العرض في كل القوائم ═══ */
+
+const _BLOCKED_ACCOUNTS = ['وفاء وفاء', 'لؤي عماري', 'لؤي'];
+
+/* منع الأعضاء المحذوفين من الظهور في قائمة الرسائل والمحادثات */
+(function(){
+  const _origFetchAll = window._fetchAllMembers;
+  if(typeof _origFetchAll === 'function'){
+    window._fetchAllMembers = async function(){
+      const names = await _origFetchAll.apply(this, arguments);
+      return (names||[]).filter(n => !_BLOCKED_ACCOUNTS.includes(n.trim()));
+    };
+  }
+})();
+
+/* ═══ 6) إصلاح ظهور النقاط للأعضاء في صفحتهم الشخصية ═══ */
+
+window._updateMyProfileStats = function(myName){
+  if(!myName || myName === 'زائر' || myName === 'المدير') return;
+  const normName = myName.replace(/\s+/g,'_');
+
+  const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+  const quizPts  = parseInt(localStorage.getItem('nld_earned_'+normName)||'0');
+  const total    = sheetPts + quizPts;
+
+  /* بطاقة الأرقام الثلاثة في صفحتي */
+  const viewsPtsEl = document.getElementById('fbProfileViewsCount');
+  if(viewsPtsEl && total > 0){
+    /* نحدّث فقط إذا كان العنصر يعرض نقاطاً */
+  }
+
+  /* المحفظة في صفحتي */
+  const walletPts = document.getElementById('fbWalletPoints');
+  if(walletPts) walletPts.innerText = total.toLocaleString() + ' نقطة';
+
+  const walletBal = document.getElementById('fbWalletBalance');
+  if(walletBal){
+    const rate = window._userBalanceRate || 30;
+    walletBal.innerText = ((sheetPts/50)*rate).toFixed(2) + ' دج';
+  }
+
+  /* إحصائيات الهيدر */
+  const mgPts = document.getElementById('mgStatPoints');
+  if(mgPts && sheetPts > 0) mgPts.innerText = sheetPts.toLocaleString();
+
+  const mgBal = document.getElementById('mgStatBalance');
+  if(mgBal && sheetPts > 0){
+    const rate = window._userBalanceRate || 30;
+    mgBal.innerText = ((sheetPts/50)*rate).toFixed(2) + ' دج';
+  }
+
+  const mgLvl = document.getElementById('mgStatLevel');
+  if(mgLvl && total > 0){
+    const level = Math.floor(total/3000)+1;
+    mgLvl.innerText = String(level);
+  }
+};
+
+console.log('✅ [ConnectDZ v9.0] Old System Points Fix + Profile Stats + Ranking Balance — Loaded');
 })();
 </script>
 </body>
