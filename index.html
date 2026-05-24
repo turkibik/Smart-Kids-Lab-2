@@ -7322,7 +7322,8 @@ window.onload=()=>{
     if(k && (
       k.startsWith('nld_saved_accounts') ||
       k.startsWith('cdz_saved_login_accounts') ||
-      k.startsWith('sklab_saved_accounts')
+      k.startsWith('sklab_saved_accounts') ||
+      k === 'cdz_app_accounts'
     )){
       keysToRemove.push(k);
     }
@@ -22579,14 +22580,8 @@ function fbLoginUser(user){
   localStorage.setItem('sklab_user_name', fullName);
   // حفظ بيانات المستخدم الكاملة
   localStorage.setItem(REG_CURR_KEY, JSON.stringify(user));
-  // 🔒 حفظ في قائمة التبديل الداخلية فقط (داخل التطبيق) — بحد أقصى 3 حسابات
-  try {
-    const appAccs = JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
-    const entry = { name: fullName, email: user.email, photo: user.photoUrl||'', ts: Date.now() };
-    const idx = appAccs.findIndex(a => a.email === user.email);
-    if(idx >= 0) appAccs[idx] = entry; else appAccs.unshift(entry);
-    localStorage.setItem('cdz_app_accounts', JSON.stringify(appAccs.slice(0, 3)));
-  } catch(e) { console.warn('cdz_app_accounts save error:', e); }
+  // 🔒 لا نحفظ الحساب في قائمة التبديل — تسجيل الدخول يدوي دائماً
+  localStorage.removeItem('cdz_app_accounts');
   // تطبيق الصورة في كل مكان
   if(user.photoUrl) applyUserPhotoEverywhere(user.photoUrl, fullName);
   /* ✅ استعادة المنشورات من Firebase عند تسجيل الدخول لضمان ظهورها دائماً */
@@ -24407,8 +24402,9 @@ function _loadSavedAccountsInDropdown(){
   const container = document.getElementById('pdSavedAccounts');
   if(!container) return;
   try{
-    // ── الحسابات المحفوظة داخل التطبيق فقط (حد أقصى 3)
-    const regAccs  = JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
+    // 🔒 لا توجد حسابات محفوظة — تسجيل الدخول يدوي دائماً
+    localStorage.removeItem('cdz_app_accounts');
+    const regAccs  = [];
     const current   = localStorage.getItem('sklab_user_name')||'';
 
     container.style.flexDirection = 'column';
