@@ -16370,9 +16370,14 @@ function _isAdminUser(name){
   return name === 'المدير' || name === 'admin' || name === 'ADMIN';
 }
 
-/** هل هذا العضو موثق رسمياً (حساب أصلي وحيد)؟ */
+/** هل هذا العضو موثق رسمياً؟
+ *  الأولوية: 1) مسجل في Google Sheets (cdz_sheet_verified_)
+ *             2) في القائمة الثابتة _VERIFIED_MEMBERS (fallback)
+ */
 function _isVerifiedMember(name){
   if(!name) return false;
+  const sheetKey = 'cdz_sheet_verified_'+name.replace(/\s+/g,'_');
+  if(localStorage.getItem(sheetKey) === '1') return true;
   return _VERIFIED_MEMBERS.some(v => v.trim() === name.trim());
 }
 
@@ -22991,8 +22996,79 @@ window.fbDoLogin = async function(){
   else if(typeof handleAuthAction==='function') handleAuthAction();
 };
 
-function fbLoginUser(user){
+/* ══════════════════════════════════════════════════════
+   🔐 نظام التحقق من الانخراط في Google Sheets
+   الاسم يُطابق مع عمود الاسم في الجدول الرئيسي
+   فقط المسجلون في الجدول يحصلون على صفة "منخرط"
+   ══════════════════════════════════════════════════════ */
+async function _checkMemberInSheets(fullName){
+  /* دائماً: المدير ليس في الجدول — نتجاوز التحقق */
+  if(!fullName || fullName==='المدير' || fullName==='زائر') return false;
+  const normN = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+  const csvParse = line => {
+    const res=[]; let cur=''; let q=false;
+    for(let i=0;i<=line.length;i++){
+      const ch=line[i];
+      if(ch==='"'){q=!q;}
+      else if((ch===','||ch===undefined)&&!q){res.push(cur.replace(/^"|"$/g,'').trim());cur='';}
+      else{cur+=ch||'';}
+    } return res;
+  };
+  const urls = [dataUrl, smartUrl].filter(Boolean);
+  for(const url of urls){
+    try{
+      const txt = await fetch(url).then(r=>r.text());
+      const rows = txt.split('\n');
+      for(let i=1;i<rows.length;i++){
+        if(!rows[i].trim()) continue;
+        const c = csvParse(rows[i]);
+        const sheetName = (c[2]||c[1]||c[0]||'').trim();
+        if(sheetName && normN(sheetName)===normN(fullName)) return true;
+      }
+    }catch(e){}
+  }
+  return false;
+}
+
+/* ══ حذف الحسابات المحلية المكررة بالاسم الكامل ══ */
+function _removeDuplicateAccounts(){
+  try{
+    const devKey = _getDeviceRegKey();
+    const users = getRegUsers();
+    const seen = new Map();
+    const unique = [];
+    for(const u of users){
+      const name = ((u.firstName||'')+(u.lastName||'')).trim().toLowerCase();
+      if(!seen.has(name)){
+        seen.set(name, true);
+        unique.push(u);
+      } else {
+        console.log('🗑️ [ConnectDZ] حذف حساب مكرر:', u.firstName+' '+u.lastName);
+      }
+    }
+    if(unique.length !== users.length){
+      localStorage.setItem(devKey, JSON.stringify(unique));
+      console.log(`✅ [ConnectDZ] تم حذف ${users.length-unique.length} حساب مكرر`);
+    }
+  }catch(e){}
+}
+
+async function fbLoginUser(user){
   const fullName = user.firstName+' '+user.lastName;
+
+  /* ══ تنظيف الحسابات المكررة قبل الدخول ══ */
+  _removeDuplicateAccounts();
+
+  /* ══ التحقق من الانخراط في Google Sheets ══
+     نتحقق في الخلفية — لا نوقف الدخول، فقط نحدد صفة "منخرط" */
+  let isInSheets = false;
+  try{
+    isInSheets = await _checkMemberInSheets(fullName);
+  }catch(e){ isInSheets = false; }
+
+  /* حفظ حالة الانخراط في localStorage */
+  localStorage.setItem('cdz_sheet_verified_'+fullName.replace(/\s+/g,'_'), isInSheets ? '1' : '0');
+
   localStorage.setItem('sklab_user_name', fullName);
   // حفظ بيانات المستخدم الكاملة
   localStorage.setItem(REG_CURR_KEY, JSON.stringify(user));
@@ -23000,6 +23076,14 @@ function fbLoginUser(user){
   localStorage.removeItem('cdz_app_accounts');
   // تطبيق الصورة في كل مكان
   if(user.photoUrl) applyUserPhotoEverywhere(user.photoUrl, fullName);
+
+  /* تنبيه إذا لم يكن مسجلاً في الجدول */
+  if(!isInSheets){
+    setTimeout(()=>{
+      if(typeof showToast==='function') showToast('⚠️ اسمك غير موجود في جدول المنخرطين الرسمي\nتواصل مع المدير لتسجيل انخراطك');
+    }, 2000);
+  }
+
   /* ✅ استعادة المنشورات من Firebase عند تسجيل الدخول لضمان ظهورها دائماً */
   setTimeout(async ()=>{
     try{
@@ -23024,6 +23108,12 @@ function fbLoginUser(user){
     enter();
   }
 }
+
+/* ══ دالة مساعدة: هل العضو موثق من الجدول؟ ══ */
+window._isSheetVerified = function(name){
+  if(!name) return false;
+  return localStorage.getItem('cdz_sheet_verified_'+name.replace(/\s+/g,'_')) === '1';
+};
 
 /* تطبيق صورة المستخدم في كل مكان */
 function applyUserPhotoEverywhere(photoUrl, fullName){
@@ -30737,6 +30827,134 @@ window._updateMyProfileStats = function(myName){
 };
 
 console.log('✅ [ConnectDZ v9.0] Old System Points Fix + Profile Stats + Ranking Balance — Loaded');
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ✅ نظام النقاط والرصيد المحسّن v10 — يعتمد حصرياً على Google Sheets
+     1) النقاط = dataUrl + نقاط الكويز
+     2) الرصيد = rankingUrl — 35دج للـ 15 الأوائل، 30دج للبقية
+     3) التحديث التلقائي كل 3 دقائق + عند فتح صفحتي/نافذة الرصيد
+     4) حذف الحسابات المكررة تلقائياً
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+function _csvPL(line){
+  const res=[]; let cur=''; let q=false;
+  for(let i=0;i<=line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){q=!q;}
+    else if((ch===','||ch===undefined)&&!q){res.push(cur.replace(/^"|"$/g,'').trim());cur='';}
+    else{cur+=ch||'';}
+  } return res;
+}
+function _nN(s){ return (s||'').replace(/\s+/g,' ').trim().toLowerCase(); }
+
+/* ═══ جلب نقاط العضو من Google Sheets ═══ */
+window._fetchSheetPoints = async function(memberName){
+  if(!memberName || memberName==='المدير' || memberName==='زائر') return {sheet:0,rank:0,rate:30};
+  const nm = _nN(memberName);
+  const urls = [];
+  try{ if(typeof dataUrl!=='undefined') urls.push(dataUrl); }catch(e){}
+  try{ if(typeof smartUrl!=='undefined') urls.push(smartUrl); }catch(e){}
+
+  let sheetPts = 0;
+  for(const url of urls){
+    if(!url) continue;
+    try{
+      const txt = await fetch(url).then(r=>r.text());
+      const rows = txt.split('\n');
+      for(let i=1;i<rows.length;i++){
+        if(!rows[i].trim()) continue;
+        const c = _csvPL(rows[i]);
+        const sn = _nN(c[2]||c[1]||c[0]||'');
+        if(sn && sn===nm){
+          const p = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+          if(p>sheetPts) sheetPts=p;
+          break;
+        }
+      }
+    }catch(e){}
+    if(sheetPts>0) break;
+  }
+
+  let rankPts = sheetPts;
+  let rate = 30;
+  try{
+    if(typeof rankingUrl!=='undefined' && rankingUrl){
+      const txt2 = await fetch(rankingUrl).then(r=>r.text());
+      const rows2 = txt2.split('\n');
+      const _excl = ['لؤي','لؤي عماري','ممتاز','وفاء وفاء','حمودي عبد المومن','حمودي عبدالمومن'];
+      const vRows = rows2.slice(1)
+        .filter(x=>x.trim())
+        .map(r=>{ const c=_csvPL(r); return {name:_nN(c[1]||c[0]||''),pts:parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0}; })
+        .filter(x=>x.name && !_excl.some(ex=>_nN(ex)===x.name));
+      vRows.sort((a,b)=>b.pts-a.pts);
+      const ri = vRows.findIndex(x=>x.name===nm);
+      if(ri>=0){ rankPts=vRows[ri].pts; rate=ri<15?35:30; }
+    }
+  }catch(e){}
+  return { sheet: sheetPts, rank: rankPts, rate };
+};
+
+/* ═══ تطبيق النقاط على الواجهة ═══ */
+window._applyPointsToUI = function(sheetPts, rankPts, quizPts, rate){
+  const total = sheetPts + quizPts;
+  const balance = ((rankPts/50)*rate).toFixed(2);
+  const LEVEL_PTS = 3000;
+  const level = Math.floor(total/LEVEL_PTS)+1;
+  const ptsInLevel = total % LEVEL_PTS;
+  const _t = (id,val) => { const el=document.getElementById(id); if(el) el.innerText=val; };
+  const _h = (id,val) => { const el=document.getElementById(id); if(el) el.innerHTML=val; };
+
+  if(total>0) _h('mainPoints', total.toLocaleString()+' <span>نقطة</span>');
+  if(parseFloat(balance)>0) _t('cardBalance', balance+' دج');
+  if(total>0) _t('cardPoints', total.toLocaleString()+' نقطة');
+  _t('levelBadge', '⭐ المستوى '+level);
+  setTimeout(()=>{ const b=document.getElementById('mainBar'); if(b) b.style.width=Math.min((ptsInLevel/LEVEL_PTS)*100,100)+'%'; },300);
+  if(sheetPts>0) _t('mgStatPoints', sheetPts.toLocaleString());
+  if(parseFloat(balance)>0) _t('mgStatBalance', balance+' دج');
+  _t('mgStatLevel', String(level));
+  if(total>0) _t('fbWalletPoints', total.toLocaleString()+' نقطة');
+  if(parseFloat(balance)>0) _t('fbWalletBalance', balance+' دج');
+  const fp=document.getElementById('fbWalletProgressBar');
+  if(fp) fp.style.width=Math.min((total/150)*100,100)+'%';
+  const fpl=document.getElementById('fbWalletProgressLabel');
+  if(fpl) fpl.innerText=total+' / 150 ⭐';
+  window._sheetPtsCache=sheetPts; window._rankPtsCache=rankPts;
+  window._userBalanceRate=rate; window._basePoints=total;
+};
+
+/* ═══ الدالة الرئيسية ═══ */
+window._refreshAllPoints = async function(){
+  const name = localStorage.getItem('sklab_user_name')||'';
+  if(!name||name==='المدير'||name==='زائر') return;
+  try{
+    const {sheet,rank,rate} = await window._fetchSheetPoints(name);
+    const quiz = parseInt(localStorage.getItem('nld_earned_'+name.replace(/\s+/g,'_'))||'0');
+    window._applyPointsToUI(sheet, rank, quiz, rate);
+  }catch(e){ console.warn('[Points v10]',e); }
+};
+
+/* ═══ تشغيل تلقائي ═══ */
+window.addEventListener('load', function(){
+  setTimeout(window._refreshAllPoints, 4500);
+  setInterval(window._refreshAllPoints, 180000);
+  setTimeout(function(){ if(typeof _removeDuplicateAccounts==='function') _removeDuplicateAccounts(); },2000);
+});
+
+(function(){
+  const _ot=window.switchSocialTab;
+  window.switchSocialTab=function(tab){ if(typeof _ot==='function') _ot.apply(this,arguments); if(tab==='myprofile') setTimeout(window._refreshAllPoints,300); };
+})();
+(function(){
+  const _ob=window.showBalanceModal;
+  window.showBalanceModal=function(){ if(typeof _ob==='function') _ob.apply(this,arguments); setTimeout(window._refreshAllPoints,150); };
+})();
+
+console.log('✅ [ConnectDZ v10] Points & Balance from Google Sheets — Loaded');
 })();
 </script>
 </body>
