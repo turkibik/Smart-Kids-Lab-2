@@ -873,6 +873,12 @@ window.uploadStoryMusic = async function(file) {
       }
       updateLoader(100);
       setTimeout(hideLoader, 300);
+      /* ✅ استعادة منشورات الأعضاء من Firebase بعد اكتمال التحميل */
+      setTimeout(function(){
+        if(typeof window._restorePostsFromFirebase === 'function'){
+          window._restorePostsFromFirebase();
+        }
+      }, 1500);
     })
     .catch(err => {
       console.warn('⚠️ Firebase: تعذّر التحميل، يعمل محلياً', err);
@@ -889,6 +895,43 @@ window.uploadStoryMusic = async function(file) {
       }
     }
   });
+
+  /* ══ استعادة منشورات الأعضاء من Firebase بعد التحديث ══ */
+  /* يعمل بعد اكتمال تحميل Firebase لضمان جاهزية الجلسة */
+  window._restorePostsFromFirebase = async function(){
+    try{
+      const localPosts = JSON.parse(localStorage.getItem('nld_social_posts')||'[]');
+      const memberLocal = localPosts.filter(function(p){ return !p.isAutoPost && !p.isActivityAd && !p.isAd; });
+      /* إذا كانت منشورات الأعضاء كافية لا حاجة للاستعادة */
+      if(memberLocal.length >= 3) return;
+
+      console.log('🔄 [PostSync] جاري استعادة منشورات الأعضاء من Firebase...');
+      const res = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json?orderBy="ts"&limitToLast=200');
+      if(!res.ok) return;
+      const data = await res.json();
+      if(!data || typeof data !== 'object') return;
+
+      const fbPosts = Object.values(data).filter(function(p){
+        return p && p.id && p.author && !p._archived;
+      });
+
+      if(fbPosts.length === 0) return;
+
+      /* دمج مع المحلية */
+      const map = new Map();
+      localPosts.forEach(function(p){ if(p && p.id) map.set(p.id, p); });
+      fbPosts.forEach(function(p){ if(p && p.id && !map.has(p.id)) map.set(p.id, p); });
+
+      const merged = Array.from(map.values()).sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+      localStorage.setItem('nld_social_posts', JSON.stringify(merged));
+
+      console.log('✅ [PostSync] تم استعادة', merged.length, 'منشور من Firebase');
+      if(typeof renderSocialFeed === 'function'){
+        const feed = document.getElementById('socialFeedContainer');
+        if(feed && feed.offsetParent !== null) renderSocialFeed();
+      }
+    }catch(ex){ console.warn('⚠️ [PostSync] فشل استعادة المنشورات:', ex); }
+  };
 })();
 </script>
 <!-- ═══════════════════════════════════════════
@@ -14348,44 +14391,166 @@ window._fbSavePagePost = function(pageId, post){
   }catch(e){}
 };
 
+/* ══════════════════════════════════════════════════════════════════
+   🛡️ نظام الحفاظ على المنشورات — طبقات متعددة
+   الطبقة 1: localStorage  (سريع — أساسي)
+   الطبقة 2: IndexedDB     (دائم — لا يتأثر بالتحديثات)
+   الطبقة 3: Firebase RT   (سحابي — مشترك بين الأجهزة)
+   الطبقة 4: sessionStorage (احتياطي للجلسة الحالية)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── IndexedDB للمنشورات — يصمد عند التحديثات ── */
+window._cdzPostsDB = null;
+(function _initPostsDB(){
+  try{
+    const req = indexedDB.open('CDZ_Posts_DB', 2);
+    req.onupgradeneeded = function(e){
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains('posts')){
+        const store = db.createObjectStore('posts', {keyPath:'id'});
+        store.createIndex('ts','ts',{unique:false});
+        store.createIndex('author','author',{unique:false});
+      }
+      if(!db.objectStoreNames.contains('member_posts')){
+        db.createObjectStore('member_posts', {keyPath:'id'});
+      }
+    };
+    req.onsuccess = function(e){
+      window._cdzPostsDB = e.target.result;
+      console.log('✅ [PostsDB] IndexedDB جاهز — المنشورات محمية بشكل دائم');
+    };
+    req.onerror = function(){ console.warn('⚠️ [PostsDB] IndexedDB غير متاح، سيعمل بـ localStorage فقط'); };
+  }catch(ex){ console.warn('⚠️ [PostsDB] خطأ في تهيئة IndexedDB:', ex); }
+})();
+
+/* حفظ في IndexedDB */
+function _savePostsToIDB(arr){
+  if(!window._cdzPostsDB) return;
+  try{
+    const tx = window._cdzPostsDB.transaction(['posts','member_posts'],'readwrite');
+    const store = tx.objectStore('posts');
+    const memberStore = tx.objectStore('member_posts');
+    arr.forEach(function(p){
+      if(!p || !p.id) return;
+      /* احفظ نسخة نظيفة (بدون base64 كبير) */
+      var clean = Object.assign({}, p);
+      if(clean.image && clean.image.startsWith('data:') && clean.image.length > 50000) clean.image = null;
+      store.put(clean);
+      /* المنشورات الحقيقية للأعضاء في store منفصل — حماية مزدوجة */
+      if(!clean.isAutoPost && !clean.isActivityAd && !clean.isAd && clean.author){
+        memberStore.put(clean);
+      }
+    });
+  }catch(ex){ /* صامت */ }
+}
+
+/* استرجاع من IndexedDB */
+window._loadPostsFromIDB = function(){
+  return new Promise(function(resolve){
+    if(!window._cdzPostsDB){ resolve([]); return; }
+    try{
+      var all = [];
+      var tx = window._cdzPostsDB.transaction('posts','readonly');
+      var store = tx.objectStore('posts');
+      var req = store.getAll();
+      req.onsuccess = function(){ resolve(req.result || []); };
+      req.onerror = function(){ resolve([]); };
+    }catch(ex){ resolve([]); }
+  });
+};
+
+/* استرجاع منشورات الأعضاء فقط من IDB */
+window._loadMemberPostsFromIDB = function(){
+  return new Promise(function(resolve){
+    if(!window._cdzPostsDB){ resolve([]); return; }
+    try{
+      var tx = window._cdzPostsDB.transaction('member_posts','readonly');
+      var store = tx.objectStore('member_posts');
+      var req = store.getAll();
+      req.onsuccess = function(){ resolve(req.result || []); };
+      req.onerror = function(){ resolve([]); };
+    }catch(ex){ resolve([]); }
+  });
+};
+
+/* ── الدالة الجديدة المحسّنة لحفظ المنشورات ── */
 function saveSocialPosts(arr){
-  /* ── حاول الحفظ مباشرة أولاً ── */
+  /* ① فرز: الأحدث دائماً أولاً */
+  arr = arr.slice().sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+
+  /* ② sessionStorage — نسخة احتياطية للجلسة (دائماً ينجح) */
+  try{
+    var memberOnly = arr.filter(function(p){ return !p.isAutoPost && !p.isActivityAd && !p.isAd; });
+    sessionStorage.setItem('cdz_member_posts_backup', JSON.stringify(memberOnly.slice(0,100)));
+  }catch(ex){}
+
+  /* ③ IndexedDB — الطبقة الدائمة (تصمد عند التحديثات) */
+  _savePostsToIDB(arr);
+
+  /* ④ Firebase — لكل منشور عضو حقيقي */
+  arr.forEach(function(p){
+    if(p && p.id && !p.isAutoPost && !p.isActivityAd && !p.isAd && p.author){
+      if(typeof window._fbSavePost === 'function') window._fbSavePost(p);
+    }
+  });
+
+  /* ⑤ localStorage — الطبقة الأساسية (مع حماية ذكية) */
   try {
     localStorage.setItem(_socialPostsKey, JSON.stringify(arr));
-  } catch(e) {
-    /* localStorage ممتلئ — نظّف فقط المنشورات التلقائية والإعلانات */
-    console.warn('localStorage ممتلئ! جارٍ تنظيف المنشورات التلقائية فقط...');
+    return; /* ✅ نجح */
+  } catch(e) {}
 
-    /* 🛡️ المنشورات الحقيقية للأعضاء محمية — لا تُحذف تلقائياً أبداً */
-    /* نحذف فقط: isAutoPost أو isActivityAd أو isAd */
-    var memberPosts = arr.filter(function(p){
-      return !p.isAutoPost && !p.isActivityAd && !p.isAd;
-    });
-    var autoOnlyPosts = arr.filter(function(p){
-      return p.isAutoPost || p.isActivityAd || p.isAd;
-    });
-    /* احتفظ بأحدث 30 منشور تلقائي فقط */
-    var trimmedAuto = autoOnlyPosts.slice().sort(function(a,b){
-      return (b.ts||0)-(a.ts||0);
-    }).slice(0, 30);
+  /* ⑥ localStorage ممتلئ — نظّف بذكاء (الأعضاء محمية) */
+  var memberPosts = arr.filter(function(p){ return !p.isAutoPost && !p.isActivityAd && !p.isAd; });
+  var autoOnlyPosts = arr.filter(function(p){ return p.isAutoPost || p.isActivityAd || p.isAd; });
+  var trimmedAuto = autoOnlyPosts.slice(0, 20);
+  var reduced = memberPosts.concat(trimmedAuto).sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
 
-    var reduced = memberPosts.concat(trimmedAuto);
-    reduced.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
-
+  try {
+    localStorage.setItem(_socialPostsKey, JSON.stringify(reduced));
+    if(typeof showToast==='function') showToast('🧹 تم تنظيف المنشورات التلقائية القديمة — منشورات الأعضاء محفوظة ✅');
+  } catch(e2) {
     try {
-      localStorage.setItem(_socialPostsKey, JSON.stringify(reduced));
-      if(typeof showToast==='function') showToast('🧹 تم تنظيف المنشورات التلقائية القديمة — منشورات الأعضاء محفوظة ✅');
-    } catch(e2) {
-      /* إذا لا يزال ممتلئاً — احتفظ فقط بمنشورات الأعضاء */
-      try {
-        localStorage.setItem(_socialPostsKey, JSON.stringify(memberPosts));
-        console.warn('تم الاحتفاظ بمنشورات الأعضاء فقط بسبب امتلاء الذاكرة');
-      } catch(e3) {
-        console.error('فشل الحفظ حتى مع منشورات الأعضاء فقط:', e3);
-      }
+      localStorage.setItem(_socialPostsKey, JSON.stringify(memberPosts.slice(0, 50)));
+      console.warn('تم الاحتفاظ بمنشورات الأعضاء فقط بسبب امتلاء الذاكرة');
+    } catch(e3) {
+      console.error('فشل الحفظ — بيانات محفوظة في IndexedDB و Firebase');
     }
   }
 }
+
+/* ── استعادة المنشورات بعد تحديث التطبيق ── */
+window._restorePostsAfterUpdate = async function(){
+  var localPosts = getSocialPosts();
+  if(localPosts.length >= 5) return; /* لا حاجة للاستعادة */
+
+  console.log('🔄 [PostRestore] جاري استعادة المنشورات بعد التحديث...');
+
+  /* محاولة 1: من IndexedDB */
+  var idbPosts = await window._loadPostsFromIDB();
+  if(idbPosts.length > 0){
+    var merged = _mergePosts ? _mergePosts(localPosts, idbPosts) : idbPosts;
+    saveSocialPosts(merged);
+    if(typeof renderSocialFeed==='function') renderSocialFeed();
+    console.log('✅ [PostRestore] تم استعادة ' + merged.length + ' منشور من IndexedDB');
+    return;
+  }
+
+  /* محاولة 2: من sessionStorage */
+  try{
+    var backup = JSON.parse(sessionStorage.getItem('cdz_member_posts_backup')||'[]');
+    if(backup.length > 0){
+      saveSocialPosts(backup);
+      if(typeof renderSocialFeed==='function') renderSocialFeed();
+      console.log('✅ [PostRestore] تم استعادة ' + backup.length + ' منشور من sessionStorage');
+    }
+  }catch(ex){}
+};
+
+/* تشغيل الاستعادة عند بدء التطبيق */
+window.addEventListener('load', function(){
+  setTimeout(window._restorePostsAfterUpdate, 4000);
+});
 function getFriends(name){ return JSON.parse(localStorage.getItem(_friendsKey(name))||'[]'); }
 function getFriendRequests(name){ return JSON.parse(localStorage.getItem(_friendReqKey(name))||'[]'); }
 function getSocialNotifs(name){ return JSON.parse(localStorage.getItem(_socialNotifsKey(name))||'[]'); }
@@ -14660,55 +14825,74 @@ async function renderSocialFeed(){
   const container = document.getElementById('socialFeedContainer');
   if(!container) return;
 
-  /* ✅ عرض المنشورات المحلية فوراً إن وُجدت (تجربة سريعة) */
-  const localPosts = getSocialPosts();
-  if(localPosts.length === 0){
-    container.innerHTML = `<div style="text-align:center;padding:24px;"><div style="font-size:30px;margin-bottom:8px;">⏳</div><div style="font-size:13px;color:#65676B;font-weight:700;">جاري تحميل المنشورات...</div></div>`;
-  } else {
-    /* عرض المحلية فوراً ثم نحدّث بعد Firebase */
-    container.innerHTML = localPosts.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map(p=>renderSocialPostCard(p)).join('');
+  const myName = getCurrentUser();
+
+  /* ① عرض المحلية فوراً (تجربة سريعة) */
+  let localPosts = getSocialPosts();
+
+  /* ① مزامنة IndexedDB إن كانت المحلية فارغة أو قليلة */
+  if(localPosts.length < 3 && typeof window._loadPostsFromIDB === 'function'){
+    const idbPosts = await window._loadPostsFromIDB();
+    if(idbPosts.length > localPosts.length){
+      localPosts = _mergePosts(localPosts, idbPosts);
+    }
   }
 
-  /* ✅ جلب منشورات Firebase دائماً — هو المصدر الحقيقي */
+  if(localPosts.length === 0){
+    container.innerHTML = `<div style="text-align:center;padding:40px 20px;">
+      <div style="font-size:36px;margin-bottom:10px;">⏳</div>
+      <div style="font-size:14px;color:#65676B;font-weight:700;">جاري تحميل المنشورات...</div>
+    </div>`;
+  } else {
+    /* عرض المحلية فوراً مرتّبة — الأحدث أولاً */
+    const sorted = localPosts.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+    container.innerHTML = sorted.map(p=>renderSocialPostCard(p)).join('');
+  }
+
+  /* ② جلب Firebase — المصدر السحابي الحقيقي */
   const fbPosts = await _fetchFirebasePosts();
-  /* دمج: Firebase يُضيف ما ليس محلياً، المحلية تحتفظ بالصور (base64) */
+
+  /* ③ دمج: Firebase + محلية + IDB */
   const allPostsRaw = _mergePosts(localPosts, fbPosts);
 
-  /* ✅ حفظ النسخة المدمجة دائماً بغض النظر عن عدد منشورات Firebase */
+  /* ④ حفظ النسخة المدمجة في كل الطبقات */
   saveSocialPosts(allPostsRaw);
 
-  const allPosts = allPostsRaw;
-  const myName = getCurrentUser();
   _startFbFeedPolling();
-  // ✅ عرض جميع المنشورات العامة من كل الأعضاء (ليس الأصدقاء فقط)
-  const posts = allPosts.filter(p => {
-    if(p.isActivityAd) return true;
+
+  /* ⑤ فلترة حسب الخصوصية */
+  const posts = allPostsRaw.filter(p => {
+    if(p.isActivityAd || p.isAutoPost || p.isAd) return true;
     const priv = p.privacy || '🌐 عام';
     if(priv.includes('أنت فقط')) return myName && p.author === myName;
     if(priv.includes('الأصدقاء')){
       const myFriends = myName ? getFriends(myName) : [];
       return myName && (p.author === myName || myFriends.includes(p.author));
     }
-    return true; // عام: يظهر للجميع
+    return true;
   });
-  if(posts.length===0){
-    container.innerHTML=`<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. كن أول من ينشر!</div></div>`;
+
+  if(posts.length === 0){
+    container.innerHTML = `<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;border-radius:12px;">
+      <div style="font-size:48px;margin-bottom:10px;">✍️</div>
+      <div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. كن أول من ينشر!</div>
+    </div>`;
     return;
   }
-  // ✅ الترتيب المحدّث: أعلى تعليق → أعلى إعجاب → أعلى مشاهدة
-  const adPosts = posts.filter(p=>p.isActivityAd).slice().reverse();
-  const normalPosts = posts.filter(p=>!p.isActivityAd).slice().sort((a,b)=>{
-    const aComments = (a.comments||[]).length;
-    const bComments = (b.comments||[]).length;
-    if(bComments !== aComments) return bComments - aComments;
-    // عند التساوي في التعليقات: الأكثر إعجاباً أولاً
-    const aReacts = Object.values(a.reactions||{}).reduce((s,arr)=>s+(Array.isArray(arr)?arr.length:0),0);
-    const bReacts = Object.values(b.reactions||{}).reduce((s,arr)=>s+(Array.isArray(arr)?arr.length:0),0);
-    if(bReacts !== aReacts) return bReacts - aReacts;
-    // عند التساوي: الأكثر مشاهدة أولاً
-    return (b.views||0) - (a.views||0);
-  });
-  container.innerHTML = [...adPosts, ...normalPosts].map(p => renderSocialPostCard(p)).join('');
+
+  /* ⑥ الترتيب: الأحدث أولاً للأعضاء، الإعلانات في آخر */
+  const memberPosts = posts
+    .filter(p => !p.isActivityAd && !p.isAd)
+    .slice()
+    .sort((a,b) => (b.ts||0) - (a.ts||0)); /* ✅ الأحدث أولاً دائماً */
+
+  const adPosts = posts
+    .filter(p => p.isActivityAd || p.isAd)
+    .slice()
+    .sort((a,b) => (b.ts||0) - (a.ts||0));
+
+  /* ⑦ الدمج النهائي: منشورات الأعضاء أولاً ثم الإعلانات */
+  container.innerHTML = [...memberPosts, ...adPosts].map(p => renderSocialPostCard(p)).join('');
 }
 
 function renderSocialPostCard(p){
@@ -21668,75 +21852,211 @@ const _cityData = {
   },
 };
 
-/* ══════════════════════════════════════════════════════
-   🤖 النشر الآلي للصفحات الرسمية كل 5 ساعات
-   ══════════════════════════════════════════════════════ */
-(function initAutoPagePosts(){
+/* ══════════════════════════════════════════════════════════════════
+   🤖 نظام المنشورات التلقائية الشاملة — كل ساعة
+   يغطي كل ميزات التطبيق: كويز، نقاط، تحديات، أخبار، نصائح...
+   المنشورات تظهر للأصدقاء تلقائياً وتُحفظ في كل الطبقات
+   ══════════════════════════════════════════════════════════════════ */
+(function initSmartAutoPost(){
   'use strict';
-  const AUTO_POST_KEY = 'nld_auto_post_last';
-  const AUTO_POST_INTERVAL = 5 * 60 * 60 * 1000; // 5 ساعات
 
-  const _autoPostTemplates = [
-    { author:'Connect DZ الرسمية', pageIcon:'🏆', pageCover:'linear-gradient(135deg,#0f9b0f,#00c853)',
+  const AUTO_POST_KEY      = 'nld_auto_post_last';
+  const AUTO_POST_IDX_KEY  = 'nld_auto_post_idx';   /* مؤشر آخر قالب استُخدم */
+  const AUTO_POST_INTERVAL = 60 * 60 * 1000;        /* ✅ كل ساعة بالضبط */
+
+  /* ══ قوالب متنوعة تغطي كل ميزات التطبيق ══ */
+  const _SYSTEM_TEMPLATES = [
+    /* ① كويز وتحديات */
+    { cat:'quiz', icon:'🧠', author:'Connect DZ الرسمية', cover:'linear-gradient(135deg,#1877F2,#a855f7)',
       texts:[
-        '🌟 أهلاً بكم في منصة Connect DZ!\nانضموا إلى مجتمع القادة الشباب وطوروا مهاراتكم كل يوم 💪',
-        '🎯 هل أنجزت مهمة اليوم؟\nتذكر: كل نقطة تقربك من المستوى التالي 🚀\n#NextLeaders #Algeria',
-        '📚 التعلم المستمر هو سر النجاح!\nاستثمر وقتك في اكتساب المعرفة والمهارات الجديدة 🧠✨',
-        '💡 نصيحة اليوم:\n"لا تقارن نفسك بالآخرين، قارن نفسك بنفسك أمس"\nاسعَ دائماً للتطور 🌱',
-        '🏅 برنامج النقاط:\n• المشاركة في الكويز ⭐\n• التفاعل مع المنشورات 🎉\n• التواجد اليومي 🔥\nاجمع نقاطك وارتقِ في الترتيب!',
-        '🇩🇿 Connect DZ\nمنصة تطوير الذات للشباب الجزائري المتميز\nكن قائداً بالمعرفة والعمل والإخلاص 💫',
-        '✅ تحدي الأسبوع:\nأجب على 10 أسئلة في الكويز وحقق أعلى نقطة!\nمن سيكون في الصدارة هذا الأسبوع؟ 🥇',
+        '🧠 تحدي الكويز اليومي!\nهل أنت مستعد لاختبار معلوماتك؟\nادخل قسم الكويز الآن وأجب على أسئلة اليوم 💡\n#تحدي_اليوم #ConnectDZ',
+        '🎯 كويز اليوم جاهز!\nاختبر نفسك في مجالات متعددة:\n📚 علوم | 🌍 جغرافيا | 🏛️ تاريخ | 💻 تكنولوجيا\nالفائز يحصل على نقاط مضاعفة ⭐⭐',
+        '🏆 منافسة الكويز الأسبوعية!\nمن سيكون في صدارة الترتيب هذا الأسبوع؟\nأجب على 10 أسئلة واحصل على 50 نقطة إضافية 🚀',
       ]
     },
-    { author:'Smart Kids Lab الرسمية', pageIcon:'🧠', pageCover:'linear-gradient(135deg,#00c6ff,#0072ff)',
+    /* ② نقاط وترتيب */
+    { cat:'points', icon:'⭐', author:'Connect DZ الرسمية', cover:'linear-gradient(135deg,#f59e0b,#ef4444)',
       texts:[
-        '🔬 Smart Kids Lab\nبيئة الإبداع والابتكار للعقول الشابة!\nانضم إلينا وطور مهاراتك التكنولوجية والعلمية 💻',
-        '🧩 تعلم بذكاء!\nالتعلم الممتع يبقى أطول في الذاكرة\nجرب أساليب التعلم الجديدة اليوم 📱',
-        '💻 برمجة • ذكاء اصطناعي • روبوتيكس\nمستقبل التكنولوجيا بين أيدي الشباب 🚀\n#SmartKids #Tech #Algeria',
+        '⭐ نظام النقاط الجديد!\nاكسب النقاط من:\n🎯 الكويز اليومي\n💬 التعليق على المنشورات\n👥 دعوة أصدقاء جدد\n📅 الحضور اليومي\nاستبدل نقاطك بمكافآت رائعة! 🎁',
+        '🏅 جدول المتصدرين يتحدّث!\nمن سيصل لقمة الترتيب أولاً؟\nتحقق من مكانك الآن في قسم النقاط 🔥',
+        '💰 اليوم يومك لجمع النقاط!\nلا تفوّت:\n✅ مكافأة الحضور اليومي\n✅ كويز اليوم\n✅ التفاعل مع 3 منشورات\nمجموع يصل إلى 100+ نقطة! 💫',
       ]
-    }
+    },
+    /* ③ Smart Kids Lab */
+    { cat:'smartkids', icon:'🔬', author:'Smart Kids Lab الرسمية', cover:'linear-gradient(135deg,#00c6ff,#0072ff)',
+      texts:[
+        '🔬 Smart Kids Lab\nنحن نبني جيل المبتكرين الجزائريين!\nالبرمجة • الروبوتيكس • الذكاء الاصطناعي\nانضم إلى مجتمعنا واكتشف موهبتك 💡\n#SmartKids #Algeria',
+        '💻 ورشة تقنية جديدة!\nتعلم البرمجة بأسلوب ممتع وتفاعلي\nمستوى المبتدئين والمتوسطين\nسجّل الآن ولا تفوّت الفرصة 🚀',
+        '🤖 عصر الذكاء الاصطناعي بدأ!\nSmart Kids Lab يعدّك للمستقبل\nتعلم كيف تبرمج وتبتكر مع خبراء متخصصين 🧑‍💻',
+      ]
+    },
+    /* ④ Next Leaders */
+    { cat:'leaders', icon:'🏆', author:'Next Leaders DZ الرسمية', cover:'linear-gradient(135deg,#4B0082,#00e5a0)',
+      texts:[
+        '🌟 Next Leaders DZ\nنحن نصنع قادة الغد اليوم!\nانضم إلى مجتمع الشباب الجزائري المتميز\nوطوّر مهاراتك القيادية 💪\n#NextLeaders #شباب_الجزائر',
+        '🎓 برنامج القيادة الشبابية\nتطوير الذات | المهارات الاجتماعية | الثقة بالنفس\nكن قائداً في مجتمعك! 🌍',
+        '🤝 قوتنا في وحدتنا!\nConnect DZ | Next Leaders | Smart Kids Lab\nثلاث منصات، هدف واحد: تطوير الشباب الجزائري 🇩🇿',
+      ]
+    },
+    /* ⑤ نصائح يومية */
+    { cat:'tips', icon:'💡', author:'نصيحة اليوم', cover:'linear-gradient(135deg,#11998e,#38ef7d)',
+      texts:[
+        '💡 نصيحة اليوم:\n"ابدأ صغيراً، فكّر كبيراً، تصرّف الآن"\nكل خطوة صغيرة هي تقدم حقيقي نحو هدفك 🎯\n#نصيحة_اليوم #تطوير_الذات',
+        '📖 قانون النجاح:\nاقرأ 15 دقيقة يومياً\nتدرّب 20 دقيقة يومياً\nفكّر وخطّط 10 دقائق يومياً\nالنتيجة: سنة = تغيير حياتك كاملاً! ✨',
+        '🌱 للنمو الحقيقي:\n• اخرج من منطقة الراحة\n• تعلّم من أخطائك\n• لا تقارن نفسك بالآخرين\n• احتفل بإنجازاتك الصغيرة 🎉',
+        '⏰ إدارة الوقت ببساعة:\n🔴 المهم والعاجل → افعله الآن\n🟡 المهم وغير العاجل → جدوله\n🟢 غير المهم → تجنبه أو فوّضه\n#وقتك_كنزك',
+      ]
+    },
+    /* ⑥ تحديات وورشات */
+    { cat:'events', icon:'🎪', author:'فعاليات Connect DZ', cover:'linear-gradient(135deg,#FF9500,#FF3B30)',
+      texts:[
+        '🎪 تحدي الأسبوع القادم:\n📸 شارك صورة إنجازك هذا الأسبوع\n💬 اكتب 3 أشياء تعلمتها\n🏆 أفضل مشاركة تفوز بجائزة مفاجئة!\nالمشاركة تبدأ الآن 🔥',
+        '🎯 ورشة عمل قادمة:\nموضوع: مهارات التواصل الفعّال\nالتسجيل مجاني للأعضاء المميزين\nعدد المقاعد محدود — سارع بالتسجيل! 🚀',
+        '📣 إعلان مهم!\nبرنامج المُرشد والمتدرّب يبدأ قريباً\nهل أنت مستعد لتكون مُرشداً؟\nأو تبحث عن مُرشد يساعدك في تطوير مهاراتك؟\nسجّل اهتمامك الآن! 🌟',
+      ]
+    },
+    /* ⑦ أخبار ووطنيات */
+    { cat:'national', icon:'🇩🇿', author:'أخبار الشباب الجزائري', cover:'linear-gradient(135deg,#006233,#d21034)',
+      texts:[
+        '🇩🇿 فخورون بشبابنا!\nالشباب الجزائري يصنع المجد في كل المجالات\nشارك قصة نجاحك معنا وألهم الآخرين! 💫\n#شباب_الجزائر #فخرنا',
+        '🌍 الجزائر على خارطة الابتكار!\nشبابنا يتنافس في مسابقات دولية ويفوز\nConnect DZ تدعم كل مبدع وموهوب 🏆',
+        '🌟 معاً نبني الجزائر الرقمية!\nكل عضو في منصتنا هو لبنة في مستقبل وطننا\nكن جزءاً من التحول الرقمي الجزائري 💪\n#رقمنة_الجزائر',
+      ]
+    },
+    /* ⑧ صحة ورياضة */
+    { cat:'health', icon:'💪', author:'صحتك أولاً', cover:'linear-gradient(135deg,#00b4db,#0083b0)',
+      texts:[
+        '💪 الجسم السليم في العقل السليم!\nتمرين اليوم: 20 دقيقة مشي | 10 ضغط | 15 قرفصاء\nصحتك هي رأس مالك الحقيقي 🏃‍♂️',
+        '😴 نوم جيد = أداء عالٍ!\nنصائح لنوم أفضل:\n• اذهب للنوم في نفس الوقت كل يوم\n• ابتعد عن الشاشات قبل النوم بساعة\n• الهدف: 7-8 ساعات نوم ✅',
+        '🥗 تغذية الطالب المثالية:\n🍌 موز: وقود الدماغ\n🥜 مكسرات: تركيز عالٍ\n💧 ماء: 8 أكواب يومياً\n🍳 إفطار لا يُتجاوز!\nطعامك يؤثر على تحصيلك الدراسي 📚',
+      ]
+    },
+    /* ⑨ المحادثات والمجتمع */
+    { cat:'social', icon:'🤝', author:'مجتمع Connect DZ', cover:'linear-gradient(135deg,#f953c6,#b91d73)',
+      texts:[
+        '🤝 مجتمعنا قوتنا!\nConnect DZ ليست مجرد تطبيق، هي عائلة من الشباب المبدع\nتعارفوا، تبادلوا الخبرات، ابنوا المستقبل معاً 💫',
+        '💬 شارك بمنشور اليوم!\nماذا تعلمت هذا الأسبوع؟\nشارك معرفتك ومساعدتك لزملائك تضاعف نقاطك! ⭐',
+        '👥 صديق جديد = فرصة جديدة!\nراسل شخصاً لم تتكلم معه من قبل في منصتنا\nالشبكة الاجتماعية الجيدة هي مفتاح النجاح 🗝️',
+      ]
+    },
+    /* ⑩ الدراسة والتعلم */
+    { cat:'study', icon:'📚', author:'أكاديمية Connect DZ', cover:'linear-gradient(135deg,#8360c3,#2ebf91)',
+      texts:[
+        '📚 تقنيات الدراسة الفعّالة:\n🍅 تقنية بومودورو: 25 دقيقة تركيز + 5 دقيقة راحة\n🗂️ تلخيص بطريقة خارطة الذهن\n🔄 المراجعة بعد 24 ساعة من التعلم\nجرّبها اليوم! 📝',
+        '🧩 كيف تحفظ أكثر في وقت أقل؟\n✅ التعليم بالتدريس: علّم صديقك ما تعلمته\n✅ الربط بالتجارب الحياتية\n✅ النوم بعد المذاكرة مباشرة\nعلم ثبّته في الذاكرة طويلة الأمد! 🧠',
+        '🎓 موارد التعلم المجانية:\n📹 YouTube: أفضل قناة في مجالك\n📖 Coursera & edX: شهادات معترف بها\n🌐 Khan Academy بالعربية\nالتعلم لا حدود له في عصر الإنترنت 💡',
+      ]
+    },
+    /* ⑪ تكنولوجيا وذكاء اصطناعي */
+    { cat:'tech', icon:'🤖', author:'تقنية Connect DZ', cover:'linear-gradient(135deg,#2c3e50,#3498db)',
+      texts:[
+        '🤖 الذكاء الاصطناعي يغير العالم!\nهل تعرف كيف تستخدمه لصالحك؟\nChatGPT | Gemini | Claude\nأدوات مجانية تعزز إنتاجيتك بـ 10 أضعاف 🚀',
+        '💻 مهارات المستقبل 2025:\n🔥 Python للذكاء الاصطناعي\n🎨 تصميم UX/UI\n📊 تحليل البيانات\n🛡️ الأمن السيبراني\nابدأ اليوم وكن جاهزاً لسوق العمل! 💪',
+        '📱 التطبيق الذي تستخدمه الآن صُنع بإبداع!\nهل تريد أن تبني تطبيقك الخاص؟\nابدأ تعلم البرمجة اليوم مع Smart Kids Lab 🧑‍💻',
+      ]
+    },
+    /* ⑫ تحفيز صباحي/مسائي */
+    { cat:'motivation', icon:'🌟', author:'طاقة إيجابية ✨', cover:'linear-gradient(135deg,#f7971e,#ffd200)',
+      texts:[
+        '🌅 صباح الإلهام!\n"كل صباح هو فرصة جديدة لتصبح نسخة أفضل من نفسك"\nابدأ يومك بنية واضحة وخطوة صغيرة نحو هدفك 🎯',
+        '🌙 مساء التفكر:\nقبل النوم اسأل نفسك:\n✅ ماذا أنجزت اليوم؟\n📖 ماذا تعلمت؟\n🙏 بمَ أنا ممتن؟\nيوم بخير يبني مستقبلاً مشرقاً 🌟',
+        '💫 أنت قادر!\nكل عقبة هي درس\nكل فشل هو خطوة نحو النجاح\nلا تستسلم — القائد الحقيقي يصمد 💪\n#لا_تستسلم #ConnectDZ',
+        '🔥 حماسك هو وقودك!\nلا تنتظر الدافعية — ابدأ والدافعية ستأتي\n"الإجراء يولّد الإلهام وليس العكس"\nابدأ الآن 🚀',
+      ]
+    },
   ];
 
-  function _triggerAutoPost(){
-    const now = Date.now();
-    const last = parseInt(localStorage.getItem(AUTO_POST_KEY)||'0');
-    if(now - last < AUTO_POST_INTERVAL) return;
-
-    // نشر منشور لكل صفحة
-    const posts = getSocialPosts();
-    const nowDate = new Date().toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
-
-    _autoPostTemplates.forEach(page=>{
-      // اختر نصاً عشوائياً من القوالب
-      const idx = Math.floor(Math.random() * page.texts.length);
-      const text = page.texts[idx];
-      posts.push({
-        id: 'ap_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
-        author: page.author,
-        text,
-        image: null,
-        feeling: null,
-        date: nowDate,
-        ts: Date.now(),
-        reactions:{},
-        comments:[],
-        isPage: true,
-        pageIcon: page.pageIcon,
-        pageCover: page.pageCover,
-        isAd: true
-      });
-    });
-
-    saveSocialPosts(posts);
-    localStorage.setItem(AUTO_POST_KEY, String(now));
-    // تحديث الفيد إن كان مفتوحاً
-    if(typeof renderSocialFeed === 'function') renderSocialFeed();
+  /* ── مولّد ID فريد ── */
+  function _genId(){
+    return 'sys_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
   }
 
-  // تشغيل عند فتح التطبيق
-  window.addEventListener('load', ()=>{ setTimeout(_triggerAutoPost, 3000); });
-  // فحص دوري كل دقيقتين
-  setInterval(_triggerAutoPost, 2 * 60 * 1000);
+  /* ── دالة النشر الفعلي ── */
+  function _doAutoPost(){
+    try{
+      const now    = Date.now();
+      const last   = parseInt(localStorage.getItem(AUTO_POST_KEY) || '0');
+
+      /* تحقق: هل مرّت ساعة من آخر نشر؟ */
+      if(now - last < AUTO_POST_INTERVAL) return;
+
+      const posts   = getSocialPosts();
+      const nowDate = new Date().toLocaleDateString('ar-DZ', {
+        day: 'numeric', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+
+      /* اختر القالب التالي بالتسلسل (كل ساعة موضوع مختلف) */
+      let idx = parseInt(localStorage.getItem(AUTO_POST_IDX_KEY) || '0');
+      const template = _SYSTEM_TEMPLATES[idx % _SYSTEM_TEMPLATES.length];
+      idx = (idx + 1) % _SYSTEM_TEMPLATES.length;
+      localStorage.setItem(AUTO_POST_IDX_KEY, String(idx));
+
+      /* اختر نصاً عشوائياً من القالب */
+      const textIdx = Math.floor(Math.random() * template.texts.length);
+      const text = template.texts[textIdx];
+
+      const newPost = {
+        id        : _genId(),
+        author    : template.author,
+        text      : text,
+        image     : null,
+        feeling   : null,
+        date      : nowDate,
+        ts        : now,
+        reactions : {},
+        comments  : [],
+        isPage    : true,
+        isAutoPost: true,
+        isAd      : true,
+        autoCategory: template.cat,
+        pageIcon  : template.icon,
+        pageCover : template.cover,
+        privacy   : '🌐 عام',
+      };
+
+      /* أضف المنشور في البداية (الأحدث أولاً) */
+      posts.unshift(newPost);
+      saveSocialPosts(posts);
+
+      /* حدّث الوقت الأخير للنشر */
+      localStorage.setItem(AUTO_POST_KEY, String(now));
+
+      /* تحديث الفيد إن كان مفتوحاً */
+      if(typeof renderSocialFeed === 'function'){
+        const feed = document.getElementById('socialFeedContainer');
+        if(feed && feed.offsetParent !== null) renderSocialFeed();
+      }
+
+      console.log('✅ [AutoPost] تم نشر منشور تلقائي — الموضوع:', template.cat,
+                  '| القالب التالي:', _SYSTEM_TEMPLATES[idx % _SYSTEM_TEMPLATES.length]?.cat);
+
+    }catch(ex){
+      console.warn('⚠️ [AutoPost] خطأ في النشر التلقائي:', ex);
+    }
+  }
+
+  /* ── التشغيل ── */
+  /* 1) عند فتح التطبيق (بعد 4 ثواني لضمان جاهزية البيانات) */
+  window.addEventListener('load', function(){
+    setTimeout(_doAutoPost, 4000);
+  });
+
+  /* 2) فحص دوري كل دقيقتين — يتأكد بنفسه أن الساعة مرّت */
+  setInterval(_doAutoPost, 2 * 60 * 1000);
+
+  /* 3) عند عودة المستخدم من تبويب آخر */
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible') _doAutoPost();
+  });
+
+  /* 4) تصدير للاستخدام الخارجي */
+  window._triggerAutoPost = _doAutoPost;
+  window._autoPostTemplates = _SYSTEM_TEMPLATES;
+
+  console.log('✅ [AutoPost] نظام النشر التلقائي مفعّل — كل ساعة —',
+              _SYSTEM_TEMPLATES.length, 'موضوعاً مختلفاً');
+
 })();
 /* ── openCityFeature(key): يفتح نافذة التفاصيل لأي قسم في _cityData ── */
 function openCityFeature(key){
