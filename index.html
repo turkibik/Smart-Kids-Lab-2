@@ -4192,6 +4192,10 @@ function switchLoginTab(tab){
       <div style="font-size:22px;font-weight:900;background:linear-gradient(90deg,#00c853,#e53935);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;flex:1;font-family:'Tajawal',sans-serif;">Connect DZ</div>
       <!-- Action buttons row (Facebook-like circles) -->
       <div style="display:flex;gap:7px;align-items:center;">
+        <!-- ✨ زر انضم إلينا في الشبكة الاجتماعية -->
+        <button id="joinUsBtnSocial" onclick="openJoinUsForm()" title="انضم إلى Connect DZ">
+          ✨ انضم
+        </button>
         <!-- Search -->
         <div onclick="toggleSocialSearch()" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;" title="بحث" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c853" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -4642,7 +4646,7 @@ function switchLoginTab(tab){
             <div style="position:relative;width:68px;height:110px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#e3f0ff 0%,#c8dfff 100%);border:2.5px solid #1877F2;">
               <div id="myStoryThumb" style="width:100%;height:70%;background:linear-gradient(135deg,#1877F2,#0d5bda);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;">👑</div>
               <div style="position:absolute;bottom:0;width:100%;height:40%;background:white;display:flex;align-items:center;justify-content:center;">
-                <span style="font-size:10px;font-weight:700;color:#050505;text-align:center;line-height:1.2;">ڨوستا تايم</span>
+                <span style="font-size:10px;font-weight:700;color:#050505;text-align:center;line-height:1.2;">يومياتي</span>
               </div>
               <div style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%);width:24px;height:24px;background:#1877F2;border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:white;line-height:1;">+</div>
             </div>
@@ -4658,12 +4662,12 @@ function switchLoginTab(tab){
           <div id="socialPostAvatarWrap" onclick="openMyStory()" style="flex-shrink:0;cursor:pointer;position:relative;">
             <div class="story-ring" id="myStoryRing">
               <div class="story-ring-inner">
-                <div id="socialPostAvatar" style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;" title="ڨوستا تايم">👑</div>
+                <div id="socialPostAvatar" style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;" title="يومياتي">👑</div>
               </div>
             </div>
-            <div class="story-add-btn" onclick="event.stopPropagation();addMyStory()" title="ڨوستا تايم جديد">+</div>
+            <div class="story-add-btn" onclick="event.stopPropagation();addMyStory()" title="إضافة قصة">+</div>
           </div>
-          <div onclick="openSocialCreatePost()" style="flex:1;background:#F0F2F5;border-radius:22px;padding:10px 16px;font-size:13px;color:#65676B;cursor:pointer;font-family:'Tajawal',sans-serif;">💬 واش راك حاب تقول؟ شارك أفكارك…</div>
+          <div onclick="openSocialCreatePost()" style="flex:1;background:#F0F2F5;border-radius:22px;padding:10px 16px;font-size:13px;color:#65676B;cursor:pointer;font-family:'Tajawal',sans-serif;">بماذا تفكر؟</div>
         </div>
         <div style="display:flex;border-top:1px solid #E4E6EB;padding-top:8px;gap:4px;">
           <div onclick="openSocialCreatePost('photo')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🖼️ صورة</div>
@@ -4893,70 +4897,42 @@ function switchLoginTab(tab){
 
 <!-- ── نافذة إنشاء منشور اجتماعي ── -->
 <div id="socialCreatePostModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:5500;align-items:flex-end;justify-content:center;">
-  <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 24px;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;overflow:hidden;max-height:94vh;display:flex;flex-direction:column;">
-    <!-- Header -->
+  <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 28px;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;overflow:hidden;max-height:92vh;display:flex;flex-direction:column;">
     <div style="padding:14px 16px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div onclick="closeSocialCreatePost()" style="width:32px;height:32px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;cursor:pointer;color:#050505;">✕</div>
+      <div onclick="closeSocialCreatePost()" style="width:30px;height:30px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;cursor:pointer;color:#050505;">✕</div>
       <div style="font-size:16px;font-weight:900;color:#050505;">إنشاء منشور</div>
-      <button id="scpPublishBtn" onclick="submitSocialPost()" style="background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:20px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;padding:7px 20px;cursor:pointer;transition:.15s;box-shadow:0 3px 12px rgba(24,119,242,0.4);">📢 نشر</button>
+      <button onclick="submitSocialPost()" style="background:#1877F2;border:none;border-radius:20px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;padding:7px 18px;cursor:pointer;">نشر</button>
     </div>
-    <!-- Body -->
     <div style="padding:14px 16px;overflow-y:auto;flex:1;overscroll-behavior:none;">
-      <!-- المستخدم + الخصوصية -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-        <div id="scpAvatar" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;flex-shrink:0;">👑</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div id="scpAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;">👑</div>
         <div>
-          <div id="scpName" style="font-size:15px;font-weight:900;color:#050505;"></div>
-          <div onclick="openScpPrivacyPicker()" id="scpPrivacyBadge" style="background:#F0F2F5;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;color:#65676B;margin-top:3px;display:inline-flex;align-items:center;gap:4px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">🌐 عام ▾</div>
+          <div id="scpName" style="font-size:14px;font-weight:900;color:#050505;"></div>
+          <div onclick="openScpPrivacyPicker()" id="scpPrivacyBadge" style="background:#F0F2F5;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;color:#65676B;margin-top:3px;display:inline-flex;align-items:center;gap:4px;cursor:pointer;">🌐 عام ▾</div>
         </div>
       </div>
-      <!-- شارة الشعور -->
-      <div id="scpFeelBadge" style="display:none;background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:20px;padding:5px 12px;font-size:13px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;"></div>
-      <!-- شارة الموقع -->
-      <div id="scpLocationBadge" style="display:none;background:rgba(229,57,53,0.1);border:1px solid rgba(229,57,53,0.25);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:#e53935;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;margin-right:6px;cursor:pointer;" onclick="removeScpLocation()">
-        <span id="scpLocationText">📍</span>
-        <span style="font-size:14px;color:#e53935;font-weight:900;">✕</span>
-      </div>
-      <!-- حقل النص -->
-      <textarea id="scpTextInput" placeholder="💬 واش راك حاب تقول؟ شارك أفكارك مع الأعضاء…" style="width:100%;border:none;background:transparent;color:#050505;font-family:'Tajawal',sans-serif;font-size:17px;outline:none;resize:none;min-height:100px;line-height:1.7;text-align:right;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,300)+'px'"></textarea>
-      <!-- معرض الصور المتعددة -->
-      <div id="scpMultiImgPreview" style="display:none;margin-top:8px;border-radius:12px;overflow:hidden;position:relative;background:#000;"></div>
-      <!-- معاينة الصورة الفردية -->
+      <div id="scpFeelBadge" style="display:none;background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;"></div>
+      <textarea id="scpTextInput" placeholder="بماذا تفكر؟" style="width:100%;border:none;background:transparent;color:#050505;font-family:'Tajawal',sans-serif;font-size:16px;outline:none;resize:none;min-height:120px;line-height:1.6;text-align:right;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,320)+'px'"></textarea>
       <div id="scpImagePreview" style="display:none;border-radius:12px;overflow:hidden;margin-top:8px;position:relative;">
-        <img loading="lazy" id="scpImagePreviewImg" style="width:100%;max-height:240px;object-fit:cover;">
-        <div onclick="document.getElementById('scpImagePreview').style.display='none';_scpImageData=null;_scpMultiImages=[];" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:white;font-weight:900;">✕</div>
+        <img loading="lazy" id="scpImagePreviewImg" style="width:100%;max-height:200px;object-fit:cover;">
+        <div onclick="document.getElementById('scpImagePreview').style.display='none';_scpImageData=null;" style="position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:white;">✕</div>
       </div>
-      <!-- معاينة الفيديو -->
       <div id="scpVideoPreview" style="display:none;border-radius:12px;overflow:hidden;margin-top:8px;position:relative;">
-        <video id="scpVideoPreviewVid" controls playsinline style="width:100%;max-height:240px;display:block;background:#000;" preload="metadata"></video>
-        <div onclick="document.getElementById('scpVideoPreview').style.display='none';_scpVideoData=null;" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:white;font-weight:900;">✕</div>
+        <video id="scpVideoPreviewVid" controls playsinline style="width:100%;max-height:220px;display:block;background:#000;" preload="metadata"></video>
+        <div onclick="document.getElementById('scpVideoPreview').style.display='none';_scpVideoData=null;" style="position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:white;">✕</div>
       </div>
-      <!-- وسم صديق -->
-      <div id="scpTagPreview" style="display:none;padding:8px 0 0;"></div>
     </div>
-    <!-- أدوات المنشور -->
-    <div style="padding:8px 14px;border-top:1px solid #F0F2F5;flex-shrink:0;">
-      <div style="font-size:12px;font-weight:800;color:#65676B;margin-bottom:8px;">أضف إلى منشورك</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <!-- صورة -->
-        <label style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 13px;background:#F0FFF4;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;color:#45BD62;border:1.5px solid rgba(69,189,98,0.25);transition:.15s;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#F0FFF4'">
-          🖼️ صورة
-          <input type="file" accept="image/*" multiple style="display:none;" onchange="handleScpMultiImages(event)">
-        </label>
-        <!-- فيديو -->
-        <label style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 13px;background:#FFF0F3;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;color:#F1135C;border:1.5px solid rgba(241,19,92,0.2);transition:.15s;" onmouseover="this.style.background='#ffe4ec'" onmouseout="this.style.background='#FFF0F3'">
-          🎬 فيديو
-          <input type="file" accept="video/*" style="display:none;" onchange="handleScpVideo(event)">
-        </label>
-        <!-- شعور -->
-        <div onclick="openScpFeelingPicker()" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 13px;background:#FFFBEB;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;color:#D97706;border:1.5px solid rgba(217,119,6,0.2);transition:.15s;" onmouseover="this.style.background='#fef3c7'" onmouseout="this.style.background='#FFFBEB'">😊 شعور</div>
-        <!-- موقع -->
-        <div onclick="openScpLocationPicker()" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 13px;background:#FFF0F0;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;color:#e53935;border:1.5px solid rgba(229,57,53,0.2);transition:.15s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#FFF0F0'">📍 موقع</div>
-        <!-- وسم صديق -->
-        <div onclick="openScpTagFriend()" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 13px;background:#EFF6FF;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;color:#1877F2;border:1.5px solid rgba(24,119,242,0.2);transition:.15s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#EFF6FF'">🏷️ وسم</div>
-        <!-- الخصوصية -->
-        <div onclick="openScpPrivacyPicker()" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 13px;background:#F5F5F5;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;color:#65676B;border:1.5px solid rgba(0,0,0,0.08);transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F5F5F5'">🔒 خصوصية</div>
-      </div>
+    <div style="display:flex;gap:8px;padding:0 16px;flex-wrap:wrap;flex-shrink:0;padding-bottom:8px;">
+      <label style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#F0F2F5;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;">
+        🖼️ صورة
+        <input type="file" accept="image/*" style="display:none;" onchange="handleScpImage(event)">
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#F0F2F5;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F1135C;">
+        🎬 فيديو
+        <input type="file" accept="video/*" style="display:none;" onchange="handleScpVideo(event)">
+      </label>
+      <div onclick="toggleScpFeeling()" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#F0F2F5;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;">😊 شعور/نشاط</div>
+      <div onclick="openScpPrivacyPicker()" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:#F0F2F5;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#65676B;">🔒 الخصوصية</div>
     </div>
   </div>
 </div>
@@ -7660,7 +7636,7 @@ function renderProfilePosts(name){
     const reactions = p.reactions||{};
     const totalReacts = Object.values(reactions).flat().length;
     const myReact = Object.keys(reactions).find(r=>(reactions[r]||[]).includes(name));
-    const reactEmojis = ['❤️','😂','😢','👍','🤦🏻'];
+    const reactEmojis = ['👍','❤️','😂','😮','😢','😡'];
     const comments = p.comments||[];
     return `<div id="pppost_${postId}" style="background:white;padding:14px 16px;margin-bottom:8px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
@@ -9402,7 +9378,7 @@ async function loadRanking(){
     const _EXCLUDED_NAMES = ['لؤي','لؤي عماري'];
     const list=Object.values(mergedMap).filter(x=>!_EXCLUDED_NAMES.some(ex=>x.n.trim()===ex||x.n.trim().startsWith(ex+' '))).map(x=>{
       const qPts=getSharedQuizPts(x.n);
-      return {n:x.n, p:x.p, sheetP:x.p, quizP:qPts, total:x.p}; // ترتيب بنقاط الجدول فقط
+      return {n:x.n, p:x.p, sheetP:x.p, quizP:qPts, total:x.p+qPts};
     }).sort((a,b)=>b.total-a.total);
 
     // ── حساب الرصيد الذكي حسب الترتيب ──
@@ -9445,7 +9421,7 @@ async function loadRanking(){
     div.innerHTML=list.map((x,i)=>{
       const isMe=norm(x.n)===currentUserNorm;
       const quizPts=x.quizP||0;
-      const quizBadge=''; // نقاط الكويز لا تظهر في جدول الترتيب
+      const quizBadge=quizPts>0?`<span style="font-size:10px;color:#a78bfa;background:rgba(168,85,247,0.15);border-radius:5px;padding:1px 5px;margin-right:4px;" title="نقاط الكويز">🎯+${quizPts}</span>`:'';
       const delay = Math.min(i * 0.05, 0.6);
       const isMeStyle = isMe
         ? 'border-color:rgba(0,229,160,0.55)!important;background:linear-gradient(135deg,rgba(0,229,160,0.1),rgba(0,229,160,0.04))!important;box-shadow:0 0 16px rgba(0,229,160,0.15);'
@@ -9605,7 +9581,7 @@ function ebPointsShare(){
   addPointsInstant(5);
 }
 
-function ebPointsStory(){ grantEarlyBirdPoints('story_'+Date.now(), 1, false, 'ڨوستا تايم'); }
+function ebPointsStory(){ grantEarlyBirdPoints('story_'+Date.now(), 1, false, 'قصة'); }
 function ebPointsVisit(){ grantEarlyBirdPoints('daily_visit', 5, true, 'زيارة يومية'); }
 function ebPointsFacebook(){ grantEarlyBirdPoints('facebook_open', 10, true, 'فتح فيسبوك'); }
 
@@ -14069,34 +14045,25 @@ function renderSocialFeed(){
   if(!container) return;
   const allPosts = getSocialPosts();
   const myName = getCurrentUser();
-  // ✅ عرض جميع المنشورات العامة من كل الأعضاء (ليس الأصدقاء فقط)
-  const posts = allPosts.filter(p => {
-    if(p.isActivityAd) return true;
-    const priv = p.privacy || '🌐 عام';
-    if(priv.includes('أنت فقط')) return myName && p.author === myName;
-    if(priv.includes('الأصدقاء')){
-      const myFriends = myName ? getFriends(myName) : [];
-      return myName && (p.author === myName || myFriends.includes(p.author));
-    }
-    return true; // عام: يظهر للجميع
-  });
+  const myFriends = myName ? getFriends(myName) : [];
+  // ✅ تصفية المنشورات حسب الخصوصية
+  const posts = myName
+    ? allPosts.filter(p => {
+        if(p.isActivityAd) return true; // إعلانات تظهر للجميع
+        const priv = p.privacy || '🌐 عام';
+        if(priv.includes('أنت فقط')) return p.author === myName; // خاص
+        if(priv.includes('الأصدقاء')) return p.author === myName || myFriends.includes(p.author); // أصدقاء
+        // عام: اعرض فقط منشورات المستخدم وأصدقائه
+        return p.author === myName || myFriends.includes(p.author);
+      })
+    : allPosts.filter(p => !p.privacy || p.privacy.includes('عام'));
   if(posts.length===0){
-    container.innerHTML=`<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. كن أول من ينشر!</div></div>`;
+    container.innerHTML=`<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. أضف أصدقاء لترى منشوراتهم!</div></div>`;
     return;
   }
-  // ✅ الترتيب: الإعلانات أولاً، ثم الأكثر تفاعلاً+مشاهدة، ثم حسب التعليقات
-  const adPosts = posts.filter(p=>p.isActivityAd).slice().reverse();
-  const normalPosts = posts.filter(p=>!p.isActivityAd).slice().sort((a,b)=>{
-    const aReacts = Object.values(a.reactions||{}).reduce((s,arr)=>s+(Array.isArray(arr)?arr.length:0),0);
-    const bReacts = Object.values(b.reactions||{}).reduce((s,arr)=>s+(Array.isArray(arr)?arr.length:0),0);
-    const aViews = a.views || 0;
-    const bViews = b.views || 0;
-    const aScore = (aReacts * 3) + aViews;
-    const bScore = (bReacts * 3) + bViews;
-    if(bScore !== aScore) return bScore - aScore;
-    // عند التساوي: الأكثر تعليقاً أولاً
-    return (b.comments||[]).length - (a.comments||[]).length;
-  });
+  // الإعلانات أولاً ثم المنشورات العادية
+  const adPosts    = posts.filter(p=>p.isActivityAd).slice().reverse();
+  const normalPosts= posts.filter(p=>!p.isActivityAd).slice().reverse();
   container.innerHTML = [...adPosts, ...normalPosts].map(p => renderSocialPostCard(p)).join('');
 }
 
@@ -14105,17 +14072,10 @@ function renderSocialPostCard(p){
   const isAd = !!p.isActivityAd;
 
   // أفاتار الناشر
-  const isAutoPost = !!p.isAutoPost;
-  const photo = !isAd && !isAutoPost && typeof getProfilePhoto==='function' ? getProfilePhoto(p.author) : null;
+  const photo = !isAd && typeof getProfilePhoto==='function' ? getProfilePhoto(p.author) : null;
   const avatarHtml = isAd
     ? `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#FF9500,#FF3B30);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏅</div>`
-    : isAutoPost
-      ? (p.autoCategory === 'law'
-          ? `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#e52d27,#fbbf24);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⚖️</div>`
-          : p.autoCategory === 'ranking'
-            ? `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏆</div>`
-            : `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏙️</div>`)
-      : (photo
+    : (photo
         ? `<img loading="lazy" src="${photo}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;cursor:pointer;" onclick="viewMemberProfile('${p.author}')">`
         : `<div onclick="viewMemberProfile('${p.author}')" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;">${typeof getLeaderIcon==='function'?getLeaderIcon(p.author):'👑'}</div>`);
 
@@ -14123,7 +14083,7 @@ function renderSocialPostCard(p){
   const allReactors = Object.values(reactions).flat();
   const totalReacts = allReactors.length;
   const myReact = Object.keys(reactions).find(r=> (reactions[r]||[]).includes(name));
-  const reactEmojis = ['❤️','😂','😢','👍','🤦🏻'];
+  const reactEmojis = ['👍','❤️','😂','😮','😢','😡'];
 
   const comments = p.comments || [];
   const isOwner = p.author === name;
@@ -14170,20 +14130,8 @@ function renderSocialPostCard(p){
       </div>
       ${p.feeling ? `<div style="background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;">${p.feeling}</div>` : ''}
       ${p.text ? `<div style="font-size:14px;color:#050505;line-height:1.6;margin-bottom:${p.image||p.video?'10px':'0'};text-align:right;white-space:pre-wrap;">${p.text}</div>` : ''}
-      ${(()=>{
-        if(p.images && p.images.length > 1){
-          const imgs = p.images;
-          if(imgs.length===2) return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:12px;overflow:hidden;margin:8px -14px 0;">${imgs.map(s=>`<img src="${s}" loading="lazy" style="width:100%;height:180px;object-fit:cover;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1">`).join('')}</div>`;
-          if(imgs.length===3) return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:12px;overflow:hidden;margin:8px -14px 0;"><img src="${imgs[0]}" loading="lazy" style="width:100%;height:240px;object-fit:cover;grid-row:span 2;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1"><img src="${imgs[1]}" loading="lazy" style="width:100%;height:119px;object-fit:cover;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1"><img src="${imgs[2]}" loading="lazy" style="width:100%;height:119px;object-fit:cover;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1"></div>`;
-          const extra = imgs.length-4;
-          return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:12px;overflow:hidden;margin:8px -14px 0;">${imgs.slice(0,3).map(s=>`<img src="${s}" loading="lazy" style="width:100%;height:140px;object-fit:cover;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1">`).join('')}<div style="position:relative;"><img src="${imgs[3]}" loading="lazy" style="width:100%;height:140px;object-fit:cover;opacity:0;transition:opacity .35s;" onload="this.style.opacity=1">${extra>0?`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:white;pointer-events:none;">+${extra}</div>`:''}</div></div>`;
-        }
-        if(p.image) return `<div style="border-radius:12px;overflow:hidden;margin:8px -14px 0;background:#f0f2f5;min-height:60px;"><img src="${p.image}" loading="lazy" style="width:100%;max-height:420px;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;" onload="this.style.opacity=1" onerror="this.parentElement.style.display='none'"></div>`;
-        return '';
-      })()}
+      ${p.image ? `<div style="border-radius:12px;overflow:hidden;margin:8px -14px 0;background:#f0f2f5;min-height:60px;"><img src="${p.image}" loading="lazy" style="width:100%;max-height:420px;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;" onload="this.style.opacity=1" onerror="this.parentElement.style.display='none'"></div>` : ''}
       ${p.video ? `<div style="border-radius:12px;overflow:hidden;margin:8px -14px 0;background:#000;"><video src="${p.video}" controls playsinline preload="metadata" style="width:100%;max-height:400px;display:block;object-fit:contain;" onplay="document.querySelectorAll('video').forEach(v=>{if(v!==this&&!v.paused)v.pause();})"></video></div>` : ''}
-      ${(p.location||p.taggedFriends)?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">${p.location?`<span style="background:rgba(229,57,53,0.08);border:1px solid rgba(229,57,53,0.2);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:#e53935;">📍 ${p.location}</span>`:''}${p.taggedFriends&&p.taggedFriends.length?`<span style="background:rgba(24,119,242,0.08);border:1px solid rgba(24,119,242,0.2);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:#1877F2;">🏷️ مع ${p.taggedFriends.join('، ')}</span>`:''}
-      </div>`:''} 
     </div>
 
     <!-- إحصائيات التفاعل -->
@@ -14197,13 +14145,13 @@ function renderSocialPostCard(p){
         <div id="likeBtn_${p.id}" onmousedown="${myReact?'':'_startReactTimer(\''+p.id+'\')'}" onmouseup="${myReact?'':'_cancelReactTimer()'}" ontouchstart="${myReact?'':'_startReactTimer(\''+p.id+'\')'}" ontouchend="${myReact?'':'_cancelReactTimer()'}" onclick="${myReact?'':'_handleLikeClick(\''+p.id+'\')'}" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:${myReact?'default':'pointer'};font-size:13px;font-weight:700;color:${myReact?'#1877F2':'#65676B'};transition:.15s;user-select:none;-webkit-user-select:none;" ${myReact?'':'onmouseover="this.style.background=\'#F0F2F5\'" onmouseout="this.style.background=\'transparent\'"'}>
           ${myReact||'👍'} ${myReact?'معجب':'إعجاب'}
         </div>
-        <div id="reactPicker_${p.id}" style="display:none;position:absolute;bottom:48px;left:50%;transform:translateX(-50%);background:white;border-radius:30px;padding:10px 14px;box-shadow:0 6px 28px rgba(0,0,0,0.3);gap:10px;z-index:200;border:1px solid #E4E6EB;white-space:nowrap;flex-direction:row;animation:reactPickerIn .2s ease;min-width:200px;">
-          ${reactEmojis.map(e=>`<span onclick="addReaction('${p.id}','${e}')" style="font-size:32px;cursor:pointer;transition:.15s;display:inline-block;line-height:1;" onmouseover="this.style.transform='scale(1.4) translateY(-5px)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`).join('')}
+        <div id="reactPicker_${p.id}" style="display:none;position:absolute;bottom:48px;left:50%;transform:translateX(-50%);background:white;border-radius:30px;padding:8px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.25);gap:8px;z-index:200;border:1px solid #E4E6EB;white-space:nowrap;flex-direction:row;animation:reactPickerIn .2s ease;">
+          ${reactEmojis.map(e=>`<span onclick="addReaction('${p.id}','${e}')" style="font-size:28px;cursor:pointer;transition:.15s;display:inline-block;" onmouseover="this.style.transform='scale(1.35) translateY(-4px)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`).join('')}
         </div>
       </div>
       <div onclick="toggleComments('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">💬 تعليق</div>
       <div onclick="sharePost('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">↗️ مشاركة</div>
-      <div onclick="showPostViewStats('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;color:#6366f1;transition:.15s;border-right:1px solid #E4E6EB;" onmouseover="this.style.background='#f0f0ff'" onmouseout="this.style.background='transparent'">👁️ <span id="postViews_${p.id}">${(p.views||0)}</span></div>
+      <div onclick="showJoinUsDialog('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;color:#059669;transition:.15s;border-right:1px solid #E4E6EB;" onmouseover="this.style.background='#F0FDF4'" onmouseout="this.style.background='transparent'">🤝 انضم إلينا</div>
     </div>
 
     <!-- قسم التعليقات -->
@@ -14213,21 +14161,8 @@ function renderSocialPostCard(p){
         <div id="commentAvatar_${p.id}" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;overflow:hidden;">${typeof getLeaderIcon==='function'?getLeaderIcon(name||'?'):'👑'}</div>
         <div style="flex:1;background:#F0F2F5;border-radius:20px;display:flex;align-items:center;padding:0 6px 0 6px;gap:4px;">
           <input id="commentInput_${p.id}" type="text" placeholder="اكتب تعليقاً…" style="flex:1;border:none;background:transparent;padding:9px 4px;font-family:'Tajawal',sans-serif;font-size:13px;color:#050505;outline:none;text-align:right;" onkeydown="if(event.key==='Enter'){submitComment('${p.id}');event.preventDefault();}">
-          <button onclick="startVoiceComment('${p.id}')" id="voiceCommentBtn_${p.id}" style="background:linear-gradient(135deg,#a855f7,#7c3aed);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 6px rgba(168,85,247,0.35);transition:.15s;" title="تسجيل صوتي" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">🎙️</button>
           <button onclick="submitComment('${p.id}')" style="background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 6px rgba(24,119,242,0.35);transition:.15s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"><svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='white'><path d='M2 21l21-9L2 3v7l15 2-15 2v7z'/></svg></button>
         </div>
-      </div>
-      <!-- منطقة التسجيل الصوتي -->
-      <div id="voiceCommentArea_${p.id}" style="display:none;margin-top:8px;background:linear-gradient(135deg,rgba(168,85,247,0.08),rgba(124,58,237,0.08));border:1.5px solid rgba(168,85,247,0.25);border-radius:16px;padding:12px 14px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div id="voiceCommentTimer_${p.id}" style="font-size:20px;font-weight:900;color:#7c3aed;font-variant-numeric:tabular-nums;min-width:40px;">0:00</div>
-          <div style="flex:1;height:6px;background:rgba(168,85,247,0.2);border-radius:10px;overflow:hidden;">
-            <div id="voiceCommentBar_${p.id}" style="height:100%;background:linear-gradient(90deg,#a855f7,#7c3aed);width:0%;transition:width 0.1s linear;border-radius:10px;"></div>
-          </div>
-          <button onclick="stopVoiceComment('${p.id}',true)" style="padding:6px 12px;background:#7c3aed;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;color:white;cursor:pointer;">✅ إرسال</button>
-          <button onclick="stopVoiceComment('${p.id}',false)" style="padding:6px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;color:#ef4444;cursor:pointer;">✕ إلغاء</button>
-        </div>
-        <div style="font-size:11px;color:#7c3aed;margin-top:6px;font-weight:700;">🔴 جارٍ التسجيل... (أقصى حد 5 ثوانٍ)</div>
       </div>
     </div>
   </div>`;
@@ -14240,76 +14175,13 @@ function renderCommentItem(c, postId){
     <div onclick="viewMemberProfile('${c.author}')" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;cursor:pointer;">${typeof getLeaderIcon==='function'?getLeaderIcon(c.author||'?'):'👑'}</div>
     <div style="background:white;border-radius:16px;padding:8px 12px;flex:1;border:1px solid #E4E6EB;position:relative;">
       <div onclick="viewMemberProfile('${c.author}')" style="font-size:12px;font-weight:900;color:#050505;margin-bottom:2px;cursor:pointer;">${c.author}${typeof getAdminVerifiedBadgeHtml==='function' ? getAdminVerifiedBadgeHtml(c.author) : ''}</div>
-      ${c.audio ? `<div style="margin-top:4px;"><audio controls src="${c.audio}" style="width:100%;height:32px;border-radius:8px;"></audio></div>` : `<div id="commentText_${c.id||c.ts}" style="font-size:13px;color:#050505;line-height:1.5;">${c.text}</div>`}
+      <div id="commentText_${c.id||c.ts}" style="font-size:13px;color:#050505;line-height:1.5;">${c.text}</div>
       ${isOwner ? `<div style="display:flex;gap:8px;margin-top:4px;">
-        ${!c.audio ? `<span onclick="editComment('${postId}','${c.id||c.ts}')" style="font-size:11px;color:#1877F2;cursor:pointer;font-weight:700;">✏️ تعديل</span>` : ''}
+        <span onclick="editComment('${postId}','${c.id||c.ts}')" style="font-size:11px;color:#1877F2;cursor:pointer;font-weight:700;">✏️ تعديل</span>
         <span onclick="deleteComment('${postId}','${c.id||c.ts}')" style="font-size:11px;color:#e53935;cursor:pointer;font-weight:700;">🗑️ حذف</span>
       </div>` : ''}
     </div>
   </div>`;
-}
-
-/* ══ التسجيل الصوتي للتعليقات ══ */
-let _voiceCommentRecorder = null;
-let _voiceCommentChunks = [];
-let _voiceCommentInterval = null;
-let _voiceCommentSeconds = 0;
-let _voiceCommentPostId = null;
-const _VOICE_MAX_SECS = 5;
-
-async function startVoiceComment(postId){
-  if(_voiceCommentRecorder){ showToast('⚠️ تسجيل قيد التشغيل'); return; }
-  try{
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    _voiceCommentPostId = postId;
-    _voiceCommentChunks = [];
-    _voiceCommentSeconds = 0;
-    _voiceCommentRecorder = new MediaRecorder(stream);
-    _voiceCommentRecorder.ondataavailable = e=>{ if(e.data.size>0) _voiceCommentChunks.push(e.data); };
-    _voiceCommentRecorder.start();
-    const areaEl = document.getElementById('voiceCommentArea_'+postId);
-    if(areaEl) areaEl.style.display='block';
-    _voiceCommentInterval = setInterval(()=>{
-      _voiceCommentSeconds++;
-      const barEl = document.getElementById('voiceCommentBar_'+postId);
-      const timerEl = document.getElementById('voiceCommentTimer_'+postId);
-      if(timerEl) timerEl.innerText = '0:0'+_voiceCommentSeconds;
-      if(barEl) barEl.style.width = (_voiceCommentSeconds/_VOICE_MAX_SECS*100)+'%';
-      if(_voiceCommentSeconds >= _VOICE_MAX_SECS) stopVoiceComment(postId, true);
-    }, 1000);
-  }catch(e){
-    showToast('❌ لا يمكن الوصول إلى الميكروفون');
-  }
-}
-
-function stopVoiceComment(postId, send){
-  if(!_voiceCommentRecorder) return;
-  clearInterval(_voiceCommentInterval);
-  _voiceCommentInterval = null;
-  const areaEl = document.getElementById('voiceCommentArea_'+postId);
-  if(areaEl) areaEl.style.display='none';
-  _voiceCommentRecorder.stream.getTracks().forEach(t=>t.stop());
-  if(!send){ _voiceCommentRecorder=null; _voiceCommentChunks=[]; return; }
-  _voiceCommentRecorder.onstop = ()=>{
-    const blob = new Blob(_voiceCommentChunks,{type:'audio/webm'});
-    const reader = new FileReader();
-    reader.onload = e=>{
-      const audioData = e.target.result;
-      const name = getCurrentUser(); if(!name) return;
-      const posts = getSocialPosts();
-      const post = posts.find(p=>p.id===postId); if(!post) return;
-      if(!post.comments) post.comments=[];
-      const cmt = { id:'vc_'+Date.now(), author:name, text:'🎙️ رسالة صوتية', audio:audioData, ts:Date.now() };
-      post.comments.push(cmt);
-      saveSocialPosts(posts);
-      if(post.author!==name) addSocialNotif(post.author, `${name} أرسل تعليقاً صوتياً 🎙️`, '🎙️');
-      refreshPostCard(postId);
-      showToast('✅ تم إرسال التعليق الصوتي 🎙️');
-    };
-    reader.readAsDataURL(blob);
-    _voiceCommentRecorder=null; _voiceCommentChunks=[];
-  };
-  _voiceCommentRecorder.stop();
 }
 
 function getTopReactEmojis(reactions){
@@ -14436,65 +14308,6 @@ function sharePost(postId){
   }
 }
 
-/* ── عداد المشاهدات ── */
-function _recordPostView(postId){
-  const name = getCurrentUser(); if(!name||name==='زائر') return;
-  const posts = getSocialPosts();
-  const post = posts.find(p=>p.id===postId); if(!post) return;
-  if(!post.viewedBy) post.viewedBy=[];
-  if(post.viewedBy.includes(name)) return; // لا نكرر
-  post.viewedBy.push(name);
-  post.views = (post.views||0)+1;
-  saveSocialPosts(posts);
-  const el = document.getElementById('postViews_'+postId);
-  if(el) el.innerText = post.views;
-}
-
-function showPostViewStats(postId){
-  const posts = getSocialPosts();
-  const post = posts.find(p=>p.id===postId);
-  if(!post) return;
-  const views = post.views||0;
-  const viewers = post.viewedBy||[];
-  const old=document.getElementById('_postViewsOverlay'); if(old) old.remove();
-  const ov=document.createElement('div');
-  ov.id='_postViewsOverlay';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:flex-end;justify-content:center;';
-  ov.innerHTML=`<div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:20px 16px 32px;max-height:60vh;overflow-y:auto;font-family:'Tajawal',sans-serif;">
-    <div style="width:36px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 16px;"></div>
-    <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:4px;text-align:center;">👁️ إحصائيات المشاهدة</div>
-    <div style="text-align:center;margin-bottom:16px;">
-      <div style="font-size:42px;font-weight:900;color:#6366f1;">${views}</div>
-      <div style="font-size:13px;color:#65676B;">مشاهدة إجمالية</div>
-    </div>
-    <div style="background:#f0f0ff;border-radius:14px;padding:14px;margin-bottom:12px;">
-      <div style="font-size:13px;font-weight:800;color:#6366f1;margin-bottom:8px;">👥 من شاهد منشورك</div>
-      ${viewers.length?viewers.map(v=>`<div style="font-size:13px;color:#050505;padding:4px 0;border-bottom:1px solid #e9e9f9;font-weight:700;">👤 ${v}</div>`).join(''):'<div style="font-size:13px;color:#65676B;">لا توجد مشاهدات بعد</div>'}
-    </div>
-    <button onclick="document.getElementById('_postViewsOverlay').remove()" style="width:100%;padding:12px;background:#6366f1;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:white;cursor:pointer;">إغلاق</button>
-  </div>`;
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-  document.body.appendChild(ov);
-}
-
-/* تسجيل مشاهدة تلقائية عند ظهور المنشور في الشاشة */
-(function(){
-  const _viewedPosts=new Set();
-  function _checkVisible(){
-    document.querySelectorAll('[id^="spost_"]').forEach(el=>{
-      const postId=el.id.replace('spost_','');
-      if(_viewedPosts.has(postId)) return;
-      const rect=el.getBoundingClientRect();
-      if(rect.top<window.innerHeight && rect.bottom>0){
-        _viewedPosts.add(postId);
-        setTimeout(()=>_recordPostView(postId), 1000);
-      }
-    });
-  }
-  document.addEventListener('scroll',_checkVisible,{passive:true});
-  setInterval(_checkVisible,3000);
-})();
-
 function refreshPostCard(postId){
   const posts = getSocialPosts();
   const post = posts.find(p=>p.id===postId);
@@ -14519,29 +14332,22 @@ let _scpPrivacy = '🌐 عام'; // خصوصية المنشور الافتراض
 const _scpFeelings = ['😊 سعيد','😍 متحمس','🔥 نشيط','💪 مصمم','🤩 رائع','🎉 منتصر','🧠 مفكر','😤 مجتهد','🌟 متألق'];
 let _scpFeelingIdx = 0;
 
-let _scpMultiImages = []; // صور متعددة
-let _scpLocation = null;   // موقع المنشور
-let _scpTaggedFriends = []; // الأصدقاء الموسومون
-
 function openSocialCreatePost(type){
-  _scpFeelingMode = false; _scpImageData = null; _scpVideoData = null;
-  _scpPrivacy = '🌐 عام'; _scpMultiImages = []; _scpLocation = null; _scpTaggedFriends = [];
+  _scpFeelingMode = false; _scpImageData = null; _scpVideoData = null; _scpPrivacy = '🌐 عام';
   const modal = document.getElementById('socialCreatePostModal');
   if(modal) modal.style.display='flex';
   const textEl = document.getElementById('scpTextInput');
   if(textEl){ textEl.value=''; textEl.style.height='auto'; }
-  ['scpImagePreview','scpVideoPreview','scpMultiImgPreview','scpTagPreview'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.style.display='none';
-  });
+  const prev = document.getElementById('scpImagePreview');
+  if(prev) prev.style.display='none';
+  const vprev = document.getElementById('scpVideoPreview');
+  if(vprev) vprev.style.display='none';
   const badge = document.getElementById('scpFeelBadge');
   if(badge) badge.style.display='none';
-  const locBadge = document.getElementById('scpLocationBadge');
-  if(locBadge) locBadge.style.display='none';
   const privBadge = document.getElementById('scpPrivacyBadge');
-  if(privBadge) privBadge.innerText = '🌐 عام ▾';
+  if(privBadge) privBadge.innerText = '🌐 عام';
   const name = getCurrentUser();
   if(name) syncSocialAvatar(name);
-  setTimeout(()=>{ document.getElementById('scpTextInput')?.focus(); }, 200);
   if(type==='achievement'){
     if(textEl) textEl.value='🏆 لقد حققت إنجازاً جديداً! ';
     _scpFeelingMode = true; _scpFeelingIdx = 5;
@@ -14551,12 +14357,10 @@ function openSocialCreatePost(type){
     if(badge){ badge.style.display='inline-flex'; badge.innerText=_scpFeelings[0]; }
   }
 }
-
 function closeSocialCreatePost(){
   const modal = document.getElementById('socialCreatePostModal');
   if(modal) modal.style.display='none';
 }
-
 function toggleScpFeeling(){
   _scpFeelingMode = !_scpFeelingMode;
   _scpFeelingIdx = (_scpFeelingIdx+1) % _scpFeelings.length;
@@ -14566,77 +14370,22 @@ function toggleScpFeeling(){
     else { badge.style.display='none'; }
   }
 }
-
-/* ── معالجة صور متعددة ── */
-function handleScpMultiImages(event){
-  const files = Array.from(event.target.files||[]).slice(0,7);
-  if(!files.length) return;
-  if(Array.from(event.target.files||[]).length > 7){ showToast('⚠️ الحد الأقصى 7 صور فقط'); }
-  _scpVideoData = null;
-  document.getElementById('scpVideoPreview').style.display='none';
-  _scpMultiImages = [];
-  const multiPrev = document.getElementById('scpMultiImgPreview');
-  const singlePrev = document.getElementById('scpImagePreview');
-  if(singlePrev) singlePrev.style.display='none';
-  let loaded = 0;
-  files.forEach(file=>{
-    const reader = new FileReader();
-    reader.onload = e=>{
-      _scpMultiImages.push(e.target.result);
-      loaded++;
-      if(loaded === files.length){
-        _scpImageData = _scpMultiImages[0];
-        _renderMultiImgPreview();
-      }
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-function _renderMultiImgPreview(){
-  const multiPrev = document.getElementById('scpMultiImgPreview');
-  if(!multiPrev) return;
-  const imgs = _scpMultiImages;
-  if(!imgs.length){ multiPrev.style.display='none'; return; }
-  multiPrev.style.display='block';
-  if(imgs.length === 1){
-    multiPrev.style.cssText += ';border-radius:12px;overflow:hidden;margin-top:8px;position:relative;background:#000;';
-    multiPrev.innerHTML = `<img src="${imgs[0]}" style="width:100%;max-height:280px;object-fit:cover;display:block;">
-      <div onclick="_clearScpImages()" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:white;font-weight:900;">✕</div>`;
-  } else if(imgs.length === 2){
-    multiPrev.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:12px;overflow:hidden;margin-top:8px;position:relative;">
-      ${imgs.map(s=>`<img src="${s}" style="width:100%;height:180px;object-fit:cover;">`).join('')}
-      <div onclick="_clearScpImages()" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:white;font-weight:900;">✕</div>
-    </div>`;
-  } else if(imgs.length === 3){
-    multiPrev.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:12px;overflow:hidden;margin-top:8px;position:relative;">
-      <img src="${imgs[0]}" style="width:100%;height:240px;object-fit:cover;grid-row:span 2;">
-      <img src="${imgs[1]}" style="width:100%;height:119px;object-fit:cover;">
-      <img src="${imgs[2]}" style="width:100%;height:119px;object-fit:cover;">
-      <div onclick="_clearScpImages()" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:white;font-weight:900;">✕</div>
-    </div>`;
-  } else {
-    const extra = imgs.length - 4;
-    multiPrev.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:12px;overflow:hidden;margin-top:8px;position:relative;">
-      ${imgs.slice(0,3).map(s=>`<img src="${s}" style="width:100%;height:140px;object-fit:cover;">`).join('')}
-      <div style="position:relative;"><img src="${imgs[3]}" style="width:100%;height:140px;object-fit:cover;">${extra>0?`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:white;">+${extra}</div>`:''}</div>
-      <div onclick="_clearScpImages()" style="position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:white;font-weight:900;">✕</div>
-    </div>`;
-  }
-}
-
-function _clearScpImages(){
-  _scpImageData = null; _scpMultiImages = [];
-  const el = document.getElementById('scpMultiImgPreview');
-  if(el) el.style.display='none';
-}
-
 function handleScpImage(event){
-  handleScpMultiImages(event);
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    _scpImageData = e.target.result;
+    _scpVideoData = null;
+    const vprev = document.getElementById('scpVideoPreview');
+    if(vprev) vprev.style.display='none';
+    const prev = document.getElementById('scpImagePreview');
+    const img  = document.getElementById('scpImagePreviewImg');
+    if(prev && img){ img.src=_scpImageData; prev.style.display='block'; }
+  };
+  reader.readAsDataURL(file);
 }
 function handleScpVideo(event){
   const file = event.target.files[0]; if(!file) return;
-  if(_scpVideoData){ showToast('⚠️ يمكنك رفع فيديو واحد فقط'); event.target.value=''; return; }
   if(file.size > 20*1024*1024){ showToast('⚠️ حجم الفيديو كبير جداً (أقصى 20MB)'); return; }
   const reader = new FileReader();
   reader.onload = e=>{
@@ -14671,132 +14420,20 @@ function setScpPrivacy(label){
   if(badge) badge.innerText = label;
   document.getElementById('_scpPrivacyOverlay')?.remove();
 }
-/* ── اختيار الموقع ── */
-function openScpLocationPicker(){
-  const locations = ['الجزائر العاصمة','وهران','قسنطينة','عنابة','سطيف','تلمسان','بجاية','بسكرة','ورقلة','مستغانم','المدية','المسيلة','تيارت','الشلف','تيزي وزو','جيجل','باتنة','بومرداس','تبسة','خنشلة','سكيكدة','سوق أهراس','الطارف','عين تموشنت','غليزان','معسكر','موقع آخر...'];
-  const old=document.getElementById('_scpLocOverlay'); if(old) old.remove();
-  const ov=document.createElement('div');
-  ov.id='_scpLocOverlay';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:flex-end;justify-content:center;';
-  ov.innerHTML=`<div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:18px 16px 32px;max-height:70vh;overflow-y:auto;overscroll-behavior:none;">
-    <div style="width:36px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 14px;"></div>
-    <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:12px;text-align:center;">📍 أضف موقعك</div>
-    <input id="_scpLocSearch" placeholder="ابحث عن مدينة..." style="width:100%;padding:10px 14px;border:1.5px solid #E4E6EB;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box;text-align:right;" oninput="_filterScpLoc(this.value)">
-    <div id="_scpLocList">${locations.map(l=>`<div onclick="setScpLocation('${l}')" style="padding:11px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">📍 ${l}</div>`).join('')}</div>
-    <button onclick="document.getElementById('_scpLocOverlay').remove()" style="width:100%;padding:12px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#65676B;cursor:pointer;margin-top:8px;">إلغاء</button>
-  </div>`;
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-  document.body.appendChild(ov);
-}
-window._filterScpLoc = function(q){
-  const items = document.querySelectorAll('#_scpLocList div');
-  items.forEach(d=>{ d.style.display = d.innerText.includes(q) ? '' : 'none'; });
-};
-function setScpLocation(loc){
-  _scpLocation = loc;
-  const badge = document.getElementById('scpLocationBadge');
-  const txt = document.getElementById('scpLocationText');
-  if(badge && txt){ txt.innerText='📍 '+loc; badge.style.display='inline-flex'; }
-  document.getElementById('_scpLocOverlay')?.remove();
-}
-function removeScpLocation(){
-  _scpLocation = null;
-  const badge = document.getElementById('scpLocationBadge');
-  if(badge) badge.style.display='none';
-}
-
-/* ── اختيار الشعور (نافذة) ── */
-function openScpFeelingPicker(){
-  const feelings = [
-    '😊 سعيد','❤️ ممتن','🎉 متحمس','😄 مبتهج','🤩 مندهش','🏆 فخور',
-    '😌 هادئ','😔 حزين','😤 غاضب','😰 قلق','🤒 مريض','😴 متعب',
-    '💪 مصمم','🧠 متركز','🌙 حالم','🎯 طامح','✈️ مسافر','🍕 جائع'
-  ];
-  const old=document.getElementById('_scpFeelOverlay'); if(old) old.remove();
-  const ov=document.createElement('div');
-  ov.id='_scpFeelOverlay';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:flex-end;justify-content:center;';
-  ov.innerHTML=`<div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:18px 16px 32px;">
-    <div style="width:36px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 14px;"></div>
-    <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:14px;text-align:center;">😊 كيف تشعر؟</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-      ${feelings.map(f=>`<div onclick="setScpFeeling('${f}')" style="padding:12px 8px;border-radius:12px;cursor:pointer;text-align:center;background:#F8F9FA;border:1.5px solid #E4E6EB;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='#EEF4FF';this.style.borderColor='#1877F2'" onmouseout="this.style.background='#F8F9FA';this.style.borderColor='#E4E6EB'">${f}</div>`).join('')}
-    </div>
-    <button onclick="clearScpFeeling();document.getElementById('_scpFeelOverlay').remove()" style="width:100%;padding:11px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;color:#65676B;cursor:pointer;margin-top:12px;">إزالة الشعور</button>
-  </div>`;
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-  document.body.appendChild(ov);
-}
-function setScpFeeling(f){
-  _scpFeelingMode = true;
-  const idx = _scpFeelings.indexOf(f);
-  _scpFeelingIdx = idx >= 0 ? idx : 0;
-  const badge = document.getElementById('scpFeelBadge');
-  if(badge){ badge.style.display='inline-flex'; badge.innerText=f; }
-  document.getElementById('_scpFeelOverlay')?.remove();
-}
-function clearScpFeeling(){
-  _scpFeelingMode = false;
-  const badge = document.getElementById('scpFeelBadge');
-  if(badge) badge.style.display='none';
-}
-
-/* ── وسم صديق ── */
-function openScpTagFriend(){
-  const name = getCurrentUser(); if(!name) return;
-  const friends = getFriends(name);
-  if(!friends.length){ showToast('لا يوجد أصدقاء لوسمهم'); return; }
-  const old=document.getElementById('_scpTagOverlay'); if(old) old.remove();
-  const ov=document.createElement('div');
-  ov.id='_scpTagOverlay';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:flex-end;justify-content:center;';
-  ov.innerHTML=`<div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:18px 16px 32px;max-height:60vh;overflow-y:auto;">
-    <div style="width:36px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 14px;"></div>
-    <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:12px;text-align:center;">🏷️ وسم صديق</div>
-    ${friends.map(f=>`<div onclick="toggleScpTag('${f.replace(/'/g,"\'")}');this.style.background=_scpTaggedFriends.includes('${f.replace(/'/g,"\'")}')?' #EEF4FF':'transparent';" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=_scpTaggedFriends.includes('${f.replace(/'/g,"\'")}')?' #EEF4FF':'transparent'">
-      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(f):'👑'}</div>
-      <span style="flex:1;">${f}</span>
-      <span id="_tagCheck_${f.replace(/\s+/g,'_')}" style="font-size:18px;color:#1877F2;">${_scpTaggedFriends.includes(f)?'✓':''}</span>
-    </div>`).join('')}
-    <button onclick="document.getElementById('_scpTagOverlay').remove();_renderTagPreview()" style="width:100%;padding:12px;background:#1877F2;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:white;cursor:pointer;margin-top:8px;">تأكيد</button>
-  </div>`;
-  ov.addEventListener('click',e=>{ if(e.target===ov){ ov.remove(); _renderTagPreview(); } });
-  document.body.appendChild(ov);
-}
-function toggleScpTag(name){
-  const idx = _scpTaggedFriends.indexOf(name);
-  if(idx>=0) _scpTaggedFriends.splice(idx,1);
-  else _scpTaggedFriends.push(name);
-  const chk = document.getElementById('_tagCheck_'+name.replace(/\s+/g,'_'));
-  if(chk) chk.innerText = _scpTaggedFriends.includes(name)?'✓':'';
-}
-function _renderTagPreview(){
-  const el = document.getElementById('scpTagPreview'); if(!el) return;
-  if(!_scpTaggedFriends.length){ el.style.display='none'; return; }
-  el.style.display='block';
-  el.innerHTML=`<div style="font-size:12px;color:#65676B;font-weight:700;margin-bottom:4px;">🏷️ مع: ${_scpTaggedFriends.join('، ')}</div>`;
-}
-
 function submitSocialPost(){
   const name = getCurrentUser();
   const text = (document.getElementById('scpTextInput')||{}).value?.trim() || '';
-  const hasImages = _scpMultiImages && _scpMultiImages.length > 0;
-  if(!text && !_scpImageData && !_scpVideoData && !hasImages){ showToast('✏️ اكتب شيئاً أو أضف صورة/فيديو'); return; }
+  if(!text && !_scpImageData && !_scpVideoData){ showToast('✏️ اكتب شيئاً أو أضف صورة/فيديو', 'warning'); return; }
   const posts = getSocialPosts();
   const now = new Date();
   const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
-  // بناء نص الموقع والوسوم
-  let fullText = text;
   const newPost = {
     id: 'sp_' + Date.now() + '_' + Math.random().toString(36).substr(2,5),
     author: name,
-    text: fullText,
+    text,
     image: _scpImageData,
-    images: hasImages && _scpMultiImages.length > 1 ? _scpMultiImages : null,
     video: _scpVideoData,
-    feeling: _scpFeelingMode ? (_scpFeelings[_scpFeelingIdx]||document.getElementById('scpFeelBadge')?.innerText) : null,
-    location: _scpLocation || null,
-    taggedFriends: _scpTaggedFriends.length ? [..._scpTaggedFriends] : null,
+    feeling: _scpFeelingMode ? _scpFeelings[_scpFeelingIdx] : null,
     privacy: _scpPrivacy || '🌐 عام',
     date: dateStr,
     ts: Date.now(),
@@ -14805,21 +14442,12 @@ function submitSocialPost(){
   };
   posts.push(newPost);
   saveSocialPosts(posts);
-  // ✅ مزامنة المنشور مع Firebase لظهوره عند الأعضاء الآخرين
-  try {
-    const DB_ROOT = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-    fetch(`${DB_ROOT}/social_posts/${newPost.id}.json`, {
-      method: 'PUT',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(newPost)
-    }).catch(()=>{});
-  } catch(e) {}
+  // حفظ أيضاً في منشورات الملف الشخصي
   const profilePosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
-  profilePosts.push({ text: fullText, image: _scpImageData, images: newPost.images, video: _scpVideoData, feeling: newPost.feeling, location: _scpLocation, taggedFriends: newPost.taggedFriends, privacy: _scpPrivacy, date: dateStr, ts: Date.now() });
+  profilePosts.push({ text, image: _scpImageData, video: _scpVideoData, feeling: _scpFeelingMode ? _scpFeelings[_scpFeelingIdx] : null, privacy: _scpPrivacy, date: dateStr, ts: Date.now() });
   localStorage.setItem(getProfilePostsKey(name), JSON.stringify(profilePosts));
   closeSocialCreatePost();
   renderSocialFeed();
-  ebPointsPost();
   showToast('تم نشر منشورك ✅');
 }
 
@@ -15664,9 +15292,7 @@ function _startReactTimer(postId){
   _reactTimerHandle = setTimeout(()=>{
     _reactLongPress = true;
     toggleReactPicker(postId);
-    // اهتزاز خفيف عند ظهور التفاعلات
-    if(navigator.vibrate) navigator.vibrate(50);
-  }, 600); // 600ms للضغط المطوّل
+  }, 500); // 500ms للضغط المطوّل
 }
 
 function _cancelReactTimer(){
@@ -17377,7 +17003,7 @@ function addMyStory(){
   modal.innerHTML = `
     <div style="width:100%;max-width:480px;background:#18191A;border-radius:24px 24px 0 0;padding:20px 16px 36px;animation:slideUp .3s cubic-bezier(.32,.72,0,1);">
       <div style="width:38px;height:4px;background:rgba(255,255,255,0.18);border-radius:10px;margin:0 auto 20px;"></div>
-      <div style="font-size:18px;font-weight:900;color:white;margin-bottom:18px;text-align:center;letter-spacing:-.3px;">🎬 ڨوستا تايم جديد</div>
+      <div style="font-size:18px;font-weight:900;color:white;margin-bottom:18px;text-align:center;letter-spacing:-.3px;">✨ إنشاء يوميات</div>
 
       <!-- 📸 كاميرا فورية -->
       <div onclick="document.getElementById('_storyTypeModal').remove();_openInstantCamera('${name.replace(/'/g,"\\'")}');" style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:linear-gradient(135deg,rgba(24,119,242,0.25),rgba(0,120,255,0.15));border:1.5px solid rgba(24,119,242,0.45);border-radius:18px;cursor:pointer;margin-bottom:10px;transition:.2s;" onmouseover="this.style.background='rgba(24,119,242,0.35)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(24,119,242,0.25),rgba(0,120,255,0.15))'">
@@ -17404,8 +17030,8 @@ function addMyStory(){
       <div onclick="document.getElementById('_storyTypeModal').remove();_openTextOnlyStory();" style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:18px;cursor:pointer;margin-bottom:10px;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
         <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;box-shadow:0 6px 16px rgba(240,147,251,0.4);">✏️</div>
         <div style="flex:1;">
-          <div style="font-size:16px;font-weight:900;color:white;margin-bottom:3px;">نص إبداعي</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.6);">كتابة نص بخلفية ملونة</div>
+          <div style="font-size:16px;font-weight:900;color:white;margin-bottom:3px;">قصة نصية</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);">نص بخلفية ملونة جذابة</div>
         </div>
         <div style="font-size:20px;color:rgba(255,255,255,0.5);">›</div>
       </div>
@@ -17414,8 +17040,8 @@ function addMyStory(){
       <div onclick="document.getElementById('_storyTypeModal').remove();_openAudioStory();" style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:18px;cursor:pointer;margin-bottom:10px;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
         <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;box-shadow:0 6px 16px rgba(17,153,142,0.4);">🎙️</div>
         <div style="flex:1;">
-          <div style="font-size:16px;font-weight:900;color:white;margin-bottom:3px;">رسالة صوتية</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.6);">سجّل رسالة صوتية</div>
+          <div style="font-size:16px;font-weight:900;color:white;margin-bottom:3px;">قصة صوتية</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);">سجّل رسالة صوتية كقصة</div>
         </div>
         <div style="font-size:20px;color:rgba(255,255,255,0.5);">›</div>
       </div>
@@ -17636,7 +17262,7 @@ function _openTextOnlyStory(){
       <!-- Top bar -->
       <div style="position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;z-index:10;background:linear-gradient(to bottom,rgba(0,0,0,0.5),transparent);">
         <div onclick="document.getElementById('_textStoryOverlay').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:white;">✕</div>
-        <div style="font-size:14px;font-weight:800;color:white;">نص إبداعي</div>
+        <div style="font-size:14px;font-weight:800;color:white;">قصة نصية</div>
         <button onclick="_publishTextStory()" style="background:#1877F2;border:none;border-radius:20px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:800;padding:8px 18px;cursor:pointer;">نشر ✅</button>
       </div>
       <!-- Bottom: خلفيات -->
@@ -17707,7 +17333,7 @@ function _openAudioStory(){
   ov.style.cssText = 'position:fixed;inset:0;background:linear-gradient(135deg,#0a0f1a,#11998e);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;animation:fadeIn .25s ease;';
   ov.innerHTML = `
     <div onclick="document.getElementById('_audioStoryOverlay').remove()" style="position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:white;">✕</div>
-    <div style="font-size:17px;font-weight:900;color:white;">رسالة صوتية</div>
+    <div style="font-size:17px;font-weight:900;color:white;">قصة صوتية</div>
     <div id="_audioWave" style="display:flex;gap:4px;align-items:center;height:60px;">
       ${Array.from({length:16},(_,i)=>`<div class="_aBar" style="width:6px;background:rgba(255,255,255,0.4);border-radius:6px;height:${8+Math.random()*30}px;transition:height .15s;"></div>`).join('')}
     </div>
@@ -18202,7 +17828,7 @@ function openMyStory(){
   const stories = getMyStories(name);
   if(stories.length===0){
     // لا توجد قصص → اعرض خيار إضافة
-    if(typeof showToast==='function') showToast('لا يوجد ڨوستا تايم بعد. اضغط + لإضافة 📸');
+    if(typeof showToast==='function') showToast('لا توجد قصص. اضغط + لإضافة قصة 📸');
     return;
   }
   _showStoryViewer(name, stories, 0);
@@ -26056,20 +25682,18 @@ window.openCreateGroupScreen = function(){
   const old = document.getElementById('_cdzGroupCreate');
   if(old) old.remove();
 
-  /* ── دالة بناء قائمة الأعضاء من مصفوفة الأسماء ── */
-  function _buildMemberListHtml(names){
-    if(!names.length) return '<div style="text-align:center;padding:40px;color:#8a8a8a;font-size:14px;">لا يوجد منخرطون متاحون</div>';
-    return names.map(n=>{
-      const ph = localStorage.getItem('nld_photo_'+(n.replace(/\s+/g,'_')))||'';
-      return `<div class="_cdzGrpMItem" data-name="${n}" onclick="_cdzToggleGrpMember(this,'${n.replace(/'/g,"\\'")}')"
-        style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;cursor:pointer;transition:.15s;margin-bottom:4px;"
-        onmouseover="this.style.background='#f3e8ff'" onmouseout="this.style.background=this.dataset.sel==='1'?'#f3e8ff':'transparent'">
-        ${ph?`<img src="${ph}" style="width:46px;height:46px;border-radius:50%;object-fit:cover;">`:`<div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:20px;color:white;">👤</div>`}
-        <div style="flex:1;font-size:15px;font-weight:700;color:#1C1E21;">${n}</div>
-        <div class="_cdzGrpCheck" style="width:26px;height:26px;border-radius:50%;border:2px solid #E4E6EB;display:flex;align-items:center;justify-content:center;font-size:14px;transition:.15s;"></div>
-      </div>`;
-    }).join('');
+  /* جلب الأعضاء */
+  let allMembers = [];
+  try{
+    const raw = localStorage.getItem('nld_members_cache') || localStorage.getItem('sklab_members_list');
+    if(raw) allMembers = JSON.parse(raw);
+  }catch(e){}
+  if(!allMembers.length){
+    /* جرّب مصادر أخرى */
+    try{ allMembers = JSON.parse(localStorage.getItem('cdz_members')||'[]'); }catch(e){}
   }
+  /* إزالة النفس من القائمة */
+  allMembers = allMembers.filter(m=>(typeof m==='string'?m:m.name)!==myName);
 
   const ov = document.createElement('div');
   ov.id = '_cdzGroupCreate';
@@ -26097,76 +25721,25 @@ window.openCreateGroupScreen = function(){
         </div>
       </div>
     </div>
-    <!-- شريط البحث -->
-    <div style="padding:10px 12px;border-bottom:1px solid #E4E6EB;flex-shrink:0;background:white;">
-      <input id="_cdzGrpSearch" type="text" placeholder="🔍 ابحث عن منخرط…" oninput="_cdzFilterGrpMembers(this.value)"
-        style="width:100%;padding:9px 14px;border:1px solid #E4E6EB;border-radius:22px;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;background:#f8f0ff;color:#1C1E21;box-sizing:border-box;">
-    </div>
-    <!-- قائمة المنخرطين -->
-    <div style="padding:10px 16px 4px;font-size:12px;font-weight:800;color:#7c3aed;letter-spacing:1px;flex-shrink:0;">👥 المنخرطون</div>
+    <!-- قائمة الأعضاء -->
+    <div style="padding:12px 16px 6px;font-size:12px;font-weight:800;color:#7c3aed;letter-spacing:1px;flex-shrink:0;">اختر الأعضاء</div>
     <div id="_cdzGrpMemberList" style="flex:1;overflow-y:auto;padding:0 8px 16px;">
-      <div style="text-align:center;padding:40px;color:#a855f7;font-size:14px;">⏳ جاري تحميل المنخرطين…</div>
+      ${allMembers.length ? allMembers.map(m=>{
+        const n = typeof m==='string'?m:m.name;
+        const ph = localStorage.getItem('nld_photo_'+(n.replace(/\s+/g,'_')))||'';
+        return `<div class="_cdzGrpMItem" data-name="${n}" onclick="_cdzToggleGrpMember(this,'${n.replace(/'/g,"\\'")}')"\n          style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;cursor:pointer;transition:.15s;margin-bottom:4px;"
+          onmouseover="this.style.background='#f3e8ff'" onmouseout="this.style.background='transparent'">
+          ${ph?`<img src="${ph}" style="width:46px;height:46px;border-radius:50%;object-fit:cover;">`:`<div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:20px;color:white;">👤</div>`}
+          <div style="flex:1;font-size:15px;font-weight:700;color:#1C1E21;">${n}</div>
+          <div class="_cdzGrpCheck" style="width:26px;height:26px;border-radius:50%;border:2px solid #E4E6EB;display:flex;align-items:center;justify-content:center;font-size:14px;transition:.15s;"></div>
+        </div>`;
+      }).join('') : '<div style="text-align:center;padding:40px;color:#8a8a8a;font-size:14px;">لا توجد أعضاء متاحون</div>'}
     </div>
     <!-- الأعضاء المحددون -->
     <div id="_cdzSelectedBar" style="display:none;padding:8px 14px;background:#f3e8ff;border-top:1px solid #E4E6EB;flex-shrink:0;font-size:12px;font-weight:800;color:#7c3aed;"></div>
   `;
   document.body.appendChild(ov);
   window._cdzGrpSelected = [];
-  window._cdzAllGrpNames = [];
-
-  /* ── جلب المنخرطين من Google Sheets (dataUrl) ── */
-  (async function(){
-    try{
-      /* حاول أولاً من localStorage كـ cache سريع */
-      let names = [];
-      try{
-        const cached = localStorage.getItem('nld_members_cache')||localStorage.getItem('sklab_members_list')||localStorage.getItem('cdz_members');
-        if(cached){
-          const parsed = JSON.parse(cached);
-          names = parsed.map(m=>typeof m==='string'?m:m.name).filter(Boolean);
-        }
-      }catch(e){}
-
-      /* دائماً اجلب من المصدر الحقيقي (dataUrl) لضمان الاكتمال */
-      try{
-        const res = await fetch(typeof dataUrl!=='undefined'?dataUrl:(typeof membersUrl!=='undefined'?membersUrl:''));
-        if(res.ok){
-          const csv = await res.text();
-          const freshNames = csv.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
-            const cols = r.split(',');
-            const n = (cols[2]||'').replace(/"/g,'').trim();
-            return n;
-          }).filter(n=>n&&n!=='ممتاز'&&n!=='لؤي'&&n!=='لؤي عماري');
-          if(freshNames.length) names = freshNames;
-        }
-      }catch(e){}
-
-      /* إزالة النفس */
-      names = [...new Set(names)].filter(n=>n!==myName);
-      window._cdzAllGrpNames = names;
-
-      const listEl = document.getElementById('_cdzGrpMemberList');
-      if(listEl) listEl.innerHTML = _buildMemberListHtml(names);
-    }catch(e){
-      const listEl = document.getElementById('_cdzGrpMemberList');
-      if(listEl) listEl.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444;font-size:14px;">❌ فشل تحميل القائمة</div>';
-    }
-  })();
-
-  /* ── فلترة قائمة المنخرطين بالبحث ── */
-  window._cdzFilterGrpMembers = function(q){
-    const filtered = (window._cdzAllGrpNames||[]).filter(n=>!q.trim()||n.includes(q.trim()));
-    const listEl = document.getElementById('_cdzGrpMemberList');
-    if(listEl) listEl.innerHTML = _buildMemberListHtml(filtered);
-    (window._cdzGrpSelected||[]).forEach(sel=>{
-      const el = listEl?.querySelector(`[data-name="${sel}"]`);
-      if(el){
-        el.style.background='#f3e8ff'; el.dataset.sel='1';
-        const ch=el.querySelector('._cdzGrpCheck');
-        if(ch){ch.innerText='✓';ch.style.background='#a855f7';ch.style.border='2px solid #a855f7';ch.style.color='white';}
-      }
-    });
-  };
 
   /* اختيار أيقونة المجموعة */
   window._cdzPickGroupIcon = function(){
@@ -26182,12 +25755,10 @@ window.openCreateGroupScreen = function(){
     if(idx===-1){
       window._cdzGrpSelected.push(name);
       el.style.background='#f3e8ff';
-      el.dataset.sel='1';
       if(check){ check.innerText='✓'; check.style.background='#a855f7'; check.style.border='2px solid #a855f7'; check.style.color='white'; }
     } else {
       window._cdzGrpSelected.splice(idx,1);
       el.style.background='transparent';
-      el.dataset.sel='0';
       if(check){ check.innerText=''; check.style.background=''; check.style.border='2px solid #E4E6EB'; }
     }
     const bar = document.getElementById('_cdzSelectedBar');
@@ -26729,176 +26300,6 @@ setInterval(_renderGroupsInInbox, 8000);
 window.addEventListener('load',()=>setTimeout(_renderGroupsInInbox,2000));
 
 console.log('👥 [GroupChat] نظام المجموعات — مفعّل');
-})();
-</script>
-
-<!-- ══════════════════════════════════════════════════════════════
-     🤖 نظام المنشورات التلقائية — Auto Post System
-     ══════════════════════════════════════════════════════════════ -->
-<script>
-(function(){
-'use strict';
-
-const _FB_DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-
-/* ── المحتوى التلقائي: القانون الجزائري ── */
-const _LAW_POSTS = [
-  { text: '⚖️ مادة قانونية اليوم\n\nالمادة 303 من قانون العقوبات: كل من أهان موظفاً عمومياً أثناء أداء مهامه أو بمناسبتها يعاقب بالحبس والغرامة. الاحترام المتبادل أساس المجتمع الراقي. 🇩🇿', feeling: '⚖️ مُعلِّم' },
-  { text: '📜 من حقوقك كمواطن جزائري\n\nحق التقاضي مكفول للجميع — لكل مواطن الحق في اللجوء إلى القضاء للدفاع عن حقوقه وفق الدستور الجزائري المادة 160. 🏛️', feeling: '📋 مُثقَّف' },
-  { text: '🚦 قانون المرور الجزائري\n\nالسرعة القصوى داخل المدن 50 كلم/س وخارجها 100 كلم/س. التزام الطريق ينقذ أرواحاً. السلامة مسؤولية الجميع! 🚗', feeling: '🛡️ واعي' },
-  { text: '💼 حقوق العامل في الجزائر\n\nالقانون 90-11 يضمن: الحد الأدنى للأجر، العطلة السنوية 30 يوماً، الحماية من الفصل التعسفي. اعرف حقوقك! 👷', feeling: '💪 مُتشجِّع' },
-  { text: '🏠 قانون الملكية العقارية\n\nعقد الملكية الموثَّق لدى الموثق هو الضمان القانوني الوحيد لحماية ممتلكاتك العقارية. لا تبنِ مستقبلك على وثائق غير رسمية! 📑', feeling: '🧠 ناصح' },
-  { text: '📱 جرائم الفضاء الإلكتروني\n\nالقانون 09-04 يجرّم: التشهير الإلكتروني، انتهاك الخصوصية، القرصنة. فكر قبل أن تنشر — الإنترنت ليس بلا قانون! 🔒', feeling: '⚠️ مُحذِّر' },
-  { text: '👶 حقوق الطفل في الجزائر\n\nالتعليم إلزامي ومجاني حتى سن 16 سنة. كل طفل له الحق في الرعاية الصحية والتعليم والحماية من العنف. 🌱', feeling: '❤️ مُهتمّ' },
-];
-
-/* ── المحتوى التلقائي: عالم المدينة ── */
-const _CITY_POSTS = [
-  { text: '🏙️ جولة في عالم المدينة\n\nبودغن — مدينة تلمسان الجميلة، حيث التاريخ العريق يلتقي بشباب طموح. مركزنا يقع في قلب هذه المدينة الرائعة! 🌟', feeling: '🌍 مُتجوِّل' },
-  { text: '🕌 إرث تلمسان الحضاري\n\nمدينة تلمسان — عاصمة الثقافة والحضارة، تضم جامع المنصورة، قصر المشور، وآثاراً تعكس عظمة الأجداد. فخورون بتراثنا! 🏛️', feeling: '🏆 فخور' },
-  { text: '🌿 الساحة الخضراء في مدينتنا\n\nالفضاء العمومي هو رئة المدينة وملتقى أهلها. حافظ على نظافته، فالمدينة النظيفة تعكس وعي ساكنيها. ♻️', feeling: '🌱 مسؤول' },
-  { text: '🏫 المؤسسات التعليمية في ولايتنا\n\nتلمسان تضم عدة مؤسسات تعليمية عريقة. الاستثمار في التعليم هو أفضل استثمار لمستقبل الجزائر! 🎓', feeling: '📚 عاشق العلم' },
-  { text: '🛣️ تطور البنية التحتية\n\nمشاريع الطرق والجسور الجديدة تربط مدننا وتسهّل حياة المواطنين. التنمية المحلية تبدأ من كل حي وكل شارع! 🏗️', feeling: '🚀 متفائل' },
-  { text: '🎭 الحياة الثقافية في المدينة\n\nالمراكز الثقافية، دور الشباب، المكتبات — فضاءات تصنع المواطن المتوازن. زيارة واحدة قد تُغيّر مسار حياتك! 🎨', feeling: '✨ مُبدع' },
-];
-
-/* ── مفتاح تتبع آخر نشر ── */
-const _AUTO_POST_KEY = 'cdz_auto_post_tracker';
-const _RANKING_POST_KEY = 'cdz_ranking_post_date';
-
-function _getTracker(){
-  try{ return JSON.parse(localStorage.getItem(_AUTO_POST_KEY)||'{}'); }catch(e){ return {}; }
-}
-function _saveTracker(t){ try{ localStorage.setItem(_AUTO_POST_KEY, JSON.stringify(t)); }catch(e){} }
-
-/* ── نشر منشور تلقائي ── */
-function _autoPublishPost(content, category){
-  const posts = typeof getSocialPosts === 'function' ? getSocialPosts() : [];
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
-  const newPost = {
-    id: 'auto_' + category + '_' + Date.now(),
-    author: 'النظام',
-    text: content.text,
-    image: null, images: null, video: null,
-    feeling: content.feeling || null,
-    location: null, taggedFriends: null,
-    privacy: '🌐 عام',
-    date: dateStr,
-    ts: Date.now(),
-    reactions: {},
-    comments: [],
-    views: 0,
-    isAutoPost: true,
-    autoCategory: category
-  };
-  posts.push(newPost);
-  if(typeof saveSocialPosts === 'function') saveSocialPosts(posts);
-  // مزامنة مع Firebase
-  try{
-    fetch(`${_FB_DB}/social_posts/${newPost.id}.json`,{
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(newPost)
-    }).catch(()=>{});
-  }catch(e){}
-  // تحديث الفيد إذا كانت الصفحة الرئيسية مفتوحة
-  if(typeof renderSocialFeed === 'function'){
-    setTimeout(renderSocialFeed, 500);
-  }
-}
-
-/* ── منطق النشر الدوري كل 24 ساعة ── */
-function _checkAndAutoPost(){
-  const tracker = _getTracker();
-  const now = Date.now();
-  const DAY = 24 * 60 * 60 * 1000;
-
-  // القانون الجزائري
-  const lastLaw = tracker.lastLaw || 0;
-  if(now - lastLaw >= DAY){
-    const idx = tracker.lawIdx || 0;
-    _autoPublishPost(_LAW_POSTS[idx % _LAW_POSTS.length], 'law');
-    tracker.lastLaw = now;
-    tracker.lawIdx = (idx + 1) % _LAW_POSTS.length;
-    _saveTracker(tracker);
-  }
-
-  // عالم المدينة
-  const lastCity = tracker.lastCity || 0;
-  if(now - lastCity >= DAY){
-    const idx = tracker.cityIdx || 0;
-    _autoPublishPost(_CITY_POSTS[idx % _CITY_POSTS.length], 'city');
-    tracker.lastCity = now;
-    tracker.cityIdx = (idx + 1) % _CITY_POSTS.length;
-    _saveTracker(tracker);
-  }
-}
-
-/* ══ جدول الترتيب اليومي ساعة 22:00 ══ */
-async function _publishDailyRanking(){
-  const today = new Date().toISOString().slice(0,10);
-  const lastRankDate = localStorage.getItem(_RANKING_POST_KEY) || '';
-  if(lastRankDate === today) return; // نُشر اليوم
-
-  // جلب الترتيب من Firebase
-  let members = [];
-  try{
-    const res = await fetch(`${_FB_DB}/ranking.json`);
-    if(res.ok){
-      const data = await res.json();
-      if(data && typeof data === 'object'){
-        members = Object.values(data)
-          .filter(m => m && m.name)
-          .sort((a,b) => (parseInt(b.points)||0) - (parseInt(a.points)||0))
-          .slice(0, 10);
-      }
-    }
-  }catch(e){}
-
-  // بناء نص الجدول
-  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
-  let rankText = '🏆 جدول الترتيب اليومي\n\n';
-  rankText += new Date().toLocaleDateString('ar-DZ',{weekday:'long',day:'numeric',month:'long'}) + '\n\n';
-
-  if(members.length > 0){
-    members.forEach((m, i) => {
-      const pts = parseInt(m.points)||0;
-      rankText += `${medals[i]} ${m.name} — ${pts.toLocaleString('ar-DZ')} نقطة\n`;
-    });
-    rankText += '\n🎉 تهانينا للمتصدرين!\n\n';
-    // تحية خاصة للثلاثة الأوائل
-    if(members[0]) rankText += `🌟 ${members[0].name} أنت نجم اليوم! استمر في التألق!\n`;
-    if(members[1]) rankText += `💪 ${members[1].name} رائع! لا تتوقف عن المنافسة!\n`;
-    if(members[2]) rankText += `⚡ ${members[2].name} أداء مميز! الترتيب الأول في متناولك!\n`;
-  } else {
-    rankText += 'يجري تحميل بيانات الترتيب...\n\nتابع تحديثاتنا قريباً! 🎯';
-  }
-
-  _autoPublishPost({ text: rankText, feeling: '🏆 منافس' }, 'ranking');
-  localStorage.setItem(_RANKING_POST_KEY, today);
-}
-
-/* ── فحص الساعة كل دقيقة ── */
-function _checkRankingTime(){
-  const now = new Date();
-  if(now.getHours() === 22 && now.getMinutes() === 0){
-    _publishDailyRanking();
-  }
-}
-
-/* ── تشغيل النظام ── */
-window.addEventListener('load', function(){
-  // فحص النشر التلقائي بعد ثانيتين من التحميل
-  setTimeout(_checkAndAutoPost, 2000);
-  // فحص كل ساعة
-  setInterval(_checkAndAutoPost, 60 * 60 * 1000);
-  // فحص وقت الجدول كل دقيقة
-  setInterval(_checkRankingTime, 60 * 1000);
-  // فحص فوري إذا الساعة 22:00
-  _checkRankingTime();
-});
-
-console.log('🤖 [AutoPost] نظام المنشورات التلقائية — مفعّل');
 })();
 </script>
 
