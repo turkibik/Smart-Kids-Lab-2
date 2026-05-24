@@ -901,7 +901,9 @@ window.uploadStoryMusic = async function(file) {
   window._restorePostsFromFirebase = async function(){
     try{
       const localPosts = JSON.parse(localStorage.getItem('nld_social_posts')||'[]');
-      const memberLocal = localPosts.filter(function(p){ return !p.isAutoPost && !p.isActivityAd && !p.isAd; });
+      /* قائمة الحسابات المحظورة — منشوراتها لا تُعرض */
+      const _BLOCKED_AUTH = ['وفاء وفاء','لؤي عماري','لؤي','حمودي عبد المومن','حمودي عبدالمومن','حمودي عبد المؤمن'];
+      const memberLocal = localPosts.filter(function(p){ return !p.isAutoPost && !p.isActivityAd && !p.isAd && !_BLOCKED_AUTH.includes((p.author||'').trim()); });
       /* إذا كانت منشورات الأعضاء كافية لا حاجة للاستعادة */
       if(memberLocal.length >= 3) return;
 
@@ -912,12 +914,13 @@ window.uploadStoryMusic = async function(file) {
       if(!data || typeof data !== 'object') return;
 
       const fbPosts = Object.values(data).filter(function(p){
-        return p && p.id && p.author && !p._archived;
+        /* ✅ نعيد منشورات الأصدقاء كاملة — نحذف فقط منشورات الحسابات المحظورة */
+        return p && p.id && p.author && !p._archived && !_BLOCKED_AUTH.includes((p.author||'').trim());
       });
 
       if(fbPosts.length === 0) return;
 
-      /* دمج مع المحلية */
+      /* دمج مع المحلية — الحفاظ على منشورات الأصدقاء الموجودة */
       const map = new Map();
       localPosts.forEach(function(p){ if(p && p.id) map.set(p.id, p); });
       fbPosts.forEach(function(p){ if(p && p.id && !map.has(p.id)) map.set(p.id, p); });
@@ -7770,7 +7773,7 @@ async function _computeAndShowBalance(){
     ]);
 
     // بناء قائمة الأعضاء مرتبة حسب النقاط (لتحديد الأوائل 15)
-    const _EXCLUDED = ['لؤي','لؤي عماري','ممتاز','وفاء وفاء'];
+    const _EXCLUDED = ['لؤي','لؤي عماري','ممتاز','وفاء وفاء','حمودي عبد المومن','حمودي عبدالمومن','حمودي عبد المؤمن'];
     const allRows = [];
     const seen = new Set();
 
@@ -9440,32 +9443,32 @@ function renderApp(name,pts,isReg, externalEarned){
     const totalForLevel = sheetPoints + quizPoints;
     _basePoints = totalForLevel;
     window._sheetPtsCache = sheetPoints;
+    window._rankPtsCache  = rankingPoints > 0 ? rankingPoints : sheetPoints;
     const currentLevel = Math.floor(totalForLevel/LEVEL_PTS)+1;
     const ptsInLevel   = totalForLevel % LEVEL_PTS;
-    // حساب الرصيد من إجمالي النقاط مباشرة
-    // أوائل 15 → 50 نقطة = 35 دج، بعد 15 → 50 نقطة = 30 دج
+    // حساب الرصيد من نقاط جدول الترتيب (أو جدول البيانات fallback)
     const _rate = (typeof window._userBalanceRate !== 'undefined') ? window._userBalanceRate : 30;
     // الرصيد يُحسب فقط من نقاط جدول الترتيب (rankingPoints)
-    // إذا لم يوجد في جدول الترتيب بعد، يُستخدم nqaط جدول البيانات (sheetPoints)
-    // أوائل 15 → 50 نقطة = 35 دج، بعد 15 → 50 نقطة = 30 دج
+    // إذا لم يوجد في جدول الترتيب بعد، يُستخدم نقاط جدول البيانات (sheetPoints)
     const _rankForBalance = rankingPoints > 0 ? rankingPoints : sheetPoints;
     const balance = ((_rankForBalance / 50) * _rate).toFixed(2);
 
     // لوحة القيادة: يُظهر الإجمالي (جدول + كويز)
-    document.getElementById("mainPoints").innerHTML=`${totalForLevel.toLocaleString()} <span>نقطة</span>`;
+    const _mpEl = document.getElementById("mainPoints");
+    if(_mpEl) _mpEl.innerHTML=`${totalForLevel.toLocaleString()} <span>نقطة</span>`;
 
     // بطاقة الرصيد
     const code=getMemberCode(name);
-    document.getElementById("cardName").innerText=name;
-    document.getElementById("cardCode").innerText="NLD-"+code;
-    document.getElementById("cardPoints").innerText=totalForLevel.toLocaleString()+" نقطة";
-    document.getElementById("cardBalance").innerText=balance+" دج";
+    const _cnEl=document.getElementById("cardName"); if(_cnEl) _cnEl.innerText=name;
+    const _ccEl=document.getElementById("cardCode"); if(_ccEl) _ccEl.innerText="NLD-"+code;
+    const _cpEl=document.getElementById("cardPoints"); if(_cpEl) _cpEl.innerText=totalForLevel.toLocaleString()+" نقطة";
+    const _cbEl=document.getElementById("cardBalance"); if(_cbEl) _cbEl.innerText=balance+" دج";
 
     // شارة المستوى وشريط التقدم
-    document.getElementById("levelBadge").innerText=`⭐ المستوى ${currentLevel}`;
-    document.getElementById("progressStart").innerText=(currentLevel-1)*LEVEL_PTS;
-    document.getElementById("progressEnd").innerText=currentLevel*LEVEL_PTS;
-    setTimeout(()=>{document.getElementById("mainBar").style.width=Math.min((ptsInLevel/LEVEL_PTS)*100,100)+"%";},300);
+    const _lbEl=document.getElementById("levelBadge"); if(_lbEl) _lbEl.innerText=`⭐ المستوى ${currentLevel}`;
+    const _psEl=document.getElementById("progressStart"); if(_psEl) _psEl.innerText=(currentLevel-1)*LEVEL_PTS;
+    const _peEl=document.getElementById("progressEnd"); if(_peEl) _peEl.innerText=currentLevel*LEVEL_PTS;
+    setTimeout(()=>{ const _mbEl=document.getElementById("mainBar"); if(_mbEl) _mbEl.style.width=Math.min((ptsInLevel/LEVEL_PTS)*100,100)+"%"; },300);
 
     // إحصائيات بطاقة الملف الشخصي
     const mgPts=document.getElementById("mgStatPoints");
@@ -9495,6 +9498,19 @@ function renderApp(name,pts,isReg, externalEarned){
           return res;
         };
 
+        /* ══ مطابقة الاسم مع مراعاة الحساب المعتمد Hamoudi Abdelemouman ══
+           إذا كان الاسم المسجل Hamoudi Abdelemouman نبحث عنه كذلك
+           في الجدول لأن بياناته مسجلة بـ 50 نقطة و 30 دج */
+        function _nameMatches(sheetName, loginName){
+          if(normName(sheetName) === normName(loginName)) return true;
+          // مطابقة بديلة: Hamoudi Abdelemouman ↔ حمودي عبد المومن (في الجدول)
+          const hamoudiVariants = ['hamoudi abdelemouman','hammoudi abdelmouman','hamoudi abdelmouman'];
+          if(hamoudiVariants.includes(normName(loginName)) || hamoudiVariants.includes(normName(sheetName))){
+            return hamoudiVariants.includes(normName(loginName)) && hamoudiVariants.includes(normName(sheetName));
+          }
+          return false;
+        }
+
         // 1) نقاط جدول البيانات (dataUrl) → لوحة القيادة والإجمالي
         const r1 = await fetch(dataUrl).then(r=>r.text()).catch(()=>null);
         if(r1){
@@ -9502,9 +9518,28 @@ function renderApp(name,pts,isReg, externalEarned){
           for(let i=1;i<rows.length;i++){
             if(!rows[i].trim()) continue;
             const c = csvParse(rows[i]);
-            if(normName(c[2]||'') === normName(name)){
+            const sheetName = (c[2]||'').trim();
+            if(normName(sheetName) === normName(name) || _nameMatches(sheetName, name)){
               dashPts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
               break;
+            }
+          }
+        }
+
+        /* ── إذا لم يوجد في الجدول الرئيسي — تحقق من smartUrl ── */
+        if(dashPts === 0 || dashPts === pts){
+          const r1s = await fetch(smartUrl).then(r=>r.text()).catch(()=>null);
+          if(r1s){
+            const srows = r1s.split('\n');
+            for(let i=1;i<srows.length;i++){
+              if(!srows[i].trim()) continue;
+              const c = csvParse(srows[i]);
+              const sheetName = (c[2]||'').trim();
+              if(normName(sheetName) === normName(name) || _nameMatches(sheetName, name)){
+                const spts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+                if(spts > 0) dashPts = spts;
+                break;
+              }
             }
           }
         }
@@ -9516,14 +9551,21 @@ function renderApp(name,pts,isReg, externalEarned){
           for(let i=1;i<rrows.length;i++){
             if(!rrows[i].trim()) continue;
             const c = csvParse(rrows[i]);
-            // جدول الترتيب: عادةً الاسم في العمود 0 أو 1، النقاط في آخر عمود
-            const candidateName = normName(c[1]||c[0]||'');
-            if(candidateName === normName(name)){
+            // جدول الترتيب: الاسم في العمود 0 أو 1، النقاط في آخر عمود
+            const rName0 = normName(c[0]||'');
+            const rName1 = normName(c[1]||'');
+            const myNorm = normName(name);
+            if(rName1 === myNorm || rName0 === myNorm ||
+               _nameMatches(c[1]||c[0]||'', name)){
               rankPts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+              window._rankPtsCache = rankPts;
               break;
             }
           }
         }
+
+        /* ── إذا لم يُوجد في جدول الترتيب بعد → استخدم نقاط الجدول الرئيسي ── */
+        if(rankPts === 0 && dashPts > 0) rankPts = dashPts;
 
         // نقاط الكويز المحلية للمستخدم
         const localEarnedNow = parseInt(localStorage.getItem(_earnedKey(name))||'0');
@@ -9532,12 +9574,20 @@ function renderApp(name,pts,isReg, externalEarned){
         // تحديد السعر: أوائل 15 = 35 دج، بعد 15 = 30 دج
         // نبحث عن ترتيب العضو في جدول البيانات
         if(r1){
-          const allRows = r1.split('\n').slice(1).filter(x=>x.trim());
-          const validRows = allRows.filter(row=>{ const c=csvParse(row); return (c[2]||'').trim(); });
-          const myIdx = validRows.findIndex(row=>{ const c=csvParse(row); return normName(c[2]||'')===normName(name); });
+          const _excl = ['لؤي','لؤي عماري','ممتاز','وفاء وفاء','حمودي عبد المومن','حمودي عبدالمومن','حمودي عبد المؤمن'];
+          const allRows2 = r1.split('\n').slice(1).filter(x=>x.trim());
+          const validRows = allRows2
+            .map(row=>{ const c=csvParse(row); return {name:(c[2]||'').trim(), pts:parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0}; })
+            .filter(x=>x.name && !_excl.some(ex=>x.name===ex||x.name.startsWith(ex+' ')));
+          validRows.sort((a,b)=>b.pts-a.pts);
+          const myIdx = validRows.findIndex(x=>normName(x.name)===normName(name) || _nameMatches(x.name,name));
           const isEarly = myIdx >= 0 && myIdx < 15;
           window._userBalanceRate = isEarly ? 35 : 30;
           localStorage.setItem('nld_is_early_'+name.replace(/\s+/g,'_'), isEarly ? '1' : '0');
+          if(myIdx >= 0){
+            const mgRk = document.getElementById('mgStatRank');
+            if(mgRk) mgRk.innerText = '#'+(myIdx+1);
+          }
         }
 
         // تحديث الواجهة بالبيانات الحقيقية
@@ -9545,6 +9595,20 @@ function renderApp(name,pts,isReg, externalEarned){
         // حفظ للاستخدام لاحقاً
         window._sheetPtsCache = dashPts;
         _basePoints = dashPts + finalEarned;
+        window._rankPtsCache = rankPts;
+
+        // ── تحديث عناصر لوحة القيادة بشكل صريح ──
+        const _rate2 = window._userBalanceRate || 30;
+        const _bal2 = ((rankPts > 0 ? rankPts : dashPts) / 50 * _rate2).toFixed(2);
+        ['cardBalance','ppStatBalance','ppInfoBalance'].forEach(id=>{
+          const el=document.getElementById(id);
+          if(el && parseFloat(_bal2)>0) el.innerText=_bal2+' دج';
+        });
+        const mainPtsEl2 = document.getElementById('mainPoints');
+        const total2 = dashPts + finalEarned;
+        if(mainPtsEl2 && total2>0) mainPtsEl2.innerHTML=`${total2.toLocaleString()} <span>نقطة</span>`;
+        const cardPts2 = document.getElementById('cardPoints');
+        if(cardPts2 && total2>0) cardPts2.innerText=total2.toLocaleString()+' نقطة';
 
       }catch(e){ console.warn('⚠️ تعذّر جلب نقاط الجداول:', e); }
     })();
@@ -16297,7 +16361,7 @@ function removeFriend(friendName){
 
 /* ✅ الأعضاء الأصليون المعتمدون — حسابات وحيدة ومسجلة رسمياً */
 const _VERIFIED_MEMBERS = [
-  'حمودي عبد المومن',
+  'Hamoudi Abdelemouman',
   'شيماء سفيسيفي'
 ];
 
@@ -30447,10 +30511,17 @@ async function _fixOldSystemPointsDisplay(){
   try{
     const t = await fetch(dataUrl).then(r=>r.text()).catch(()=>'');
     const rows = t.split('\n');
+    /* دالة مطابقة تدعم Hamoudi Abdelemouman */
+    const _hamVariants = ['hamoudi abdelemouman','hammoudi abdelmouman','hamoudi abdelmouman'];
+    function _matchOld(sheetCell, loginName){
+      if(norm(sheetCell) === norm(loginName)) return true;
+      if(_hamVariants.includes(norm(loginName)) && _hamVariants.includes(norm(sheetCell))) return true;
+      return false;
+    }
     for(let i=1;i<rows.length;i++){
       if(!rows[i].trim()) continue;
       const c = csvParse(rows[i]);
-      if(norm(c[2]||'') === norm(name)){
+      if(_matchOld(c[2]||'', name)){
         const pts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
         const earned = parseInt(localStorage.getItem('nld_earned_'+name.replace(/\s+/g,'_'))||'0');
         const total = pts + earned;
@@ -30460,7 +30531,8 @@ async function _fixOldSystemPointsDisplay(){
           if(cardPts) cardPts.innerText = total.toLocaleString() + ' نقطة';
 
           const rate = window._userBalanceRate || 30;
-          const balance = ((pts/50)*rate).toFixed(2);
+          const rankPtsForBal = window._rankPtsCache > 0 ? window._rankPtsCache : pts;
+          const balance = ((rankPtsForBal/50)*rate).toFixed(2);
           if(cardBal) cardBal.innerText = balance + ' دج';
 
           /* تحديث بطاقة الملف الشخصي */
@@ -30608,7 +30680,7 @@ setInterval(function(){
 
 /* ═══ 5) حذف الحسابات المحظورة من العرض في كل القوائم ═══ */
 
-const _BLOCKED_ACCOUNTS = ['وفاء وفاء', 'لؤي عماري', 'لؤي'];
+const _BLOCKED_ACCOUNTS = ['وفاء وفاء', 'لؤي عماري', 'لؤي', 'حمودي عبد المومن', 'حمودي عبدالمومن', 'حمودي عبد المؤمن'];
 
 /* منع الأعضاء المحذوفين من الظهور في قائمة الرسائل والمحادثات */
 (function(){
@@ -30616,7 +30688,7 @@ const _BLOCKED_ACCOUNTS = ['وفاء وفاء', 'لؤي عماري', 'لؤي'];
   if(typeof _origFetchAll === 'function'){
     window._fetchAllMembers = async function(){
       const names = await _origFetchAll.apply(this, arguments);
-      return (names||[]).filter(n => !_BLOCKED_ACCOUNTS.includes(n.trim()));
+      return (names||[]).filter(n => !_BLOCKED_ACCOUNTS.some(b => b.trim().toLowerCase() === n.trim().toLowerCase()));
     };
   }
 })();
