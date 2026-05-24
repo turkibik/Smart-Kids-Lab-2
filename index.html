@@ -178,22 +178,20 @@ document.addEventListener('touchmove', function(e){
 
   /* 🔒 أنواع الملفات المسموحة فقط */
   const ALLOWED_MIME = [
-    'image/jpeg','image/png','image/gif','image/webp','image/heic','image/heif',
-    'video/mp4','video/webm','video/quicktime','video/x-msvideo','video/avi',
-    'video/3gpp','video/3gp','video/x-matroska','video/mkv','video/x-flv',
-    'video/x-ms-wmv','video/ts','video/mpeg','video/ogg','video/mov',
-    'audio/mpeg','audio/mp4','audio/ogg','audio/wav','audio/webm','audio/flac','audio/aac'
+    'image/jpeg','image/png','image/gif','image/webp',
+    'video/mp4','video/webm',
+    'audio/mpeg','audio/mp4','audio/ogg','audio/wav'
   ];
 
   /* 🔒 الامتدادات المسموحة — فحص مزدوج مع MIME */
-  const ALLOWED_EXT = ['jpg','jpeg','png','gif','webp','heic','heif','mp4','webm','mov','avi','mkv','3gp','flv','wmv','ts','mpeg','mpg','mp3','m4a','ogg','wav','flac','aac','opus'];
+  const ALLOWED_EXT = ['jpg','jpeg','png','gif','webp','mp4','webm','mp3','m4a','ogg','wav'];
 
   /* 🔒 الأحجام القصوى الصارمة بالـ MB — مصدر وحيد لكل الكود */
   const HARD_LIMITS = {
-    image: 25, video: 100, audio: 50,
-    stories: 100, covers: 8, profiles: 5,
-    'social-posts': 100, documents: 20, media: 100,
-    images: 25, videos: 100
+    image: 25, video: 200, audio: 50,
+    stories: 80, covers: 8, profiles: 5,
+    'social-posts': 10, documents: 20, media: 50,
+    images: 25, videos: 200
   };
 
   /* ✅ تصدير HARD_LIMITS عالمياً لاستخدامه في كامل الكود */
@@ -253,8 +251,7 @@ document.addEventListener('touchmove', function(e){
     }
     /* فحص الامتداد — منع التزوير (file.jpg في الحقيقة exe) */
     const ext = (file.name || '').split('.').pop().toLowerCase();
-    /* ✅ نسمح بكل امتدادات الفيديو والصوت الشائعة */
-    if(!ALLOWED_EXT.includes(ext) && !isVideoMime && !isAudioMime){
+    if(!ALLOWED_EXT.includes(ext)){
       throw new Error('❌ امتداد الملف غير مسموح: .' + ext);
     }
     /* فحص اسم الملف — منع path traversal */
@@ -304,41 +301,23 @@ document.addEventListener('touchmove', function(e){
           '00000020',  // video/mp4
           '00000014',  // video/mp4 ftyp variant
           '0000001c',  // video/mp4 ftyp variant
-          '00000008',  // video/mp4 / HEIC ftyp
-          '00000010',  // HEIC/HEIF variant
-          '00000024',  // HEIC/HEIF variant
-          '00000028',  // HEIC/HEIF variant
-          '0000002c',  // HEIC/HEIF variant
-          '00000030',  // HEIC/HEIF variant
           '1a45dfa3',  // video/webm
           'fffb',      // audio/mpeg
           'fff3',      // audio/mpeg
           'fff2',      // audio/mpeg
-          '49443303',  // audio/mpeg ID3v2.3
+          '49443303',  // audio/mpeg ID3v2.3 ✅ إصلاح: كان '4944330' خاطئاً (7 أرقام بدل 8)
           '49443304',  // audio/mpeg ID3v2.4
           '4f676753',  // audio/ogg
           '664c6143',  // audio/flac
         ];
 
-        /* فحص المحتوى النصي للـ WebP (قد يحتوي RIFF....WEBP) */
-        const isWebpContent = hex.startsWith('52494646') || 
-          (arr.length >= 12 && String.fromCharCode(...arr.slice(8,12)) === 'WEBP');
-        
-        /* فحص HEIC/HEIF: يحتوي على 'ftyp' في البايتات 4-7 */
-        const ftypHex = hex.slice(8, 16); // bytes 4-7
-        const isHeic = ftypHex === '66747970'; // 'ftyp'
+        const matched = MAGIC_SIGNATURES.some(sig => hex.startsWith(sig));
 
-        const matched = MAGIC_SIGNATURES.some(sig => hex.startsWith(sig)) || isWebpContent || isHeic;
-
-        /* نثق بـ MIME type للصور والفيديو والصوت إذا فشل التوقيع (هواتف أندرويد/iOS تُغيّر أحياناً التوقيع) */
-        const isTrustedImageMime = ['image/jpeg','image/png','image/gif','image/webp','image/heic','image/heif','image/jpg'].includes(file.type);
-        const isTrustedVideoMime = file.type.startsWith('video/');
-        const isTrustedAudioMime = file.type.startsWith('audio/');
-
-        if(matched || isTrustedImageMime || isTrustedVideoMime || isTrustedAudioMime){
+        if(matched){
           resolve(true);
         } else {
-          reject(new Error('❌ نوع الملف غير مدعوم: ' + (file.name || file.type)));
+          /* ✅ إصلاح: نرفض بدلاً من القبول الصامت */
+          reject(new Error('\u274c \u0645\u062d\u062a\u0648\u0649 \u0627\u0644\u0645\u0644\u0641 \u0644\u0627 \u064a\u0637\u0627\u0628\u0642 \u0646\u0648\u0639\u0647 \u2014 \u0642\u062f \u064a\u0643\u0648\u0646 \u0645\u0644\u0641\u0627\u064b \u0645\u0632\u0648\u0631\u0627\u064b: ' + file.name));
         }
       };
       /* ✅ إصلاح: خطأ القراءة = رفض وليس قبول */
@@ -1096,19 +1075,6 @@ window.uploadStoryMusic = async function(file) {
   position:fixed;inset:0;background:#000;z-index:99998;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   animation:fadeIn .25s ease;
-  overflow:hidden;
-}
-/* Story media container fills entire screen like Instagram */
-.story-viewer .sv-media-wrap{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  background:#000;
-}
-.story-viewer .sv-media-wrap video,
-.story-viewer .sv-media-wrap img{
-  width:100%;height:100%;object-fit:cover;display:block;
-}
-.story-viewer .sv-media-wrap video{
-  background:#000;
 }
 
 /* ===== Night Mode CSS for socialHomeCard ===== */
@@ -5387,88 +5353,33 @@ function switchLoginTab(tab){
   </div>
 </div>
 
-<!-- ── نافذة إنشاء منشور (محاكاة فيسبوك) ── -->
+<!-- ── نافذة إنشاء منشور ── -->
 <div id="createPostModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:4500;align-items:flex-end;justify-content:center;">
-  <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 env(safe-area-inset-bottom,12px);animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;overflow:hidden;max-height:92vh;display:flex;flex-direction:column;">
-    
-    <!-- Header -->
-    <div style="padding:14px 16px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <div style="font-size:17px;font-weight:900;color:#050505;flex:1;text-align:center;">إنشاء منشور</div>
-      <div onclick="closeCreatePost()" style="width:34px;height:34px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:900;color:#65676B;position:absolute;left:14px;">✕</div>
+  <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 28px;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;overflow:hidden;">
+    <div style="padding:16px 20px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:16px;font-weight:900;color:#050505;">إنشاء منشور</div>
+      <div onclick="closeCreatePost()" style="width:32px;height:32px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:900;color:#65676B;">✕</div>
     </div>
-
-    <!-- Scrollable Content -->
-    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
-      
-      <!-- Author Info -->
-      <div style="padding:12px 16px 8px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div id="cpAvatar" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0;">👑</div>
-          <div>
-            <div id="cpName" style="font-size:15px;font-weight:900;color:#050505;">…</div>
-            <div style="display:inline-flex;align-items:center;gap:5px;background:#E4E6EB;border-radius:8px;padding:3px 10px;font-size:11px;font-weight:700;color:#444;margin-top:2px;cursor:pointer;">
-              🌐 عام <span style="font-size:9px;">▼</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Feeling Badge -->
-        <div id="cpFeelBadge" style="display:none;background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:6px;margin-top:10px;box-shadow:0 2px 8px rgba(243,66,95,0.3);"></div>
-      </div>
-
-      <!-- Text Input Area -->
-      <div style="padding:0 16px;">
-        <textarea id="postTextInput" placeholder="بماذا تفكر؟" style="width:100%;min-height:100px;border:none;outline:none;font-family:'Tajawal',sans-serif;font-size:16px;color:#050505;resize:none;background:transparent;text-align:right;line-height:1.6;box-sizing:border-box;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-      </div>
-
-      <!-- Image Grid Preview (Facebook-style) -->
-      <div id="postMultiImgPreview" style="display:none;margin:4px 16px 8px;border-radius:16px;overflow:hidden;position:relative;"></div>
-
-      <!-- Video Preview -->
-      <div id="postVideoPreview" style="display:none;margin:4px 16px 8px;border-radius:16px;overflow:hidden;position:relative;">
-        <video id="postVideoPreviewEl" style="width:100%;max-height:220px;display:block;background:#000;" controls playsinline></video>
-        <div onclick="clearPostVideo()" style="position:absolute;top:8px;left:8px;width:28px;height:28px;background:rgba(0,0,0,0.65);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:white;font-weight:900;">✕</div>
-      </div>
-
-      <!-- Old single image preview (hidden, kept for compatibility) -->
-      <div id="postImagePreview" style="display:none;"></div>
-
-    </div>
-
-    <!-- Bottom Actions Bar (Facebook-style) -->
-    <div style="flex-shrink:0;border-top:1px solid #E4E6EB;">
-      
-      <!-- Add to post label -->
-      <div style="padding:10px 16px 6px;display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-size:13px;font-weight:800;color:#050505;">أضف إلى منشورك</div>
-        <div style="font-size:11px;color:#65676B;" id="postImgCounter"></div>
-      </div>
-
-      <!-- Media Buttons Row -->
-      <div style="padding:0 12px 10px;display:flex;gap:6px;align-items:center;">
-        
-        <!-- صور - Main Button -->
-        <label id="postImgBtn" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;background:#E8F5E9;border-radius:22px;cursor:pointer;font-size:13px;font-weight:800;color:#00c853;border:none;flex:1;white-space:nowrap;">
-          <span style="font-size:18px;">🖼️</span> صور
-          <input type="file" accept="image/*,image/heic,image/heif" multiple style="display:none;" onchange="handlePostImage(event)">
-        </label>
-
-        <!-- فيديو -->
-        <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;background:#FFEBEE;border-radius:22px;cursor:pointer;font-size:13px;font-weight:800;color:#e53935;flex:1;white-space:nowrap;">
-          <span style="font-size:18px;">🎬</span> فيديو
-          <input type="file" accept="video/*" style="display:none;" onchange="handlePostVideo(event)">
-        </label>
-
-        <!-- شعور -->
-        <div onclick="togglePostFeeling()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;background:#FFF8E1;border-radius:22px;cursor:pointer;font-size:13px;font-weight:800;color:#F7B928;flex:1;white-space:nowrap;">
-          <span style="font-size:18px;">😊</span> شعور
+    <div style="padding:14px 20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div id="cpAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;">👑</div>
+        <div>
+          <div id="cpName" style="font-size:14px;font-weight:900;color:#050505;">…</div>
+          <div style="background:#E4E6EB;border-radius:6px;padding:2px 8px;font-size:11px;color:#65676B;display:inline-flex;align-items:center;gap:4px;margin-top:2px;">🌐 عام</div>
         </div>
       </div>
-
-      <!-- Publish Button -->
-      <div style="padding:0 16px 16px;">
-        <button onclick="submitPost()" id="postSubmitBtn" style="width:100%;padding:13px;background:linear-gradient(135deg,#1877F2,#00c853);border:none;border-radius:14px;color:white;font-family:'Tajawal',sans-serif;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 4px 16px rgba(24,119,242,0.35);transition:opacity .2s;letter-spacing:0.5px;">نشر</button>
-      </div>
+      <div id="cpFeelBadge" style="display:none;background:linear-gradient(135deg,#F7B928,#F3425F);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:white;display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;"></div>
+      <textarea id="postTextInput" placeholder="بماذا تفكر؟" style="width:100%;min-height:90px;border:none;outline:none;font-family:'Tajawal',sans-serif;font-size:15px;color:#050505;resize:none;background:transparent;text-align:right;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <div id="postImagePreview" style="display:none;margin-top:8px;border-radius:12px;overflow:hidden;position:relative;"><img loading="lazy" id="postImagePreviewImg" style="width:100%;max-height:180px;object-fit:cover;"><div onclick="clearPostMedia()" style="position:absolute;top:6px;left:6px;width:26px;height:26px;background:rgba(0,0,0,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:white;">✕</div></div>
+      <div id="postVideoPreview" style="display:none;margin-top:8px;border-radius:12px;overflow:hidden;position:relative;"><video id="postVideoPreviewEl" style="width:100%;max-height:200px;display:block;background:#000;" controls playsinline></video><div onclick="clearPostVideo()" style="position:absolute;top:6px;left:6px;width:26px;height:26px;background:rgba(0,0,0,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:white;">✕</div></div>
+    </div>
+    <div style="padding:0 20px;display:flex;gap:8px;margin-bottom:12px;">
+      <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#E8F5E9;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#00c853;border:1.5px solid #A5D6A7;">🖼️ صورة<input type="file" accept="image/*" style="display:none;" onchange="handlePostImage(event)"></label>
+      <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#FFEBEE;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#e53935;border:1.5px solid #FFCDD2;">🎬 فيديو<input type="file" accept="video/*" style="display:none;" onchange="handlePostVideo(event)"></label>
+      <div onclick="togglePostFeeling()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;background:#FFF8E1;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;border:1.5px solid #FFE082;">😊 شعور</div>
+    </div>
+    <div style="padding:0 20px;">
+      <button onclick="submitPost()" style="width:100%;padding:13px;background:linear-gradient(135deg,#00c853,#e53935);border:none;border-radius:12px;color:white;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 4px 16px rgba(0,200,83,0.4);">نشر</button>
     </div>
   </div>
 </div>
@@ -7321,149 +7232,32 @@ function hideModal(id){
    ███████████████████████████████████████████████████████████████████ */
 
 let _postFeelingMode = false;
-let _postImageData = null;   // متوافق مع الكود القديم (أول صورة)
-let _postImagesData = [];    // 🆕 حتى 5 صور
+let _postImageData = null;
 let _postVideoData = null;
-const _MAX_POST_IMAGES = 5;
-
-/* زر الحذف المشترك لكل الصور */
-const _closeBtn = 'position:absolute;top:6px;right:6px;width:26px;height:26px;background:rgba(0,0,0,0.65);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:white;font-weight:900;z-index:10;line-height:1;';
-
-/* 🆕 عرض معاينة الصور — شبكة بنمط فيسبوك */
-function _renderPostImagesPreview(){
-  let container = document.getElementById('postMultiImgPreview');
-  if(!container) return;
-
-  /* تحديث عداد الصور */
-  const counter = document.getElementById('postImgCounter');
-  if(counter){
-    counter.innerText = _postImagesData.length > 0 ? `${_postImagesData.length}/${_MAX_POST_IMAGES}` : '';
-  }
-
-  /* تحديث حالة زر الصور */
-  const imgBtn = document.getElementById('postImgBtn');
-  if(imgBtn){
-    const inp = imgBtn.querySelector('input');
-    if(_postImagesData.length >= _MAX_POST_IMAGES){
-      imgBtn.style.opacity = '0.5';
-      if(inp) inp.disabled = true;
-    } else {
-      imgBtn.style.opacity = '1';
-      if(inp) inp.disabled = false;
-    }
-  }
-
-  if(_postImagesData.length === 0){
-    container.style.display = 'none';
-    container.innerHTML = '';
-    return;
-  }
-  container.style.display = 'block';
-
-  const n = _postImagesData.length;
-  let gridHtml = '';
-
-  /* ─── شبكة مثل فيسبوك تماماً ─── */
-  if(n === 1){
-    gridHtml = `
-      <div style="position:relative;width:100%;max-height:320px;border-radius:16px;overflow:hidden;">
-        <img src="${_postImagesData[0]}" loading="lazy" style="width:100%;height:auto;max-height:320px;object-fit:cover;display:block;">
-        <div onclick="_removePostImage(0)" style="${_closeBtn}">✕</div>
-      </div>`;
-  } else if(n === 2){
-    gridHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;border-radius:16px;overflow:hidden;">
-      ${_postImagesData.map((url,i)=>`
-        <div style="position:relative;aspect-ratio:1;overflow:hidden;">
-          <img src="${url}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
-          <div onclick="_removePostImage(${i})" style="${_closeBtn}">✕</div>
-        </div>`).join('')}
-    </div>`;
-  } else if(n === 3){
-    gridHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:3px;border-radius:16px;overflow:hidden;">
-      <div style="position:relative;grid-row:span 2;overflow:hidden;aspect-ratio:0.75;">
-        <img src="${_postImagesData[0]}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
-        <div onclick="_removePostImage(0)" style="${_closeBtn}">✕</div>
-      </div>
-      ${[1,2].map(i=>`
-        <div style="position:relative;overflow:hidden;aspect-ratio:1.5;">
-          <img src="${_postImagesData[i]}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
-          <div onclick="_removePostImage(${i})" style="${_closeBtn}">✕</div>
-        </div>`).join('')}
-    </div>`;
-  } else if(n === 4){
-    gridHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;border-radius:16px;overflow:hidden;">
-      ${_postImagesData.map((url,i)=>`
-        <div style="position:relative;aspect-ratio:1;overflow:hidden;">
-          <img src="${url}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
-          <div onclick="_removePostImage(${i})" style="${_closeBtn}">✕</div>
-        </div>`).join('')}
-    </div>`;
-  } else {
-    /* 5 صور: صف علوي 2 + صف سفلي 3 */
-    gridHtml = `<div style="display:grid;gap:3px;border-radius:16px;overflow:hidden;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">
-        ${[0,1].map(i=>`
-          <div style="position:relative;aspect-ratio:1.3;overflow:hidden;">
-            <img src="${_postImagesData[i]}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
-            <div onclick="_removePostImage(${i})" style="${_closeBtn}">✕</div>
-          </div>`).join('')}
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;">
-        ${[2,3,4].map(i=>`
-          <div style="position:relative;aspect-ratio:1;overflow:hidden;">
-            <img src="${_postImagesData[i]}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
-            <div onclick="_removePostImage(${i})" style="${_closeBtn}">✕</div>
-          </div>`).join('')}
-      </div>
-    </div>`;
-  }
-
-  /* زر إضافة صورة إذا لم نصل الحد الأقصى */
-  if(n < _MAX_POST_IMAGES){
-    gridHtml += `
-      <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:#E8F5E9;border-radius:12px;cursor:pointer;font-size:13px;font-weight:800;color:#00c853;margin-top:8px;border:2px dashed #A5D6A7;">
-        ➕ إضافة صور (${n}/${_MAX_POST_IMAGES})
-        <input type="file" accept="image/*,image/heic,image/heif" multiple style="display:none;" onchange="handlePostImage(event)">
-      </label>`;
-  }
-
-  container.innerHTML = gridHtml;
-}
-
-function _removePostImage(idx){
-  _postImagesData.splice(idx, 1);
-  _postImageData = _postImagesData[0] || null;
-  _renderPostImagesPreview();
-}
 
 async function handlePostVideo(event){
   const file = event.target.files[0];
   if(!file) return;
-
-  /* ✅ فحص الحجم الأقصى 100MB */
-  if(file.size > 100 * 1024 * 1024){
-    if(typeof showToast==='function') showToast('❌ الفيديو كبير جداً! الحد الأقصى 100MB');
+  if(file.size > 200 * 1024 * 1024){
+    if(typeof showToast==='function') showToast('❌ الفيديو كبير جداً! الحد الأقصى 200MB');
     event.target.value = '';
     return;
   }
-
-  /* ✅ رفع الفيديو — كل الصيغ مدعومة (mp4، mov، avi، mkv، webm...) */
-  const sizeMB = (file.size / (1024*1024)).toFixed(1);
-  window._showStorageProgress(`🎬 جارٍ رفع الفيديو (${sizeMB}MB)...`);
+  /* رفع الفيديو إلى Cloudinary مع شريط تقدم */
+  window._showStorageProgress('🎬 جارٍ رفع الفيديو...');
   try {
-    const result = await window.uploadToCloudinary(file, 'videos', (pct) => {
+    const result = await window.uploadToCloudinary(file, 'video', (pct) => {
       window._updateStorageProgress(pct);
     });
     window._hideStorageProgress();
     _postVideoData = result.url;
-    _postImagesData = [];
+    _postImageData = null;
     const imgPrev = document.getElementById('postImagePreview');
     if(imgPrev) imgPrev.style.display='none';
-    _renderPostImagesPreview();
     const vidPrev = document.getElementById('postVideoPreview');
     const vidEl = document.getElementById('postVideoPreviewEl');
     if(vidPrev && vidEl){ vidEl.src=_postVideoData; vidPrev.style.display='block'; }
-    if(typeof showToast==='function') showToast('✅ تم رفع الفيديو بنجاح! جاهز للنشر 🎬');
+    if(typeof showToast==='function') showToast('✅ تم رفع الفيديو بنجاح!');
   } catch(err) {
     window._hideStorageProgress();
     console.error('❌ خطأ في رفع الفيديو:', err);
@@ -7474,10 +7268,8 @@ async function handlePostVideo(event){
 
 function clearPostMedia(){
   _postImageData = null;
-  _postImagesData = [];
   const prev = document.getElementById('postImagePreview');
   if(prev) prev.style.display='none';
-  _renderPostImagesPreview();
 }
 
 function clearPostVideo(){
@@ -7985,73 +7777,50 @@ function togglePostFeeling(){
 }
 
 async function handlePostImage(event){
-  const files = Array.from(event.target.files || []);
-  if(!files.length) return;
-
-  /* 🔒 التحقق من الحد الأقصى 7 صور */
-  const remaining = _MAX_POST_IMAGES - _postImagesData.length;
-  if(remaining <= 0){
-    if(typeof showToast==='function') showToast(`⚠️ وصلت للحد الأقصى ${_MAX_POST_IMAGES} صور`);
+  const file = event.target.files[0];
+  if(!file) return;
+  if(file.size > 25 * 1024 * 1024){
+    if(typeof showToast==='function') showToast('⚠️ الصورة كبيرة! الحد الأقصى 25MB');
     event.target.value = '';
     return;
   }
-  const toUpload = files.slice(0, remaining);
-  if(files.length > remaining){
-    if(typeof showToast==='function') showToast(`⚠️ سيتم رفع ${toUpload.length} صورة فقط (الحد ${_MAX_POST_IMAGES})`);
+  /* رفع صورة المنشور إلى Cloudinary مع ضغط */
+  window._showStorageProgress('🖼️ جارٍ رفع صورة المنشور...');
+  try {
+    const fileMB = file.size / (1024 * 1024);
+    const quality = fileMB > 3 ? 0.75 : 0.85;
+    const result = await window.uploadImageCompressed(file, 'social-posts', 1080, quality, (pct) => {
+      window._updateStorageProgress(pct);
+    });
+    window._hideStorageProgress();
+    _postImageData = result.url;
+    _postVideoData = null;
+    const vidPrev = document.getElementById('postVideoPreview');
+    if(vidPrev) vidPrev.style.display='none';
+    const prev = document.getElementById('postImagePreview');
+    const imgEl = document.getElementById('postImagePreviewImg');
+    if(prev && imgEl){ imgEl.src=_postImageData; prev.style.display='block'; }
+    if(typeof showToast==='function') showToast('✅ تم رفع الصورة بنجاح!');
+  } catch(err) {
+    window._hideStorageProgress();
+    console.error('❌ خطأ في رفع الصورة:', err);
+    if(typeof showToast==='function') showToast('❌ فشل رفع الصورة: ' + (err.message || 'خطأ غير معروف'));
   }
-
-  /* رفع كل صورة */
-  for(let i = 0; i < toUpload.length; i++){
-    const file = toUpload[i];
-    if(file.size > 25 * 1024 * 1024){
-      if(typeof showToast==='function') showToast(`⚠️ الصورة ${i+1} كبيرة (الحد 25MB)`);
-      continue;
-    }
-    window._showStorageProgress(`🖼️ رفع الصورة ${_postImagesData.length + 1}/${_MAX_POST_IMAGES}...`);
-    try {
-      const fileMB = file.size / (1024 * 1024);
-      const quality = fileMB > 3 ? 0.75 : 0.85;
-      const result = await window.uploadImageCompressed(file, 'social-posts', 1080, quality, (pct) => {
-        window._updateStorageProgress(pct);
-      });
-      _postImagesData.push(result.url);
-      _postImageData = _postImagesData[0];
-      _postVideoData = null;
-      const vidPrev = document.getElementById('postVideoPreview');
-      if(vidPrev) vidPrev.style.display='none';
-      _renderPostImagesPreview();
-    } catch(err) {
-      console.error('❌ خطأ في رفع الصورة:', err);
-      if(typeof showToast==='function') showToast('❌ فشل رفع صورة: ' + (err.message || 'خطأ'));
-    }
-  }
-  window._hideStorageProgress();
-  if(_postImagesData.length > 0) showToast(`✅ تم رفع ${_postImagesData.length} صورة!`);
   event.target.value = '';
-  /* إخفاء المعاينة القديمة */
-  const oldPrev = document.getElementById('postImagePreview');
-  if(oldPrev) oldPrev.style.display='none';
 }
 
 function openCreatePost(type){
-  _postFeelingMode = false; _postImageData = null; _postImagesData = []; _postVideoData = null;
+  _postFeelingMode = false; _postImageData = null; _postVideoData = null;
   const modal = document.getElementById('createPostModal');
   if(modal) modal.style.display='flex';
   const textEl = document.getElementById('postTextInput');
   if(textEl){ textEl.value=''; textEl.style.height='auto'; }
   const prev = document.getElementById('postImagePreview');
   if(prev) prev.style.display='none';
-  const multiPrev = document.getElementById('postMultiImgPreview');
-  if(multiPrev){ multiPrev.style.display='none'; multiPrev.innerHTML=''; }
   const vidPrev = document.getElementById('postVideoPreview');
   if(vidPrev) vidPrev.style.display='none';
   const badge = document.getElementById('cpFeelBadge');
   if(badge) badge.style.display='none';
-  const counter = document.getElementById('postImgCounter');
-  if(counter) counter.innerText='';
-  /* إعادة تفعيل زر الصور */
-  const imgBtn = document.getElementById('postImgBtn');
-  if(imgBtn){ imgBtn.style.opacity='1'; const inp=imgBtn.querySelector('input'); if(inp) inp.disabled=false; }
   const name = getCurrentUser();
   syncProfilePageAvatar(name);
   if(type==='achievement'){
@@ -8072,54 +7841,38 @@ function closeCreatePost(){
 function submitPost(){
   const name = getCurrentUser();
   const text = (document.getElementById('postTextInput')||{}).value?.trim() || '';
-  if(!text && _postImagesData.length === 0 && !_postVideoData){ showToast('✏️ اكتب شيئاً أو أضف صورة/فيديو', 'warning'); return; }
+  if(!text && !_postImageData && !_postVideoData){ showToast('✏️ اكتب شيئاً أو أضف صورة/فيديو', 'warning'); return; }
   let posts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
   const now = new Date();
   const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
-  const newPost = {
-    text,
-    image: _postImagesData[0] || null,
-    images: _postImagesData.length > 0 ? [..._postImagesData] : null,
-    video: _postVideoData,
+  posts.push({
+    text, image: _postImageData, video: _postVideoData,
     feeling: _postFeelingMode ? _feelings[_feelingIdx] : null,
-    date: dateStr, ts: Date.now(), reactions:{}, comments:[], views: 0
-  };
-  posts.push(newPost);
-  /* حفظ منشورات الملف الشخصي — لا حذف للمنشورات القديمة */
+    date: dateStr, ts: Date.now(), reactions:{}, comments:[]
+  });
+  /* حاول الحفظ مباشرة — احذف فقط إذا امتلأ التخزين */
   try {
     localStorage.setItem(getProfilePostsKey(name), JSON.stringify(posts));
   } catch(e) {
-    /* localStorage ممتلئ — احتفظ بكل المنشورات لكن حاول ضغط البيانات */
-    console.warn('localStorage ممتلئ، جارٍ الضغط...');
+    /* localStorage ممتلئ — احذف الأقدم من 60 يوم */
+    var _prof_cutoff = Date.now() - (60 * 24 * 60 * 60 * 1000);
+    posts = posts.filter(function(p){ return (p.ts||0) >= _prof_cutoff; });
+    if(posts.length > 100) posts = posts.slice(-100);
     try {
       localStorage.setItem(getProfilePostsKey(name), JSON.stringify(posts));
     } catch(e2) {
       console.error('فشل حفظ منشورات الملف الشخصي:', e2);
     }
   }
-  // نشر في الفيد العام أيضاً — منشورات دائمة لا تُحذف
+  // نشر في الفيد العام أيضاً
   const socialPosts = getSocialPosts();
-  const socialPost = {
+  socialPosts.push({
     id: 'sp_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
-    author: name,
-    text,
-    image: _postImagesData[0] || null,
-    images: _postImagesData.length > 0 ? [..._postImagesData] : null,
-    video: _postVideoData,
+    author: name, text, image: _postImageData, video: _postVideoData,
     feeling: _postFeelingMode ? _feelings[_feelingIdx] : null,
-    date: dateStr, ts: Date.now(), reactions:{}, comments:[], views: 0,
-    privacy: '🌐 عام'
-  };
-  socialPosts.push(socialPost);
+    date: dateStr, ts: Date.now(), reactions:{}, comments:[]
+  });
   saveSocialPosts(socialPosts);
-  // مزامنة مع Firebase
-  try{
-    const _FB_DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-    fetch(`${_FB_DB}/social_posts/${socialPost.id}.json`,{
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(socialPost)
-    }).catch(()=>{});
-  }catch(e){}
   ebPointsPost();
   closeCreatePost();
   renderProfilePosts(name);
@@ -10154,34 +9907,21 @@ function showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div){
       const prevDone=getDoneList(lvl-1);
       return prevQs.length>0 && prevQs.every(x=>prevDone.includes(x.q));
     })();
-
-    /* ── شرط النقاط للمستوى 4 فما فوق ── */
-    const pointsRequired = lvl >= 4 ? (lvl - 3) * 1000 : 0;
-    const myTotalPts = _basePoints || parseInt(localStorage.getItem(_earnedKey(name))||'0');
-    const hasEnoughPoints = myTotalPts >= pointsRequired;
-
-    /* المستوى مقفل إذا: لم يُكمل السابق، أو (مستوى 4+) نقاطه أقل من المطلوب */
-    const locked = !prevCompleted || (lvl >= 4 && !hasEnoughPoints);
-    const lockedByPoints = prevCompleted && lvl >= 4 && !hasEnoughPoints;
+    const locked=!prevCompleted;
     const col=levelColors[(lvl-1)%levelColors.length];
     const prize=prizeLabels[(lvl-1)%prizeLabels.length];
 
     if(locked){
-      const lockReason = lockedByPoints
-        ? `تحتاج ${pointsRequired.toLocaleString()} نقطة — لديك ${myTotalPts.toLocaleString()}`
-        : `أكمل المستوى ${lvl-1} لفتح هذا المستوى`;
-      const lockIcon = lockedByPoints ? '⭐' : '🔒';
       html+=`
         <div style="background:rgba(13,17,23,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:14px 16px;margin-bottom:8px;opacity:0.55;cursor:not-allowed;position:relative;overflow:hidden;">
           <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.01) 0px,rgba(255,255,255,0.01) 2px,transparent 2px,transparent 10px);pointer-events:none;"></div>
           <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">${lockIcon}</div>
+            <div style="width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🔒</div>
             <div style="flex:1;">
               <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.35);">المستوى ${lvl} · ${prize}</div>
-              <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:3px;">${lockReason}</div>
-              ${lockedByPoints ? `<div style="margin-top:5px;height:3px;background:rgba(255,255,255,0.07);border-radius:10px;overflow:hidden;"><div style="width:${Math.min((myTotalPts/pointsRequired)*100,100)}%;height:100%;background:linear-gradient(90deg,#f5c518,#f97316);border-radius:10px;"></div></div>` : ''}
+              <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:3px;">أكمل المستوى ${lvl-1} لفتح هذا المستوى</div>
             </div>
-            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.2);background:rgba(255,255,255,0.04);border-radius:8px;padding:4px 8px;">${lockedByPoints ? '⭐ نقاط' : 'مقفل'}</div>
+            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.2);background:rgba(255,255,255,0.04);border-radius:8px;padding:4px 8px;">مقفل</div>
           </div>
         </div>`;
     } else if(completed){
@@ -10204,8 +9944,7 @@ function showLevelSelect(totalLevels, QUESTIONS_PER_LEVEL, div){
         <div onclick="startLevel(${lvl},${QUESTIONS_PER_LEVEL})" style="background:linear-gradient(135deg,rgba(${hexToRgb(col.from)},0.15),rgba(${hexToRgb(col.to)},0.08));border:1px solid rgba(${hexToRgb(col.from)},0.4);border-radius:16px;padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;"
           onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)';"
           onmouseout="this.style.transform='';this.style.boxShadow='';">
-          ${lvl >= 4 ? `<div style="position:absolute;top:8px;left:8px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:white;font-size:9px;font-weight:900;border-radius:6px;padding:2px 7px;">🔥 متقدم | خطأ1→−1 | خطأ2→−3</div>` : ''}
-          <div style="display:flex;align-items:center;gap:12px;${lvl >= 4 ? 'margin-top:18px;' : ''}">
+          <div style="display:flex;align-items:center;gap:12px;">
             <div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,${col.from},${col.to});display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,0.3);">📚</div>
             <div style="flex:1;">
               <div style="font-size:13px;font-weight:800;color:var(--text);">المستوى ${lvl} · ${prize}</div>
@@ -10352,15 +10091,9 @@ function renderQuestion(){
       <span style="color:var(--accent);font-weight:800;font-size:12px;">🎯 جلسة: +${quizScore}</span>
     </div>
     <div style="display:flex;gap:7px;margin-bottom:12px;font-size:11px;text-align:center;">
-      ${currentQuizLevel >= 4 ? `
-      <div style="flex:1;background:rgba(0,200,80,0.08);border:1px solid rgba(0,200,80,0.2);border-radius:10px;padding:6px 4px;color:rgba(100,220,100,0.9);">✅ المحاولة 1 → نقاط كاملة</div>
-      <div style="flex:1;background:rgba(245,197,24,0.08);border:1px solid rgba(245,197,24,0.2);border-radius:10px;padding:6px 4px;color:#f5c518;">⚡ المحاولة 2 → نصف النقاط</div>
-      <div style="flex:1;background:rgba(229,45,39,0.1);border:1px solid rgba(229,45,39,0.3);border-radius:10px;padding:6px 4px;color:#f87171;">⚠️ خطأ 1 → −1 | خطأ 2 → −3</div>
-      ` : `
       <div style="flex:1;background:rgba(0,200,80,0.08);border:1px solid rgba(0,200,80,0.2);border-radius:10px;padding:6px 4px;color:rgba(100,220,100,0.9);">✅ المحاولة 1 → نقاط كاملة</div>
       <div style="flex:1;background:rgba(245,197,24,0.08);border:1px solid rgba(245,197,24,0.2);border-radius:10px;padding:6px 4px;color:#f5c518;">⚡ المحاولة 2 → نصف النقاط</div>
       <div style="flex:1;background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.2);border-radius:10px;padding:6px 4px;color:#f87171;">❌ المحاولة 3+ → −1 نقطة</div>
-      `}
     </div>
     <div class="quiz-q">❓ ${q.q}</div>
     <div class="quiz-opts" id="quizOpts">
@@ -10423,24 +10156,12 @@ function answerQuiz(chosen, correct, pts){
     // تأثير وميض أحمر على خلفية الكارت
     showAnswerFlash(false);
 
-    // نظام الخصم:
-    // ▸ مستوى 4+: خطأ المحاولة 1 = −1 | خطأ المحاولة 2 = −3
-    // ▸ مستوى 1-3: خطأ المحاولة 1 = بدون خصم | خطأ المحاولة 2+ = −1
-    if(currentQuizLevel >= 4){
-      if(attemptNum === 1){
-        deductPoints(1);
-        _showPtsLabel('❌ خطأ — −1 نقطة', '#f87171');
-      } else if(attemptNum >= 2){
-        deductPoints(3);
-        _showPtsLabel('❌ خطأ مرة ثانية — −3 نقاط', '#ef4444');
-      }
+    // المحاولة الثالثة فما فوق: خصم 1 نقطة
+    if(attemptNum >= 2){
+      deductPoints(1);
+      _showPtsLabel('❌ خطأ — 1 نقطة', '#f87171');
     } else {
-      if(attemptNum >= 2){
-        deductPoints(1);
-        _showPtsLabel('❌ خطأ — −1 نقطة', '#f87171');
-      } else {
-        _showPtsLabel('❌ خطأ! حاول مجدداً', '#f87171');
-      }
+      _showPtsLabel('❌ خطأ! حاول مجدداً', '#f87171');
     }
 
     playQuizSound(false);
@@ -14150,88 +13871,25 @@ const _socialNotifsKey  = n => 'nld_snotifs_' + n.replace(/\s+/g,'_');
 
 /* ─── مساعدات ─── */
 function getSocialPosts(){ return JSON.parse(localStorage.getItem(_socialPostsKey)||'[]'); }
-
-/* ══════════════════════════════════════════════
-   📄 صفحات Firebase — جلب + حفظ
-   ══════════════════════════════════════════════ */
-window._fbSavePost = function(post){
-  try{
-    const fbP = Object.assign({}, post);
-    if(fbP.image && fbP.image.startsWith('data:')) fbP.image = null;
-    if(fbP.images) fbP.images = null;
-    if(fbP.video && fbP.video.startsWith('data:')) fbP.video = null;
-    fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts/${fbP.id}.json`,{
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(fbP)
-    }).catch(()=>{});
-  }catch(e){}
-};
-
-window._fbDeletePost = function(postId){
-  try{
-    fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts/${postId}.json`,{
-      method:'DELETE'
-    }).catch(()=>{});
-  }catch(e){}
-};
-
-/* جلب منشورات صفحة معينة من Firebase */
-window._fbLoadPagePosts = async function(pageId){
-  try{
-    const res = await fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/page_posts/${pageId}.json`);
-    if(!res.ok) return [];
-    const data = await res.json();
-    return data ? Object.values(data).filter(Boolean) : [];
-  }catch(e){ return []; }
-};
-
-/* حفظ منشور صفحة في Firebase */
-window._fbSavePagePost = function(pageId, post){
-  try{
-    const fbP = Object.assign({}, post);
-    if(fbP.image && fbP.image.startsWith('data:')) fbP.image = null;
-    fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/page_posts/${pageId}/${fbP.id}.json`,{
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(fbP)
-    }).catch(()=>{});
-  }catch(e){}
-};
-
 function saveSocialPosts(arr){
   /* ── حاول الحفظ مباشرة أولاً ── */
   try {
     localStorage.setItem(_socialPostsKey, JSON.stringify(arr));
   } catch(e) {
-    /* localStorage ممتلئ — نظّف فقط المنشورات التلقائية والإعلانات */
-    console.warn('localStorage ممتلئ! جارٍ تنظيف المنشورات التلقائية فقط...');
-
-    /* 🛡️ المنشورات الحقيقية للأعضاء محمية — لا تُحذف تلقائياً أبداً */
-    /* نحذف فقط: isAutoPost أو isActivityAd أو isAd */
-    var memberPosts = arr.filter(function(p){
-      return !p.isAutoPost && !p.isActivityAd && !p.isAd;
-    });
-    var autoOnlyPosts = arr.filter(function(p){
-      return p.isAutoPost || p.isActivityAd || p.isAd;
-    });
-    /* احتفظ بأحدث 30 منشور تلقائي فقط */
-    var trimmedAuto = autoOnlyPosts.slice().sort(function(a,b){
-      return (b.ts||0)-(a.ts||0);
-    }).slice(0, 30);
-
-    var reduced = memberPosts.concat(trimmedAuto);
-    reduced.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
-
+    /* localStorage ممتلئ — الآن فقط نحذف القديم */
+    console.warn('localStorage ممتلئ! جارٍ تنظيف المنشورات القديمة...');
+    /* احذف الأقدم من 30 يوم */
+    var cutoff = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    arr = arr.filter(function(p){ return (p.ts||0) >= cutoff; });
+    /* إذا لا يزال كثيراً احذف حتى يبقى 200 */
+    if(arr.length > 200){
+      arr = arr.slice().sort(function(a,b){ return (b.ts||0)-(a.ts||0); }).slice(0, 200);
+    }
     try {
-      localStorage.setItem(_socialPostsKey, JSON.stringify(reduced));
-      if(typeof showToast==='function') showToast('🧹 تم تنظيف المنشورات التلقائية القديمة — منشورات الأعضاء محفوظة ✅');
+      localStorage.setItem(_socialPostsKey, JSON.stringify(arr));
+      if(typeof showToast==='function') showToast('🧹 تم تنظيف المنشورات القديمة تلقائياً');
     } catch(e2) {
-      /* إذا لا يزال ممتلئاً — احتفظ فقط بمنشورات الأعضاء */
-      try {
-        localStorage.setItem(_socialPostsKey, JSON.stringify(memberPosts));
-        console.warn('تم الاحتفاظ بمنشورات الأعضاء فقط بسبب امتلاء الذاكرة');
-      } catch(e3) {
-        console.error('فشل الحفظ حتى مع منشورات الأعضاء فقط:', e3);
-      }
+      console.error('فشل الحفظ حتى بعد التنظيف:', e2);
     }
   }
 }
@@ -14404,90 +14062,13 @@ function renderNotifsPanel(){
 }
 
 /* ══════════════════════════════════════════
-   🔥 جلب المنشورات من Firebase ودمجها مع المحلية
-   ══════════════════════════════════════════ */
-const _FB_POSTS_URL = 'https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json';
-
-async function _fetchFirebasePosts(){
-  try{
-    /* ✅ رفع الحد إلى 500 لضمان جلب كل منشورات الأعضاء */
-    const res = await fetch(_FB_POSTS_URL + '?orderBy="ts"&limitToLast=500');
-    if(!res.ok) return [];
-    const data = await res.json();
-    if(!data || typeof data !== 'object') return [];
-    return Object.values(data).filter(p => p && p.id && p.author);
-  }catch(e){ return []; }
-}
-
-/* 🛡️ دمج منشورات Firebase مع المحلية — Firebase هو مصدر الحقيقة للمنشورات الجديدة */
-function _mergePosts(localPosts, fbPosts){
-  const map = new Map();
-  /* أولاً: المحلية كقاعدة */
-  localPosts.forEach(p => { if(p && p.id) map.set(p.id, p); });
-  /* ثانياً: Firebase يُضيف ما لم يكن موجوداً، ويُحدِّث التفاعلات والتعليقات */
-  fbPosts.forEach(p => {
-    if(!p || !p.id) return;
-    if(!map.has(p.id)){
-      /* منشور موجود في Firebase وليس محلياً — أضفه (يشمل منشورات أعضاء آخرين) */
-      map.set(p.id, p);
-    } else {
-      /* المنشور موجود في الجهتين — خذ أفضل بيانات */
-      const local = map.get(p.id);
-      const fbReacts = Object.values(p.reactions||{}).reduce((s,a)=>s+(Array.isArray(a)?a.length:0),0);
-      const localReacts = Object.values(local.reactions||{}).reduce((s,a)=>s+(Array.isArray(a)?a.length:0),0);
-      const fbComments = (p.comments||[]).length;
-      const localComments = (local.comments||[]).length;
-      /* استخدم Firebase إذا كان لديه تفاعلات أو تعليقات أكثر */
-      if(fbReacts > localReacts || fbComments > localComments){
-        /* احتفظ بالنص والصور من النسخة المحلية إذا كانت Firebase تفتقدها */
-        const merged = Object.assign({}, p);
-        if(!merged.text && local.text) merged.text = local.text;
-        if(!merged.image && local.image) merged.image = local.image;
-        if(!merged.images && local.images) merged.images = local.images;
-        if(!merged.video && local.video) merged.video = local.video;
-        map.set(p.id, merged);
-      }
-      /* وإلا احتفظ بالمحلية كما هي */
-    }
-  });
-  return Array.from(map.values()).sort((a,b)=>(b.ts||0)-(a.ts||0));
-}
-
-/* تحديث دوري كل 30 ثانية */
-let _fbFeedRefreshTimer = null;
-function _startFbFeedPolling(){
-  if(_fbFeedRefreshTimer) return;
-  _fbFeedRefreshTimer = setInterval(()=>{
-    const container = document.getElementById('socialFeedContainer');
-    if(container && container.offsetParent !== null) renderSocialFeed();
-  }, 30000);
-}
-
-/* ══════════════════════════════════════════
    📰 الفيد الاجتماعي (كل المنشورات)
    ══════════════════════════════════════════ */
-async function renderSocialFeed(){
+function renderSocialFeed(){
   const container = document.getElementById('socialFeedContainer');
   if(!container) return;
-
-  /* عرض مؤشر تحميل بسيط فقط إذا كان الفيد فارغاً */
-  const localPosts = getSocialPosts();
-  if(localPosts.length === 0){
-    container.innerHTML = `<div style="text-align:center;padding:24px;"><div style="font-size:30px;margin-bottom:8px;">⏳</div><div style="font-size:13px;color:#65676B;font-weight:700;">جاري تحميل المنشورات...</div></div>`;
-  }
-
-  /* جلب منشورات Firebase في الخلفية */
-  const fbPosts = await _fetchFirebasePosts();
-  const allPostsRaw = _mergePosts(localPosts, fbPosts);
-
-  /* 🛡️ حفظ النسخة المدمجة — saveSocialPosts تحمي منشورات الأعضاء تلقائياً */
-  if(fbPosts.length > 0){
-    saveSocialPosts(allPostsRaw);
-  }
-
-  const allPosts = allPostsRaw;
+  const allPosts = getSocialPosts();
   const myName = getCurrentUser();
-  _startFbFeedPolling();
   // ✅ عرض جميع المنشورات العامة من كل الأعضاء (ليس الأصدقاء فقط)
   const posts = allPosts.filter(p => {
     if(p.isActivityAd) return true;
@@ -14503,18 +14084,18 @@ async function renderSocialFeed(){
     container.innerHTML=`<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. كن أول من ينشر!</div></div>`;
     return;
   }
-  // ✅ الترتيب المحدّث: أعلى تعليق → أعلى إعجاب → أعلى مشاهدة
+  // ✅ الترتيب: الإعلانات أولاً، ثم الأكثر تفاعلاً+مشاهدة، ثم حسب التعليقات
   const adPosts = posts.filter(p=>p.isActivityAd).slice().reverse();
   const normalPosts = posts.filter(p=>!p.isActivityAd).slice().sort((a,b)=>{
-    const aComments = (a.comments||[]).length;
-    const bComments = (b.comments||[]).length;
-    if(bComments !== aComments) return bComments - aComments;
-    // عند التساوي في التعليقات: الأكثر إعجاباً أولاً
     const aReacts = Object.values(a.reactions||{}).reduce((s,arr)=>s+(Array.isArray(arr)?arr.length:0),0);
     const bReacts = Object.values(b.reactions||{}).reduce((s,arr)=>s+(Array.isArray(arr)?arr.length:0),0);
-    if(bReacts !== aReacts) return bReacts - aReacts;
-    // عند التساوي: الأكثر مشاهدة أولاً
-    return (b.views||0) - (a.views||0);
+    const aViews = a.views || 0;
+    const bViews = b.views || 0;
+    const aScore = (aReacts * 3) + aViews;
+    const bScore = (bReacts * 3) + bViews;
+    if(bScore !== aScore) return bScore - aScore;
+    // عند التساوي: الأكثر تعليقاً أولاً
+    return (b.comments||[]).length - (a.comments||[]).length;
   });
   container.innerHTML = [...adPosts, ...normalPosts].map(p => renderSocialPostCard(p)).join('');
 }
@@ -14533,9 +14114,7 @@ function renderSocialPostCard(p){
           ? `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#e52d27,#fbbf24);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⚖️</div>`
           : p.autoCategory === 'ranking'
             ? `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏆</div>`
-            : p.autoCategory === 'points_info'
-              ? `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#a855f7);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">💡</div>`
-              : `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏙️</div>`)
+            : `<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏙️</div>`)
       : (photo
         ? `<img loading="lazy" src="${photo}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;cursor:pointer;" onclick="viewMemberProfile('${p.author}')">`
         : `<div onclick="viewMemberProfile('${p.author}')" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;">${typeof getLeaderIcon==='function'?getLeaderIcon(p.author):'👑'}</div>`);
@@ -14925,24 +14504,10 @@ function refreshPostCard(postId){
 }
 
 function deleteSocialPost(postId){
-  /* 🛡️ التحقق أن المستخدم هو كاتب المنشور فقط — لا يمكن لأحد حذف منشور غيره */
-  const currentUser = getCurrentUser();
-  const posts = getSocialPosts();
-  const targetPost = posts.find(p => p.id === postId);
-  if(!targetPost){
-    if(typeof showToast === 'function') showToast('⚠️ المنشور غير موجود محلياً، حاول تحديث الصفحة');
-    return;
-  }
-  if(targetPost.author !== currentUser){
-    if(typeof showToast === 'function') showToast('🚫 لا يمكنك حذف منشور غيرك');
-    return;
-  }
-  if(!confirm('هل تريد حذف هذا المنشور؟ لن يمكن استعادته.')) return;
-  const filtered = posts.filter(p => p.id !== postId);
-  saveSocialPosts(filtered);
-  /* حذف من Firebase أيضاً */
-  if(typeof window._fbDeletePost === 'function') window._fbDeletePost(postId);
-  if(typeof showToast === 'function') showToast('🗑️ تم حذف منشورك');
+  if(!confirm('هل تريد حذف هذا المنشور؟')) return;
+  let posts = getSocialPosts();
+  posts = posts.filter(p=>p.id!==postId);
+  saveSocialPosts(posts);
   renderSocialFeed();
 }
 
@@ -15071,49 +14636,19 @@ function handleScpImage(event){
 }
 function handleScpVideo(event){
   const file = event.target.files[0]; if(!file) return;
-  if(_scpVideoData){ showToast('\u26a0\ufe0f \u064a\u0645\u0643\u0646\u0643 \u0631\u0641\u0639 \u0641\u064a\u062f\u064a\u0648 \u0648\u0627\u062d\u062f \u0641\u0642\u0637'); event.target.value=''; return; }
-  /* \ud83d\udd12 \u0627\u0644\u062a\u062d\u0642\u0642 \u0645\u0646 \u0645\u062f\u0629 \u0627\u0644\u0641\u064a\u062f\u064a\u0648 \u2014 60 \u062b\u0627\u0646\u064a\u0629 (\u062f\u0642\u064a\u0642\u0629 \u0648\u0627\u062d\u062f\u0629) \u0643\u062d\u062f \u0623\u0642\u0635\u0649 */
-  const blobUrl = URL.createObjectURL(file);
-  const tempVid = document.createElement('video');
-  tempVid.preload = 'metadata';
-  tempVid.onloadedmetadata = async function(){
-    URL.revokeObjectURL(blobUrl);
-    if(tempVid.duration > 60){
-      showToast('\u23f1\ufe0f \u0645\u062f\u0629 \u0627\u0644\u0641\u064a\u062f\u064a\u0648 '+Math.round(tempVid.duration)+' \u062b\u0627\u0646\u064a\u0629 \u2014 \u0627\u0644\u062d\u062f \u0627\u0644\u0623\u0642\u0635\u0649 \u062f\u0642\u064a\u0642\u0629 \u0648\u0627\u062d\u062f\u0629 \u0641\u0642\u0637!');
-      event.target.value=''; return;
-    }
-    if(file.size > 100*1024*1024){ showToast('\u26a0\ufe0f \u062d\u062c\u0645 \u0627\u0644\u0641\u064a\u062f\u064a\u0648 \u0643\u0628\u064a\u0631 \u062c\u062f\u0627\u064b (\u0623\u0642\u0635\u0649 100MB)'); event.target.value=''; return; }
-    if(typeof window.uploadToCloudinary === 'function'){
-      window._showStorageProgress('\ud83c\udfac \u062c\u0627\u0631\u0650 \u0631\u0641\u0639 \u0627\u0644\u0641\u064a\u062f\u064a\u0648 (\u062d\u062f \u0623\u0642\u0635\u0649 \u062f\u0642\u064a\u0642\u0629)...');
-      try{
-        const result = await window.uploadToCloudinary(file, 'social-posts', function(pct){ window._updateStorageProgress(pct); });
-        window._hideStorageProgress();
-        _scpVideoData = result.url; _scpImageData = null;
-        var p1 = document.getElementById('scpImagePreview'); if(p1) p1.style.display='none';
-        var p2 = document.getElementById('scpMultiImgPreview'); if(p2) p2.style.display='none';
-        var vprev = document.getElementById('scpVideoPreview'); var vid = document.getElementById('scpVideoPreviewVid');
-        if(vprev && vid){ vid.src=_scpVideoData; vprev.style.display='block'; }
-        showToast('\u2705 \u062a\u0645 \u0631\u0641\u0639 \u0627\u0644\u0641\u064a\u062f\u064a\u0648 \u0628\u0646\u062c\u0627\u062d!');
-      }catch(err){ window._hideStorageProgress(); showToast('\u274c \u0641\u0634\u0644 \u0631\u0641\u0639 \u0627\u0644\u0641\u064a\u062f\u064a\u0648: '+(err.message||'\u062e\u0637\u0623')); }
-    } else {
-      var reader = new FileReader();
-      reader.onload = function(e){ _scpVideoData = e.target.result; _scpImageData = null;
-        var vprev = document.getElementById('scpVideoPreview'); var vid = document.getElementById('scpVideoPreviewVid');
-        if(vprev && vid){ vid.src=_scpVideoData; vprev.style.display='block'; } };
-      reader.readAsDataURL(file);
-    }
-    event.target.value='';
+  if(_scpVideoData){ showToast('⚠️ يمكنك رفع فيديو واحد فقط'); event.target.value=''; return; }
+  if(file.size > 20*1024*1024){ showToast('⚠️ حجم الفيديو كبير جداً (أقصى 20MB)'); return; }
+  const reader = new FileReader();
+  reader.onload = e=>{
+    _scpVideoData = e.target.result;
+    _scpImageData = null;
+    const prev = document.getElementById('scpImagePreview');
+    if(prev) prev.style.display='none';
+    const vprev = document.getElementById('scpVideoPreview');
+    const vid   = document.getElementById('scpVideoPreviewVid');
+    if(vprev && vid){ vid.src=_scpVideoData; vprev.style.display='block'; }
   };
-  tempVid.onerror = function(){
-    URL.revokeObjectURL(blobUrl);
-    var reader = new FileReader();
-    reader.onload = function(e){ _scpVideoData = e.target.result; _scpImageData = null;
-      var vprev = document.getElementById('scpVideoPreview'); var vid = document.getElementById('scpVideoPreviewVid');
-      if(vprev && vid){ vid.src=_scpVideoData; vprev.style.display='block'; } };
-    reader.readAsDataURL(file);
-    event.target.value='';
-  };
-  tempVid.src = blobUrl;
+  reader.readAsDataURL(file);
 }
 function openScpPrivacyPicker(){
   const options = [
@@ -15273,15 +14808,10 @@ function submitSocialPost(){
   // ✅ مزامنة المنشور مع Firebase لظهوره عند الأعضاء الآخرين
   try {
     const DB_ROOT = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-    // حذف الصور الكبيرة (base64) قبل الإرسال لـ Firebase لتجنب حد الحجم
-    const fbPost = Object.assign({}, newPost);
-    if(fbPost.image && fbPost.image.startsWith('data:')) fbPost.image = null;
-    if(fbPost.images) fbPost.images = null;
-    if(fbPost.video && fbPost.video.startsWith('data:')) fbPost.video = null;
     fetch(`${DB_ROOT}/social_posts/${newPost.id}.json`, {
       method: 'PUT',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(fbPost)
+      body: JSON.stringify(newPost)
     }).catch(()=>{});
   } catch(e) {}
   const profilePosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
@@ -16133,7 +15663,7 @@ function _startReactTimer(postId){
   _reactLongPress = false;
   _reactTimerHandle = setTimeout(()=>{
     _reactLongPress = true;
-    _showReactPickerCenter(postId);
+    toggleReactPicker(postId);
     // اهتزاز خفيف عند ظهور التفاعلات
     if(navigator.vibrate) navigator.vibrate(50);
   }, 600); // 600ms للضغط المطوّل
@@ -16143,50 +15673,38 @@ function _cancelReactTimer(){
   if(_reactTimerHandle){ clearTimeout(_reactTimerHandle); _reactTimerHandle = null; }
 }
 
-/* ── عرض شريط التفاعلات في منتصف المنشور ── */
-function _showReactPickerCenter(postId){
-  // إخفاء أي picker مفتوح مسبقاً
-  document.querySelectorAll('[id^="reactPicker_"]').forEach(el=>{ el.style.display='none'; });
-  const picker = document.getElementById('reactPicker_'+postId);
-  if(!picker) return;
-  // حساب موضع المنشور
-  const postEl = document.getElementById('spost_'+postId);
-  if(postEl){
-    const rect = postEl.getBoundingClientRect();
-    const centerX = rect.left + rect.width/2;
-    const centerY = rect.top + rect.height/2;
-    picker.style.position = 'fixed';
-    picker.style.left = '50%';
-    picker.style.top = (centerY - 30) + 'px';
-    picker.style.bottom = 'auto';
-    picker.style.transform = 'translateX(-50%)';
-    picker.style.zIndex = '9999';
-    picker.style.display = 'flex';
-    // إغلاق عند النقر خارجه
-    setTimeout(()=>{
-      function _outsideClose(e){
-        if(!picker.contains(e.target)){
-          picker.style.display='none';
-          document.removeEventListener('click',_outsideClose,true);
-        }
-      }
-      document.addEventListener('click',_outsideClose,true);
-    },100);
-  } else {
-    toggleReactPicker(postId);
-  }
-}
-
 function _handleLikeClick(postId){
-  if(_reactLongPress){ _reactLongPress = false; return; }
-  // عند الضغط البسيط: إظهار شريط التفاعل في منتصف المنشور
-  _showReactPickerCenter(postId);
+  if(_reactLongPress){ _reactLongPress = false; return; } // تجاهل بعد الضغط المطوّل
+  const name = getCurrentUser(); if(!name) return;
+  const posts = getSocialPosts();
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  if(!post.reactions) post.reactions = {};
+  const defaultEmoji = '👍';
+  if(!post.reactions[defaultEmoji]) post.reactions[defaultEmoji]=[];
+  const idx = post.reactions[defaultEmoji].indexOf(name);
+  if(idx === -1){
+    // إضافة إعجاب
+    post.reactions[defaultEmoji].push(name);
+    if(post.author !== name) addSocialNotif(post.author, `${name} أعجب بمنشورك 👍`, '👍');
+    ebPointsLike();
+    saveSocialPosts(posts);
+    refreshPostCard(postId);
+    // تأثير قفز صغير
+    const btn = document.getElementById('likeBtn_'+postId);
+    if(btn){ btn.style.transform='scale(1.2)'; setTimeout(()=>btn.style.transform='scale(1)',200); }
+  } else {
+    // إلغاء الإعجاب
+    post.reactions[defaultEmoji].splice(idx, 1);
+    saveSocialPosts(posts);
+    refreshPostCard(postId);
+  }
 }
 
 // إضافة animation للـ reactPicker
 (function(){
   const s=document.createElement('style');
-  s.textContent='@keyframes reactPickerIn{from{opacity:0;transform:translateX(-50%) translateY(20px) scale(0.6)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}} [id^=reactPicker_]{backdrop-filter:blur(12px);background:rgba(255,255,255,0.97)!important;border:none!important;box-shadow:0 8px 40px rgba(0,0,0,0.22),0 2px 8px rgba(0,0,0,0.12)!important;padding:12px 18px!important;gap:14px!important;border-radius:40px!important;}';
+  s.textContent='@keyframes reactPickerIn{from{opacity:0;transform:translateX(-50%) translateY(8px) scale(0.8)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}';
   document.head.appendChild(s);
 })();
 
@@ -17757,40 +17275,6 @@ function openMyStoryOrCreate(){
   }
 }
 
-async function _loadStoriesFromFirebase(myName){
-  /* جلب قصص جميع الأعضاء من Firebase ودمجها مع localStorage */
-  try{
-    const _FB_STORIES = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-    const res = await fetch(`${_FB_STORIES}/stories.json?shallow=false`, {signal: AbortSignal.timeout(4000)});
-    if(!res.ok) return;
-    const data = await res.json();
-    if(!data || typeof data !== 'object') return;
-    Object.entries(data).forEach(([safeKey, stories])=>{
-      if(!Array.isArray(stories) || stories.length === 0) return;
-      /* استعادة اسم المستخدم من المفتاح */
-      const userName = safeKey.replace(/_/g,' ');
-      if(userName === myName) return; /* قصصي تُحفظ محلياً */
-      const localKey = 'nld_stories_' + safeKey;
-      /* دمج: نحتفظ بالمحلية إذا كانت أحدث أو لها data أكبر */
-      try{
-        const localStories = JSON.parse(localStorage.getItem(localKey)||'[]');
-        const localIds = new Set(localStories.map(s=>s.id));
-        /* نضيف فقط القصص الجديدة من Firebase التي ليست محلياً */
-        let changed = false;
-        stories.forEach(s=>{
-          if(s && s.id && !localIds.has(s.id) && s.data){
-            localStories.push(s);
-            changed = true;
-          }
-        });
-        if(changed){
-          localStorage.setItem(localKey, JSON.stringify(localStories));
-        }
-      }catch(e){}
-    });
-  }catch(e){}
-}
-
 function renderStoriesBar(myName){
   if(!myName) return;
   // تحديث صورة يومياتي
@@ -17804,18 +17288,6 @@ function renderStoriesBar(myName){
   const container = document.getElementById('friendsStoriesContainer');
   if(!container) return;
 
-  /* ✅ جلب القصص من Firebase أولاً ثم رسم الشريط */
-  _loadStoriesFromFirebase(myName).then(()=>{
-    _renderStoriesBarLocal(myName, container);
-  }).catch(()=>{
-    _renderStoriesBarLocal(myName, container);
-  });
-
-  /* رسم فوري من localStorage بينما تُجلب Firebase */
-  _renderStoriesBarLocal(myName, container);
-}
-
-function _renderStoriesBarLocal(myName, container){
   // جمع جميع الأعضاء الذين لديهم قصص نشطة (من الـ localStorage)
   const allUsersWithStories = [];
   for(let i=0;i<localStorage.length;i++){
@@ -17874,31 +17346,6 @@ function getMyStories(name){
 
 function saveMyStories(name, arr){
   localStorage.setItem(_storiesKey(name), JSON.stringify(arr));
-  /* ✅ مزامنة القصص مع Firebase لتظهر للأصدقاء */
-  try{
-    const _FB_STORIES = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-    const safeKey = name.replace(/[^a-zA-Z0-9؀-ۿ]/g,'_');
-    /* نزامن فقط القصص التي لها رابط URL (ليس base64 ضخم) */
-    const syncArr = arr.map(s => {
-      const safe = Object.assign({}, s);
-      /* إذا كان data بيانات base64 ضخمة، لا نزامنها (حفظت في Cloudinary) */
-      if(safe.data && safe.data.startsWith('data:') && safe.data.length > 500000){
-        safe.data = null; // لا نرسل base64 ضخم لـ Firebase
-      }
-      /* musicData أيضاً لا نزامنها إذا كانت base64 */
-      if(safe.musicData && safe.musicData.startsWith('data:') && safe.musicData.length > 100000){
-        safe.musicData = null;
-      }
-      return safe;
-    }).filter(s => s.data); /* نزامن فقط القصص التي لها رابط */
-    if(syncArr.length > 0){
-      fetch(`${_FB_STORIES}/stories/${safeKey}.json`,{
-        method:'PUT',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(syncArr)
-      }).catch(()=>{});
-    }
-  }catch(e){}
 }
 
 function _refreshMyStoryAvatar(name){
@@ -18421,18 +17868,17 @@ window._publishVideoStory = async function(name){
         duration: d.duration, reactions:{}
       };
       stories.push(story);
-      saveMyStories(name, stories); /* ✅ يزامن مع Firebase تلقائياً */
+      saveMyStories(name, stories);
       _refreshMyStoryAvatar(name);
       document.getElementById('_videoStoryPreview')?.remove();
       URL.revokeObjectURL(d.blobUrl);
       delete window._pendingVideoStory;
-      showToast('✅ تمت إضافة الفيديو لقصتك! ☁️ سيظهر للأصدقاء');
-      setTimeout(()=>renderStoriesBar(name), 300);
+      showToast('✅ تمت إضافة الفيديو لقصتك! ☁️');
+      setTimeout(()=>renderStoriesBar(name), 100);
       return;
     }catch(err){
       window._hideStorageProgress();
-      showToast('⚠️ فشل رفع الفيديو: ' + (err.message||''));
-      console.error('Story video upload error:', err);
+      showToast('⚠️ فشل رفع الفيديو، جاري الحفظ محلياً...');
     }
   }
 
@@ -18715,9 +18161,6 @@ function _openStoryEditorWithImage(name, imageData){
 
     /* ── حفظ القصة ── */
     const stories = getMyStories(name);
-    /* ✅ musicData: نُفضّل رابط URL المرفوع على base64 */
-    const finalMusicData = d.musicData && !d.musicData.startsWith('data:') ? d.musicData
-      : (d.music && !d.music.startsWith('data:') ? d.music : (d.musicData || d.music || null));
     const story = {
       id: 's'+Date.now(),
       type: 'image',
@@ -18730,7 +18173,7 @@ function _openStoryEditorWithImage(name, imageData){
       textSize: d.textSize || 'medium',
       filter: d.filter !== 'none' ? d.filter : null,
       music: d.musicName || null,
-      musicData: finalMusicData,
+      musicData: d.music || null,
       stickers: d.stickers || [],
       duration: 5,
       reactions: {}
@@ -18766,195 +18209,92 @@ function openMyStory(){
 }
 
 function _showStoryViewer(authorName, stories, startIdx){
-  if(!stories || stories.length === 0){ if(typeof showToast==='function') showToast('لا توجد قصص نشطة'); return; }
-  let currentIdx = startIdx || 0;
+  let currentIdx = startIdx;
   let _storyTimer = null;
-  let _paused = false;
-  let _storyMuted = false;
-  let _progressStart = null;
-  let _progressRaf = null;
+  let _storyDuration = 5000; // default 5s for images
 
   const ov = document.createElement('div');
   ov.className = 'story-viewer';
   ov.id = 'storyViewerOverlay';
 
-  /* ── أدوات مساعدة ── */
-  function _stopTimer(){
-    if(_storyTimer){ clearTimeout(_storyTimer); _storyTimer=null; }
-    if(_progressRaf){ cancelAnimationFrame(_progressRaf); _progressRaf=null; }
-  }
-  function _stopBgAudio(){
-    const a = document.getElementById('_storyBgAudio');
-    if(a){ a.pause(); a.remove(); }
-  }
-
   function buildViewer(idx){
-    _stopTimer();
     const s = stories[idx];
-    if(!s){ closeStoryViewer(); return; }
-    const isVideo = s.type==='video';
-    const isAudio = s.type==='audio';
-    const isText  = s.type==='text';
-    const isImg   = !isVideo && !isAudio && !isText;
-    const duration = isVideo ? (s.duration||30)*1000 : 5000;
-
-    /* ── شريط التقدم ── */
+    const duration = s.type==='video' ? (s.duration||30)*1000 : 5000;
+    _storyDuration = duration;
     const progress = stories.map((_,i)=>`
       <div class="story-progress-seg">
-        <div class="story-progress-fill" id="sProg_${i}" style="${i<idx?'width:100%;animation:none;':i===idx?`animation:storyFill ${duration/1000}s linear forwards;`:'width:0%;animation:none;'}"></div>
+        <div class="story-progress-fill" id="sProg_${i}" style="${i<idx?'width:100%;animation:none;':i===idx?`animation:storyFill ${duration/1000}s linear forwards;`:' width:0%;animation:none;'}"></div>
       </div>`).join('');
-
-    /* ── أفاتار صاحب القصة ── */
     const authorPhoto = typeof getProfilePhoto==='function' ? getProfilePhoto(authorName) : null;
     const authorAvatar = authorPhoto
-      ? `<img loading="lazy" src="${authorPhoto}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid white;">`
-      : `<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid white;">${typeof getLeaderIcon==='function'?getLeaderIcon(authorName):'👑'}</div>`;
-    const ts = new Date(s.ts||Date.now()).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+      ? `<img loading="lazy" src="${authorPhoto}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">`
+      : `<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;">${typeof getLeaderIcon==='function'?getLeaderIcon(authorName):'👑'}</div>`;
+    const ts = new Date(s.ts).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
 
-    /* ── الردود والتفاعلات ── */
+    // Reactions summary
     const reactEmojis = ['❤️','😮','😂','😢','👏','🔥'];
-    const meUser = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-    const myReact = (s.reactions && s.reactions[meUser]) ? s.reactions[meUser] : '';
+    const myReact = (s.reactions && s.reactions[getCurrentUser()]) ? s.reactions[getCurrentUser()] : '';
     const reactCounts = {};
     if(s.reactions){ Object.values(s.reactions).forEach(e=>{ reactCounts[e]=(reactCounts[e]||0)+1; }); }
-    const topReacts = Object.entries(reactCounts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e,c])=>`<span style="font-size:16px;">${e}</span><span style="font-size:11px;color:rgba(255,255,255,0.85);margin-left:2px;">${c}</span>`).join(' ');
+    const topReacts = Object.entries(reactCounts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e,c])=>`<span style="font-size:14px;">${e}</span><span style="font-size:11px;color:rgba(255,255,255,0.8);margin-left:2px;">${c}</span>`).join(' ');
 
-    /* ── نص القصة فوق المحتوى ── */
-    const textOverlay = (s.text && !isText && !isAudio)
-      ? `<div style="position:absolute;bottom:130px;left:50%;transform:translateX(-50%);max-width:88%;text-align:center;padding:10px 16px;background:rgba(0,0,0,0.55);border-radius:14px;font-size:17px;font-weight:700;color:white;text-shadow:0 1px 4px rgba(0,0,0,0.5);z-index:20;line-height:1.5;">${s.text}</div>`
-      : '';
+    // Text overlay on story
+    const textOverlay = s.text ? `<div style="position:absolute;bottom:130px;left:50%;transform:translateX(-50%);max-width:85%;text-align:center;padding:10px 16px;background:rgba(0,0,0,0.6);border-radius:12px;font-size:17px;font-weight:700;color:white;text-shadow:0 1px 4px rgba(0,0,0,0.5);z-index:8;line-height:1.4;">${s.text}</div>` : '';
 
-    /* ── موسيقى ── */
-    const musicBar = s.music ? `<div style="position:absolute;top:68px;right:12px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.55);border-radius:20px;padding:5px 10px;z-index:20;"><span style="font-size:14px;animation:spin 2s linear infinite;display:inline-block;">🎵</span><span style="font-size:11px;color:white;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.music}</span></div>` : '';
+    // Music indicator
+    const musicBar = s.music ? `<div style="position:absolute;top:70px;right:12px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.55);border-radius:20px;padding:5px 10px;z-index:9;"><span style="font-size:14px;animation:spin 2s linear infinite;display:inline-block;">🎵</span><span style="font-size:11px;color:white;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.music}</span></div>` : '';
 
-    /* ── محتوى الوسائط ── */
-    let mediaContent = '';
-    if(isVideo){
-      /* ✅ الإصلاح الجذري: الفيديو يملأ الشاشة كالإنستغرام */
-      mediaContent = `
-        <video id="storyVideo"
-          playsinline
-          autoplay
-          webkit-playsinline
-          x5-playsinline
-          preload="auto"
-          style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;z-index:1;"
-          onended="nextStory()"
-          onerror="document.getElementById('svVideoErr')&&(document.getElementById('svVideoErr').style.display='flex')">
-        </video>
-        <!-- خطأ بديل إذا فشل الفيديو -->
-        <div id="svVideoErr" style="display:none;position:absolute;inset:0;z-index:5;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#111;">
-          <div style="font-size:48px;">🎬</div>
-          <div style="font-size:14px;color:#aaa;font-family:'Tajawal',sans-serif;">تعذّر تشغيل الفيديو</div>
-          <button onclick="nextStory()" style="padding:8px 20px;background:#1877F2;color:white;border:none;border-radius:20px;font-size:13px;cursor:pointer;font-family:'Tajawal',sans-serif;">التالي ←</button>
-        </div>
-        <div id="storyMuteBtn" onclick="toggleStoryMute()" style="position:absolute;bottom:100px;left:14px;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;z-index:25;border:1.5px solid rgba(255,255,255,0.3);">🔊</div>`;
-    } else if(isText){
-      mediaContent = `
-        <div style="position:absolute;inset:0;background:${s.bgColor||'linear-gradient(135deg,#1877F2,#0d5bda)'};display:flex;align-items:center;justify-content:center;z-index:1;">
-          <div style="text-align:center;padding:30px;max-width:88%;font-size:30px;font-weight:900;color:white;font-family:'Tajawal',sans-serif;text-shadow:0 2px 14px rgba(0,0,0,0.4);line-height:1.5;word-break:break-word;">${s.text||''}</div>
-        </div>`;
-    } else if(isAudio){
-      mediaContent = `
-        <div style="position:absolute;inset:0;background:${s.bgColor||'linear-gradient(135deg,#11998e,#38ef7d)'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;z-index:1;">
-          <div style="font-size:80px;animation:onlinePulse 2s infinite;">🎙️</div>
-          <div style="font-size:20px;font-weight:800;color:white;font-family:'Tajawal',sans-serif;text-align:center;padding:0 30px;">${s.text||'قصة صوتية'}</div>
-          <audio id="storyAudio" src="${s.data||''}" autoplay controls style="width:85%;border-radius:12px;max-width:320px;"></audio>
-        </div>`;
-    } else {
-      /* صورة */
-      mediaContent = `
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000;z-index:1;">
-          <img id="storyImg" src="${s.data||''}"
-            style="width:100%;height:100%;object-fit:cover;display:block;"
-            onerror="this.style.objectFit='contain';this.style.background='#111';"
-            onclick="nextStory()">
-        </div>`;
-    }
-
-    ov.innerHTML = `
+    ov.innerHTML=`
       <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-      <!-- شريط التقدم -->
-      <div class="story-progress-bar" style="z-index:30;">${progress}</div>
-
-      <!-- الطبقة الإعلامية -->
-      ${mediaContent}
-
-      <!-- نص القصة -->
-      ${textOverlay}
-      ${musicBar}
-
-      <!-- رأس القصة: أفاتار + اسم + أزرار -->
-      <div style="position:absolute;top:22px;left:0;right:0;z-index:30;display:flex;align-items:center;gap:10px;padding:0 14px;margin-top:8px;">
+      <div class="story-progress-bar">${progress}</div>
+      <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:94%;max-width:460px;z-index:10;display:flex;align-items:center;gap:10px;padding:0 4px;">
+        ${authorName !== getCurrentUser() ? `<div onclick="closeStoryViewer()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;font-weight:900;color:white;flex-shrink:0;">‹</div>` : ''}
         ${authorAvatar}
         <div style="flex:1;">
-          <div style="font-size:14px;font-weight:900;color:white;text-shadow:0 1px 6px rgba(0,0,0,0.7);">${authorName}</div>
+          <div style="font-size:14px;font-weight:900;color:white;text-shadow:0 1px 6px rgba(0,0,0,0.6);">${authorName}</div>
           <div style="font-size:11px;color:rgba(255,255,255,0.8);">${ts}</div>
         </div>
-        <div onclick="toggleStoryPause()" id="storyPauseBtn" style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;border:1px solid rgba(255,255,255,0.3);">⏸</div>
-        <div onclick="closeStoryViewer()" style="width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;font-weight:900;color:white;border:2px solid rgba(255,255,255,0.4);">✕</div>
+        <div onclick="toggleStoryPause()" id="storyPauseBtn" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;margin-left:4px;">⏸</div>
+        <div onclick="closeStoryViewer()" style="width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;font-weight:900;color:white;flex-shrink:0;border:2px solid rgba(255,255,255,0.4);">❌</div>
+      </div>
+      ${musicBar}
+      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;${s.type==='text'?`background:${s.bgColor||'linear-gradient(135deg,#1877F2,#0d5bda)'};`:s.type==='audio'?`background:${s.bgColor||'linear-gradient(135deg,#11998e,#38ef7d)'};`:''}">
+        ${s.type==='video'
+          ? `<video id="storyVideo" src="${s.data}" autoplay ${s.muted!==false?'muted':''} playsinline style="max-width:100%;max-height:100vh;object-fit:contain;" onended="nextStory()"></video>`
+          : s.type==='text'
+            ? `<div style="text-align:center;padding:30px;max-width:85%;font-size:28px;font-weight:900;color:white;font-family:'Tajawal',sans-serif;text-shadow:0 2px 12px rgba(0,0,0,0.4);line-height:1.4;word-break:break-word;">${s.text||''}</div>`
+            : s.type==='audio'
+              ? `<div style="display:flex;flex-direction:column;align-items:center;gap:20px;padding:30px;"><div style="font-size:72px;animation:onlinePulse 2s infinite;">🎙️</div><div style="font-size:18px;font-weight:800;color:white;font-family:'Tajawal',sans-serif;">${s.text||'قصة صوتية'}</div><audio id="storyAudio" src="${s.data}" autoplay controls style="width:85%;border-radius:12px;"></audio></div>`
+              : `<img loading="lazy" src="${s.data}" style="max-width:100%;max-height:100vh;object-fit:contain;" onclick="nextStory()">`
+        }
+        ${s.type !== 'text' && s.type !== 'audio' ? textOverlay : ''}
       </div>
 
-      <!-- قاع القصة: رد + تفاعل + مشاركة -->
-      <div style="position:absolute;bottom:0;left:0;right:0;z-index:30;padding:12px 14px 20px;">
-        <!-- تفاعلات -->
-        <div id="storyReactPicker" style="display:none;gap:8px;justify-content:center;margin-bottom:10px;">
-          ${reactEmojis.map(e=>`<div onclick="reactToStory('${e}')" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:.15s;border:2px solid ${myReact===e?'white':'transparent'};backdrop-filter:blur(4px);" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">${e}</div>`).join('')}
+      <!-- Bottom reactions bar -->
+      <div style="position:absolute;bottom:0;left:0;right:0;z-index:10;padding:14px 16px;background:linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%);">
+        <!-- Reaction picker -->
+        <div id="storyReactPicker" style="display:none;flex;gap:8px;justify-content:center;margin-bottom:10px;">
+          ${reactEmojis.map(e=>`<div onclick="reactToStory('${e}')" style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:.2s;border:2px solid ${myReact===e?'white':'transparent'};" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'">${e}</div>`).join('')}
         </div>
+        <!-- Bottom action bar -->
         <div style="display:flex;align-items:center;gap:8px;">
-          <div onclick="toggleStoryReactPicker()" style="flex:1;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.4);border-radius:24px;padding:10px 16px;font-size:13px;color:rgba(255,255,255,0.75);cursor:pointer;text-align:right;font-family:'Tajawal',sans-serif;backdrop-filter:blur(6px);">💬 رد على القصة…</div>
-          ${topReacts ? `<div style="background:rgba(0,0,0,0.45);border-radius:20px;padding:5px 10px;display:flex;align-items:center;gap:4px;backdrop-filter:blur(4px);">${topReacts}</div>` : ''}
-          <div onclick="shareStory()" style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;border:1px solid rgba(255,255,255,0.3);">↗️</div>
+          <div onclick="toggleStoryReactPicker()" style="flex:1;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.35);border-radius:24px;padding:9px 16px;font-size:13px;color:rgba(255,255,255,0.7);cursor:pointer;text-align:right;font-family:'Tajawal',sans-serif;">💬 رد على القصة…</div>
+          ${topReacts ? `<div style="background:rgba(0,0,0,0.4);border-radius:20px;padding:5px 10px;display:flex;align-items:center;gap:4px;">${topReacts}</div>` : ''}
+          <div onclick="shareStory()" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;">↗️</div>
         </div>
       </div>
 
-      <!-- منطقة التنقل: يسار = التالي، يمين = السابق (مثل إنستغرام) -->
-      <div onclick="prevStory()" style="position:absolute;top:70px;right:0;width:30%;height:65%;cursor:pointer;z-index:15;"></div>
-      <div onclick="nextStory()" style="position:absolute;top:70px;left:0;width:70%;height:65%;cursor:pointer;z-index:15;"></div>
+      <!-- Navigation zones -->
+      <div onclick="prevStory()" style="position:absolute;top:70px;right:0;width:35%;height:60%;cursor:pointer;z-index:5;"></div>
+      <div onclick="nextStory()" style="position:absolute;top:70px;left:0;width:65%;height:60%;cursor:pointer;z-index:5;"></div>
     `;
 
-    /* ✅ تحميل الفيديو بعد إدراج HTML لضمان وجود العنصر في DOM */
-    if(isVideo){
-      const vid = document.getElementById('storyVideo');
-      if(vid){
-        const src = s.data || s.url || s.videoUrl || '';
-        if(src){
-          vid.src = src;
-          vid.load();
-          const playPromise = vid.play();
-          if(playPromise && typeof playPromise.then === 'function'){
-            playPromise.catch(err=>{
-              console.warn('story video play blocked:', err);
-              /* أضف زر تشغيل يدوي */
-              const errDiv = document.getElementById('svVideoErr');
-              if(errDiv){
-                errDiv.style.display='flex';
-                errDiv.innerHTML = `<div style="font-size:64px;cursor:pointer;" onclick="document.getElementById('storyVideo')&&document.getElementById('storyVideo').play();document.getElementById('svVideoErr').style.display='none';">▶️</div><div style="font-size:13px;color:#aaa;margin-top:8px;font-family:'Tajawal',sans-serif;">اضغط للتشغيل</div>`;
-              }
-            });
-          }
-          /* ── مزامنة شريط التقدم مع مدة الفيديو الحقيقية ── */
-          vid.addEventListener('loadedmetadata', ()=>{
-            const realDur = vid.duration || 30;
-            const fill = document.getElementById('sProg_'+idx);
-            if(fill){
-              const fillInner = fill.querySelector('.story-progress-fill') || fill;
-              fillInner.style.animation = `storyFill ${realDur}s linear forwards`;
-            }
-          }, {once:true});
-        } else {
-          const errDiv = document.getElementById('svVideoErr');
-          if(errDiv) errDiv.style.display='flex';
-        }
-      }
-      /* للفيديو: المؤقت يُدار عبر حدث onended */
-    } else if(isImg){
+    // مؤقت للصور
+    if(s.type==='image'){
       _storyTimer = setTimeout(()=>nextStory(), 5000);
-    } else if(isAudio || isText){
-      _storyTimer = setTimeout(()=>nextStory(), 7000);
     }
 
-    /* ── تسجيل المشاهد ── */
+    // ── تسجيل المشاهد في القصة (مرة واحدة لكل مشاهد) ──
     (function _recordStoryViewer(){
       const viewer = typeof getCurrentUser==='function' ? getCurrentUser() : '';
       if(!viewer || viewer==='زائر' || viewer===authorName) return;
@@ -18970,8 +18310,9 @@ function _showStoryViewer(authorName, stories, startIdx){
       }catch(e){}
     })();
 
-    /* ── موسيقى الخلفية ── */
-    _stopBgAudio();
+    // ── تشغيل الموسيقى إذا كانت موجودة ──
+    const prevAudio = document.getElementById('_storyBgAudio');
+    if(prevAudio){ prevAudio.pause(); prevAudio.remove(); }
     if(s.musicData){
       const audio = document.createElement('audio');
       audio.id = '_storyBgAudio';
@@ -18984,35 +18325,20 @@ function _showStoryViewer(authorName, stories, startIdx){
     }
   }
 
-  /* ── وظائف التحكم ── */
+  let _paused = false;
   window.toggleStoryPause = ()=>{
     _paused = !_paused;
     const btn = document.getElementById('storyPauseBtn');
     if(btn) btn.innerText = _paused ? '▶' : '⏸';
     const vid = document.getElementById('storyVideo');
-    if(vid){ _paused ? vid.pause() : vid.play().catch(()=>{}); }
-    const aud = document.getElementById('storyAudio');
-    if(aud){ _paused ? aud.pause() : aud.play().catch(()=>{}); }
-    const bgAud = document.getElementById('_storyBgAudio');
-    if(bgAud){ _paused ? bgAud.pause() : bgAud.play().catch(()=>{}); }
+    if(vid){ _paused ? vid.pause() : vid.play(); }
     if(_storyTimer){ clearTimeout(_storyTimer); _storyTimer=null; }
-    if(!_paused){
-      const s = stories[currentIdx];
-      if(s && (s.type==='image'||!s.type)){ _storyTimer = setTimeout(()=>nextStory(), 3000); }
+    if(!_paused && stories[currentIdx].type==='image'){
+      _storyTimer = setTimeout(()=>nextStory(), 3000);
     }
-    const fill = document.getElementById('sProg_'+currentIdx);
-    if(fill){
-      const inner = fill.querySelector ? fill.querySelector('.story-progress-fill') : fill;
-      if(inner) inner.style.animationPlayState = _paused ? 'paused' : 'running';
-    }
-  };
-
-  window.toggleStoryMute = ()=>{
-    _storyMuted = !_storyMuted;
-    const vid = document.getElementById('storyVideo');
-    const btn = document.getElementById('storyMuteBtn');
-    if(vid) vid.muted = _storyMuted;
-    if(btn) btn.innerText = _storyMuted ? '🔇' : '🔊';
+    // pause/resume progress bar
+    const fill = document.getElementById('sProg_'+currentIdx)?.querySelector('.story-progress-fill');
+    if(fill){ fill.style.animationPlayState = _paused ? 'paused' : 'running'; }
   };
 
   window.toggleStoryReactPicker = ()=>{
@@ -19023,11 +18349,13 @@ function _showStoryViewer(authorName, stories, startIdx){
   window.reactToStory = (emoji)=>{
     const s = stories[currentIdx];
     if(!s.reactions) s.reactions={};
-    const name = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+    const name = getCurrentUser();
     s.reactions[name] = emoji;
-    const allStories = typeof getMyStories==='function' ? getMyStories(authorName) : [];
+    // save
+    const key = _storiesKey(authorName);
+    const allStories = getMyStories(authorName);
     const target = allStories.find(st=>st.id===s.id);
-    if(target){ target.reactions = s.reactions; if(typeof saveMyStories==='function') saveMyStories(authorName, allStories); }
+    if(target){ target.reactions = s.reactions; saveMyStories(authorName, allStories); }
     if(typeof showToast==='function') showToast('تفاعلت بـ '+emoji);
     buildViewer(currentIdx);
   };
@@ -19037,50 +18365,39 @@ function _showStoryViewer(authorName, stories, startIdx){
     const shareText = `📸 قصة ${authorName} على Connect DZ!\nشاهد القصة: ${window.location.href}`;
     if(navigator.share){
       navigator.share({ title:'قصة من '+authorName+' على Connect DZ', text:shareText, url:window.location.href }).catch(()=>{
-        navigator.clipboard?.writeText(shareText).then(()=>{ if(typeof showToast==='function') showToast('🔗 تم نسخ رابط القصة!'); });
+        // fallback to clipboard
+        navigator.clipboard?.writeText(shareText).then(()=>showToast('🔗 تم نسخ رابط القصة — يمكنك مشاركتها أينما تريد!'));
       });
     } else if(navigator.clipboard){
-      navigator.clipboard.writeText(shareText).then(()=>{ if(typeof showToast==='function') showToast('🔗 تم نسخ رابط القصة!'); });
+      navigator.clipboard.writeText(shareText).then(()=>showToast('🔗 تم نسخ رابط القصة — شاركها بلا حدود! ↗️'));
+    } else {
+      showToast('↗️ شارك القصة مع الجميع!');
     }
+    // تسجيل المشاركة
     if(s){ if(!s.shares) s.shares=0; s.shares++; }
   };
 
   window.nextStory = ()=>{
-    _stopBgAudio();
-    _stopTimer();
-    const vid = document.getElementById('storyVideo');
-    if(vid){ vid.pause(); }
+    const bgAudio = document.getElementById('_storyBgAudio');
+    if(bgAudio){ bgAudio.pause(); bgAudio.remove(); }
+    if(_storyTimer) clearTimeout(_storyTimer);
     currentIdx++;
     if(currentIdx >= stories.length){ closeStoryViewer(); return; }
     buildViewer(currentIdx);
   };
-
   window.prevStory = ()=>{
-    _stopTimer();
-    const vid = document.getElementById('storyVideo');
-    if(vid){ vid.pause(); }
+    if(_storyTimer) clearTimeout(_storyTimer);
     currentIdx = Math.max(0, currentIdx-1);
     buildViewer(currentIdx);
   };
-
   window.closeStoryViewer = ()=>{
-    _stopBgAudio();
-    _stopTimer();
-    const vid = document.getElementById('storyVideo');
-    if(vid){ vid.pause(); vid.src=''; }
+    // إيقاف موسيقى الخلفية
+    const bgAudio = document.getElementById('_storyBgAudio');
+    if(bgAudio){ bgAudio.pause(); bgAudio.remove(); }
+    if(_storyTimer) clearTimeout(_storyTimer);
     ov.remove();
-    ['nextStory','prevStory','closeStoryViewer','toggleStoryPause','toggleStoryReactPicker','reactToStory','shareStory','toggleStoryMute'].forEach(f=>{ try{delete window[f];}catch(e){} });
+    ['nextStory','prevStory','closeStoryViewer','toggleStoryPause','toggleStoryReactPicker','reactToStory','shareStory'].forEach(f=>{ try{delete window[f];}catch(e){} });
   };
-
-  /* ── لوحة المفاتيح ── */
-  function _keyHandler(e){
-    if(e.key==='ArrowRight'||e.key==='ArrowDown') nextStory();
-    else if(e.key==='ArrowLeft'||e.key==='ArrowUp') prevStory();
-    else if(e.key==='Escape') closeStoryViewer();
-    else if(e.key===' '){ e.preventDefault(); toggleStoryPause(); }
-  }
-  document.addEventListener('keydown', _keyHandler);
-  ov.addEventListener('_destroy',()=>document.removeEventListener('keydown',_keyHandler));
 
   document.body.appendChild(ov);
   buildViewer(currentIdx);
@@ -27517,14 +26834,11 @@ function _checkAndAutoPost(){
   }
 }
 
-/* ══ جدول الترتيب كل 7 ساعات مع تهنئة الثلاثة الأوائل ══ */
-const _RANKING_INTERVAL_KEY = 'cdz_ranking_last_ts';
-const _RANKING_INTERVAL_MS = 7 * 60 * 60 * 1000; // 7 ساعات
-
+/* ══ جدول الترتيب اليومي ساعة 22:00 ══ */
 async function _publishDailyRanking(){
-  const now = Date.now();
-  const lastRankTs = parseInt(localStorage.getItem(_RANKING_INTERVAL_KEY) || '0');
-  if(now - lastRankTs < _RANKING_INTERVAL_MS) return; // لم يمر 7 ساعات بعد
+  const today = new Date().toISOString().slice(0,10);
+  const lastRankDate = localStorage.getItem(_RANKING_POST_KEY) || '';
+  if(lastRankDate === today) return; // نُشر اليوم
 
   // جلب الترتيب من Firebase
   let members = [];
@@ -27541,85 +26855,47 @@ async function _publishDailyRanking(){
     }
   }catch(e){}
 
-  // بناء نص جدول الترتيب
+  // بناء نص الجدول
   const medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
-  const timeStr = new Date().toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
-  let rankText = '🏆 تحديث جدول الترتيب\n\n';
-  rankText += new Date().toLocaleDateString('ar-DZ',{weekday:'long',day:'numeric',month:'long'}) + ' — ' + timeStr + '\n\n';
+  let rankText = '🏆 جدول الترتيب اليومي\n\n';
+  rankText += new Date().toLocaleDateString('ar-DZ',{weekday:'long',day:'numeric',month:'long'}) + '\n\n';
 
   if(members.length > 0){
     members.forEach((m, i) => {
       const pts = parseInt(m.points)||0;
       rankText += `${medals[i]} ${m.name} — ${pts.toLocaleString('ar-DZ')} نقطة\n`;
     });
-    rankText += '\n━━━━━━━━━━━━━━━━━━\n';
-    // 🎉 تهنئة خاصة للثلاثة الأوائل
-    if(members[0]) rankText += `\n🌟 تهانينا ${members[0].name}! أنت في القمة، استمر في التألق وحافظ على مكانتك! 👑\n`;
-    if(members[1]) rankText += `\n💪 إبراز خاص لـ ${members[1].name}! أداء رائع، المركز الأول في متناول يدك! 🔥\n`;
-    if(members[2]) rankText += `\n⚡ مبروك ${members[2].name}! في منصة التتويج، لا تتوقف عن المنافسة! 🚀\n`;
-    rankText += '\n🎯 واصلوا المشاركة لتحسين ترتيبكم!\nيُحدَّث الجدول كل 7 ساعات ⏱️';
+    rankText += '\n🎉 تهانينا للمتصدرين!\n\n';
+    // تحية خاصة للثلاثة الأوائل
+    if(members[0]) rankText += `🌟 ${members[0].name} أنت نجم اليوم! استمر في التألق!\n`;
+    if(members[1]) rankText += `💪 ${members[1].name} رائع! لا تتوقف عن المنافسة!\n`;
+    if(members[2]) rankText += `⚡ ${members[2].name} أداء مميز! الترتيب الأول في متناولك!\n`;
   } else {
     rankText += 'يجري تحميل بيانات الترتيب...\n\nتابع تحديثاتنا قريباً! 🎯';
   }
 
   _autoPublishPost({ text: rankText, feeling: '🏆 منافس' }, 'ranking');
-  localStorage.setItem(_RANKING_INTERVAL_KEY, String(now));
+  localStorage.setItem(_RANKING_POST_KEY, today);
 }
 
-/* ── فحص كل 30 دقيقة إذا مرت 7 ساعات ── */
+/* ── فحص الساعة كل دقيقة ── */
 function _checkRankingTime(){
-  _publishDailyRanking();
+  const now = new Date();
+  if(now.getHours() === 22 && now.getMinutes() === 0){
+    _publishDailyRanking();
+  }
 }
 
-/* ══ منشورات النقاط والرصيد وتحديد المستوى ══ */
-const _POINTS_POST_KEY = 'cdz_points_post_ts';
-const _POINTS_POST_INTERVAL = 12 * 60 * 60 * 1000; // 12 ساعة
-
-const _POINTS_INFO_POSTS = [
-  {
-    text: '💡 كيف تُحسب نقاطك في Connect DZ؟\n\n✅ المشاركة في الكويز ← نقاط فورية\n✅ نشر منشور ← +5 نقاط\n✅ التعليق على منشور ← +2 نقاط\n✅ الإعجاب والتفاعل ← +1 نقطة\n✅ مشاركة المنشورات ← +3 نقاط\n✅ تسجيل الدخول اليومي ← نقاط مضاعفة\n\n🏆 كلما زادت نقاطك، ارتفع ترتيبك وزاد رصيدك!',
-    feeling: '📊 متعلِّم'
-  },
-  {
-    text: '💰 كيف يُحسب رصيدك المالي في Connect DZ؟\n\n🔢 الصيغة:\nرصيدك = (نقاطك ÷ 50) × السعر\n\n💵 السعر:\n• أوائل 15 مركز ← 35 دج لكل 50 نقطة\n• باقي الأعضاء ← 30 دج لكل 50 نقطة\n\nمثال: عضو عنده 500 نقطة\n500 ÷ 50 = 10 × 30 = 300 دج 💸\n\nتابع رصيدك من صفحتك الشخصية!',
-    feeling: '💰 مُتشجِّع'
-  },
-  {
-    text: '🎯 نظام المستويات في Connect DZ\n\n📊 كل 3000 نقطة = مستوى جديد!\n\n🌱 المستوى 1: 0 — 2999 نقطة\n⭐ المستوى 2: 3000 — 5999 نقطة\n🔥 المستوى 3: 6000 — 8999 نقطة\n💎 المستوى 4: 9000 — 11999 نقطة\n👑 المستوى 5+: 12000+ نقطة\n\n🚀 اسعَ لرفع مستواك وكسب الشارات الحصرية!\nمستواك يظهر في ملفك الشخصي 🏅',
-    feeling: '🚀 طموح'
-  },
-  {
-    text: '📈 نصائح لرفع رصيدك ونقاطك بسرعة!\n\n⚡ الطريقة الأسرع:\n1️⃣ شارك في كل كويز يومياً\n2️⃣ انشر محتوى مفيد بانتظام\n3️⃣ علّق وتفاعل مع منشورات الآخرين\n4️⃣ شارك المنشورات المميزة\n5️⃣ سجّل دخولك كل يوم\n\n🏆 الأعضاء الأكثر نشاطاً يظهرون في الصفحة الأولى من الجدول!\n\nابدأ الآن وكن في القمة! 💪',
-    feeling: '💡 ناصح'
-  },
-];
-
-async function _publishPointsInfoPost(){
-  const now = Date.now();
-  const lastTs = parseInt(localStorage.getItem(_POINTS_POST_KEY) || '0');
-  if(now - lastTs < _POINTS_POST_INTERVAL) return;
-
-  const tracker = _getTracker();
-  const idx = tracker.pointsIdx || 0;
-  _autoPublishPost(_POINTS_INFO_POSTS[idx % _POINTS_INFO_POSTS.length], 'points_info');
-  tracker.pointsIdx = (idx + 1) % _POINTS_INFO_POSTS.length;
-  _saveTracker(tracker);
-  localStorage.setItem(_POINTS_POST_KEY, String(now));
-}
-
-/* ── تحديث أيقونات المنشورات التلقائية من الصفحات ── */
+/* ── تشغيل النظام ── */
 window.addEventListener('load', function(){
   // فحص النشر التلقائي بعد ثانيتين من التحميل
   setTimeout(_checkAndAutoPost, 2000);
   // فحص كل ساعة
   setInterval(_checkAndAutoPost, 60 * 60 * 1000);
-  // فحص جدول الترتيب كل 30 دقيقة
-  setInterval(_checkRankingTime, 30 * 60 * 1000);
-  // فحص فوري عند التحميل
-  setTimeout(_checkRankingTime, 5000);
-  // نشر منشورات النقاط والمستوى والرصيد كل 12 ساعة
-  setTimeout(_publishPointsInfoPost, 10000);
-  setInterval(_publishPointsInfoPost, 12 * 60 * 60 * 1000);
+  // فحص وقت الجدول كل دقيقة
+  setInterval(_checkRankingTime, 60 * 1000);
+  // فحص فوري إذا الساعة 22:00
+  _checkRankingTime();
 });
 
 console.log('🤖 [AutoPost] نظام المنشورات التلقائية — مفعّل');
