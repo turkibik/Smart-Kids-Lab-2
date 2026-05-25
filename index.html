@@ -26,6 +26,109 @@
     overscroll-behavior: none !important;
     overscroll-behavior-y: none !important;
   }
+
+<style id="admin-gold-styles">
+/* ══════════════════════════════════════════════════════
+   🌟 أنماط المدير الذهبية — شارة ذهبية + ميزات إدارة
+   ══════════════════════════════════════════════════════ */
+
+/* نبض الشارة الذهبية */
+@keyframes adminGoldPulse {
+  0%,100% { box-shadow:0 0 8px rgba(255,215,0,0.8),0 0 16px rgba(255,165,0,0.4); }
+  50% { box-shadow:0 0 16px rgba(255,215,0,1),0 0 32px rgba(255,165,0,0.7),0 0 48px rgba(255,107,53,0.3); }
+}
+
+/* حاوية لوحة إرسال النقاط */
+#adminPointsSendPanel {
+  position:fixed;inset:0;z-index:50000;
+  background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);
+  display:flex;align-items:center;justify-content:center;
+  animation:fadeIn .25s ease;
+}
+.admin-pts-panel-inner {
+  background:linear-gradient(160deg,#0d1117,#1a1a2e);
+  border:1px solid rgba(255,215,0,0.3);
+  border-radius:24px;padding:28px 24px;width:92%;max-width:440px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.7),0 0 40px rgba(255,215,0,0.1);
+}
+.admin-pts-title {
+  font-size:18px;font-weight:900;color:#FFD700;
+  text-align:center;margin-bottom:18px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.admin-pts-input {
+  width:100%;padding:13px 16px;
+  background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,215,0,0.25);
+  border-radius:12px;color:white;font-family:'Tajawal',sans-serif;
+  font-size:14px;font-weight:700;outline:none;box-sizing:border-box;
+  text-align:right;margin-bottom:10px;transition:.2s;
+}
+.admin-pts-input:focus { border-color:#FFD700; box-shadow:0 0 0 3px rgba(255,215,0,0.15); }
+.admin-pts-input::placeholder { color:rgba(255,255,255,0.4); }
+.admin-pts-toggle {
+  display:flex;gap:8px;margin-bottom:14px;
+}
+.admin-pts-toggle-btn {
+  flex:1;padding:10px;border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;
+  background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.6);
+  font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;
+}
+.admin-pts-toggle-btn.active {
+  background:rgba(255,215,0,0.2);border-color:#FFD700;color:#FFD700;
+}
+.admin-pts-send-btn {
+  width:100%;padding:14px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,#FFD700,#FFA500);
+  color:#0d1117;font-family:'Tajawal',sans-serif;font-size:16px;font-weight:900;
+  cursor:pointer;transition:.15s;margin-top:4px;
+}
+.admin-pts-send-btn:hover { transform:translateY(-2px); filter:brightness(1.1); }
+
+/* بطاقة النظام لإرسال المنشورات */
+#adminCommandPanel {
+  position:fixed;inset:0;z-index:50000;
+  background:rgba(0,0,0,0.8);backdrop-filter:blur(14px);
+  display:flex;align-items:flex-end;justify-content:center;
+  animation:fadeIn .2s ease;
+}
+.admin-cmd-inner {
+  background:linear-gradient(160deg,#0d1117,#1a1a2e);
+  border:1px solid rgba(0,229,160,0.25);
+  border-radius:28px 28px 0 0;padding:22px 20px 36px;
+  width:100%;max-width:500px;
+  max-height:85vh;overflow-y:auto;
+}
+
+/* شارة المدير في قائمة الرسائل */
+.admin-msg-gold-badge {
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;
+  background:linear-gradient(135deg,#FFD700,#FFA500);
+  border-radius:50%;font-size:9px;color:#0d1117;font-weight:900;
+  margin-right:3px;flex-shrink:0;
+  box-shadow:0 0 6px rgba(255,215,0,0.6);
+}
+
+/* واجهة إرسال نقاط سريعة */
+.quick-pts-row {
+  display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;
+}
+.quick-pts-btn {
+  padding:6px 12px;border-radius:20px;
+  background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.3);
+  color:#FFD700;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;
+  cursor:pointer;transition:.15s;
+}
+.quick-pts-btn:hover { background:rgba(255,215,0,0.25); }
+
+/* حفظ تلقائي - تذكرني */
+.quick-login-saved-badge {
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:20px;
+  background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.25);
+  font-size:11px;font-weight:700;color:var(--accent,#00e5a0);
+}
+</style>
 </style>
 <script>
 /* ══════════════════════════════════════════════════════════
@@ -4192,6 +4295,10 @@ function switchLoginTab(tab){
         <div class="notif-btn" id="notifBell" onclick="openNotifications()" title="التنبيهات" style="position:relative;background:linear-gradient(135deg,rgba(255,160,0,0.15),rgba(255,80,0,0.15));border-color:rgba(255,160,0,0.3);font-size:20px;">🔔<span id="notifBadge" style="display:none;position:absolute;top:-5px;left:-5px;min-width:18px;height:18px;border-radius:9px;background:#e52d27;border:2px solid var(--dark);font-size:10px;font-weight:900;color:white;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;"></span></div>
         <!-- زر برمجة التطبيق - للمدير فقط: يفتح نافذة إرسال الرسائل -->
         <div class="notif-btn" id="adminBroadcastBtn" onclick="openAdminBroadcastPanel()" title="برمجة التطبيق" style="display:none;position:relative;background:linear-gradient(135deg,rgba(0,150,255,0.2),rgba(168,85,247,0.2));border-color:rgba(0,150,255,0.4);font-size:18px;">💻</div>
+        <!-- زر إرسال نقاط - للمدير فقط -->
+        <div class="notif-btn" id="adminSendPtsBtn" onclick="openAdminSendPointsPanel()" title="إرسال نقاط للأعضاء" style="display:none;position:relative;background:linear-gradient(135deg,rgba(255,215,0,0.25),rgba(255,165,0,0.2));border-color:rgba(255,215,0,0.5);font-size:18px;">🌟</div>
+        <!-- زر نشر منشور - للمدير فقط -->
+        <div class="notif-btn" id="adminPostBtn" onclick="openAdminCommandPanel()" title="نشر منشور" style="display:none;position:relative;background:linear-gradient(135deg,rgba(0,229,160,0.2),rgba(0,153,255,0.15));border-color:rgba(0,229,160,0.4);font-size:18px;">📣</div>
         <!-- زر الإدارة في الأعلى - للأدمن فقط -->
         <div class="notif-btn" id="adminNavBtn" onclick="showModal('adminModal')" title="لوحة الإدارة" style="display:none;position:relative;background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(245,158,11,0.2));border-color:rgba(220,38,38,0.4);font-size:18px;">⚙️</div>
         <button class="logout-btn" onclick="goBackToSocialHome()" title="رجوع للصفحة الرئيسية" style="gap:5px;">
@@ -8335,7 +8442,7 @@ const SMARTKIDS_MEMBER_NAME = 'يحيى ديش';
 /* 🔒 نظام كلمة مرور المدير */
 /* ← غيّر هذه القيمة لكلمة مرورك السرية */
 /* 🔒 هاش SHA-256 لكلمة المرور — لا أحد يستطيع قراءة كلمة المرور الأصلية من هنا */
-const ADMIN_PASS_HASH = 'a6cc8ec5074e3388ff34f8927363b721323467726b03f760364cc3629c716ae4';
+const ADMIN_PASS_HASH = '71fee97039e7f150f9b4e761b151c10361fdd4e6c2ca71cb6a41fd668fb153ee';
 
 async function _hashPass(pass){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
@@ -8373,7 +8480,7 @@ async function _verifyAdminPass(inputPass){
 let _isAdmin = false;
 
 /* ══════════════════════════════════════════════════════════
-   🛡️ نظام المدير المتقدم — yahia_nex_smart
+   🛡️ نظام المدير المتقدم — المدير_الرئيسي
    • 1000 نقطة عند كل دخول / رد / عملية
    • شارة زرقاء ✅ حساب موثق
    • محادثات المدير ثابتة لا تُحذف
@@ -8388,7 +8495,9 @@ const _ADMIN_VERIFIED_KEY = 'nld_admin_verified_badge';
 function _addAdminPoints(reason){
   if(!_isAdmin) return;
   const prev = parseInt(localStorage.getItem(_ADMIN_PTS_KEY) || '0');
-  const newPts = prev + 1000;
+  /* 🌟 الحد الأدنى لنقاط المدير: 5,000,000 نقطة */
+  const MIN_ADMIN_PTS = 5000000;
+  const newPts = Math.max(MIN_ADMIN_PTS, prev + 1000);
   if(window.__lsNativeSet){
     window.__lsNativeSet(_ADMIN_PTS_KEY, String(newPts));
   } else {
@@ -8423,18 +8532,28 @@ function _addAdminPoints(reason){
   if(typeof playGoldSound === 'function') playGoldSound();
 }
 
-/* ── الشارة الزرقاء للمدير ── */
+/* ── الشارة الذهبية المميزة للمدير ── */
 function _getAdminVerifiedBadge(){
-  return `<span title="حساب موثق" style="display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;background:#1877F2;border-radius:50%;font-size:9px;color:white;font-weight:900;margin-right:2px;flex-shrink:0;box-shadow:0 0 6px rgba(24,119,242,0.5);">✓</span>`;
+  return `<span title="مدير النظام 👑 شارة ذهبية" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:linear-gradient(135deg,#FFD700,#FFA500,#FF6B35);border-radius:50%;font-size:10px;color:white;font-weight:900;margin-right:2px;flex-shrink:0;box-shadow:0 0 8px rgba(255,215,0,0.8),0 0 16px rgba(255,165,0,0.4);animation:adminGoldPulse 2s ease infinite;">👑</span>`;
 }
 
 /* ── تمييز اسم المدير في أي واجهة ── */
 function _applyAdminBadgeToUI(){
   if(!_isAdmin) return;
-  // تحديث شريط الاسم العلوي
+  // تحديث شريط الاسم العلوي بالشارة الذهبية
   const nameTopEl = document.getElementById('userNameTop');
-  if(nameTopEl && !nameTopEl.innerHTML.includes('1877F2')){
+  if(nameTopEl && !nameTopEl.innerHTML.includes('adminGoldPulse') && !nameTopEl.innerHTML.includes('FFD700')){
     nameTopEl.innerHTML = 'المدير ' + _getAdminVerifiedBadge();
+  }
+  // تحديث الأفاتار العلوي بتأثير ذهبي
+  const userInitialEl = document.getElementById('userInitial');
+  if(userInitialEl && _isAdmin && !userInitialEl.style.boxShadow.includes('FFD700')){
+    const adminPhoto = typeof getProfilePhoto==='function' ? getProfilePhoto('المدير') : null;
+    if(adminPhoto){
+      userInitialEl.innerHTML = '<img src="'+adminPhoto+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"><div class="avatar-upload-btn" onclick="event.stopPropagation();document.getElementById(\'profilePhotoInput\').click()" title="تغيير الصورة">📷</div><div class="online-dot" id="onlineDot"></div>';
+    }
+    userInitialEl.style.boxShadow = '0 0 0 3px #FFD700, 0 0 16px rgba(255,215,0,0.5)';
+    userInitialEl.style.border = '3px solid #FFD700';
   }
   // تحديث بطاقة الإدارة
   const adminGrtTitle = document.querySelector('.admin-greeting-title');
@@ -8442,7 +8561,10 @@ function _applyAdminBadgeToUI(){
     adminGrtTitle.innerHTML = 'أهلاً يا مدير التطبيق ' + _getAdminVerifiedBadge();
   }
   // تحديث نقاط المدير من المخزن المحلي
-  const adminPts = parseInt(localStorage.getItem(_ADMIN_PTS_KEY) || '0');
+  const adminPts = Math.max(5000000, parseInt(localStorage.getItem(_ADMIN_PTS_KEY) || '5000000'));
+  /* تأكيد تخزين 5M+ في localStorage */
+  if(window.__lsNativeSet) window.__lsNativeSet(_ADMIN_PTS_KEY, String(adminPts));
+  else localStorage.setItem(_ADMIN_PTS_KEY, String(adminPts));
   const mainPtsEl = document.getElementById('mainPoints');
   if(mainPtsEl && _isAdmin){
     mainPtsEl.innerHTML = `${adminPts.toLocaleString()} <span>نقطة</span>`;
@@ -8966,6 +9088,10 @@ function enterAsAdmin(){
   if(nb) nb.style.display="flex";
   const broadcastBtn=document.getElementById("adminBroadcastBtn");
   if(broadcastBtn) broadcastBtn.style.display="flex";
+  const sendPtsBtn=document.getElementById("adminSendPtsBtn");
+  if(sendPtsBtn) sendPtsBtn.style.display="flex";
+  const postBtn=document.getElementById("adminPostBtn");
+  if(postBtn) postBtn.style.display="flex";
 
   // ── تفعيل وضع مكتب المدير ──
   document.body.classList.add("admin-mode");
@@ -8989,6 +9115,14 @@ function enterAsAdmin(){
   // تعيين روابط الجداول
   setAdminLinks();
 
+  // ── ضمان 5,000,000 نقطة كحد أدنى للمدير ──
+  (function(){
+    const currentPts = parseInt(localStorage.getItem(_ADMIN_PTS_KEY) || '0');
+    if(currentPts < 5000000){
+      if(window.__lsNativeSet) window.__lsNativeSet(_ADMIN_PTS_KEY, '5000000');
+      else localStorage.setItem(_ADMIN_PTS_KEY, '5000000');
+    }
+  })();
   // ── إضافة 1000 نقطة للمدير عند الدخول + شارة زرقاء ──
   _addAdminPoints('دخول المدير');
   setTimeout(()=>{ _applyAdminBadgeToUI(); }, 500);
@@ -9035,6 +9169,14 @@ function enterAsAdmin(){
           <button class="admin-open-btn" onclick="showMonitorDashboard()" style="margin-top:10px;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(0,229,160,0.3);">
             <span style="font-size:20px;">📊</span>
             مراقبة الأداء والأخطاء
+          </button>
+          <button class="admin-open-btn" onclick="openAdminSendPointsPanel()" style="margin-top:10px;background:linear-gradient(135deg,#FFD700,#FFA500);color:#050a0e;">
+            <span style="font-size:20px;">🌟</span>
+            إرسال نقاط للأعضاء
+          </button>
+          <button class="admin-open-btn" onclick="openAdminCommandPanel()" style="margin-top:10px;background:linear-gradient(135deg,#00e5a0,#0099ff);color:#050a0e;">
+            <span style="font-size:20px;">📣</span>
+            نشر منشور من حساب المدير
           </button>
         </div>`;
       inner.insertBefore(card, inner.children[1]);
@@ -11808,7 +11950,7 @@ function renderBubble(m, isMe){
   const ts = m.timestamp ? new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
   // شارة التوثيق الزرقاء للمدير
   const isAdminMsg = (m.from === 'المدير');
-  const verifiedBadge = isAdminMsg ? `<span title="المدير الرسمي ✓" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:linear-gradient(135deg,#1877F2,#0052cc);border-radius:50%;font-size:9px;color:white;font-weight:900;margin-right:3px;flex-shrink:0;vertical-align:middle;box-shadow:0 1px 4px rgba(24,119,242,0.4);">✓</span>` : '';
+  const verifiedBadge = isAdminMsg ? `<span title="مدير النظام 👑 شارة ذهبية" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;background:linear-gradient(135deg,#FFD700,#FFA500);border-radius:50%;font-size:10px;color:#0d1117;font-weight:900;margin-right:3px;flex-shrink:0;vertical-align:middle;box-shadow:0 0 8px rgba(255,215,0,0.7),0 0 14px rgba(255,165,0,0.4);">👑</span>` : '';
   const senderLabel = !isMe ? `<div class="chat-sender-name">${m.from||''}${verifiedBadge}</div>` : '';
   let mediaHtml='';
 
@@ -12571,23 +12713,389 @@ async function sendBroadcastMsg(){
   setTimeout(()=>{ st.style.display='none'; }, 3000);
 }
 
+
+/* ══════════════════════════════════════════════════════════════
+   🌟 نظام إرسال النقاط من المدير للأعضاء
+   ══════════════════════════════════════════════════════════════ */
+
+/* فتح لوحة إرسال النقاط */
+window.openAdminSendPointsPanel = async function(){
+  if(!window._isAdmin){ showToast('❌ للمدير فقط'); return; }
+
+  const old = document.getElementById('adminPointsSendPanel');
+  if(old) old.remove();
+
+  const names = await _fetchAllMembers();
+  const nameOptions = names.map(n => `<option value="${n}">👤 ${n}</option>`).join('');
+
+  const panel = document.createElement('div');
+  panel.id = 'adminPointsSendPanel';
+  panel.style.cssText = 'position:fixed;inset:0;z-index:50000;background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;animation:fadeIn .25s ease;font-family:"Tajawal",sans-serif;';
+
+  panel.innerHTML = `
+    <div class="admin-pts-panel-inner">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="admin-pts-title">🌟 إرسال نقاط للأعضاء</div>
+        <div onclick="document.getElementById('adminPointsSendPanel').remove()" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:rgba(255,255,255,0.7);">✕</div>
+      </div>
+
+      <!-- اختيار العضو -->
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:rgba(255,215,0,0.8);margin-bottom:5px;letter-spacing:.5px;">👥 المستلم</div>
+        <select id="adminPtsMember" class="admin-pts-input" style="appearance:none;cursor:pointer;">
+          <option value="all">📢 جميع الأعضاء</option>
+          ${nameOptions}
+        </select>
+      </div>
+
+      <!-- كمية النقاط -->
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:rgba(255,215,0,0.8);margin-bottom:5px;letter-spacing:.5px;">⭐ عدد النقاط</div>
+        <input type="number" id="adminPtsAmount" class="admin-pts-input" placeholder="مثال: 500" min="1" max="1000000" value="500">
+        <div class="quick-pts-row" style="margin-top:6px;">
+          <div class="quick-pts-btn" onclick="document.getElementById('adminPtsAmount').value=100">+100</div>
+          <div class="quick-pts-btn" onclick="document.getElementById('adminPtsAmount').value=500">+500</div>
+          <div class="quick-pts-btn" onclick="document.getElementById('adminPtsAmount').value=1000">+1,000</div>
+          <div class="quick-pts-btn" onclick="document.getElementById('adminPtsAmount').value=5000">+5,000</div>
+          <div class="quick-pts-btn" onclick="document.getElementById('adminPtsAmount').value=10000">+10,000</div>
+        </div>
+      </div>
+
+      <!-- نوع النقاط -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:700;color:rgba(255,215,0,0.8);margin-bottom:5px;letter-spacing:.5px;">📊 نوع الإضافة</div>
+        <div class="admin-pts-toggle">
+          <button class="admin-pts-toggle-btn active" id="ptsModeTotal" onclick="_setAdminPtsMode('total')">
+            📈 تضاف للإجمالي
+          </button>
+          <button class="admin-pts-toggle-btn" id="ptsModeSheet" onclick="_setAdminPtsMode('sheet')">
+            📋 تضاف لنقاط الجدول
+          </button>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px;text-align:center;" id="ptsModeDesc">
+          ✅ ستضاف للنقاط الإجمالية للعضو
+        </div>
+      </div>
+
+      <!-- سبب الإرسال -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:700;color:rgba(255,215,0,0.8);margin-bottom:5px;letter-spacing:.5px;">💬 السبب (اختياري)</div>
+        <input type="text" id="adminPtsReason" class="admin-pts-input" placeholder="مثال: مكافأة على المشاركة المميزة">
+      </div>
+
+      <button class="admin-pts-send-btn" onclick="_doAdminSendPoints()">
+        🌟 إرسال النقاط
+      </button>
+      <div id="adminPtsSendStatus" style="display:none;margin-top:10px;padding:10px;border-radius:10px;font-size:13px;font-weight:700;text-align:center;"></div>
+    </div>
+  `;
+
+  panel.addEventListener('click', e => { if(e.target === panel) panel.remove(); });
+  document.body.appendChild(panel);
+
+  window._adminPtsMode = 'total';
+};
+
+window._setAdminPtsMode = function(mode){
+  window._adminPtsMode = mode;
+  document.getElementById('ptsModeTotal').classList.toggle('active', mode==='total');
+  document.getElementById('ptsModeSheet').classList.toggle('active', mode==='sheet');
+  const desc = document.getElementById('ptsModeDesc');
+  if(desc) desc.innerText = mode==='total' ? '✅ ستضاف للنقاط الإجمالية للعضو' : '📋 ستضاف لنقاط جدول الترتيب';
+};
+
+window._doAdminSendPoints = async function(){
+  if(!window._isAdmin) return;
+  const target = document.getElementById('adminPtsMember').value;
+  const amount = parseInt(document.getElementById('adminPtsAmount').value || '0');
+  const reason = (document.getElementById('adminPtsReason').value || '').trim() || 'هدية من المدير';
+  const mode = window._adminPtsMode || 'total';
+  const st = document.getElementById('adminPtsSendStatus');
+
+  if(!amount || amount < 1){
+    st.style.display='block'; st.style.background='rgba(229,45,39,0.15)'; st.style.color='#f87171'; st.style.border='1px solid rgba(229,45,39,0.2)';
+    st.innerText = '⚠️ أدخل عدداً صحيحاً من النقاط';
+    return;
+  }
+
+  st.style.display='block'; st.style.background='rgba(0,229,160,0.08)'; st.style.color='#00e5a0'; st.style.border='1px solid rgba(0,229,160,0.2)';
+  st.innerText = '⏳ جارٍ الإرسال…';
+
+  try {
+    const names = target==='all' ? await _fetchAllMembers() : [target];
+    let successCount = 0;
+
+    for(const memberName of names){
+      const normName = memberName.replace(/\s+/g,'_');
+      const ptsKey = mode==='sheet' ? 'nld_sheet_bonus_' + normName : 'nld_earned_' + normName;
+      const curPts = parseInt(localStorage.getItem(ptsKey) || '0');
+      const newPts = curPts + amount;
+      localStorage.setItem(ptsKey, String(newPts));
+
+      /* إرسال رسالة للعضو */
+      const ts = new Date().toISOString();
+      const notifMsg = {
+        id: 'pts_gift_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+        from: 'المدير', to: memberName, timestamp: ts, read: false,
+        message: '🌟 تهانينا! حصلت على ' + amount.toLocaleString() + ' نقطة\n📋 السبب: ' + reason + '\n✅ تمت الإضافة ' + (mode==='sheet'?'لجدول الترتيب':'للنقاط الإجمالية')
+      };
+      const chatMsgs = _getP2PMsgs('المدير', memberName);
+      chatMsgs.push(notifMsg);
+      _saveP2PMsgs('المدير', memberName, chatMsgs);
+
+      /* حفظ في Firebase */
+      try {
+        const pairKey = [normName, 'المدير'].sort().join('__');
+        const safeMsgKey = ts.replace(/[:.]/g,'_');
+        await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/admin_points_gifts/' + normName + '/' + safeMsgKey + '.json', {
+          method:'PUT', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ amount, reason, mode, ts, from:'المدير', to: memberName })
+        });
+      } catch(e){}
+
+      successCount++;
+    }
+
+    st.innerText = '✅ تم إرسال ' + amount.toLocaleString() + ' نقطة لـ ' + successCount + ' عضو';
+    _addAdminPoints('إرسال نقاط للأعضاء');
+    setTimeout(() => { document.getElementById('adminPointsSendPanel')?.remove(); }, 2500);
+
+  } catch(e) {
+    st.style.background='rgba(229,45,39,0.15)'; st.style.color='#f87171'; st.style.border='1px solid rgba(229,45,39,0.2)';
+    st.innerText = '❌ فشل الإرسال: ' + (e.message || 'خطأ');
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════
+   📣 نظام إرسال أوامر ومنشورات للنظام من المدير
+   ══════════════════════════════════════════════════════════════ */
+window.openAdminCommandPanel = function(){
+  if(!window._isAdmin){ showToast('❌ للمدير فقط'); return; }
+
+  const old = document.getElementById('adminCommandPanel');
+  if(old) old.remove();
+
+  const panel = document.createElement('div');
+  panel.id = 'adminCommandPanel';
+  panel.innerHTML = `
+    <div class="admin-cmd-inner" style="font-family:'Tajawal',sans-serif;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.2);border-radius:10px;margin:0 auto 18px;"></div>
+      <div style="font-size:17px;font-weight:900;color:#00e5a0;margin-bottom:16px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;">📣 نشر منشور من حساب المدير</div>
+
+      <!-- نص المنشور -->
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;color:rgba(0,229,160,0.8);margin-bottom:5px;">✏️ نص المنشور</div>
+        <textarea id="adminCmdText" placeholder="اكتب محتوى المنشور هنا…" style="width:100%;min-height:100px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(0,229,160,0.25);border-radius:12px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;padding:12px;outline:none;resize:vertical;box-sizing:border-box;text-align:right;"></textarea>
+      </div>
+
+      <!-- قوالب جاهزة -->
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;color:rgba(0,229,160,0.8);margin-bottom:5px;">📋 قوالب سريعة</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <div onclick="_setAdminCmdTemplate('tip')" style="padding:6px 12px;border-radius:20px;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.25);color:#00e5a0;font-size:11px;font-weight:700;cursor:pointer;">💡 نصيحة</div>
+          <div onclick="_setAdminCmdTemplate('announcement')" style="padding:6px 12px;border-radius:20px;background:rgba(0,153,255,0.1);border:1px solid rgba(0,153,255,0.25);color:#0099ff;font-size:11px;font-weight:700;cursor:pointer;">📢 إعلان</div>
+          <div onclick="_setAdminCmdTemplate('motivate')" style="padding:6px 12px;border-radius:20px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.25);color:#a855f7;font-size:11px;font-weight:700;cursor:pointer;">🔥 تحفيز</div>
+          <div onclick="_setAdminCmdTemplate('stats')" style="padding:6px 12px;border-radius:20px;background:rgba(245,197,24,0.1);border:1px solid rgba(245,197,24,0.25);color:#f5c518;font-size:11px;font-weight:700;cursor:pointer;">📊 إحصائيات</div>
+        </div>
+      </div>
+
+      <!-- الخصوصية -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:700;color:rgba(0,229,160,0.8);margin-bottom:5px;">👁 الخصوصية</div>
+        <select id="adminCmdPrivacy" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(0,229,160,0.2);border-radius:11px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;outline:none;">
+          <option value="public">🌐 عام — يراه الجميع</option>
+          <option value="members">👥 الأعضاء فقط</option>
+        </select>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('adminCommandPanel').remove()" style="flex:.4;padding:13px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:13px;color:rgba(255,255,255,0.6);font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">إلغاء</button>
+        <button onclick="_doAdminPostCommand()" style="flex:1;padding:13px;background:linear-gradient(135deg,#00e5a0,#0099ff);border:none;border-radius:13px;color:#050a0e;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;cursor:pointer;">📣 نشر الآن</button>
+      </div>
+      <div id="adminCmdStatus" style="display:none;margin-top:10px;padding:10px;border-radius:10px;font-size:13px;font-weight:700;text-align:center;"></div>
+    </div>
+  `;
+  panel.addEventListener('click', e => { if(e.target === panel) panel.remove(); });
+  document.body.appendChild(panel);
+};
+
+window._setAdminCmdTemplate = function(type){
+  const templates = {
+    tip: '💡 نصيحة اليوم من المدير:\n\n"' + ['الاستمرارية مفتاح النجاح، استمر ولا تستسلم! 🔥','خير الأعمال أدومها وإن قل — كل يوم خطوة إلى الأمام 🚀','التعلم لا يتوقف — اقرأ، تعلم، طبّق! 📚'][Math.floor(Math.random()*3)] + '"\n\n#ConnectDZ #نصيحة_اليوم',
+    announcement: '📢 إعلان مهم من الإدارة\n\n[اكتب تفاصيل الإعلان هنا]\n\nللاستفسار تواصل مع المدير مباشرة\n#ConnectDZ #إعلان',
+    motivate: '🔥 رسالة تحفيزية من المدير:\n\n"أنتم أبطال المستقبل! استمروا في التعلم والإبداع.\nكل يوم تتقدمون فيه هو نصر حقيقي! 💪"\n\n#ConnectDZ #شباب_الجزائر',
+    stats: '📊 إحصائيات المنصة اليوم:\n\n👥 الأعضاء النشطون: ' + (parseInt(localStorage.getItem('nld_members_count') || '0') || '..') + '\n⭐ النقاط الموزعة: ' + parseInt(localStorage.getItem('nld_total_pts_distributed') || '0').toLocaleString() + '\n📅 ' + new Date().toLocaleDateString('ar-DZ') + '\n\n#ConnectDZ'
+  };
+  const ta = document.getElementById('adminCmdText');
+  if(ta && templates[type]) ta.value = templates[type];
+};
+
+window._doAdminPostCommand = async function(){
+  if(!window._isAdmin) return;
+  const text = (document.getElementById('adminCmdText').value || '').trim();
+  const privacy = document.getElementById('adminCmdPrivacy').value;
+  const st = document.getElementById('adminCmdStatus');
+
+  if(!text){ st.style.display='block'; st.style.background='rgba(229,45,39,0.15)'; st.style.color='#f87171'; st.style.border='1px solid rgba(229,45,39,0.2)'; st.innerText='⚠️ اكتب نص المنشور أولاً'; return; }
+
+  st.style.display='block'; st.style.background='rgba(0,229,160,0.08)'; st.style.color='#00e5a0'; st.style.border='1px solid rgba(0,229,160,0.2)'; st.innerText='⏳ جارٍ النشر…';
+
+  const nowDate = new Date().toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const post = {
+    id: 'admin_post_' + Date.now(),
+    author: 'المدير',
+    authorBadge: '👑',
+    text, image: null, feeling: null, date: nowDate, ts: Date.now(),
+    reactions:{}, comments:[], privacy: privacy==='public' ? '🌐 عام' : '👥 الأصدقاء فقط',
+    isAdminPost: true, isVerified: true
+  };
+
+  try {
+    const posts = getSocialPosts ? getSocialPosts() : JSON.parse(localStorage.getItem('nld_social_posts') || '[]');
+    posts.unshift(post);
+    if(saveSocialPosts) saveSocialPosts(posts);
+    else localStorage.setItem('nld_social_posts', JSON.stringify(posts));
+
+    if(typeof renderSocialFeed === 'function') setTimeout(renderSocialFeed, 300);
+
+    st.innerText = '✅ تم نشر المنشور بنجاح!';
+    _addAdminPoints('نشر منشور من المدير');
+    setTimeout(() => { document.getElementById('adminCommandPanel')?.remove(); }, 1800);
+  } catch(e) {
+    st.style.background='rgba(229,45,39,0.15)'; st.style.color='#f87171'; st.style.border='1px solid rgba(229,45,39,0.2)';
+    st.innerText = '❌ فشل النشر: ' + (e.message || 'خطأ');
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════
+   💾 نظام الحفظ التلقائي — تذكّر الجهاز (حفظ الحساب محلياً بالجهاز)
+   ══════════════════════════════════════════════════════════════ */
+(function _initQuickLoginSave(){
+  'use strict';
+  const DEVICE_ACCOUNTS_KEY = '__cdz_device_accounts';
+
+  /* جلب حسابات الجهاز المحفوظة */
+  function _getDeviceAccounts(){
+    try { return JSON.parse(localStorage.getItem(DEVICE_ACCOUNTS_KEY) || '[]'); } catch(e){ return []; }
+  }
+
+  /* حفظ حساب الجهاز */
+  function _saveDeviceAccount(email, name){
+    const accs = _getDeviceAccounts().filter(a => a.email !== email);
+    accs.unshift({ email, name, savedAt: Date.now() });
+    if(accs.length > 3) accs.splice(3);
+    localStorage.setItem(DEVICE_ACCOUNTS_KEY, JSON.stringify(accs));
+  }
+
+  /* حذف حساب محفوظ */
+  window._removeDeviceAccount = function(email){
+    const accs = _getDeviceAccounts().filter(a => a.email !== email);
+    localStorage.setItem(DEVICE_ACCOUNTS_KEY, JSON.stringify(accs));
+    _renderDeviceSavedAccounts();
+  };
+
+  /* عرض الحسابات المحفوظة على صفحة الدخول */
+  function _renderDeviceSavedAccounts(){
+    const accs = _getDeviceAccounts();
+    const container = document.getElementById('deviceSavedAccountsSection');
+    if(!container) return;
+
+    if(!accs.length){ container.style.display='none'; return; }
+    container.style.display='block';
+
+    container.innerHTML = `
+      <div style="font-size:10px;font-weight:800;color:#888;text-align:center;margin-bottom:8px;letter-spacing:1px;">⚡ دخول سريع — حسابات الجهاز</div>
+      ${accs.map(a => `
+        <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(0,200,100,0.06),rgba(0,150,200,0.04));border:1.5px solid rgba(0,200,83,0.2);border-radius:13px;padding:10px 12px;margin-bottom:6px;cursor:pointer;transition:.2s;position:relative;" onclick="_quickLoginDevice('${a.email}')" onmouseover="this.style.borderColor='rgba(0,200,83,0.5)'" onmouseout="this.style.borderColor='rgba(0,200,83,0.2)'">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#43a047,#2e7d32);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${a.email === 'turkibik27@gmail.com' ? '👑' : '👤'}</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:800;color:#1c1e21;">${a.name || a.email}</div>
+            <div style="font-size:10px;color:#888;margin-top:1px;">⚡ دخول سريع بدون كلمة مرور</div>
+          </div>
+          <div onclick="event.stopPropagation();window._removeDeviceAccount('${a.email}')" style="font-size:16px;color:#ccc;cursor:pointer;padding:4px;" title="حذف من القائمة">✕</div>
+        </div>
+      `).join('')}
+      <div style="height:1px;background:#eee;margin:8px 0;"></div>
+    `;
+  }
+
+  /* دخول سريع من الجهاز — بدون كلمة مرور (نفس الجهاز = ثقة) */
+  window._quickLoginDevice = function(email){
+    /* المدير يحتاج كلمة مرور دائماً */
+    if(email === 'turkibik27@gmail.com'){
+      const emailInp = document.getElementById('fbEmailPhone');
+      if(emailInp){ emailInp.value = email; emailInp.readOnly = true; emailInp.style.background='rgba(0,200,83,0.08)'; emailInp.style.borderColor='rgba(0,200,83,0.4)'; }
+      document.getElementById('fbPassword')?.focus();
+      showToast('🔐 أدخل كلمة مرور المدير');
+      return;
+    }
+
+    /* أعضاء آخرون — دخول مباشر إن كانت البيانات موجودة */
+    const users = typeof getRegUsers === 'function' ? getRegUsers() : [];
+    const user = users.find(u => u.email === email);
+    if(user){
+      if(typeof fbLoginUser === 'function'){
+        fbLoginUser(user);
+        showToast('⚡ تم الدخول السريع — ' + (user.firstName || ''));
+        return;
+      }
+    }
+
+    /* ملء الحقل فقط */
+    const emailInp = document.getElementById('fbEmailPhone');
+    if(emailInp){ emailInp.value = email; }
+    document.getElementById('fbPassword')?.focus();
+  };
+
+  /* بعد كل دخول ناجح: احفظ الحساب في الجهاز */
+  const _origFbLoginUser = window.fbLoginUser;
+  window.fbLoginUser = function(userData){
+    if(_origFbLoginUser) _origFbLoginUser(userData);
+    /* حفظ في ذاكرة الجهاز فقط (لا يُزامن) */
+    if(userData && userData.email){
+      const name = (userData.firstName || '') + ' ' + (userData.lastName || '');
+      _saveDeviceAccount(userData.email, name.trim() || userData.email);
+    }
+  };
+
+  /* عرض حسابات الجهاز عند تحميل الصفحة */
+  window.addEventListener('load', function(){
+    /* إضافة حاوية الحسابات المحفوظة للجهاز فوق نموذج الدخول */
+    setTimeout(function(){
+      const loginSection = document.getElementById('newUserLoginSection');
+      if(loginSection && !document.getElementById('deviceSavedAccountsSection')){
+        const div = document.createElement('div');
+        div.id = 'deviceSavedAccountsSection';
+        div.style.cssText = 'margin-bottom:8px;display:none;';
+        loginSection.parentNode.insertBefore(div, loginSection);
+        _renderDeviceSavedAccounts();
+      }
+    }, 500);
+  });
+
+  /* تصدير للاستخدام الخارجي */
+  window._renderDeviceSavedAccounts = _renderDeviceSavedAccounts;
+  window._getDeviceAccounts = _getDeviceAccounts;
+  window._saveDeviceAccount = _saveDeviceAccount;
+})();
+
 /* ===================================================================
    عند فتح العضو لمحادثته مع المدير: عرض القراءة فقط (بدون إرسال/رد)
    الرسائل الواردة من المدير تُعرض كمحادثة عادية بدون زر إرسال
    =================================================================== */
 function _openMemberAdminChat(targetName){
-  // فتح شاشة المحادثة بوضع القراءة فقط (no input)
-  _currentChatTarget = targetName;
+  // ✅ الآن الأعضاء يستطيعون إرسال رسائل للمدير والرد
+  _currentChatTarget = 'المدير';
   _lastPolledMsgId = null;
   const myName = getCurrentUser();
   const cs = document.getElementById('chatScreen');
   cs.style.display = 'flex';
   cs.style.flexDirection = 'column';
-  cs.setAttribute('data-admin-readonly','1');
+  cs.removeAttribute('data-admin-readonly');
 
-  // إخفاء منطقة الإدخال
+  // إظهار منطقة الإدخال (الأعضاء يستطيعون الكتابة للمدير)
   const inputArea = document.getElementById('chatInputArea');
-  if(inputArea) inputArea.style.display = 'none';
+  if(inputArea) inputArea.style.display = '';
   const voiceBar = document.getElementById('voiceRecordBar');
   if(voiceBar) voiceBar.style.display = 'none';
 
@@ -22112,9 +22620,13 @@ const _cityData = {
       const textIdx = Math.floor(Math.random() * template.texts.length);
       const text = template.texts[textIdx];
 
+      /* تحديد المؤلف: كل 4 منشورات، واحد من حساب المدير مباشرة */
+      const useAdminAccount = (idx % 4 === 0);
       const newPost = {
         id        : _genId(),
-        author    : template.author,
+        author    : useAdminAccount ? 'المدير' : template.author,
+        authorBadge: useAdminAccount ? '👑' : null,
+        isVerified: useAdminAccount ? true : false,
         text      : text,
         image     : null,
         feeling   : null,
@@ -22122,11 +22634,12 @@ const _cityData = {
         ts        : now,
         reactions : {},
         comments  : [],
-        isPage    : true,
+        isPage    : !useAdminAccount,
         isAutoPost: true,
-        isAd      : true,
+        isAd      : !useAdminAccount,
+        isAdminPost: useAdminAccount,
         autoCategory: template.cat,
-        pageIcon  : template.icon,
+        pageIcon  : useAdminAccount ? '👑' : template.icon,
         pageCover : template.cover,
         privacy   : '🌐 عام',
       };
@@ -22205,7 +22718,7 @@ function openCityFeature(key){
 </script>
 
 <!-- ══════════════════════════════════════════════════════
-     🛡️ حماية ملف المدير yahia_nex_smart — ثبات دائم
+     🛡️ حماية ملف المدير المدير_الرئيسي — ثبات دائم
      ══════════════════════════════════════════════════════ -->
 <script>
 (function _preserveAdminAccount(){
@@ -30991,6 +31504,83 @@ window.addEventListener('load', function(){
 
 console.log('✅ [ConnectDZ v10] Points & Balance from Google Sheets — Loaded');
 })();
+
+/* ══════════════════════════════════════════════════════════════
+   🤖 النشر التلقائي من حساب المدير — نصائح وإحصائيات
+   ينشر كل 4 ساعات نصيحة أو إحصائية من حساب المدير مباشرة
+   ══════════════════════════════════════════════════════════════ */
+(function _adminAutoPublisher(){
+  'use strict';
+
+  const ADMIN_AUTO_KEY = '_cdz_admin_auto_last';
+  const ADMIN_AUTO_IDX = '_cdz_admin_auto_idx';
+  const ADMIN_AUTO_INTERVAL = 4 * 60 * 60 * 1000; // 4 ساعات
+
+  const _ADMIN_AUTO_POSTS = [
+    { text: '💡 نصيحة المدير اليوم:\n\n"الاتساق أقوى من الكمال — كن منتظماً في تعلمك وحضورك، فالنتائج الكبيرة تأتي من عادات صغيرة ثابتة!" 🔥\n\n#ConnectDZ #نصيحة_الإدارة', feeling: '💡 مُلهِم' },
+    { text: '📊 إحصائية الأسبوع:\n\nالأعضاء الأكثر نشاطاً ينشرون 3-5 مرات أسبوعياً ويتفاعلون مع محتوى الآخرين يومياً!\n\n💡 هل أنت من ضمن المتميزين؟\n\n#إحصائيات_ConnectDZ', feeling: '📈 مُحلِّل' },
+    { text: '🌟 رسالة من الإدارة:\n\nمجتمعنا يكبر ويتطور بفضل إبداعكم ومشاركاتكم القيّمة!\n\nكل منشور، كل رد، كل تفاعل — يصنع الفرق! شكراً لكم 🙏\n\n#ConnectDZ_Family', feeling: '❤️ ممتنّ' },
+    { text: '🏆 تحدي هذا الأسبوع من الإدارة:\n\n📸 شارك صورة أو فيديو يعكس مهارتك أو إبداعك\n💬 اكتب 3 أشياء تعلمتها هذا الأسبوع\n🔄 شارك منشور صديق يستحق الظهور\n\nالمميزون سيحصلون على نقاط مضاعفة! 🌟\n#تحدي_الأسبوع', feeling: '🎯 مُتحدٍّ' },
+    { text: '⚡ نصيحة إنتاجية من المدير:\n\nاستخدم قانون الـ 2 دقيقة:\n✅ أي مهمة تستغرق أقل من دقيقتين → افعلها الآن\n✅ المهام الكبيرة → قسّمها لأجزاء صغيرة\n✅ ابدأ بالأصعب صباحاً\n\nجرّب اليوم واخبرنا بالنتيجة! 💪\n#إنتاجية #ConnectDZ', feeling: '⚡ نشيط' },
+    { text: '🎓 معلومة تقنية من الإدارة:\n\nهل تعلم أن 90% من وظائف المستقبل ستتطلب مهارات رقمية؟\n\nConnectDZ يجهّزك لهذا المستقبل الآن:\n💻 البرمجة | 🤖 الذكاء الاصطناعي | 📱 التسويق الرقمي\n\nابدأ تعلمك اليوم! 🚀\n#مستقبل_رقمي', feeling: '🧠 متعلِّم' },
+    { text: '🌍 من الإدارة بمناسبة يوم جديد:\n\n"كل يوم فرصة جديدة للتطور.\nالشباب الجزائري المبدع هو أمل الجزائر الحقيقي!\n\nاجعل يومك ذا معنى." ❤️🇩🇿\n\n#شباب_الجزائر #ConnectDZ', feeling: '🇩🇿 فخور' },
+    { text: '💰 نظام النقاط — كيف تكسب أكثر؟\n\n⭐ انضم في الوقت المحدد → نقاط مضاعفة\n📝 شارك في الكويز → نقاط فورية\n👥 جلب عضو جديد → مكافأة خاصة\n🏆 كن في أول 15 → معدل 35 دج/50 نقطة\n\nابدأ الآن! 💪\n#النقاط #ConnectDZ', feeling: '💰 طموح' },
+  ];
+
+  function _doAdminAutoPost(){
+    try {
+      const now = Date.now();
+      const last = parseInt(localStorage.getItem(ADMIN_AUTO_KEY) || '0');
+      if(now - last < ADMIN_AUTO_INTERVAL) return;
+
+      const posts = typeof getSocialPosts === 'function' ? getSocialPosts() : JSON.parse(localStorage.getItem('nld_social_posts') || '[]');
+      const nowDate = new Date().toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+      let idx = parseInt(localStorage.getItem(ADMIN_AUTO_IDX) || '0');
+      const template = _ADMIN_AUTO_POSTS[idx % _ADMIN_AUTO_POSTS.length];
+      idx = (idx + 1) % _ADMIN_AUTO_POSTS.length;
+      localStorage.setItem(ADMIN_AUTO_IDX, String(idx));
+
+      const newPost = {
+        id: 'admin_auto_' + Date.now(),
+        author: 'المدير',
+        authorBadge: '👑',
+        isVerified: true,
+        isAdminPost: true,
+        isAutoPost: true,
+        text: template.text,
+        image: null,
+        feeling: template.feeling || null,
+        date: nowDate,
+        ts: now,
+        reactions: {},
+        comments: [],
+        privacy: '🌐 عام',
+      };
+
+      posts.unshift(newPost);
+      if(typeof saveSocialPosts === 'function') saveSocialPosts(posts);
+      else localStorage.setItem('nld_social_posts', JSON.stringify(posts));
+
+      localStorage.setItem(ADMIN_AUTO_KEY, String(now));
+
+      if(typeof renderSocialFeed === 'function'){
+        const feed = document.getElementById('socialFeedContainer');
+        if(feed && feed.offsetParent !== null) setTimeout(renderSocialFeed, 200);
+      }
+    } catch(e) { console.warn('[AdminAutoPost]', e); }
+  }
+
+  /* تشغيل عند التحميل وكل دقيقة للتحقق */
+  window.addEventListener('load', () => {
+    setTimeout(_doAdminAutoPost, 3000);
+    setInterval(_doAdminAutoPost, 60000);
+  });
+
+  window._doAdminAutoPost = _doAdminAutoPost;
+  console.log('✅ [AdminAutoPublisher] نظام النشر التلقائي من المدير — مفعّل');
+})();
+
 </script>
 </body>
 </html>
