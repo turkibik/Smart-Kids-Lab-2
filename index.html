@@ -4185,8 +4185,12 @@ body.member-mode #onlineBar{
             <button class="fb-pw-toggle" type="button" onclick="togglePasswordVisibility('fbPassword',this)" tabindex="-1">👁</button>
           </div>
         </div>
-        <!-- نسيت كلمة المرور -->
-        <div class="fb-forgot">
+        <!-- نسيت كلمة المرور + تذكرني -->
+        <div class="fb-forgot" style="display:flex;align-items:center;justify-content:space-between;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:700;color:#555;">
+            <input type="checkbox" id="rememberMeCheck" style="width:15px;height:15px;accent-color:#2e7d32;cursor:pointer;" checked>
+            <span>تذكرني في هذا الجهاز</span>
+          </label>
           <a onclick="openForgotPassword()">هل نسيت كلمة المرور؟</a>
         </div>
       </div>
@@ -6448,6 +6452,9 @@ function switchLoginTab(tab){
       </div>
 
       <!-- Close button at bottom -->
+      <div onclick="openAdminFullPage()" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;margin:8px 0;background:linear-gradient(135deg,#FFD700,#FFA500);border-radius:14px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;color:#0d1117;box-shadow:0 0 20px rgba(255,215,0,0.4);">
+        🛡️ فتح لوحة التحكم الكاملة
+      </div>
       <div class="admin-close-btn" onclick="hideModal('adminModal')">
         <span>✕</span> إغلاق المكتب
       </div>
@@ -8433,7 +8440,7 @@ function submitPost(){
 }
 
 /* ===== ADMIN CONFIG ===== */
-const ADMIN_EMAIL = 'turkibik27@gmail.com';
+const ADMIN_EMAIL = 'smartkidslab13@gmail.com';
 const ADMIN_CODE  = window.__ADMIN_ID; /* ✅ لا يظهر كنص صريح */
 const ADMIN_CODE_OLD = 'NLD';
 const SMARTKIDS_EMAIL = 'smartkidslap';
@@ -8442,7 +8449,7 @@ const SMARTKIDS_MEMBER_NAME = 'يحيى ديش';
 /* 🔒 نظام كلمة مرور المدير */
 /* ← غيّر هذه القيمة لكلمة مرورك السرية */
 /* 🔒 هاش SHA-256 لكلمة المرور — لا أحد يستطيع قراءة كلمة المرور الأصلية من هنا */
-const ADMIN_PASS_HASH = '71fee97039e7f150f9b4e761b151c10361fdd4e6c2ca71cb6a41fd668fb153ee';
+const ADMIN_PASS_HASH = 'd5228ad663312d59ecde69b7d3c09a4083c46e626e4726ae609bf8f0cc69d9b6';
 
 async function _hashPass(pass){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
@@ -9177,6 +9184,10 @@ function enterAsAdmin(){
           <button class="admin-open-btn" onclick="openAdminCommandPanel()" style="margin-top:10px;background:linear-gradient(135deg,#00e5a0,#0099ff);color:#050a0e;">
             <span style="font-size:20px;">📣</span>
             نشر منشور من حساب المدير
+          </button>
+          <button class="admin-open-btn" onclick="openAdminFullPage()" style="margin-top:10px;background:linear-gradient(135deg,#FFD700,#FFA500,#FF6B35);color:#050a0e;box-shadow:0 0 18px rgba(255,215,0,0.5);">
+            <span style="font-size:20px;">🛡️</span>
+            لوحة التحكم الكاملة — صاحب التطبيق
           </button>
         </div>`;
       inner.insertBefore(card, inner.children[1]);
@@ -11497,10 +11508,11 @@ function renderInboxList(){
         const lastText = last ? (last.message||(last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت')) : '';
         const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
         const unreadBadge = unread>0 ? `<span style="min-width:20px;height:20px;border-radius:10px;background:linear-gradient(135deg,#e52d27,#b91c1c);color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;">${unread}</span>` : '';
+        const memberBadge = `<span title="عضو موثّق" style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:50%;font-size:8px;color:#fff;font-weight:900;margin-left:5px;box-shadow:0 0 4px rgba(34,197,94,0.6);">✓</span>`;
         return `<div onclick="openAdminChat('${other.replace(/'/g,"\'")}',false)" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(0,120,255,0.05)'" onmouseout="this.style.background='transparent'">
           ${getMemberAvatarHtml(other, 48, 15)}
           <div style="flex:1;min-width:0;">
-            <div style="font-size:14px;font-weight:800;color:#1C1E21;margin-bottom:3px;">${other}</div>
+            <div style="display:flex;align-items:center;font-size:14px;font-weight:800;color:#1C1E21;margin-bottom:3px;">${memberBadge}${other}</div>
             <div style="font-size:12px;color:#65676B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lastText}</div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">
@@ -11600,10 +11612,14 @@ function renderInboxList(){
       const lastText = last ? (last.message||(last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت')) : '';
       const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
       const unreadBadge = unread>0 ? `<span style="min-width:20px;height:20px;border-radius:10px;background:linear-gradient(135deg,#0099ff,#a855f7);color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;">${unread}</span>` : '';
-      return `<div onclick="${other==='المدير' ? '_openMemberAdminChat(\'المدير\')' : 'openP2PChat(\''+other.replace(/'/g,"\\'")+'\',false)'}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(0,120,255,0.05)'" onmouseout="this.style.background='transparent'">
+      const isAdminConv = other==='المدير';
+      const convBadge = isAdminConv
+        ? `<span title="مدير النظام" style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:linear-gradient(135deg,#FFD700,#FFA500);border-radius:50%;font-size:8px;color:#0d1117;font-weight:900;margin-left:4px;box-shadow:0 0 5px rgba(255,215,0,0.8);">👑</span>`
+        : `<span title="عضو موثّق" style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:50%;font-size:8px;color:#fff;font-weight:900;margin-left:4px;box-shadow:0 0 4px rgba(34,197,94,0.6);">✓</span>`;
+      return `<div onclick="${isAdminConv ? '_openMemberAdminChat(\'المدير\')' : 'openP2PChat(\''+other.replace(/'/g,"\\'")+'\',false)'}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(0,120,255,0.05)'" onmouseout="this.style.background='transparent'">
         <div style="position:relative;flex-shrink:0;">${getMemberAvatarHtml(other, 48, 15)}<span style="position:absolute;bottom:1px;right:1px;width:12px;height:12px;border-radius:50%;background:${_getOnlineStatus(other)==='online'?'#22c55e':_getOnlineStatus(other)==='recent'?'#ef4444':'#374151'};border:2.5px solid var(--dark);box-shadow:0 0 6px ${_getOnlineStatus(other)==='online'?'rgba(34,197,94,0.7)':_getOnlineStatus(other)==='recent'?'rgba(239,68,68,0.5)':'none'};"></span></div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:800;color:#1C1E21;margin-bottom:3px;">${other==='المدير'?'🛡️ رسائل المدير':other}</div>
+          <div style="display:flex;align-items:center;font-size:14px;font-weight:800;color:#1C1E21;margin-bottom:3px;">${convBadge}${isAdminConv?'رسائل المدير':other}</div>
           <div style="font-size:12px;color:#65676B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lastText}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">
@@ -11653,10 +11669,14 @@ function renderMemberPickList(members){
     return;
   }
   div.innerHTML = members.map(n=>{
+    const isAdminUser2 = n === 'المدير';
+    const pickBadge = isAdminUser2
+      ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:linear-gradient(135deg,#FFD700,#FFA500);border-radius:50%;font-size:8px;color:#0d1117;font-weight:900;margin-left:4px;box-shadow:0 0 5px rgba(255,215,0,0.8);">👑</span>`
+      : `<span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:50%;font-size:8px;color:#fff;font-weight:900;margin-left:4px;box-shadow:0 0 4px rgba(34,197,94,0.6);">✓</span>`;
     return `<div class="member-pick-item" onclick="startNewChat('${n.replace(/'/g,"\'")}')">
       ${getMemberAvatarHtml(n, 44, 13)}
       <div style="flex:1;">
-        <div style="font-size:14px;font-weight:800;color:var(--text);">${n}</div>
+        <div style="display:flex;align-items:center;font-size:14px;font-weight:800;color:var(--text);">${pickBadge}${n}</div>
         <div style="font-size:11px;color:var(--muted);">عضو القادة المستقبليين</div>
       </div>
       <div style="color:var(--accent);font-size:12px;font-weight:700;">محادثة ›</div>
@@ -11695,9 +11715,9 @@ function openAdminChat(targetName, readOnly){
   const dotsBtn = document.getElementById('chatDotsBtn');
   if(dotsBtn) dotsBtn.style.display = 'none';
   const callBtn2 = document.getElementById('callBtn');
-  // إخفاء منطقة الإدخال للمدير (الإرسال يتم من أيقونة برمجة التطبيق)
+  // إظهار منطقة الإدخال للمدير (يمكن الإرسال من المحادثة)
   const inputArea = document.getElementById('chatInputArea');
-  if(inputArea) inputArea.style.display = 'none';
+  if(inputArea) inputArea.style.display = 'flex';
   const voiceBar2 = document.getElementById('voiceRecordBar');
   if(voiceBar2) voiceBar2.style.display = 'none';
 
@@ -16909,53 +16929,50 @@ function _updateMpvAdminBadge(memberName){
   const badge = document.getElementById('mpvVerifiedBadge');
   if(!badge) return;
   if(_isAdminUser(memberName)){
-    // شارة خاصة بالمدير — ذهبية مميزة
-    badge.style.display = 'block';
-    badge.style.background = 'linear-gradient(135deg,#1877F2,#0052cc)';
-    badge.style.color = 'white';
-    badge.style.border = '2px solid rgba(255,255,255,0.3)';
+    // شارة ذهبية متوهجة للمدير
+    badge.style.display = 'flex';
+    badge.style.alignItems = 'center';
+    badge.style.gap = '5px';
+    badge.style.background = 'linear-gradient(135deg,#FFD700,#FFA500,#FF6B35)';
+    badge.style.color = '#0d1117';
+    badge.style.border = '2px solid rgba(255,215,0,0.5)';
     badge.style.borderRadius = '20px';
     badge.style.padding = '4px 12px';
     badge.style.fontSize = '12px';
     badge.style.fontWeight = '900';
     badge.style.whiteSpace = 'nowrap';
-    badge.style.boxShadow = '0 2px 10px rgba(24,119,242,0.5)';
-    badge.innerHTML = '✓ مدير موثّق';
-  } else if(_isVerifiedMember(memberName)){
-    // شارة توثيق خاصة بالأعضاء الأصليين المعتمدين
-    badge.style.display = 'block';
-    badge.style.background = 'linear-gradient(135deg,#00c853,#00695c)';
+    badge.style.boxShadow = '0 0 12px rgba(255,215,0,0.9),0 0 24px rgba(255,165,0,0.5)';
+    badge.style.animation = 'adminGoldPulse 2s ease infinite';
+    badge.innerHTML = '👑 مدير النظام';
+  } else if(memberName && memberName !== 'زائر'){
+    // شارة خضراء لكل الأعضاء المسجلين
+    badge.style.display = 'flex';
+    badge.style.alignItems = 'center';
+    badge.style.gap = '5px';
+    badge.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
     badge.style.color = 'white';
-    badge.style.border = '2px solid rgba(255,255,255,0.3)';
+    badge.style.border = '2px solid rgba(34,197,94,0.3)';
     badge.style.borderRadius = '20px';
     badge.style.padding = '4px 12px';
     badge.style.fontSize = '12px';
     badge.style.fontWeight = '900';
     badge.style.whiteSpace = 'nowrap';
-    badge.style.boxShadow = '0 2px 10px rgba(0,200,83,0.5)';
-    badge.innerHTML = '✅ عضو أصلي موثّق';
+    badge.style.boxShadow = '0 2px 10px rgba(34,197,94,0.4)';
+    badge.style.animation = '';
+    badge.innerHTML = '✓ عضو موثّق';
   } else {
-    // شارة توثيق عادية (300 نجمة)
-    const totalStarsKey = 'nld_total_stars_' + memberName.replace(/\s+/g,'_');
-    const totalStars = parseInt(localStorage.getItem(totalStarsKey)||'0');
-    if(totalStars >= 300){
-      badge.style.display = 'block';
-      badge.style.background = 'linear-gradient(135deg,#1877F2,#0052cc)';
-      badge.style.color = 'white';
-      badge.innerHTML = '✅ موثّق';
-    } else {
-      badge.style.display = 'none';
-    }
+    badge.style.display = 'none';
   }
 }
 
-/** إضافة شارة المدير أو العضو الأصلي عند عرض منشور أو تعليق */
+/** إضافة شارة المدير أو العضو عند عرض منشور أو تعليق */
 function getAdminVerifiedBadgeHtml(authorName){
   if(_isAdminUser(authorName)){
-    return `<span title="حساب المدير الرسمي" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:linear-gradient(135deg,#1877F2,#0052cc);color:white;border-radius:50%;font-size:9px;font-weight:900;margin-right:4px;box-shadow:0 1px 5px rgba(24,119,242,0.5);vertical-align:middle;flex-shrink:0;">✓</span>`;
+    return `<span title="مدير النظام 👑" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;background:linear-gradient(135deg,#FFD700,#FFA500,#FF6B35);border-radius:50%;font-size:10px;color:#0d1117;font-weight:900;margin-right:4px;box-shadow:0 0 8px rgba(255,215,0,0.9),0 0 16px rgba(255,165,0,0.5);vertical-align:middle;flex-shrink:0;animation:adminGoldPulse 2s ease infinite;">👑</span>`;
   }
-  if(_isVerifiedMember(authorName)){
-    return `<span title="عضو أصلي موثّق" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:linear-gradient(135deg,#00c853,#00695c);color:white;border-radius:50%;font-size:9px;font-weight:900;margin-right:4px;box-shadow:0 1px 5px rgba(0,200,83,0.5);vertical-align:middle;flex-shrink:0;">✓</span>`;
+  /* شارة خضراء لكل الأعضاء المسجلين */
+  if(authorName && authorName !== 'زائر'){
+    return `<span title="عضو موثّق ✓" style="display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:50%;font-size:9px;color:#fff;font-weight:900;margin-right:4px;box-shadow:0 0 6px rgba(34,197,94,0.6);vertical-align:middle;flex-shrink:0;">✓</span>`;
   }
   return '';
 }
@@ -19114,15 +19131,20 @@ async function _renderSmInbox(myName, filter=''){
         : (last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت');
       const ts = last.timestamp ? _smFormatTime(new Date(last.timestamp)) : '';
       const safeName = other.replace(/'/g,"\\'");
+      /* ── شارة المدير ذهبية، الأعضاء خضراء ── */
+      const isAdminOther = other === 'المدير';
+      const memberBadgeHtml = isAdminOther
+        ? `<span title="مدير النظام" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:linear-gradient(135deg,#FFD700,#FFA500);border-radius:50%;font-size:8px;color:#0d1117;font-weight:900;margin-right:3px;box-shadow:0 0 6px rgba(255,215,0,0.8);flex-shrink:0;vertical-align:middle;">👑</span>`
+        : `<span title="عضو موثّق" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:50%;font-size:9px;color:#fff;font-weight:900;margin-right:3px;box-shadow:0 0 5px rgba(34,197,94,0.6);flex-shrink:0;vertical-align:middle;">✓</span>`;
       html += `<div class="msng-inbox-item${unread>0?' unread-item':''}"
         onclick="openChatFromSocial('${safeName}')">
         <div class="msng-avatar-wrap">
           ${photo
             ? `<div class="msng-avatar"><img src="${photo}" alt="${other}"></div>`
-            : `<div class="msng-avatar" style="background:linear-gradient(135deg,${other==='المدير'?'#ef4444,#b91c1c':'#00B2FF,#0078FF'});font-size:22px;">${other==='المدير'?'🛡️':icon}</div>`}
+            : `<div class="msng-avatar" style="background:linear-gradient(135deg,${other==='المدير'?'#FFD700,#FFA500':'#00B2FF,#0078FF'});font-size:22px;">${other==='المدير'?'👑':icon}</div>`}
         </div>
         <div class="msng-body">
-          <div class="msng-name">${other}</div>
+          <div class="msng-name" style="display:flex;align-items:center;gap:2px;">${memberBadgeHtml}<span>${other}</span></div>
           <div class="msng-preview">
             ${isMyMsg?'<span style="color:#0078FF;font-size:11px;">أنت: </span>':''}
             <span>${msgPreview}</span>
@@ -23600,14 +23622,17 @@ async function fbLoginUser(user){
   localStorage.setItem('sklab_user_name', fullName);
   // حفظ بيانات المستخدم الكاملة
   localStorage.setItem(REG_CURR_KEY, JSON.stringify(user));
-  // ✅ حفظ الحساب في قائمة التبديل مع الصورة — مقيّد بنفس الجهاز
+  // ✅ حفظ الحساب في قائمة التبديل مع الصورة — مقيّد بنفس الجهاز (حسب خيار "تذكرني")
   try{
-    if(typeof addSavedLoginAccount === 'function') addSavedLoginAccount(user);
-    const _did2 = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
-    let _appA = JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
-    _appA = _appA.filter(a => a.name !== fullName);
-    _appA.unshift({ name: fullName, photo: user.photoUrl||'', device: _did2, ts: Date.now() });
-    localStorage.setItem('cdz_app_accounts', JSON.stringify(_appA.filter(a=>a.device===_did2).slice(0,5)));
+    const rememberMe = (document.getElementById('rememberMeCheck')?.checked !== false);
+    if(rememberMe){
+      if(typeof addSavedLoginAccount === 'function') addSavedLoginAccount(user);
+      const _did2 = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+      let _appA = JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
+      _appA = _appA.filter(a => a.name !== fullName);
+      _appA.unshift({ name: fullName, photo: user.photoUrl||'', device: _did2, ts: Date.now() });
+      localStorage.setItem('cdz_app_accounts', JSON.stringify(_appA.filter(a=>a.device===_did2).slice(0,5)));
+    }
   }catch(e2){}
   // تطبيق الصورة في كل مكان
   if(user.photoUrl) applyUserPhotoEverywhere(user.photoUrl, fullName);
@@ -31502,7 +31527,239 @@ window.addEventListener('load', function(){
   window.showBalanceModal=function(){ if(typeof _ob==='function') _ob.apply(this,arguments); setTimeout(window._refreshAllPoints,150); };
 })();
 
-console.log('✅ [ConnectDZ v10] Points & Balance from Google Sheets — Loaded');
+/* ══════════════════════════════════════════════════════════════
+   🛡️ صفحة المدير الكاملة — لوحة التحكم الرئيسية
+   صاحب التطبيق: smartkidslab13@gmail.com
+   ══════════════════════════════════════════════════════════════ */
+(function _adminFullPage(){
+'use strict';
+
+/* ── فتح الصفحة الكاملة ── */
+window.openAdminFullPage = function(){
+  if(!window._isAdmin){ if(typeof showToast==='function') showToast('⛔ للمدير فقط'); return; }
+  let ov = document.getElementById('_adminFullPageOverlay');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = '_adminFullPageOverlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99998;background:#050a0e;overflow-y:auto;font-family:Tajawal,sans-serif;';
+    document.body.appendChild(ov);
+    _buildAdminFullPage(ov);
+  }
+  ov.style.display = 'block';
+  _refreshAdminFullPage();
+};
+
+window.closeAdminFullPage = function(){
+  const ov = document.getElementById('_adminFullPageOverlay');
+  if(ov) ov.style.display = 'none';
+};
+
+function _buildAdminFullPage(ov){
+  ov.innerHTML = `
+    <style>
+      #_adminFullPageOverlay { direction: rtl; }
+      .afp-header { background: linear-gradient(135deg,#1a0a00,#2d1200,#3d1a00); padding: 20px 16px 16px; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(255,215,0,0.2); }
+      .afp-title { font-size: 20px; font-weight: 900; color: #FFD700; display: flex; align-items: center; gap: 10px; }
+      .afp-subtitle { font-size: 12px; color: rgba(255,215,0,0.6); margin-top: 4px; }
+      .afp-close { position: absolute; top: 16px; left: 16px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,215,0,0.15); border: 1px solid rgba(255,215,0,0.3); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; color: #FFD700; }
+      .afp-body { padding: 16px; max-width: 500px; margin: 0 auto; }
+      .afp-section { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,215,0,0.15); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
+      .afp-section-title { font-size: 14px; font-weight: 900; color: #FFD700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+      .afp-stat-row { display: flex; gap: 8px; margin-bottom: 12px; }
+      .afp-stat-card { flex: 1; background: rgba(255,215,0,0.07); border: 1px solid rgba(255,215,0,0.2); border-radius: 12px; padding: 12px 8px; text-align: center; }
+      .afp-stat-num { font-size: 22px; font-weight: 900; color: #FFD700; }
+      .afp-stat-lbl { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+      .afp-btn { width: 100%; padding: 13px; border: none; border-radius: 12px; background: linear-gradient(135deg,#FFD700,#FFA500); color: #0d1117; font-family: Tajawal,sans-serif; font-size: 14px; font-weight: 900; cursor: pointer; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: .15s; }
+      .afp-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+      .afp-btn.green { background: linear-gradient(135deg,#22c55e,#16a34a); color: white; }
+      .afp-btn.blue { background: linear-gradient(135deg,#3b82f6,#1d4ed8); color: white; }
+      .afp-btn.red { background: linear-gradient(135deg,#ef4444,#b91c1c); color: white; }
+      .afp-btn.purple { background: linear-gradient(135deg,#a855f7,#7c3aed); color: white; }
+      .afp-btn.dark { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); color: #e8eaed; }
+      .afp-input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,215,0,0.2); border-radius: 11px; color: white; font-family: Tajawal,sans-serif; font-size: 14px; outline: none; box-sizing: border-box; margin-bottom: 10px; text-align: right; }
+      .afp-input:focus { border-color: #FFD700; }
+      .afp-select { width: 100%; padding: 11px 14px; background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,215,0,0.2); border-radius: 11px; color: white; font-family: Tajawal,sans-serif; font-size: 14px; outline: none; margin-bottom: 10px; }
+      .afp-member-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: rgba(255,255,255,0.04); border-radius: 11px; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.07); }
+      .afp-member-name { flex: 1; font-size: 13px; font-weight: 800; color: #e8eaed; }
+      .afp-member-badge { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: linear-gradient(135deg,#22c55e,#16a34a); border-radius: 50%; font-size: 9px; color: #fff; font-weight: 900; flex-shrink: 0; box-shadow: 0 0 5px rgba(34,197,94,0.6); }
+    </style>
+
+    <div class="afp-header">
+      <div class="afp-title">🛡️ لوحة تحكم المدير</div>
+      <div class="afp-subtitle">صلاحية كاملة — smartkidslab13@gmail.com</div>
+      <div class="afp-close" onclick="closeAdminFullPage()">✕</div>
+    </div>
+
+    <div class="afp-body">
+
+      <!-- إحصائيات سريعة -->
+      <div class="afp-section">
+        <div class="afp-section-title">📊 إحصائيات التطبيق</div>
+        <div class="afp-stat-row">
+          <div class="afp-stat-card"><div class="afp-stat-num" id="afpStatMembers">…</div><div class="afp-stat-lbl">عضو</div></div>
+          <div class="afp-stat-card"><div class="afp-stat-num" id="afpStatPosts">…</div><div class="afp-stat-lbl">منشور</div></div>
+          <div class="afp-stat-card"><div class="afp-stat-num" id="afpStatMsgs">…</div><div class="afp-stat-lbl">رسالة</div></div>
+        </div>
+      </div>
+
+      <!-- أدوات المدير الرئيسية -->
+      <div class="afp-section">
+        <div class="afp-section-title">🎛️ أدوات التحكم الرئيسية</div>
+        <button class="afp-btn" onclick="hideModal('adminModal');openAdminFullPage();showModal('adminModal')">⚙️ لوحة الإدارة الكاملة</button>
+        <button class="afp-btn green" onclick="closeAdminFullPage();openMessages()">💬 مسنجر الأعضاء</button>
+        <button class="afp-btn blue" onclick="closeAdminFullPage();openAdminSendPointsPanel()">⭐ إرسال نقاط للأعضاء</button>
+        <button class="afp-btn purple" onclick="closeAdminFullPage();openAdminCommandPanel()">📣 نشر منشور رسمي</button>
+        <button class="afp-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#0d1117;" onclick="closeAdminFullPage();showMonitorDashboard()">📊 مراقبة الأداء</button>
+      </div>
+
+      <!-- إرسال رسالة سريعة لعضو -->
+      <div class="afp-section">
+        <div class="afp-section-title">📨 رسالة سريعة لعضو</div>
+        <select class="afp-select" id="afpMsgTarget">
+          <option value="">اختر عضو...</option>
+        </select>
+        <textarea class="afp-input" id="afpMsgText" placeholder="اكتب الرسالة..." style="min-height:80px;resize:none;"></textarea>
+        <button class="afp-btn green" onclick="_afpSendQuickMsg()">📤 إرسال الرسالة</button>
+      </div>
+
+      <!-- قائمة الأعضاء مع شاراتهم الخضراء -->
+      <div class="afp-section">
+        <div class="afp-section-title">👥 قائمة الأعضاء</div>
+        <input class="afp-input" id="afpMemberSearch" placeholder="🔍 ابحث عن عضو..." oninput="_afpFilterMembers(this.value)" style="margin-bottom:10px;">
+        <div id="afpMemberList" style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;">
+          <div style="text-align:center;padding:20px;color:rgba(255,255,255,0.4);">جارٍ التحميل...</div>
+        </div>
+      </div>
+
+      <!-- إرسال تنبيه فوري -->
+      <div class="afp-section">
+        <div class="afp-section-title">🔔 تنبيه فوري لكل الأعضاء</div>
+        <input class="afp-input" id="afpBroadcastMsg" placeholder="اكتب رسالة التنبيه...">
+        <button class="afp-btn red" onclick="_afpBroadcast()">📢 إرسال للجميع</button>
+      </div>
+
+      <!-- إجراءات متقدمة -->
+      <div class="afp-section">
+        <div class="afp-section-title">⚙️ إجراءات متقدمة</div>
+        <button class="afp-btn dark" onclick="closeAdminFullPage();showSocialHome&&showSocialHome()">🏠 العودة للصفحة الرئيسية</button>
+        <button class="afp-btn dark" onclick="closeAdminFullPage();logout&&logout()">🚪 تسجيل الخروج</button>
+      </div>
+
+    </div>
+  `;
+}
+
+function _refreshAdminFullPage(){
+  /* إحصائيات */
+  try{
+    const users = typeof getRegUsers==='function' ? getRegUsers() : [];
+    const el = document.getElementById('afpStatMembers');
+    if(el) el.innerText = users.length;
+  }catch(e){}
+  try{
+    const posts = JSON.parse(localStorage.getItem('nld_social_posts')||'[]');
+    const el = document.getElementById('afpStatPosts');
+    if(el) el.innerText = posts.filter(p=>!p.isAutoPost&&!p.isAd).length;
+  }catch(e){}
+  try{
+    let totalMsgs = 0;
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.startsWith('nld_p2p_')){
+        try{ totalMsgs += JSON.parse(localStorage.getItem(k)||'[]').length; }catch(e){}
+      }
+    }
+    const el = document.getElementById('afpStatMsgs');
+    if(el) el.innerText = totalMsgs;
+  }catch(e){}
+
+  /* قائمة الأعضاء */
+  _afpLoadMembers();
+}
+
+let _afpAllMembers = [];
+
+async function _afpLoadMembers(){
+  try{
+    const users = typeof getRegUsers==='function' ? getRegUsers() : [];
+    _afpAllMembers = users.map(u=>(u.firstName+' '+u.lastName).trim()).filter(Boolean);
+    /* تعبئة select الرسالة السريعة */
+    const sel = document.getElementById('afpMsgTarget');
+    if(sel){
+      sel.innerHTML = '<option value="">اختر عضو...</option>' +
+        _afpAllMembers.map(n=>`<option value="${n}">${n}</option>`).join('');
+    }
+    _afpRenderMembers(_afpAllMembers);
+  }catch(e){}
+}
+
+function _afpRenderMembers(list){
+  const div = document.getElementById('afpMemberList');
+  if(!div) return;
+  if(!list||list.length===0){
+    div.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.4);">لا توجد أعضاء</div>';
+    return;
+  }
+  div.innerHTML = list.map(n=>`
+    <div class="afp-member-row">
+      <div class="afp-member-badge">✓</div>
+      <div class="afp-member-name">${n}</div>
+      <div onclick="closeAdminFullPage();openAdminChat('${n.replace(/'/g,"\\'")}',false)" style="padding:5px 12px;background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.3);border-radius:20px;font-size:11px;font-weight:800;color:#00e5a0;cursor:pointer;flex-shrink:0;">💬 محادثة</div>
+    </div>
+  `).join('');
+}
+
+window._afpFilterMembers = function(q){
+  const filtered = q ? _afpAllMembers.filter(n=>n.includes(q)) : _afpAllMembers;
+  _afpRenderMembers(filtered);
+};
+
+window._afpSendQuickMsg = async function(){
+  const target = (document.getElementById('afpMsgTarget')||{}).value;
+  const text = (document.getElementById('afpMsgText')||{}).value?.trim();
+  if(!target){ if(typeof showToast==='function') showToast('⚠️ اختر عضواً'); return; }
+  if(!text){ if(typeof showToast==='function') showToast('⚠️ اكتب الرسالة'); return; }
+  const msgObj = {
+    id: 'admfp_' + Date.now(),
+    from: 'المدير', to: target,
+    message: text,
+    timestamp: new Date().toISOString(),
+    read: false
+  };
+  if(typeof _saveP2PMsgs==='function'){
+    const msgs = typeof _getP2PMsgs==='function' ? _getP2PMsgs('المدير', target) : [];
+    msgs.push(msgObj);
+    _saveP2PMsgs('المدير', target, msgs);
+  }
+  if(typeof sbSendMessage==='function') await sbSendMessage(msgObj).catch(()=>{});
+  if(typeof addSocialNotif==='function') addSocialNotif(target,'📩 رسالة جديدة من المدير','📩');
+  const ta = document.getElementById('afpMsgText');
+  if(ta) ta.value='';
+  if(typeof showToast==='function') showToast('✅ تم إرسال الرسالة لـ '+target);
+};
+
+window._afpBroadcast = function(){
+  const msg = (document.getElementById('afpBroadcastMsg')||{}).value?.trim();
+  if(!msg){ if(typeof showToast==='function') showToast('⚠️ اكتب الرسالة أولاً'); return; }
+  const users = typeof getRegUsers==='function' ? getRegUsers() : [];
+  users.forEach(u=>{
+    const name = (u.firstName+' '+u.lastName).trim();
+    if(!name) return;
+    const msgObj = { id:'bcast_'+Date.now()+'_'+Math.random().toString(36).slice(2), from:'المدير', to:name, message:msg, timestamp:new Date().toISOString(), read:false };
+    if(typeof _saveP2PMsgs==='function'){
+      const msgs = typeof _getP2PMsgs==='function' ? _getP2PMsgs('المدير', name) : [];
+      msgs.push(msgObj);
+      _saveP2PMsgs('المدير', name, msgs);
+    }
+    if(typeof sbSendMessage==='function') sbSendMessage(msgObj).catch(()=>{});
+    if(typeof addSocialNotif==='function') addSocialNotif(name,'📢 رسالة جماعية من المدير','📢');
+  });
+  const inp = document.getElementById('afpBroadcastMsg');
+  if(inp) inp.value='';
+  if(typeof showToast==='function') showToast('✅ تم إرسال التنبيه لـ '+users.length+' عضو');
+};
+
+console.log('✅ [AdminFullPage] صفحة المدير الكاملة — مفعّلة');
 })();
 
 /* ══════════════════════════════════════════════════════════════
