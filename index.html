@@ -31934,24 +31934,35 @@ console.log('✅ [AdminFullPage] صفحة المدير الكاملة — مفع
 (function(){
 'use strict';
 
-/* ── تعريف الأقسام ── */
-const NLD_DIVISIONS = [
-  { id:'diamond',   name:'الماسي',   icon:'💎', color:'#00BFFF', range:[30,99],  minLvl:30, maxLvl:999, rangeLabel:'Lv30+' },
-  { id:'gold',      name:'الذهبي',   icon:'🥇', color:'#FFD700', range:[26,29],  minLvl:26, maxLvl:29,  rangeLabel:'Lv26-29' },
-  { id:'pro',       name:'المحترف',  icon:'⭐', color:'#a855f7', range:[22,25],  minLvl:22, maxLvl:25,  rangeLabel:'Lv22-25' },
-  { id:'elite',     name:'المتميز',  icon:'🏅', color:'#3b82f6', range:[18,21],  minLvl:18, maxLvl:21,  rangeLabel:'Lv18-21' },
-  { id:'creative',  name:'المبدع',   icon:'🎨', color:'#f59e0b', range:[14,17],  minLvl:14, maxLvl:17,  rangeLabel:'Lv14-17' },
-  { id:'advanced',  name:'المتطور',  icon:'🚀', color:'#10b981', range:[10,13],  minLvl:10, maxLvl:13,  rangeLabel:'Lv10-13' },
-  { id:'expert',    name:'المتقن',   icon:'🔥', color:'#ef4444', range:[6,9],    minLvl:6,  maxLvl:9,   rangeLabel:'Lv6-9' },
-  { id:'amateur',   name:'الهاوي',   icon:'🌱', color:'#22c55e', range:[2,5],    minLvl:2,  maxLvl:5,   rangeLabel:'Lv2-5' },
-  { id:'beginner',  name:'المبتدئ',  icon:'🌟', color:'#94a3b8', range:[1,1],    minLvl:1,  maxLvl:1,   rangeLabel:'Lv1-1' },
-];
-
+/* ── تعريف الأقسام — التصنيف بمجموع النقاط مباشرةً من لوحة التحكم ── */
+// كل مستوى = 3000 نقطة → نحوّل حدود المستويات لنقاط
+// مثال: Lv30 = 30*3000 = 90000 نقطة
 const LEVEL_PTS = 3000; // نقاط لكل مستوى
 
-/* ── حساب مستوى الأعضاء ── */
+const NLD_DIVISIONS = [
+  { id:'diamond',  name:'الماسي',  icon:'💎', color:'#00BFFF', minPts:87000, maxPts:Infinity, rangeLabel:'87,000+ نقطة' },
+  { id:'gold',     name:'الذهبي',  icon:'🥇', color:'#FFD700', minPts:75000, maxPts:86999,    rangeLabel:'75,000–86,999' },
+  { id:'pro',      name:'المحترف', icon:'⭐', color:'#a855f7', minPts:63000, maxPts:74999,    rangeLabel:'63,000–74,999' },
+  { id:'elite',    name:'المتميز', icon:'🏅', color:'#3b82f6', minPts:51000, maxPts:62999,    rangeLabel:'51,000–62,999' },
+  { id:'creative', name:'المبدع',  icon:'🎨', color:'#f59e0b', minPts:39000, maxPts:50999,    rangeLabel:'39,000–50,999' },
+  { id:'advanced', name:'المتطور', icon:'🚀', color:'#10b981', minPts:27000, maxPts:38999,    rangeLabel:'27,000–38,999' },
+  { id:'expert',   name:'المتقن',  icon:'🔥', color:'#ef4444', minPts:15000, maxPts:26999,    rangeLabel:'15,000–26,999' },
+  { id:'amateur',  name:'الهاوي',  icon:'🌱', color:'#22c55e', minPts:3000,  maxPts:14999,    rangeLabel:'3,000–14,999' },
+  { id:'beginner', name:'المبتدئ', icon:'🌟', color:'#94a3b8', minPts:0,     maxPts:2999,     rangeLabel:'0–2,999 نقطة' },
+];
+
+/* ── حساب مستوى العضو من مجموع نقاطه ── */
 function getMemberLevel(totalPts){
   return Math.floor(totalPts / LEVEL_PTS) + 1;
+}
+
+/* ── تحديد القسم بناءً على مجموع النقاط مباشرةً ── */
+function getMemberDivisionIdx(totalPts){
+  for(let i=0; i<NLD_DIVISIONS.length; i++){
+    const d = NLD_DIVISIONS[i];
+    if(totalPts >= d.minPts && totalPts <= d.maxPts) return i;
+  }
+  return NLD_DIVISIONS.length - 1; // مبتدئ افتراضياً
 }
 
 /* ── تحميل جميع الأعضاء مع نقاطهم ── */
@@ -32006,10 +32017,18 @@ async function loadAllMembersWithPts(){
   }catch(e){}
 
   // إضافة نقاط الكويز المحلية
+  // ✅ مجموع النقاط (نقاط لوحة التحكم + نقاط الكويز) هو معيار الترتيب والقسم
   const result = Object.values(members).map(m=>{
     const qPts = typeof getSharedQuizPts==='function' ? getSharedQuizPts(m.name) : 0;
     const total = m.pts + qPts;
-    return { name: m.name, pts: m.pts, quizPts: qPts, total, level: getMemberLevel(total) };
+    return {
+      name: m.name,
+      pts: m.pts,
+      quizPts: qPts,
+      total,
+      level: getMemberLevel(total),
+      divisionIdx: getMemberDivisionIdx(total)
+    };
   });
 
   // استكمال من الحسابات المسجلة محلياً (إذا لم يوجدوا في الجدول)
@@ -32020,7 +32039,11 @@ async function loadAllMembersWithPts(){
       const alreadyIn = result.find(m=>normN(m.name)===key);
       if(!alreadyIn && fn && fn!=='المدير'){
         const localPts = parseInt(localStorage.getItem(typeof _earnedKey==='function'?_earnedKey(fn):('nld_earned_'+fn.replace(/\s+/g,'_')))||'0');
-        result.push({ name:fn, pts:0, quizPts:localPts, total:localPts, level:getMemberLevel(localPts) });
+        const lTotal = localPts;
+        result.push({
+          name: fn, pts: 0, quizPts: localPts, total: lTotal,
+          level: getMemberLevel(lTotal), divisionIdx: getMemberDivisionIdx(lTotal)
+        });
       }
     });
   }
@@ -32052,7 +32075,7 @@ function buildTabs(){
     <div id="nldTab_${i}" onclick="nldSelectDiv(${i})" style="flex-shrink:0;padding:10px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:70px;border-bottom:3px solid ${i===_nldActiveDiv?d.color:'transparent'};transition:.2s;">
       <span style="font-size:16px;">${d.icon}</span>
       <span style="font-size:10px;font-weight:800;color:${i===_nldActiveDiv?d.color:'rgba(255,255,255,0.5)'};">${d.name}</span>
-      <span style="font-size:9px;color:rgba(255,255,255,0.3);">${d.rangeLabel||('Lv'+d.range[0]+'-'+d.range[1])}</span>
+      <span style="font-size:9px;color:rgba(255,255,255,0.3);">${d.rangeLabel}</span>
     </div>
   `).join('');
 }
@@ -32091,9 +32114,9 @@ function renderDivision(divIdx, allMembers){
   const contentDiv = document.getElementById('nldChampContent');
   if(!contentDiv) return;
 
-  // فلترة الأعضاء حسب المستوى
+  // فلترة الأعضاء حسب مجموع النقاط (divisionIdx) — معيار التصنيف الرئيسي
   const members = allMembers
-    .filter(m=>m.level>=div.minLvl && m.level<=div.maxLvl)
+    .filter(m=> m.divisionIdx === divIdx)
     .sort((a,b)=>b.total-a.total);
 
   const currentUser = typeof getCurrentUser==='function' ? getCurrentUser() : '';
@@ -32105,7 +32128,7 @@ function renderDivision(divIdx, allMembers){
         <div style="font-size:52px;margin-bottom:14px;">${div.icon}</div>
         <div style="font-size:16px;font-weight:900;color:${div.color};margin-bottom:8px;">قسم ${div.name}</div>
         <div style="font-size:13px;color:rgba(255,255,255,0.4);">لا يوجد أعضاء في هذا القسم حالياً</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:6px;">المستويات ${div.rangeLabel||div.range[0]+' إلى '+div.range[1]}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:6px;">نطاق النقاط: ${div.rangeLabel}</div>
       </div>`;
     return;
   }
@@ -32151,7 +32174,7 @@ function renderDivision(divIdx, allMembers){
     <div style="background:linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));border:1px solid rgba(${div.color==='#00BFFF'?'0,191,255':div.color==='#FFD700'?'255,215,0':div.color==='#a855f7'?'168,85,247':'100,100,200'},0.25);border-radius:16px;padding:16px;margin-bottom:14px;text-align:center;">
       <div style="font-size:38px;margin-bottom:6px;">${div.icon}</div>
       <div style="font-size:18px;font-weight:900;color:${div.color};margin-bottom:4px;">قسم ${div.name}</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.5);">المستوى ${div.rangeLabel||div.range[0]+' — '+div.range[1]} • ${members.length} عضو</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);">النقاط المطلوبة: ${div.rangeLabel} • ${members.length} عضو</div>
       <div style="display:flex;gap:12px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
         ${divIdx > 0 ? '<div style=\"background:rgba(0,200,83,0.12);border:1px solid rgba(0,200,83,0.3);border-radius:10px;padding:6px 14px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون</div>' : ''}
         ${divIdx < NLD_DIVISIONS.length-1 ? '<div style=\"background:rgba(229,45,39,0.1);border:1px solid rgba(229,45,39,0.25);border-radius:10px;padding:6px 14px;font-size:11px;font-weight:800;color:#ef4444;">↓ 2 أخيرين ينزلون</div>' : ''}
