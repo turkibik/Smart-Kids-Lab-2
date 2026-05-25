@@ -9362,7 +9362,22 @@ function processEntry(val,type){
 }
 
 function renderApp(name,pts,isReg, externalEarned){
-  // 🔒 لا نحفظ الحساب في القائمة — تسجيل الدخول يدوي دائماً
+  // ✅ حفظ الحساب تلقائياً — مقيّد بنفس الجهاز فقط (deviceId)
+  if(name && name !== 'زائر' && name !== 'المدير'){
+    if(typeof saveAccount === 'function') saveAccount(name);
+    // حفظ في القائمة الداخلية أيضاً (cdz_app_accounts) مع صورة العضو
+    try{
+      const _deviceId = (typeof getDeviceId === 'function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+      let _appAccs = JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
+      // إزالة الحساب إن وُجد مسبقاً لتحديثه
+      _appAccs = _appAccs.filter(a => a.name !== name);
+      const _photo = localStorage.getItem('nld_photo_' + name.replace(/\s+/g,'_')) || '';
+      _appAccs.unshift({ name, photo: _photo, device: _deviceId, ts: Date.now() });
+      // حفظ أقصى 5 حسابات خاصة بهذا الجهاز فقط
+      const _filtered = _appAccs.filter(a => a.device === _deviceId).slice(0, 5);
+      localStorage.setItem('cdz_app_accounts', JSON.stringify(_filtered));
+    }catch(e){}
+  }
   // إزالة لوحة المدير السريعة إن بقيت من جلسة سابقة
   const oldCard=document.getElementById('adminQuickCard');
   if(oldCard) oldCard.remove();
@@ -23072,8 +23087,15 @@ async function fbLoginUser(user){
   localStorage.setItem('sklab_user_name', fullName);
   // حفظ بيانات المستخدم الكاملة
   localStorage.setItem(REG_CURR_KEY, JSON.stringify(user));
-  // 🔒 لا نحفظ الحساب في قائمة التبديل — تسجيل الدخول يدوي دائماً
-  localStorage.removeItem('cdz_app_accounts');
+  // ✅ حفظ الحساب في قائمة التبديل مع الصورة — مقيّد بنفس الجهاز
+  try{
+    if(typeof addSavedLoginAccount === 'function') addSavedLoginAccount(user);
+    const _did2 = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+    let _appA = JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
+    _appA = _appA.filter(a => a.name !== fullName);
+    _appA.unshift({ name: fullName, photo: user.photoUrl||'', device: _did2, ts: Date.now() });
+    localStorage.setItem('cdz_app_accounts', JSON.stringify(_appA.filter(a=>a.device===_did2).slice(0,5)));
+  }catch(e2){}
   // تطبيق الصورة في كل مكان
   if(user.photoUrl) applyUserPhotoEverywhere(user.photoUrl, fullName);
 
@@ -24908,10 +24930,14 @@ function _loadSavedAccountsInDropdown(){
   const container = document.getElementById('pdSavedAccounts');
   if(!container) return;
   try{
-    // 🔒 لا توجد حسابات محفوظة — تسجيل الدخول يدوي دائماً
-    localStorage.removeItem('cdz_app_accounts');
-    const regAccs  = [];
-    const current   = localStorage.getItem('sklab_user_name')||'';
+    // ✅ عرض الحسابات المحفوظة لنفس الجهاز فقط — خصوصية تامة
+    const _myDeviceId = (typeof getDeviceId === 'function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+    const _allAccs = JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
+    // فلترة: عرض حسابات هذا الجهاز فقط
+    const regAccs = _allAccs.filter(a => a.device === _myDeviceId);
+    // تحديث الصور (قد تكون تغيّرت)
+    regAccs.forEach(a => { a.photo = localStorage.getItem('nld_photo_' + a.name.replace(/\s+/g,'_')) || a.photo || ''; });
+    const current = localStorage.getItem('sklab_user_name')||'';
 
     container.style.flexDirection = 'column';
 
@@ -24961,32 +24987,34 @@ function _loadSavedAccountsInDropdown(){
 
 /* ══ تبديل الحساب من القائمة الداخلية — يطلب كلمة المرور ══ */
 window._switchAppAccount = async function(idx){
-  const accs = JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
-  const acc  = accs[idx];
+  const _myDeviceId = (typeof getDeviceId === 'function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+  const allAccs = JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
+  const deviceAccs = allAccs.filter(a => a.device === _myDeviceId);
+  const acc  = deviceAccs[idx];
   if(!acc) return;
   const current = localStorage.getItem('sklab_user_name')||'';
   if(acc.name === current){ if(typeof showToast==='function') showToast('✓ أنت بالفعل في هذا الحساب'); return; }
 
-  /* طلب كلمة المرور */
-  const pass = await showPrompt('تبديل الحساب', 'كلمة المرور...', '🔐', 'أدخل كلمة مرور حساب ' + acc.name);
-  if(!pass) return;
-
-  const users = (typeof getRegUsers==='function') ? getRegUsers() : [];
-  const user  = users.find(u => u.email===acc.email && u.password===btoa(unescape(encodeURIComponent(pass))));
-  if(!user){
-    /* كلمة مرور مؤقتة */
-    if(pass === '000000'){
-      const tmpUser = users.find(u => u.email===acc.email);
-      if(tmpUser){ fbLoginUser(tmpUser); return; }
-    }
-    if(typeof showToast==='function') showToast('❌ كلمة المرور غير صحيحة');
-    return;
+  // ✅ نفس الجهاز = تبديل مباشر بدون كلمة مرور (خصوصية محمية بـ deviceId)
+  if(typeof showToast==='function') showToast('⏳ جاري التبديل إلى ' + acc.name + '...');
+  localStorage.setItem('sklab_user_name', acc.name);
+  const _normSwitch = acc.name.replace(/\s+/g,'_');
+  if(!localStorage.getItem('nld_join_ts_'+_normSwitch)){
+    localStorage.setItem('nld_join_ts_'+_normSwitch, String(Date.now()));
   }
-  fbLoginUser(user);
+  if(typeof _recordDailyLogin==='function') _recordDailyLogin(_normSwitch);
+  const _localEarned = parseInt(localStorage.getItem('nld_earned_'+_normSwitch)||'0');
+  if(typeof renderApp==='function') renderApp(acc.name, 0, true, _localEarned);
+  if(typeof _refreshPointsInBackground==='function') _refreshPointsInBackground(acc.name);
 };
 
 /* ══ حذف حساب من القائمة الداخلية ══ */
 window._deleteAppAccount = function(idx){
+  const _myDeviceId = (typeof getDeviceId === 'function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+  const allAccs = JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
+  const deviceAccs = allAccs.filter(a => a.device === _myDeviceId);
+  const target = deviceAccs[idx];
+  const targetName = target ? target.name : '';
   const overlay = document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;z-index:9999999;background:rgba(5,10,14,0.7);display:flex;align-items:flex-end;justify-content:center;';
   overlay.innerHTML=`
@@ -24995,9 +25023,16 @@ window._deleteAppAccount = function(idx){
       <div style="font-size:16px;font-weight:900;color:#e8eaed;text-align:center;margin-bottom:6px;">🗑️ إزالة الحساب من القائمة</div>
       <div style="font-size:13px;color:#8b949e;text-align:center;margin-bottom:20px;">لن يُحذف الحساب نهائياً — فقط يُزال من قائمة التبديل السريع</div>
       <button onclick="(function(){
-        var accs=JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
-        accs.splice(${idx},1);
-        localStorage.setItem('cdz_app_accounts',JSON.stringify(accs));
+        var _did=(typeof getDeviceId==='function')?getDeviceId():(localStorage.getItem('__deviceId')||'default');
+        var allA=JSON.parse(localStorage.getItem('cdz_app_accounts')||'[]');
+        var devA=allA.filter(a=>a.device===_did);
+        var tgt=devA[${idx}];
+        if(tgt){
+          var updated=allA.filter(a=>!(a.device===_did && a.name===tgt.name));
+          localStorage.setItem('cdz_app_accounts',JSON.stringify(updated));
+          // حذف من نظام التسجيل أيضاً
+          if(typeof deleteSavedAccount==='function') deleteSavedAccount(tgt.name);
+        }
         document.querySelector('[data-cdz-del-overlay]').remove();
         _loadSavedAccountsInDropdown();
         if(typeof showToast==='function') showToast('✅ تم إزالة الحساب من القائمة');
