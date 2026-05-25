@@ -31965,7 +31965,7 @@ function getMemberDivisionIdx(totalPts){
   return NLD_DIVISIONS.length - 1; // مبتدئ افتراضياً
 }
 
-/* ── تحميل جميع الأعضاء مع نقاطهم ── */
+/* ── تحميل جميع الأعضاء مع نقاطهم الإجمالية (نفس آلية لوحة التحكم) ── */
 async function loadAllMembersWithPts(){
   const normN = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
   const csvParse = line => {
@@ -31979,72 +31979,82 @@ async function loadAllMembersWithPts(){
     return res;
   };
 
-  let members = {};
+  const _EXCLUDED = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء'];
+  const isExcluded = n => _EXCLUDED.some(ex => n===ex || n.startsWith(ex+' '));
 
-  // من dataUrl
+  // ── 1) جلب نقاط الكويز المشتركة لجميع الأعضاء (نفس fetchAllQuizPts المستخدمة في جدول الترتيب)
+  let allQuizPts = {};
+  try{
+    if(typeof fetchAllQuizPts === 'function') allQuizPts = await fetchAllQuizPts();
+  }catch(e){}
+
+  // دالة تجلب نقاط الكويز لأي عضو — من API أولاً ثم localStorage كـ fallback للمستخدم الحالي
+  const currentUser = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+  function getQuizPtsFor(name){
+    for(const [k,v] of Object.entries(allQuizPts)){
+      if(normN(k)===normN(name)) return parseInt(v)||0;
+    }
+    if(normN(name)===normN(currentUser)){
+      return parseInt(localStorage.getItem(
+        typeof _earnedKey==='function' ? _earnedKey(currentUser) : ('nld_earned_'+currentUser.replace(/\s+/g,'_'))
+      )||'0');
+    }
+    return 0;
+  }
+
+  // ── 2) نقاط الجدول الرئيسي (dataUrl) — العمود الأخير = نقاط لوحة التحكم
+  const sheetMap = {};
   try{
     const t1 = await fetch(typeof dataUrl!=='undefined'?dataUrl:'').then(r=>r.text()).catch(()=>'');
     if(t1){
       t1.split('\n').slice(1).filter(r=>r.trim()).forEach(row=>{
         const c = csvParse(row);
         const n = (c[2]||'').trim();
+        if(!n || isExcluded(n)) return;
         const p = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
-        if(n && n!=='ممتاز' && n!=='لؤي' && n!=='لؤي عماري' && n!=='وفاء وفاء'){
-          const key = normN(n);
-          if(!members[key] || p > members[key].pts) members[key] = {name:n, pts:p};
-        }
+        const key = normN(n);
+        if(!sheetMap[key] || p > sheetMap[key].sheetPts) sheetMap[key] = {name:n, sheetPts:p};
       });
     }
   }catch(e){}
 
-  // من smartUrl
+  // ── 3) بقية الأعضاء من smartUrl
   try{
     const t2 = await fetch(typeof smartUrl!=='undefined'?smartUrl:'').then(r=>r.text()).catch(()=>'');
     if(t2){
       t2.split('\n').slice(1).filter(r=>r.trim()).forEach(row=>{
         const c = csvParse(row);
         const n = (c[2]||'').trim();
-        if(!n || n==='ممتاز') return;
+        if(!n || isExcluded(n)) return;
         const key = normN(n);
-        if(!members[key]){
-          // نقاطه من dataUrl إذا موجود
-          const pMatch = Object.values(members).find(m=>normN(m.name)===key);
-          const p = pMatch ? pMatch.pts : 0;
-          members[key] = {name:n, pts:p};
-        }
+        if(!sheetMap[key]) sheetMap[key] = {name:n, sheetPts:0};
       });
     }
   }catch(e){}
 
-  // إضافة نقاط الكويز المحلية
-  // ✅ مجموع النقاط (نقاط لوحة التحكم + نقاط الكويز) هو معيار الترتيب والقسم
-  const result = Object.values(members).map(m=>{
-    const qPts = typeof getSharedQuizPts==='function' ? getSharedQuizPts(m.name) : 0;
-    const total = m.pts + qPts;
+  // ── 4) المجموع الإجمالي = نقاط الجدول + نقاط الكويز المشتركة
+  //    هذا هو نفس "مجموع النقاط" الظاهر في بطاقة لوحة التحكم
+  const result = Object.values(sheetMap).map(m=>{
+    const qPts  = getQuizPtsFor(m.name);
+    const total = m.sheetPts + qPts;
     return {
-      name: m.name,
-      pts: m.pts,
-      quizPts: qPts,
-      total,
-      level: getMemberLevel(total),
-      divisionIdx: getMemberDivisionIdx(total)
+      name: m.name, pts: m.sheetPts, quizPts: qPts, total,
+      level: getMemberLevel(total), divisionIdx: getMemberDivisionIdx(total)
     };
   });
 
-  // استكمال من الحسابات المسجلة محلياً (إذا لم يوجدوا في الجدول)
+  // ── 5) أعضاء مسجلون محلياً ولم يظهروا في الجداول بعد
   if(typeof getRegUsers==='function'){
     getRegUsers().forEach(u=>{
       const fn = (u.firstName+' '+u.lastName).trim();
-      const key = normN(fn);
-      const alreadyIn = result.find(m=>normN(m.name)===key);
-      if(!alreadyIn && fn && fn!=='المدير'){
-        const localPts = parseInt(localStorage.getItem(typeof _earnedKey==='function'?_earnedKey(fn):('nld_earned_'+fn.replace(/\s+/g,'_')))||'0');
-        const lTotal = localPts;
-        result.push({
-          name: fn, pts: 0, quizPts: localPts, total: lTotal,
-          level: getMemberLevel(lTotal), divisionIdx: getMemberDivisionIdx(lTotal)
-        });
-      }
+      if(!fn || fn==='المدير' || result.find(m=>normN(m.name)===normN(fn))) return;
+      const qPts = getQuizPtsFor(fn)||parseInt(localStorage.getItem(
+        typeof _earnedKey==='function' ? _earnedKey(fn) : ('nld_earned_'+fn.replace(/\s+/g,'_'))
+      )||'0');
+      result.push({
+        name:fn, pts:0, quizPts:qPts, total:qPts,
+        level:getMemberLevel(qPts), divisionIdx:getMemberDivisionIdx(qPts)
+      });
     });
   }
 
