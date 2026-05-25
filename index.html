@@ -9668,6 +9668,16 @@ function renderApp(name,pts,isReg, externalEarned){
     if(mgBalance) mgBalance.innerText=balance+" دج";
     const mgLevel=document.getElementById("mgStatLevel");
     if(mgLevel) mgLevel.innerText=`${currentLevel}`;
+
+    // ✅ حفظ مجموع النقاط الإجمالي في Firebase — يُقرأ من البطولة لجميع الأعضاء
+    if(typeof name !== 'undefined' && name && name !== 'زائر' && totalForLevel > 0){
+      const _normDB = name.replace(/\s+/g,'_');
+      fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+_normDB+'.json',{
+        method:'PATCH',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({totalPts: totalForLevel, updatedAt: Date.now()})
+      }).catch(()=>{});
+    }
   }
 
   // عرض أولي فوري (قبل جلب الجداول)
@@ -10476,6 +10486,16 @@ function _updateMainPointsDisplay(name, newQuizPts){
   // تحديث cardPoints
   const cardPts=document.getElementById("cardPoints");
   if(cardPts) cardPts.innerText=newTotal.toLocaleString()+" نقطة";
+
+  // ✅ حفظ مجموع النقاط في Firebase — حتى تقرأه البطولة لجميع الأعضاء
+  if(name && newTotal > 0){
+    const _normSave = name.replace(/\s+/g,'_');
+    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+_normSave+'.json',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({totalPts: newTotal, updatedAt: Date.now()})
+    }).catch(()=>{});
+  }
 }
 
 /* تحديث عرض نقاط الكويز الخاصة بالمشترك */
@@ -31965,9 +31985,13 @@ function getMemberDivisionIdx(totalPts){
   return NLD_DIVISIONS.length - 1; // مبتدئ افتراضياً
 }
 
-/* ── تحميل جميع الأعضاء مع نقاطهم الإجمالية (نفس آلية لوحة التحكم) ── */
+/* ── تحميل جميع الأعضاء مع مجموع نقاطهم الحقيقي من Firebase ── */
 async function loadAllMembersWithPts(){
   const normN = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+  const FB    = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  const _EXCL = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء','المدير'];
+  const isExcl = n => _EXCL.some(ex => n===ex || n.startsWith(ex+' '));
+
   const csvParse = line => {
     const res=[]; let cur=''; let q=false;
     for(let i=0;i<=line.length;i++){
@@ -31979,81 +32003,60 @@ async function loadAllMembersWithPts(){
     return res;
   };
 
-  const _EXCLUDED = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء'];
-  const isExcluded = n => _EXCLUDED.some(ex => n===ex || n.startsWith(ex+' '));
-
-  // ── 1) جلب نقاط الكويز المشتركة لجميع الأعضاء (نفس fetchAllQuizPts المستخدمة في جدول الترتيب)
-  let allQuizPts = {};
+  // ── 1) جلب كل userStats من Firebase دفعة واحدة
+  // totalPts = نفس مجموع النقاط الظاهر في لوحة التحكم (جدول + كويز + اجتماعية)
+  let fbStats = {};
   try{
-    if(typeof fetchAllQuizPts === 'function') allQuizPts = await fetchAllQuizPts();
+    const res = await fetch(FB+'/userStats.json');
+    if(res.ok){ const d = await res.json(); if(d) fbStats = d; }
   }catch(e){}
 
-  // دالة تجلب نقاط الكويز لأي عضو — من API أولاً ثم localStorage كـ fallback للمستخدم الحالي
-  const currentUser = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-  function getQuizPtsFor(name){
-    for(const [k,v] of Object.entries(allQuizPts)){
-      if(normN(k)===normN(name)) return parseInt(v)||0;
-    }
-    if(normN(name)===normN(currentUser)){
-      return parseInt(localStorage.getItem(
-        typeof _earnedKey==='function' ? _earnedKey(currentUser) : ('nld_earned_'+currentUser.replace(/\s+/g,'_'))
-      )||'0');
-    }
-    return 0;
-  }
-
-  // ── 2) نقاط الجدول الرئيسي (dataUrl) — العمود الأخير = نقاط لوحة التحكم
-  const sheetMap = {};
+  // ── 2) جلب أسماء الأعضاء الرسميين من dataUrl + smartUrl
+  const nameMap = {}; // normKey → الاسم الحقيقي
   try{
     const t1 = await fetch(typeof dataUrl!=='undefined'?dataUrl:'').then(r=>r.text()).catch(()=>'');
     if(t1){
       t1.split('\n').slice(1).filter(r=>r.trim()).forEach(row=>{
         const c = csvParse(row);
         const n = (c[2]||'').trim();
-        if(!n || isExcluded(n)) return;
-        const p = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
-        const key = normN(n);
-        if(!sheetMap[key] || p > sheetMap[key].sheetPts) sheetMap[key] = {name:n, sheetPts:p};
+        if(n && !isExcl(n)) nameMap[normN(n)] = n;
       });
     }
   }catch(e){}
-
-  // ── 3) بقية الأعضاء من smartUrl
   try{
     const t2 = await fetch(typeof smartUrl!=='undefined'?smartUrl:'').then(r=>r.text()).catch(()=>'');
     if(t2){
       t2.split('\n').slice(1).filter(r=>r.trim()).forEach(row=>{
         const c = csvParse(row);
         const n = (c[2]||'').trim();
-        if(!n || isExcluded(n)) return;
-        const key = normN(n);
-        if(!sheetMap[key]) sheetMap[key] = {name:n, sheetPts:0};
+        if(n && !isExcl(n) && !nameMap[normN(n)]) nameMap[normN(n)] = n;
       });
     }
   }catch(e){}
 
-  // ── 4) المجموع الإجمالي = نقاط الجدول + نقاط الكويز المشتركة
-  //    هذا هو نفس "مجموع النقاط" الظاهر في بطاقة لوحة التحكم
-  const result = Object.values(sheetMap).map(m=>{
-    const qPts  = getQuizPtsFor(m.name);
-    const total = m.sheetPts + qPts;
+  // ── 3) بناء القائمة: totalPts يأتي من Firebase مباشرةً
+  const result = Object.entries(nameMap).map(([key, name])=>{
+    const fbKey  = name.replace(/\s+/g,'_');
+    const fbData = fbStats[fbKey] || fbStats[key] || null;
+    const total  = (fbData && fbData.totalPts) ? parseInt(fbData.totalPts)||0 : 0;
     return {
-      name: m.name, pts: m.sheetPts, quizPts: qPts, total,
-      level: getMemberLevel(total), divisionIdx: getMemberDivisionIdx(total)
+      name, pts: total, total,
+      level: getMemberLevel(total),
+      divisionIdx: getMemberDivisionIdx(total)
     };
   });
 
-  // ── 5) أعضاء مسجلون محلياً ولم يظهروا في الجداول بعد
+  // ── 4) أعضاء مسجلون محلياً لم يظهروا في الجداول بعد
   if(typeof getRegUsers==='function'){
     getRegUsers().forEach(u=>{
       const fn = (u.firstName+' '+u.lastName).trim();
-      if(!fn || fn==='المدير' || result.find(m=>normN(m.name)===normN(fn))) return;
-      const qPts = getQuizPtsFor(fn)||parseInt(localStorage.getItem(
-        typeof _earnedKey==='function' ? _earnedKey(fn) : ('nld_earned_'+fn.replace(/\s+/g,'_'))
-      )||'0');
+      if(!fn || isExcl(fn) || result.find(m=>normN(m.name)===normN(fn))) return;
+      const fbKey  = fn.replace(/\s+/g,'_');
+      const fbData = fbStats[fbKey] || null;
+      const total  = (fbData && fbData.totalPts) ? parseInt(fbData.totalPts)||0 : 0;
       result.push({
-        name:fn, pts:0, quizPts:qPts, total:qPts,
-        level:getMemberLevel(qPts), divisionIdx:getMemberDivisionIdx(qPts)
+        name:fn, pts:total, total,
+        level:getMemberLevel(total), divisionIdx:getMemberDivisionIdx(total)
       });
     });
   }
