@@ -31985,13 +31985,22 @@ function getMemberDivisionIdx(totalPts){
   return NLD_DIVISIONS.length - 1; // مبتدئ افتراضياً
 }
 
-/* ── تحميل جميع الأعضاء مع مجموع نقاطهم الحقيقي من Firebase ── */
+/* ══════════════════════════════════════════════════════════════
+   🔥 تحميل جميع الأعضاء مع نقاطهم الحقيقية من Firebase
+   النسخة المحسّنة v3.0 — جلب مباشر + مطابقة ذكية للمفاتيح
+   ══════════════════════════════════════════════════════════════ */
 async function loadAllMembersWithPts(){
-  const normN = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
-  const FB    = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  const FB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
   const _EXCL = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء','المدير'];
-  const isExcl = n => _EXCL.some(ex => n===ex || n.startsWith(ex+' '));
 
+  /* تطبيع الاسم: إزالة علامات الاقتباس والمسافات الزائدة */
+  const normN  = s => (s||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+  /* تحويل الاسم لمفتاح Firebase: مسافات → شرطة سفلية */
+  const toFBKey = s => (s||'').replace(/\s+/g,'_');
+  /* هل الاسم مستثنى؟ */
+  const isExcl = n => !n || _EXCL.some(ex => n===ex || n.startsWith(ex+' '));
+
+  /* ── تحليل CSV بشكل صحيح ── */
   const csvParse = line => {
     const res=[]; let cur=''; let q=false;
     for(let i=0;i<=line.length;i++){
@@ -32003,64 +32012,122 @@ async function loadAllMembersWithPts(){
     return res;
   };
 
-  // ── 1) جلب كل userStats من Firebase دفعة واحدة
-  // totalPts = نفس مجموع النقاط الظاهر في لوحة التحكم (جدول + كويز + اجتماعية)
+  /* ══ 1) جلب كامل /userStats دفعة واحدة من Firebase ══ */
   let fbStats = {};
   try{
-    const res = await fetch(FB+'/userStats.json');
-    if(res.ok){ const d = await res.json(); if(d) fbStats = d; }
-  }catch(e){}
+    const res = await fetch(FB+'/userStats.json?orderBy="updatedAt"&limitToLast=500');
+    if(res.ok){ const d = await res.json(); if(d && typeof d==='object') fbStats = d; }
+  }catch(e){
+    // محاولة ثانية بدون params
+    try{
+      const res2 = await fetch(FB+'/userStats.json');
+      if(res2.ok){ const d2 = await res2.json(); if(d2) fbStats = d2; }
+    }catch(e2){}
+  }
 
-  // ── 2) جلب أسماء الأعضاء الرسميين من dataUrl + smartUrl
-  const nameMap = {}; // normKey → الاسم الحقيقي
+  /* بناء فهرس بمفاتيح متعددة للمطابقة السريعة */
+  const fbIndex = {}; // normKey → {totalPts, ...}
+  Object.entries(fbStats).forEach(([rawKey, data])=>{
+    if(!data || !data.totalPts) return;
+    // المفتاح الأصلي
+    fbIndex[rawKey.toLowerCase()] = data;
+    // بعد استبدال _ بمسافة
+    fbIndex[rawKey.replace(/_/g,' ').toLowerCase()] = data;
+  });
+
+  /* ── دالة البحث الذكية عن نقاط عضو في Firebase ── */
+  function _findPts(name){
+    if(!name) return 0;
+    const k1 = toFBKey(name);           // أحمد_بن_علي
+    const k2 = normN(name);             // أحمد بن علي (lowercase)
+    const k3 = k1.toLowerCase();        // نسخة lowercase من المفتاح
+
+    const data =
+      fbStats[k1]       ||  // مطابقة مباشرة بالمفتاح الرسمي
+      fbStats[k2]       ||  // مطابقة بالاسم المُطبَّع
+      fbIndex[k3]       ||  // مطابقة في الفهرس
+      fbIndex[k2]       ||  // lowercase مع مسافات
+      null;
+
+    if(data && data.totalPts) return parseInt(data.totalPts)||0;
+
+    // بحث تقريبي: تجاهل الفراغات وتوحيد الأحرف
+    const stripped = name.replace(/\s+/g,'').toLowerCase();
+    for(const [rk, rd] of Object.entries(fbStats)){
+      if(!rd || !rd.totalPts) continue;
+      if(rk.replace(/_/g,'').toLowerCase() === stripped) return parseInt(rd.totalPts)||0;
+    }
+    return 0;
+  }
+
+  /* ══ 2) جمع أسماء الأعضاء من جميع المصادر ══ */
+  const nameMap = {}; // normKey → الاسم الأصلي الكامل
+
+  /* المصدر أ: جدول البيانات الرئيسي (dataUrl) */
   try{
-    const t1 = await fetch(typeof dataUrl!=='undefined'?dataUrl:'').then(r=>r.text()).catch(()=>'');
-    if(t1){
-      t1.split('\n').slice(1).filter(r=>r.trim()).forEach(row=>{
-        const c = csvParse(row);
-        const n = (c[2]||'').trim();
-        if(n && !isExcl(n)) nameMap[normN(n)] = n;
-      });
+    const url1 = typeof dataUrl!=='undefined' ? dataUrl : '';
+    if(url1){
+      const t1 = await fetch(url1).then(r=>r.text()).catch(()=>'');
+      if(t1){
+        t1.split('\n').slice(1).filter(r=>r.trim()).forEach(row=>{
+          const c = csvParse(row);
+          const n = (c[2]||'').trim();
+          if(n && !isExcl(n) && !nameMap[normN(n)]) nameMap[normN(n)] = n;
+        });
+      }
     }
   }catch(e){}
+
+  /* المصدر ب: الجدول الذكي (smartUrl) */
   try{
-    const t2 = await fetch(typeof smartUrl!=='undefined'?smartUrl:'').then(r=>r.text()).catch(()=>'');
-    if(t2){
-      t2.split('\n').slice(1).filter(r=>r.trim()).forEach(row=>{
-        const c = csvParse(row);
-        const n = (c[2]||'').trim();
-        if(n && !isExcl(n) && !nameMap[normN(n)]) nameMap[normN(n)] = n;
-      });
+    const url2 = typeof smartUrl!=='undefined' ? smartUrl : '';
+    if(url2){
+      const t2 = await fetch(url2).then(r=>r.text()).catch(()=>'');
+      if(t2){
+        t2.split('\n').slice(1).filter(r=>r.trim()).forEach(row=>{
+          const c = csvParse(row);
+          const n = (c[2]||'').trim();
+          if(n && !isExcl(n) && !nameMap[normN(n)]) nameMap[normN(n)] = n;
+        });
+      }
     }
   }catch(e){}
 
-  // ── 3) بناء القائمة: totalPts يأتي من Firebase مباشرةً
-  const result = Object.entries(nameMap).map(([key, name])=>{
-    const fbKey  = name.replace(/\s+/g,'_');
-    const fbData = fbStats[fbKey] || fbStats[key] || null;
-    const total  = (fbData && fbData.totalPts) ? parseInt(fbData.totalPts)||0 : 0;
+  /* المصدر ج: جميع الأعضاء الموجودين في Firebase مباشرةً
+     (يلتقط الأعضاء الذين سجّلوا نقاطاً حتى لو لم يظهروا في الجداول بعد) */
+  Object.keys(fbStats).forEach(rawKey=>{
+    const d = fbStats[rawKey];
+    if(!d || !d.totalPts) return;
+    const displayName = rawKey.replace(/_/g,' ');
+    if(!isExcl(displayName) && !nameMap[normN(displayName)]){
+      nameMap[normN(displayName)] = displayName;
+    }
+  });
+
+  /* المصدر د: أعضاء مسجلون محلياً */
+  if(typeof getRegUsers==='function'){
+    try{
+      getRegUsers().forEach(u=>{
+        const fn = ((u.firstName||'')+' '+(u.lastName||'')).trim();
+        if(!fn || isExcl(fn) || nameMap[normN(fn)]) return;
+        nameMap[normN(fn)] = fn;
+      });
+    }catch(e){}
+  }
+
+  /* ══ 3) بناء القائمة النهائية بالنقاط الحقيقية من Firebase ══ */
+  const result = Object.entries(nameMap).map(([, name])=>{
+    const total = _findPts(name);
     return {
-      name, pts: total, total,
+      name,
+      pts: total,
+      total,
       level: getMemberLevel(total),
       divisionIdx: getMemberDivisionIdx(total)
     };
   });
 
-  // ── 4) أعضاء مسجلون محلياً لم يظهروا في الجداول بعد
-  if(typeof getRegUsers==='function'){
-    getRegUsers().forEach(u=>{
-      const fn = (u.firstName+' '+u.lastName).trim();
-      if(!fn || isExcl(fn) || result.find(m=>normN(m.name)===normN(fn))) return;
-      const fbKey  = fn.replace(/\s+/g,'_');
-      const fbData = fbStats[fbKey] || null;
-      const total  = (fbData && fbData.totalPts) ? parseInt(fbData.totalPts)||0 : 0;
-      result.push({
-        name:fn, pts:total, total,
-        level:getMemberLevel(total), divisionIdx:getMemberDivisionIdx(total)
-      });
-    });
-  }
-
+  /* ترتيب تنازلي حسب مجموع النقاط */
   return result.sort((a,b)=>b.total-a.total);
 }
 
@@ -32111,89 +32178,141 @@ window.nldSelectDiv = function(idx){
   renderDivision(idx, window._nldAllMembers||[]);
 };
 
-/* ── تحميل الكل ── */
+/* ── تحميل الكل — النسخة المحسّنة ── */
 window.nldChampLoadAll = async function(){
   const contentDiv = document.getElementById('nldChampContent');
-  if(contentDiv) contentDiv.innerHTML='<div style="text-align:center;padding:40px;color:rgba(255,215,0,0.6);font-size:14px;font-weight:700;">⏳ جارٍ تحميل البيانات…</div>';
-  const allMembers = await loadAllMembersWithPts();
-  window._nldAllMembers = allMembers;
-  renderDivision(_nldActiveDiv, allMembers);
+  if(contentDiv) contentDiv.innerHTML=`
+    <div style="text-align:center;padding:40px 20px;">
+      <div style="font-size:36px;margin-bottom:12px;animation:spin 1.5s linear infinite;display:inline-block;">⚙️</div>
+      <div style="font-size:14px;font-weight:700;color:rgba(255,215,0,0.7);">جارٍ جلب البيانات من Firebase…</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:6px;">قد يستغرق بضع ثوانٍ</div>
+    </div>
+    <style>@keyframes spin{to{transform:rotate(360deg);}}</style>`;
+
+  try{
+    const allMembers = await loadAllMembersWithPts();
+    window._nldAllMembers = allMembers;
+
+    /* إحصائيات سريعة */
+    const totalWithPts = allMembers.filter(m=>m.total>0).length;
+    console.log(`[NLDChamp] ✅ تم تحميل ${allMembers.length} عضو | ${totalWithPts} لديهم نقاط`);
+
+    renderDivision(_nldActiveDiv, allMembers);
+  }catch(err){
+    console.error('[NLDChamp] خطأ في تحميل البيانات:', err);
+    if(contentDiv) contentDiv.innerHTML=`
+      <div style="text-align:center;padding:40px 20px;">
+        <div style="font-size:36px;margin-bottom:12px;">⚠️</div>
+        <div style="font-size:14px;font-weight:700;color:#ef4444;">تعذّر تحميل البيانات</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:6px;">تحقق من الاتصال وأعد المحاولة</div>
+        <div onclick="nldChampLoadAll()" style="margin-top:16px;padding:10px 24px;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);border-radius:12px;color:#FFD700;font-size:13px;font-weight:800;cursor:pointer;display:inline-block;">🔄 إعادة المحاولة</div>
+      </div>`;
+  }
 };
 
-/* ── رسم قسم محدد ── */
+/* ── رسم قسم محدد — النسخة المحسّنة v3.0 ── */
 function renderDivision(divIdx, allMembers){
   const div = NLD_DIVISIONS[divIdx];
   if(!div) return;
   const contentDiv = document.getElementById('nldChampContent');
   if(!contentDiv) return;
 
-  // فلترة الأعضاء حسب مجموع النقاط (divisionIdx) — معيار التصنيف الرئيسي
+  /* فلترة الأعضاء حسب نطاق نقاطهم الفعلي */
   const members = allMembers
-    .filter(m=> m.divisionIdx === divIdx)
-    .sort((a,b)=>b.total-a.total);
+    .filter(m => m.divisionIdx === divIdx)
+    .sort((a,b) => b.total - a.total);
 
+  /* عضو الجلسة الحالية */
   const currentUser = typeof getCurrentUser==='function' ? getCurrentUser() : '';
   const normCurr = (currentUser||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+  const normMe = s => (s||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
 
-  if(members.length===0){
+  /* تحويل لون hex → r,g,b للاستخدام في rgba */
+  const hexToRgb = h => {
+    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h);
+    return m ? `${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)}` : '150,150,150';
+  };
+  const divRgb = hexToRgb(div.color);
+
+  if(members.length === 0){
     contentDiv.innerHTML=`
       <div style="text-align:center;padding:50px 20px;">
-        <div style="font-size:52px;margin-bottom:14px;">${div.icon}</div>
-        <div style="font-size:16px;font-weight:900;color:${div.color};margin-bottom:8px;">قسم ${div.name}</div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.4);">لا يوجد أعضاء في هذا القسم حالياً</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:6px;">نطاق النقاط: ${div.rangeLabel}</div>
+        <div style="font-size:56px;margin-bottom:14px;">${div.icon}</div>
+        <div style="font-size:17px;font-weight:900;color:${div.color};margin-bottom:8px;">قسم ${div.name}</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.45);line-height:1.6;">لا يوجد أعضاء في هذا القسم حالياً<br>
+          <span style="font-size:11px;color:rgba(255,255,255,0.3);">نطاق النقاط: ${div.rangeLabel}</span>
+        </div>
       </div>`;
     return;
   }
 
+  const PROMO_COUNT = 3;
+  const RELG_COUNT  = 2;
+  const canPromo = divIdx > 0;
+  const canRelg  = divIdx < NLD_DIVISIONS.length - 1;
+
   const rows = members.map((m,i)=>{
-    const isMe = (m.name||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase()===normCurr;
-    // صعود: أول 3 يصعدون (أخضر)
-    const isPromo = i < 3 && divIdx > 0;
-    // هبوط: آخر 2 ينزلون (أحمر)
-    const isRelg = i >= members.length - 2 && members.length > 2 && divIdx < NLD_DIVISIONS.length - 1;
+    const isMe    = normMe(m.name) === normCurr;
+    const isPromo = canPromo && i < PROMO_COUNT;
+    const isRelg  = canRelg  && members.length > RELG_COUNT && i >= members.length - RELG_COUNT;
+    const finalPromo = isPromo && !isRelg;
+    const finalRelg  = isRelg  && !isPromo;
 
-    const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-    const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
-    const borderL = isPromo ? '3px solid #22c55e' : isRelg ? '3px solid #ef4444' : '3px solid transparent';
-    const promoBadge = isPromo ? '<span style="font-size:10px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.15);border-radius:6px;padding:2px 6px;">↑ صعود</span>' : '';
-    const relegBadge = isRelg ? '<span style="font-size:10px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.12);border-radius:6px;padding:2px 6px;">↓ هبوط</span>' : '';
-    const meBadge = isMe ? '<span style="font-size:10px;font-weight:900;color:#00e5a0;background:rgba(0,229,160,0.15);border-radius:6px;padding:2px 6px;">✦ أنت</span>' : '';
+    const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`;
+    const rowBg   = isMe ? 'rgba(0,229,160,0.12)' : finalPromo ? 'rgba(0,200,83,0.08)' : finalRelg ? 'rgba(229,45,39,0.08)' : i%2===0 ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)';
+    const borderR = isMe ? '3px solid #00e5a0' : finalPromo ? '3px solid #22c55e' : finalRelg ? '3px solid #ef4444' : '3px solid transparent';
 
-    const photo = typeof localStorage!=='undefined' ? localStorage.getItem('nld_photo_'+m.name.replace(/\s+/g,'_')) : null;
+    const promoBadge = finalPromo ? `<span style="font-size:9px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.18);border-radius:5px;padding:2px 6px;">↑ صعود</span>` : '';
+    const relegBadge = finalRelg  ? `<span style="font-size:9px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.15);border-radius:5px;padding:2px 6px;">↓ هبوط</span>` : '';
+    const meBadge    = isMe       ? `<span style="font-size:9px;font-weight:900;color:#00e5a0;background:rgba(0,229,160,0.18);border-radius:5px;padding:2px 6px;">✦ أنت</span>` : '';
+
+    const photoKey = 'nld_photo_' + m.name.replace(/\s+/g,'_');
+    const photo = (typeof localStorage!=='undefined') ? localStorage.getItem(photoKey) : null;
+    const initials = typeof getLeaderIcon==='function' ? getLeaderIcon(m.name) : (m.name||'').charAt(0)||'👤';
     const avatarHtml = photo
-      ? `<img src="${photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
-      : `<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,${div.color},rgba(255,255,255,0.3));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:white;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(m.name):'👤'}</div>`;
+      ? `<img src="${photo}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid ${isMe?'#00e5a0':finalPromo?'#22c55e':finalRelg?'#ef4444':div.color+'55'};">`
+      : `<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,rgba(${divRgb},0.7),rgba(${divRgb},0.2));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:white;flex-shrink:0;border:2px solid rgba(${divRgb},0.3);">${initials}</div>`;
 
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${rowBg};border-radius:12px;margin-bottom:6px;border-right:${borderL};transition:.2s;">
-      <div style="font-size:${i<3?'18px':'13px'};font-weight:900;color:${div.color};min-width:28px;text-align:center;">${rankNum}</div>
+    const pct = div.maxPts === Infinity
+      ? Math.min(100, ((m.total - div.minPts) / 12000) * 100)
+      : Math.min(100, ((m.total - div.minPts) / (div.maxPts - div.minPts + 1)) * 100);
+    const progressBar = `<div style="width:100%;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:4px;overflow:hidden;"><div style="height:100%;width:${Math.max(2,pct)}%;background:${div.color};border-radius:2px;transition:width .6s ease;"></div></div>`;
+
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${rowBg};border-radius:13px;margin-bottom:6px;border-right:${borderR};transition:.2s;">
+      <div style="font-size:${i<3?'20px':'13px'};font-weight:900;color:${div.color};min-width:30px;text-align:center;flex-shrink:0;">${rankNum}</div>
       ${avatarHtml}
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:900;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</div>
         <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:2px;">
-          <span style="font-size:10px;color:rgba(255,255,255,0.5);">Lv${m.level}</span>
+          <span style="font-size:9px;color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;">Lv${m.level}</span>
           ${promoBadge}${relegBadge}${meBadge}
         </div>
+        ${progressBar}
       </div>
-      <div style="text-align:left;flex-shrink:0;">
-        <div style="font-size:14px;font-weight:900;color:${div.color};">${m.total.toLocaleString()}</div>
-        <div style="font-size:9px;color:rgba(255,255,255,0.35);">نقطة</div>
+      <div style="text-align:left;flex-shrink:0;min-width:52px;">
+        <div style="font-size:${m.total>=10000?'13px':'14px'};font-weight:900;color:${div.color};">${m.total.toLocaleString()}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,0.3);">نقطة</div>
       </div>
     </div>`;
   }).join('');
 
+  const myRank = normCurr ? members.findIndex(m=>normMe(m.name)===normCurr) : -1;
+  const myRankBadge = myRank >= 0
+    ? `<div style="background:rgba(0,229,160,0.12);border:1px solid rgba(0,229,160,0.3);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#00e5a0;">ترتيبك: #${myRank+1}</div>`
+    : '';
+
   contentDiv.innerHTML=`
-    <!-- رأس القسم -->
-    <div style="background:linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));border:1px solid rgba(${div.color==='#00BFFF'?'0,191,255':div.color==='#FFD700'?'255,215,0':div.color==='#a855f7'?'168,85,247':'100,100,200'},0.25);border-radius:16px;padding:16px;margin-bottom:14px;text-align:center;">
-      <div style="font-size:38px;margin-bottom:6px;">${div.icon}</div>
-      <div style="font-size:18px;font-weight:900;color:${div.color};margin-bottom:4px;">قسم ${div.name}</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.5);">النقاط المطلوبة: ${div.rangeLabel} • ${members.length} عضو</div>
-      <div style="display:flex;gap:12px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
-        ${divIdx > 0 ? '<div style=\"background:rgba(0,200,83,0.12);border:1px solid rgba(0,200,83,0.3);border-radius:10px;padding:6px 14px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون</div>' : ''}
-        ${divIdx < NLD_DIVISIONS.length-1 ? '<div style=\"background:rgba(229,45,39,0.1);border:1px solid rgba(229,45,39,0.25);border-radius:10px;padding:6px 14px;font-size:11px;font-weight:800;color:#ef4444;">↓ 2 أخيرين ينزلون</div>' : ''}
+    <div style="background:linear-gradient(135deg,rgba(${divRgb},0.08),rgba(${divRgb},0.03));border:1px solid rgba(${divRgb},0.25);border-radius:18px;padding:18px 16px;margin-bottom:14px;text-align:center;">
+      <div style="font-size:44px;margin-bottom:6px;filter:drop-shadow(0 0 12px rgba(${divRgb},0.5));">${div.icon}</div>
+      <div style="font-size:19px;font-weight:900;color:${div.color};margin-bottom:4px;">قسم ${div.name}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:10px;">النقاط المطلوبة: ${div.rangeLabel}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);">${members.length} عضو</div>
+        ${canPromo ? `<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون</div>` : ''}
+        ${canRelg  ? `<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ 2 أخيرين ينزلون</div>` : ''}
+        ${myRankBadge}
       </div>
     </div>
-    <!-- الجدول -->
     <div>${rows}</div>
   `;
 }
@@ -32208,7 +32327,18 @@ window.openSideMenuItem = function(key){
   if(typeof _origOpenSideMenuItem === 'function') _origOpenSideMenuItem(key);
 };
 
-console.log('✅ [NLDChampionship] البطولة المحترفة Next Leaders DZ — مفعّلة');
+console.log('✅ [NLDChampionship] البطولة المحترفة Next Leaders DZ — v3.0 مفعّلة (Firebase Direct)');
+
+/* ── تحديث تلقائي كل 60 ثانية إذا كانت اللوحة مفتوحة ── */
+setInterval(()=>{
+  const panel = document.getElementById('nldChampionshipPanel');
+  if(panel && panel.style.display !== 'none'){
+    loadAllMembersWithPts().then(members=>{
+      window._nldAllMembers = members;
+      renderDivision(_nldActiveDiv, members);
+    }).catch(()=>{});
+  }
+}, 60000);
 })();
 </script>
 
