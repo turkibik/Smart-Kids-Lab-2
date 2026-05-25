@@ -8485,6 +8485,7 @@ async function _verifyAdminPass(inputPass){
 }
 
 let _isAdmin = false;
+window._isAdmin = false; /* مزامنة مع window للوصول من كل مكان */
 
 /* ══════════════════════════════════════════════════════════
    🛡️ نظام المدير المتقدم — المدير_الرئيسي
@@ -8969,10 +8970,12 @@ function loginWithSavedAccount(name){
   }
   if(name === 'المدير'){
     _isAdmin = true;
+    window._isAdmin = true;
     enterAsAdmin();
     return;
   }
   _isAdmin = false;
+  window._isAdmin = false;
   localStorage.setItem('sklab_user_name', name);
   // حفظ تاريخ الانضمام (مرة واحدة فقط)
   const _normLogin = name.replace(/\s+/g,'_');
@@ -9038,6 +9041,7 @@ function enterAsGuest(){
     setTimeout(()=>{ barCont.style.display='none'; bar.style.width='0%'; }, 400);
   }
   _isAdmin = false;
+  window._isAdmin = false;
   renderApp('زائر', 0, false, 0);
 }
 
@@ -9056,7 +9060,7 @@ async function enter(){
     const inputPass = await showPrompt('دخول المدير', 'كلمة المرور...', '🔐', 'أدخل كلمة مرور المدير للمتابعة');
     if(!inputPass){ if(btn){btn.classList.remove('loading');btn.innerText='دخول';} return; }
     _verifyAdminPass(inputPass).then(ok => {
-      if(ok){ _isAdmin=true; enterAsAdmin(); }
+      if(ok){ _isAdmin=true; window._isAdmin=true; enterAsAdmin(); }
       else { if(btn){btn.classList.remove('loading');btn.innerText='دخول';} }
     });
     return;
@@ -9067,6 +9071,8 @@ async function enter(){
 
 /* ===== دخول المدير ===== */
 function enterAsAdmin(){
+  _isAdmin = true;
+  window._isAdmin = true; /* ✅ ضمان التزامن مع window */
   const barCont=document.getElementById("loadingBarContainer");
   const bar=document.getElementById("loadingBar");
   barCont.style.display="block";
@@ -20925,6 +20931,7 @@ function doLogout(){
     } catch(e){}
   }
   _isAdmin = false;
+  window._isAdmin = false;
   _allMembersCache = [];
 
   // ── إزالة وضع مكتب المدير ──
@@ -21007,6 +21014,7 @@ function doLogout(){
   document.getElementById('loginSubtitle').innerText='مختبر الشباب للذكاء والتعلم والإبداع';
   document.getElementById('switchAcc').style.display='none';
   _isAdmin=false;
+  window._isAdmin = false;
   // تحديث أزرار اللغة في صفحة الدخول
   const currentLang = getCurrentLang() || 'ar';
   updateLoginLangButtons(currentLang);
