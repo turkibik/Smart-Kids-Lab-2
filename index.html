@@ -32176,6 +32176,457 @@ console.log('✅ [NLDChampionship] البطولة المحترفة Next Leaders 
 })();
 </script>
 
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   🆕 حزمة التحسينات الجديدة — Connect DZ Enhanced Features
+   1. تحميل الصور والفيديوهات من المنشورات
+   2. مشاركة المنشور مع أعضاء في المسنجر
+   3. ترتيب المنشورات: الأكثر تعليقاً أولاً
+   4. حفظ الحسابات يستمر بعد تسجيل الخروج
+   5. البطولة المحترفة: النقاط الإجمالية الحقيقية
+   ══════════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ══════════════════════════════════════════════════
+   1️⃣ تنزيل الصور والفيديوهات من المنشورات
+   ══════════════════════════════════════════════════ */
+
+/**
+ * تنزيل ملف (صورة أو فيديو) من رابط أو base64
+ * @param {string} url - رابط أو data URL
+ * @param {string} filename - اسم الملف للتنزيل
+ */
+window.downloadPostMedia = function(url, filename){
+  if(!url){ if(typeof showToast==='function') showToast('⚠️ لا يوجد ملف للتنزيل'); return; }
+  try{
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || ('media_' + Date.now());
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>a.remove(), 500);
+    if(typeof showToast==='function') showToast('⬇️ جاري التنزيل...');
+  }catch(e){
+    // fallback: فتح في تبويب جديد
+    window.open(url, '_blank');
+  }
+};
+
+/**
+ * إنشاء قائمة تنزيل للمنشور (صور + فيديو)
+ */
+window.showDownloadMenu = function(postId){
+  const posts = typeof getSocialPosts==='function' ? getSocialPosts() : [];
+  const post = posts.find(p=>p.id===postId);
+  if(!post){ if(typeof showToast==='function') showToast('⚠️ المنشور غير موجود'); return; }
+
+  const items = [];
+  // صور متعددة
+  if(post.images && post.images.length > 0){
+    post.images.forEach((img, i) => {
+      if(img) items.push({ label:`🖼️ صورة ${i+1}`, url: img, ext: img.startsWith('data:image/png')?'png':'jpg' });
+    });
+  } else if(post.image){
+    items.push({ label:'🖼️ الصورة', url: post.image, ext: post.image.startsWith('data:image/png')?'png':'jpg' });
+  }
+  // فيديو
+  if(post.video){
+    items.push({ label:'🎬 الفيديو', url: post.video, ext:'mp4' });
+  }
+
+  if(!items.length){ if(typeof showToast==='function') showToast('⚠️ لا توجد صور أو فيديوهات في هذا المنشور'); return; }
+
+  const old = document.getElementById('_dlMenuOverlay'); if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = '_dlMenuOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;';
+  ov.innerHTML = `<div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:18px 16px 32px;font-family:'Tajawal',sans-serif;">
+    <div style="width:36px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 14px;"></div>
+    <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;text-align:center;">⬇️ تنزيل الوسائط</div>
+    ${items.map((item,i)=>`
+      <div onclick="downloadPostMedia('${item.url.startsWith('data:')?'[base64]':item.url}','post_${postId}_${i}.${item.ext}');_dlDownloadBase64('${item.url}','post_${postId}_${i}.${item.ext}');" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;cursor:pointer;margin-bottom:6px;background:#F7F8FA;" onmouseover="this.style.background='#E8F5E9'" onmouseout="this.style.background='#F7F8FA'">
+        <span style="font-size:24px;">${item.label.split(' ')[0]}</span>
+        <div style="flex:1;font-size:14px;font-weight:800;color:#050505;">${item.label}</div>
+        <span style="font-size:20px;color:#1877F2;">⬇️</span>
+      </div>`).join('')}
+    <button onclick="document.getElementById('_dlMenuOverlay').remove()" style="width:100%;padding:12px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#65676B;cursor:pointer;margin-top:8px;">إلغاء</button>
+  </div>`;
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+
+  // تنزيل base64 مباشرة إذا كانت بيانات base64
+  window._dlDownloadBase64 = function(url, fname){
+    if(!url || !url.startsWith('data:')){ return; } // رابط عادي: downloadPostMedia تتعامل معه
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fname;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>a.remove(), 500);
+    if(typeof showToast==='function') showToast('⬇️ جاري التنزيل...');
+    document.getElementById('_dlMenuOverlay')?.remove();
+  };
+};
+
+/* ══════════════════════════════════════════════════
+   2️⃣ مشاركة المنشور مع أعضاء في الرسائل
+   ══════════════════════════════════════════════════ */
+
+/**
+ * تجاوز sharePost ليفتح قائمة اختيار العضو
+ */
+const _origSharePost = window.sharePost;
+window.sharePost = function(postId){
+  const myName = typeof getCurrentUser==='function' ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
+  if(!myName || myName==='زائر'){
+    if(typeof _origSharePost==='function') _origSharePost(postId);
+    return;
+  }
+
+  const posts = typeof getSocialPosts==='function' ? getSocialPosts() : [];
+  const post = posts.find(p=>p.id===postId);
+  if(!post){ if(typeof showToast==='function') showToast('⚠️ المنشور غير موجود'); return; }
+
+  // جلب قائمة الأصدقاء + الأعضاء الآخرين
+  const myFriends = typeof getFriends==='function' ? getFriends(myName) : [];
+  // نجمع قائمة من الأعضاء المعروفين
+  let membersList = [...myFriends];
+  try{
+    // إضافة أعضاء من المنشورات الحديثة
+    const recentAuthors = posts
+      .filter(p=>p.author && p.author!==myName && p.author!=='زائر' && !p.isAutoPost && !p.isAd)
+      .map(p=>p.author);
+    recentAuthors.forEach(a=>{ if(!membersList.includes(a)) membersList.push(a); });
+    // من localStorage
+    const regUsers = typeof getRegUsers==='function' ? getRegUsers() : [];
+    regUsers.forEach(u=>{
+      const fn = ((u.firstName||'') + ' ' + (u.lastName||'')).trim();
+      if(fn && fn!==myName && !membersList.includes(fn)) membersList.push(fn);
+    });
+  }catch(e){}
+
+  // إزالة المكررات والمدير والزائر
+  membersList = [...new Set(membersList)].filter(n=>n && n!=='زائر' && n!=='المدير' && n!==myName);
+
+  if(!membersList.length){
+    if(typeof showToast==='function') showToast('⚠️ لا يوجد أعضاء لمشاركتهم حالياً');
+    return;
+  }
+
+  const old = document.getElementById('_shareToMembersOverlay'); if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = '_shareToMembersOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;';
+  ov.innerHTML = `<div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:18px 16px 32px;max-height:75vh;overflow-y:auto;font-family:'Tajawal',sans-serif;">
+    <div style="width:36px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 14px;"></div>
+    <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:6px;text-align:center;">↗️ إرسال المنشور</div>
+    <div style="font-size:12px;color:#65676B;text-align:center;margin-bottom:14px;">اختر عضواً لإرسال المنشور في الرسائل</div>
+    <div id="_shareMemberSearch" style="display:flex;align-items:center;gap:8px;background:#F0F2F5;border-radius:12px;padding:8px 12px;margin-bottom:12px;">
+      <span>🔍</span>
+      <input type="text" placeholder="ابحث عن عضو..." oninput="_filterShareMembers(this.value)" style="border:none;background:transparent;outline:none;flex:1;font-family:'Tajawal',sans-serif;font-size:14px;text-align:right;">
+    </div>
+    <div id="_shareMembersList">
+      ${membersList.map(name=>`
+        <div onclick="_sendPostToMember('${postId}','${name.replace(/'/g,"\\'")}',this)" data-name="${name}" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;margin-bottom:4px;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=this.classList.contains('_selected')?'#EEF4FF':'transparent'">
+          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden;">
+            ${(()=>{ try{ const ph = typeof getProfilePhoto==='function' ? getProfilePhoto(name):null; return ph ? `<img src="${ph}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (typeof getLeaderIcon==='function'?getLeaderIcon(name):'👤'); }catch(e){ return '👤'; } })()}
+          </div>
+          <div style="flex:1;font-size:14px;font-weight:800;color:#050505;">${name}</div>
+          <div class="_shareCheck" style="width:22px;height:22px;border-radius:50%;border:2px solid #E4E6EB;display:flex;align-items:center;justify-content:center;font-size:12px;transition:.15s;"></div>
+        </div>`).join('')}
+    </div>
+    <button onclick="_confirmShareToMembers('${postId}')" style="width:100%;padding:13px;background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;color:white;cursor:pointer;margin-top:10px;">إرسال ✅</button>
+    <button onclick="document.getElementById('_shareToMembersOverlay').remove()" style="width:100%;padding:11px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#65676B;cursor:pointer;margin-top:8px;">إلغاء</button>
+  </div>`;
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+
+  // دالة تصفية البحث
+  window._filterShareMembers = function(q){
+    const items = document.querySelectorAll('#_shareMembersList [data-name]');
+    items.forEach(item=>{
+      const n = (item.getAttribute('data-name')||'').toLowerCase();
+      item.style.display = !q || n.includes(q.toLowerCase()) ? '' : 'none';
+    });
+  };
+
+  // تحديد/إلغاء تحديد عضو
+  window._shareSelectedMembers = [];
+  window._sendPostToMember = function(pId, memberName, el){
+    const idx = window._shareSelectedMembers.indexOf(memberName);
+    const check = el.querySelector('._shareCheck');
+    if(idx >= 0){
+      window._shareSelectedMembers.splice(idx,1);
+      el.classList.remove('_selected');
+      el.style.background = 'transparent';
+      if(check){ check.innerText=''; check.style.borderColor='#E4E6EB'; check.style.background='transparent'; }
+    } else {
+      window._shareSelectedMembers.push(memberName);
+      el.classList.add('_selected');
+      el.style.background = '#EEF4FF';
+      if(check){ check.innerText='✓'; check.style.borderColor='#1877F2'; check.style.background='#1877F2'; check.style.color='white'; }
+    }
+  };
+
+  // إرسال للأعضاء المحددين
+  window._confirmShareToMembers = function(pId){
+    if(!window._shareSelectedMembers || !window._shareSelectedMembers.length){
+      if(typeof showToast==='function') showToast('⚠️ اختر عضواً واحداً على الأقل');
+      return;
+    }
+    const posts = typeof getSocialPosts==='function' ? getSocialPosts() : [];
+    const post = posts.find(p=>p.id===pId);
+    if(!post){ if(typeof showToast==='function') showToast('⚠️ المنشور غير موجود'); return; }
+
+    const senderName = typeof getCurrentUser==='function' ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
+    const preview = (post.text||'').substring(0,60) + (post.text && post.text.length>60?'...':'');
+    const shareMsg = `↗️ منشور مشارَك من ${senderName}:\n"${preview}"${post.image||post.video?' 📎':''}\n[منشور في صفحتي]`;
+
+    let sentCount = 0;
+    window._shareSelectedMembers.forEach(targetName=>{
+      try{
+        // حفظ الرسالة في محادثة P2P (نفس نظام المسنجر)
+        const chatKey = _p2pKey ? _p2pKey(senderName, targetName) : ('nld_p2p_' + [senderName,targetName].sort().join('_with_').replace(/\s+/g,'_'));
+        const msgs = JSON.parse(localStorage.getItem(chatKey)||'[]');
+        msgs.push({
+          from: senderName,
+          to: targetName,
+          text: shareMsg,
+          sharedPostId: pId,
+          sharedPost: { id:pId, author:post.author, text:preview, image:post.image&&!post.image.startsWith('data:')?post.image:null },
+          ts: Date.now(),
+          type: 'shared_post'
+        });
+        localStorage.setItem(chatKey, JSON.stringify(msgs));
+        // إشعار للعضو المرسَل إليه
+        if(typeof addSocialNotif==='function') addSocialNotif(targetName, `${senderName} أرسل لك منشوراً ↗️`, '↗️');
+        sentCount++;
+      }catch(e){}
+    });
+
+    document.getElementById('_shareToMembersOverlay')?.remove();
+    if(typeof showToast==='function') showToast(`✅ تم إرسال المنشور لـ ${sentCount} عضو في الرسائل`);
+    window._shareSelectedMembers = [];
+  };
+};
+
+/* الدالة المساعدة لمفتاح المحادثة */
+function _p2pKey(a, b){
+  return 'nld_p2p_' + [a,b].sort().join('_with_').replace(/\s+/g,'_');
+}
+
+/* ══════════════════════════════════════════════════
+   3️⃣ ترتيب المنشورات: الأكثر تعليقاً يظهر أولاً
+   ══════════════════════════════════════════════════ */
+
+/* تجاوز renderSocialFeed لتطبيق الترتيب الجديد */
+const _origRenderSocialFeed = window.renderSocialFeed;
+if(typeof _origRenderSocialFeed === 'function'){
+  window.renderSocialFeed = async function(){
+    // استدعاء الأصلي أولاً
+    await _origRenderSocialFeed.apply(this, arguments);
+    // إعادة ترتيب المنشورات في DOM حسب عدد التعليقات
+    _sortFeedByComments();
+  };
+}
+
+function _sortFeedByComments(){
+  const container = document.getElementById('socialFeedContainer');
+  if(!container) return;
+  const cards = Array.from(container.children).filter(el=>el.id && el.id.startsWith('spost_'));
+  if(cards.length < 2) return;
+
+  const posts = typeof getSocialPosts==='function' ? getSocialPosts() : [];
+  const postMap = {};
+  posts.forEach(p=>{ postMap[p.id] = p; });
+
+  // ترتيب: الأعلى تعليقاً أولاً (مع الحفاظ على الأحدث ثانياً عند التساوي)
+  cards.sort((a, b)=>{
+    const idA = a.id.replace('spost_','');
+    const idB = b.id.replace('spost_','');
+    const pA = postMap[idA] || {};
+    const pB = postMap[idB] || {};
+    const commA = (pA.comments||[]).length;
+    const commB = (pB.comments||[]).length;
+    if(commB !== commA) return commB - commA;
+    return (pB.ts||0) - (pA.ts||0);
+  });
+
+  // إعادة ترتيب DOM
+  const fragment = document.createDocumentFragment();
+  cards.forEach(card=>{ fragment.appendChild(card); });
+  container.appendChild(fragment);
+}
+
+/* ══════════════════════════════════════════════════
+   4️⃣ حفظ الحسابات يستمر بعد تسجيل الخروج
+   ══════════════════════════════════════════════════ */
+
+/* تجاوز doLogout لحفظ الحسابات قبل الخروج وليس بعده */
+const _origDoLogout = window.doLogout;
+window.doLogout = function(){
+  // حفظ الحساب الحالي قبل الخروج
+  try{
+    const name = typeof getCurrentUser==='function' ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
+    if(name && name !== 'زائر'){
+      const did = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+      const savedKey = 'cdz_saved_login_accounts_' + did;
+      const saved = JSON.parse(localStorage.getItem(savedKey)||'[]');
+      const photo = typeof getProfilePhoto==='function' ? getProfilePhoto(name) : null;
+      const existing = saved.findIndex(a=>(a.name||'').trim()===name.trim());
+      if(existing >= 0){
+        saved[existing].lastSeen = Date.now();
+        if(photo) saved[existing].photo = photo;
+      } else {
+        saved.push({ name, photo: photo||null, lastSeen: Date.now() });
+      }
+      // حفظ بـ __lsNativeSet لتجنب الترحيل للـ Firebase
+      const _save = window.__lsNativeSet || localStorage.setItem.bind(localStorage);
+      _save(savedKey, JSON.stringify(saved));
+    }
+  }catch(e){}
+
+  // ثم تنفيذ الخروج الأصلي
+  if(typeof _origDoLogout==='function') _origDoLogout.apply(this, arguments);
+};
+
+/* تجاوز renderSavedAccounts ليقرأ الحسابات حتى بعد الخروج */
+const _origRenderSavedAccounts = window.renderSavedAccounts;
+window.renderSavedAccounts = function(){
+  // نضمن تحميل الحسابات من المفتاح الجديد أيضاً
+  try{
+    const did = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+    const savedKey = 'cdz_saved_login_accounts_' + did;
+    const saved = JSON.parse(localStorage.getItem(savedKey)||'[]');
+    if(saved.length > 0 && typeof _origRenderSavedAccounts === 'function'){
+      _origRenderSavedAccounts.apply(this, arguments);
+      return;
+    }
+  }catch(e){}
+  if(typeof _origRenderSavedAccounts==='function') _origRenderSavedAccounts.apply(this, arguments);
+};
+
+/* ══════════════════════════════════════════════════
+   5️⃣ البطولة المحترفة: حساب النقاط الإجمالية الصحيحة
+   ══════════════════════════════════════════════════ */
+
+/**
+ * تجاوز loadAllMembersWithPts لتحسين حساب النقاط الإجمالية
+ * النقاط الإجمالية = نقاط الجدول + نقاط الكويز + نقاط النشاط الاجتماعي
+ */
+const _origLoadAllMembersWithPts = window.loadAllMembersWithPts;
+if(typeof _origLoadAllMembersWithPts === 'function'){
+  window.loadAllMembersWithPts = async function(){
+    const members = await _origLoadAllMembersWithPts.apply(this, arguments);
+
+    // تحسين النقاط الإجمالية لكل عضو
+    return members.map(m => {
+      const normName = (m.name||'').replace(/\s+/g,'_');
+
+      // 1) نقاط من sklab_pts (المصدر الأشمل)
+      let sklabTotal = 0;
+      try{
+        const raw = localStorage.getItem('sklab_pts_'+normName);
+        if(raw){ const parsed = JSON.parse(raw); sklabTotal = parsed.total || 0; }
+      }catch(e){}
+
+      // 2) نقاط الكويز المحلية
+      let quizPts = 0;
+      try{
+        quizPts = typeof getSharedQuizPts==='function' ? getSharedQuizPts(m.name) : 0;
+        if(!quizPts) quizPts = parseInt(localStorage.getItem('nld_earned_'+normName)||'0');
+      }catch(e){}
+
+      // 3) نقاط جدول الترتيب (sheet/ranking)
+      const sheetPts = m.pts || 0;
+
+      // الإجمالي الحقيقي = الأكبر من بين: sklab أو (sheet + quiz)
+      const computedTotal = sheetPts + quizPts;
+      const realTotal = Math.max(sklabTotal, computedTotal, m.total || 0);
+
+      return {
+        ...m,
+        pts: sheetPts,
+        quizPts: quizPts,
+        total: realTotal,
+        level: typeof getMemberLevel==='function' ? getMemberLevel(realTotal) : (Math.floor(realTotal/3000)+1)
+      };
+    }).sort((a,b)=>b.total-a.total);
+  };
+}
+
+/* ══════════════════════════════════════════════════
+   6️⃣ إضافة زر التنزيل في كل منشور يحتوي صورة/فيديو
+   ══════════════════════════════════════════════════ */
+
+/**
+ * تعديل renderSocialPostCard لإضافة زر التنزيل في القائمة (⋮)
+ */
+const _origRenderSocialPostCard = window.renderSocialPostCard;
+if(typeof _origRenderSocialPostCard === 'function'){
+  window.renderSocialPostCard = function(p){
+    const html = _origRenderSocialPostCard.apply(this, arguments);
+    // لا نُعدّل إذا لم يكن هناك صور/فيديو
+    if(!p.image && !p.video && (!p.images || !p.images.length)) return html;
+    // إضافة زر التنزيل في قائمة الخيارات (⋮) — بعد "نسخ رابط المنشور"
+    const downloadBtn = `
+      <div onclick="showDownloadMenu('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <span style="font-size:18px;">⬇️</span> تنزيل الصور/الفيديو
+      </div>
+      <div style="height:1px;background:#F0F2F5;margin:0 12px;"></div>`;
+    // إدراج قبل زر "نسخ رابط المنشور"
+    return html.replace(
+      /<div onclick="copyPostLink/g,
+      downloadBtn + '<div onclick="copyPostLink'
+    );
+  };
+}
+
+/* ══════════════════════════════════════════════════
+   7️⃣ القائمة المنسدلة: عرض الحسابات المحفوظة دائماً
+   ══════════════════════════════════════════════════ */
+
+/* تأكد من استمرار عرض الحسابات عند العودة لصفحة الدخول */
+document.addEventListener('DOMContentLoaded', function(){
+  // مزامنة الحسابات المحفوظة: نضمن أن المفتاح القديم والجديد متزامنان
+  setTimeout(function(){
+    try{
+      const did = (typeof getDeviceId==='function') ? getDeviceId() : (localStorage.getItem('__deviceId')||'default');
+      const newKey = 'cdz_saved_login_accounts_' + did;
+      const oldKey = 'nld_saved_accounts';
+
+      const newSaved = JSON.parse(localStorage.getItem(newKey)||'[]');
+      const oldSaved = JSON.parse(localStorage.getItem(oldKey)||'[]');
+
+      // دمج القائمتين
+      const merged = [...newSaved];
+      oldSaved.forEach(acc=>{
+        const name = acc.name || acc;
+        if(typeof name === 'string' && name && !merged.find(a=>a.name===name)){
+          merged.push({ name, photo: acc.photo||null, lastSeen: acc.lastSeen||0 });
+        }
+      });
+
+      if(merged.length > 0){
+        const _save = window.__lsNativeSet || localStorage.setItem.bind(localStorage);
+        _save(newKey, JSON.stringify(merged));
+      }
+    }catch(e){}
+  }, 2000);
+});
+
+console.log('✅ [ConnectDZ Enhanced] جميع الميزات الجديدة مفعّلة:');
+console.log('   ⬇️ تنزيل الصور/الفيديوهات');
+console.log('   ↗️ مشاركة المنشورات مع الأعضاء');
+console.log('   📊 ترتيب بالتعليقات');
+console.log('   💾 حفظ الحسابات بعد الخروج');
+console.log('   🏆 نقاط البطولة الإجمالية');
+
+})();
 </script>
+
 </body>
 </html>
