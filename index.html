@@ -4305,6 +4305,8 @@ function switchLoginTab(tab){
         <div class="notif-btn" id="adminPostBtn" onclick="openAdminCommandPanel()" title="نشر منشور" style="display:none;position:relative;background:linear-gradient(135deg,rgba(0,229,160,0.2),rgba(0,153,255,0.15));border-color:rgba(0,229,160,0.4);font-size:18px;">📣</div>
         <!-- زر الإدارة في الأعلى - للأدمن فقط -->
         <div class="notif-btn" id="adminNavBtn" onclick="showModal('adminModal')" title="لوحة الإدارة" style="display:none;position:relative;background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(245,158,11,0.2));border-color:rgba(220,38,38,0.4);font-size:18px;">⚙️</div>
+        <!-- زر مجموع نقاط الأعضاء - للمدير فقط -->
+        <div class="notif-btn" id="adminAllPtsBtn" onclick="openAdminTotalPtsPanel()" title="مجموع نقاط كل عضو" style="display:none;position:relative;background:linear-gradient(135deg,rgba(0,229,255,0.2),rgba(99,102,241,0.2));border-color:rgba(0,229,255,0.5);font-size:18px;">📊</div>
         <button class="logout-btn" onclick="goBackToSocialHome()" title="رجوع للصفحة الرئيسية" style="gap:5px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           رجوع
@@ -6314,7 +6316,44 @@ function switchLoginTab(tab){
 
       <div class="admin-divider"></div>
 
-      <!-- ── Section: روابط الجداول ── -->
+      <!-- ── Section: خصم النقاط من المنخرطين ── -->
+      <div class="admin-section-head">
+        <div class="admin-icon-tile" style="background:linear-gradient(145deg,#fca5a5,#ef4444,#b91c1c);">➖</div>
+        <div class="admin-section-head-text">
+          <div class="admin-section-head-title">خصم النقاط من المنخرطين</div>
+          <div class="admin-section-head-sub">DEDUCT POINTS</div>
+        </div>
+        <button onclick="adminLoadDeductPanel()" style="background:rgba(255,255,255,0.6);border:1.5px solid rgba(180,40,40,0.18);border-radius:9px;padding:6px 12px;font-size:11px;font-weight:800;color:rgba(180,40,40,0.7);cursor:pointer;font-family:'Tajawal',sans-serif;">🔄 تحميل</button>
+      </div>
+      <div class="admin-glass-card">
+        <div style="font-size:11px;color:rgba(100,50,10,0.6);margin-bottom:10px;padding:8px 10px;background:rgba(239,68,68,0.07);border:1.5px solid rgba(239,68,68,0.2);border-radius:10px;line-height:1.6;font-weight:600;">
+          ⚠️ يُستخدم لخصم نقاط بسبب مخالفة أو عقوبة. سيتم إشعار العضو بسبب الخصم.
+        </div>
+        <!-- البحث عن عضو -->
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input class="admin-input" id="adminDeductName" placeholder="اسم العضو للخصم" style="flex:1;margin-bottom:0;"/>
+          <button onclick="adminSearchMemberForDeduct()" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;padding:10px 14px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0;">🔍</button>
+        </div>
+        <!-- بطاقة العضو المحدد -->
+        <div id="adminDeductMemberCard" style="display:none;background:rgba(239,68,68,0.06);border:1.5px solid rgba(239,68,68,0.2);border-radius:14px;padding:14px;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div id="adminDeductMemberAvatar" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#b91c1c);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;"></div>
+            <div>
+              <div id="adminDeductMemberName" style="font-size:14px;font-weight:900;color:#1a0000;"></div>
+              <div style="font-size:11px;color:#65676B;">إجمالي النقاط الحالية: <strong id="adminDeductMemberPts" style="color:#ef4444;"></strong></div>
+            </div>
+          </div>
+          <input class="admin-input" id="adminDeductAmount" placeholder="عدد النقاط للخصم (رقم)" type="number" min="1" style="margin-bottom:8px;"/>
+          <input class="admin-input" id="adminDeductLocation" placeholder="📍 مكان الخصم (مثال: قسم كذا)" style="margin-bottom:8px;"/>
+          <input class="admin-input" id="adminDeductReason" placeholder="📝 سبب الخصم (مثال: غياب غير مبرر)" style="margin-bottom:10px;"/>
+          <button onclick="adminExecuteDeduct()" style="width:100%;background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;border-radius:12px;padding:13px;color:white;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;cursor:pointer;">➖ تنفيذ الخصم</button>
+        </div>
+        <!-- سجل الخصومات -->
+        <div id="adminDeductLog" style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">
+          <p style="font-size:12px;color:rgba(100,50,10,0.4);text-align:center;padding:10px;font-weight:600;">لا توجد خصومات مسجّلة بعد</p>
+        </div>
+        <div class="admin-msg" id="adminDeductMsg"></div>
+      </div>
       <div class="admin-section-head">
         <div class="admin-icon-tile" style="background:linear-gradient(145deg,#c4b5fd,#8b5cf6,#5b21b6);">🔗</div>
         <div class="admin-section-head-text">
@@ -9122,6 +9161,8 @@ function enterAsAdmin(){
   if(sendPtsBtn) sendPtsBtn.style.display="flex";
   const postBtn=document.getElementById("adminPostBtn");
   if(postBtn) postBtn.style.display="flex";
+  const allPtsBtn=document.getElementById("adminAllPtsBtn");
+  if(allPtsBtn) allPtsBtn.style.display="flex";
 
   // ── تفعيل وضع مكتب المدير ──
   document.body.classList.add("admin-mode");
@@ -9316,6 +9357,71 @@ function adminEditPoints(){
     document.getElementById("adminEditPts").value="";
   });
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ➖ لوحة خصم النقاط للمدير
+═══════════════════════════════════════════════════════════════ */
+const _DEDUCT_LOG_KEY = 'nld_deduct_log';
+function _getDeductLog(){ try{ return JSON.parse(localStorage.getItem(_DEDUCT_LOG_KEY)||'[]'); }catch(e){ return []; } }
+function _saveDeductLog(log){
+  try{
+    localStorage.setItem(_DEDUCT_LOG_KEY, JSON.stringify(log));
+    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/appdata/nld_deduct_log.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(log)}).catch(()=>{});
+  }catch(e){}
+}
+window.adminLoadDeductPanel = function(){
+  const log = _getDeductLog();
+  const el = document.getElementById('adminDeductLog');
+  if(!el) return;
+  if(!log.length){ el.innerHTML='<p style="font-size:12px;color:rgba(100,50,10,0.4);text-align:center;padding:10px;font-weight:600;">لا توجد خصومات بعد</p>'; return; }
+  el.innerHTML = log.slice().reverse().slice(0,20).map(d=>`<div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 12px;margin-bottom:4px;"><div style="display:flex;justify-content:space-between;"><span style="font-size:13px;font-weight:900;color:#1a0000;">${d.memberName}</span><span style="font-size:12px;font-weight:900;color:#ef4444;">−${d.amount} نقطة</span></div><div style="font-size:11px;color:#65676B;">📍 ${d.location||'—'} | 📝 ${d.reason||'—'}</div><div style="font-size:10px;color:#adb0b3;">${new Date(d.ts).toLocaleString('ar-DZ')}</div></div>`).join('');
+  if(typeof showToast==='function') showToast('تم تحميل السجل');
+};
+window.adminSearchMemberForDeduct = async function(){
+  const name = (document.getElementById('adminDeductName')||{}).value?.trim();
+  if(!name){ if(typeof showToast==='function') showToast('أدخل اسم العضو'); return; }
+  let memberPts=0;
+  try{ const r=await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+name.replace(/\s+/g,'_')+'.json'); const d=await r.json(); if(d&&d.totalPts) memberPts=parseInt(d.totalPts)||0; }catch(e){}
+  const card=document.getElementById('adminDeductMemberCard');
+  if(card) card.style.display='block';
+  const nameEl=document.getElementById('adminDeductMemberName'); if(nameEl) nameEl.innerText=name;
+  const ptsEl=document.getElementById('adminDeductMemberPts'); if(ptsEl) ptsEl.innerText=memberPts.toLocaleString()+' نقطة';
+  const avatarEl=document.getElementById('adminDeductMemberAvatar'); if(avatarEl) avatarEl.innerText=typeof getLeaderIcon==='function'?getLeaderIcon(name):'👤';
+  ['adminDeductAmount','adminDeductLocation','adminDeductReason'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
+  window._deductTargetName=name; window._deductTargetCurrentPts=memberPts;
+};
+window.adminExecuteDeduct = function(){
+  const memberName=window._deductTargetName;
+  const currentPts=window._deductTargetCurrentPts||0;
+  const amount=parseInt((document.getElementById('adminDeductAmount')||{}).value||'0');
+  const location=(document.getElementById('adminDeductLocation')||{}).value?.trim()||'';
+  const reason=(document.getElementById('adminDeductReason')||{}).value?.trim()||'';
+  const msgEl=document.getElementById('adminDeductMsg');
+  if(!memberName){ if(msgEl){msgEl.className='admin-msg err';msgEl.innerText='ابحث عن العضو أولاً';msgEl.style.display='block';}return; }
+  if(!amount||amount<1){ if(msgEl){msgEl.className='admin-msg err';msgEl.innerText='أدخل عدد نقاط الخصم';msgEl.style.display='block';}return; }
+  if(!reason){ if(msgEl){msgEl.className='admin-msg err';msgEl.innerText='أدخل سبب الخصم';msgEl.style.display='block';}return; }
+  const newPts=Math.max(0,currentPts-amount);
+  const normKey=memberName.replace(/\s+/g,'_');
+  fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+normKey+'.json',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({totalPts:newPts,deductedAt:Date.now()})}).catch(()=>{});
+  try{ const ik='nld_interaction_'+normKey; const ip=parseInt(localStorage.getItem(ik)||'0'); localStorage.setItem(ik,String(Math.max(0,ip-Math.min(amount,ip)))); }catch(e){}
+  const logEntry={id:'deduct_'+Date.now(),memberName,amount,location,reason,beforePts:currentPts,afterPts:newPts,ts:Date.now()};
+  const log=_getDeductLog(); log.push(logEntry); _saveDeductLog(log);
+  try{
+    const now=new Date(); const dateStr=now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'}); const timeStr=now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+    const sorted=['المدير',memberName].sort(); const p2pKey='nld_p2p_'+sorted[0].replace(/\s+/g,'_')+'__'+sorted[1].replace(/\s+/g,'_');
+    const p2pMsgs=JSON.parse(localStorage.getItem(p2pKey)||'[]');
+    p2pMsgs.push({id:'deduct_notif_'+Date.now(),from:'المدير',to:memberName,message:`⚠️ إشعار خصم نقاط\n\n👤 العضو: ${memberName}\n➖ المخصوم: ${amount} نقطة\n📍 المكان: ${location||'—'}\n📝 السبب: ${reason}\n📊 الرصيد الجديد: ${newPts.toLocaleString()} نقطة\n📅 ${dateStr} — ${timeStr}`,timestamp:now.toISOString(),read:false});
+    localStorage.setItem(p2pKey,JSON.stringify(p2pMsgs));
+    if(typeof sbSendMessage==='function') sbSendMessage(p2pMsgs[p2pMsgs.length-1]).catch(()=>{});
+  }catch(e){}
+  const ptsEl=document.getElementById('adminDeductMemberPts'); if(ptsEl) ptsEl.innerText=newPts.toLocaleString()+' نقطة';
+  window._deductTargetCurrentPts=newPts;
+  if(msgEl){msgEl.className='admin-msg ok';msgEl.innerText='تم خصم '+amount+' نقطة من "'+memberName+'" — الرصيد الجديد: '+newPts.toLocaleString();msgEl.style.display='block';}
+  adminLoadDeductPanel();
+  if(typeof showToast==='function') showToast('تم خصم '+amount+' نقطة من '+memberName);
+  ['adminDeductAmount','adminDeductLocation','adminDeductReason'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
+};
 
 /* ===== تحديث البيانات ===== */
 function adminReloadData(){
@@ -9631,7 +9737,8 @@ function renderApp(name,pts,isReg, externalEarned){
   let rankPts = pts; // نقاط جدول الترتيب (للرصيد)
 
   function _applyDashboardUI(sheetPoints, rankingPoints, quizPoints){
-    const totalForLevel = sheetPoints + quizPoints;
+    const interactPts = parseInt(localStorage.getItem('nld_interaction_'+(name||'').replace(/\s+/g,'_'))||'0');
+    const totalForLevel = sheetPoints + quizPoints + interactPts;
     _basePoints = totalForLevel;
     window._sheetPtsCache = sheetPoints;
     window._rankPtsCache  = rankingPoints > 0 ? rankingPoints : sheetPoints;
@@ -9678,6 +9785,7 @@ function renderApp(name,pts,isReg, externalEarned){
         body:JSON.stringify({
           sheetPts : sheetPoints,
           quizPts  : quizPoints,
+          interactionPts: interactPts,
           totalPts : totalForLevel,
           updatedAt: Date.now()
         })
@@ -10435,41 +10543,50 @@ let _basePoints=0;
 /* مفتاح حفظ النقاط المكسوبة */
 function _earnedKey(name){return 'nld_earned_'+name.replace(/\s+/g,'_');}
 
-/* إضافة نقاط للمستخدم فوراً مع حفظ دائم - نقاط الكويز تُضاف للإجمالي لتحديد المستوى */
+/* ── مفتاح نقاط التفاعل المنفصلة (لا تُدمج مع الكويز) ── */
+function _interactionKey(name){ return 'nld_interaction_'+name.replace(/\s+/g,'_'); }
+
+/* ── حفظ نقاط التفاعل في Firebase بشكل مستقل ── */
+function _syncInteractionPts(name, pts){
+  try{ localStorage.setItem(_interactionKey(name), String(pts)); }catch(e){}
+  // حفظ في Firebase/userStats.interactionPts
+  if(name && pts >= 0){
+    const _n = name.replace(/\s+/g,'_');
+    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+_n+'.json',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ interactionPts: pts, updatedAt: Date.now() })
+    }).catch(()=>{});
+  }
+}
+
+/* إضافة نقاط تفاعل فوراً — تُضاف للإجمالي وللبطولة ولا تُدمج مع الكويز */
 function addPointsInstant(pts){
   const name=document.getElementById("userNameTop").innerText||'';
   if(!name) return;
-  // حفظ نقاط الكويز الجديدة
-  const prev=parseInt(localStorage.getItem(_earnedKey(name))||'0');
-  const newQuizPts = prev + pts;
-  syncQuizPts(name, newQuizPts);
-  // تحديث عداد نقاط الكويز الشخصي
-  _updateQuizPtsDisplay(name, newQuizPts);
-  // ✅ تحديث مجموع النقاط الإجمالي في البطاقة الرئيسية تلقائياً
-  _updateMainPointsDisplay(name, newQuizPts);
+  // ── نقاط التفاعل تُحفظ في مفتاح منفصل (interactionPts) ──
+  const prevInteract = parseInt(localStorage.getItem(_interactionKey(name))||'0');
+  const newInteractPts = prevInteract + pts;
+  _syncInteractionPts(name, newInteractPts);
+  // ── نقاط الكويز الخالصة (بدون التفاعل) لا تتأثر ──
+  const quizPtsOnly = parseInt(localStorage.getItem(_earnedKey(name))||'0');
+  // تحديث عداد نقاط الكويز الشخصي (يبقى بدون تفاعل)
+  _updateQuizPtsDisplay(name, quizPtsOnly);
+  // ✅ تحديث مجموع النقاط الإجمالي = جدول + كويز + تفاعل
+  _updateMainPointsDisplayFull(name, quizPtsOnly, newInteractPts);
   // تأثير إضافة نقاط
   playGoldSound && playGoldSound();
 }
 
-/* تحديث عرض مجموع النقاط الإجمالي (نقاط الجدول + نقاط الكويز) في البطاقة الرئيسية */
-function _updateMainPointsDisplay(name, newQuizPts){
-  // _basePoints = نقاط الجدول + نقاط الكويز القديمة
-  // نستخرج نقاط الجدول الصافية ثم نضيف نقاط الكويز الجديدة
-  const oldQuizPts = _basePoints - Math.max(0, _basePoints - newQuizPts);
-  // طريقة أبسط: نحتفظ بنقاط الجدول الصافية في متغير خاص
-  if(typeof _sheetPtsCache === 'undefined'){
-    // أول مرة: استنتج نقاط الجدول من _basePoints وآخر قيمة كويز مسجّلة قبل هذا التحديث
-    window._sheetPtsCache = _basePoints - newQuizPts;
-  }
-  const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : (_basePoints - newQuizPts);
-  const newTotal = sheetPts + newQuizPts;
+/* تحديث العرض الكامل = شيت + كويز + تفاعل */
+function _updateMainPointsDisplayFull(name, quizPtsOnly, interactPts){
+  const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+  const newTotal = sheetPts + quizPtsOnly + interactPts;
   _basePoints = newTotal;
 
-  // تحديث العرض الرئيسي
   const mainPtsEl = document.getElementById("mainPoints");
   if(mainPtsEl) mainPtsEl.innerHTML=`${newTotal.toLocaleString()} <span>نقطة</span>`;
 
-  // تحديث شارة المستوى وشريط التقدم
   const LEVEL_PTS = 3000;
   const currentLevel = Math.floor(newTotal/LEVEL_PTS)+1;
   const ptsInLevel = newTotal % LEVEL_PTS;
@@ -10482,17 +10599,12 @@ function _updateMainPointsDisplay(name, newQuizPts){
   const bar = document.getElementById("mainBar");
   if(bar) bar.style.width=Math.min((ptsInLevel/LEVEL_PTS)*100,100)+"%";
 
-  // تحديث بطاقة الملف الشخصي أيضاً
-  const mgPts=document.getElementById("mgStatPoints");
-  if(mgPts) mgPts.innerText=sheetPts.toLocaleString(); // نقاط الجدول فقط (بدون كويز)
   const mgLevel=document.getElementById("mgStatLevel");
   if(mgLevel) mgLevel.innerText=`${currentLevel}`;
-
-  // تحديث cardPoints
   const cardPts=document.getElementById("cardPoints");
   if(cardPts) cardPts.innerText=newTotal.toLocaleString()+" نقطة";
 
-  // ✅ حفظ النقاط في Firebase بحقلين منفصلين — sheetPts + quizPts
+  // ✅ حفظ الإجمالي الكامل في Firebase للبطولة
   if(name && newTotal > 0){
     const _normSave = name.replace(/\s+/g,'_');
     fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+_normSave+'.json',{
@@ -10500,12 +10612,20 @@ function _updateMainPointsDisplay(name, newQuizPts){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         sheetPts : sheetPts,
-        quizPts  : newQuizPts,
+        quizPts  : quizPtsOnly,
+        interactionPts: interactPts,
         totalPts : newTotal,
         updatedAt: Date.now()
       })
     }).catch(()=>{});
   }
+}
+
+/* تحديث عرض مجموع النقاط الإجمالي (نقاط الجدول + نقاط الكويز + نقاط التفاعل) */
+function _updateMainPointsDisplay(name, newQuizPts){
+  const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+  const interactPts = parseInt(localStorage.getItem(_interactionKey ? _interactionKey(name) : 'nld_interaction_'+name.replace(/\s+/g,'_'))||'0');
+  _updateMainPointsDisplayFull(name, newQuizPts, interactPts);
 }
 
 /* تحديث عرض نقاط الكويز الخاصة بالمشترك */
@@ -16293,11 +16413,26 @@ function openCommentsModal(postId){
       : post.comments.map(c=>{
           const cPh = typeof getProfilePhoto==='function' ? getProfilePhoto(c.author) : null;
           const isMe = c.author === name;
-          const cId = c.id || c.ts;
+          const cId = String(c.id || c.ts);
           const timeStr = c.ts ? new Date(c.ts).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'}) : '';
+          const liked = !!(name && c.likes && c.likes[name]);
+          const likeCount = c.likes ? Object.keys(c.likes).length : 0;
+          const replies = c.replies || [];
+          const icon = typeof getLeaderIcon==='function' ? getLeaderIcon : ()=>'👤';
+
+          const repliesHtml = replies.map(r=>`
+            <div style="display:flex;align-items:flex-start;gap:6px;margin-top:6px;padding-right:10px;">
+              <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">${icon(r.author)}</div>
+              <div style="background:#f5f0ff;border-radius:12px;padding:6px 10px;flex:1;border:1px solid rgba(168,85,247,0.18);">
+                <div style="font-size:11px;font-weight:900;color:#7c3aed;margin-bottom:2px;">${r.author}</div>
+                <div style="font-size:12px;color:#050505;">${r.text}</div>
+                ${r.author===name?`<span onclick="_modalDeleteReply('${postId}','${cId}','${r.id||r.ts}')" style="font-size:10px;color:#e53935;cursor:pointer;font-weight:700;">🗑️ حذف</span>`:''}
+              </div>
+            </div>`).join('');
+
           return `<div id="cmnt_${cId}" style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;">
             <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
-              ${cPh?`<img src="${cPh}" style="width:100%;height:100%;object-fit:cover;">`:typeof getLeaderIcon==='function'?getLeaderIcon(c.author):'👤'}
+              ${cPh?`<img src="${cPh}" style="width:100%;height:100%;object-fit:cover;">`:icon(c.author)}
             </div>
             <div style="flex:1;">
               <div style="background:#F0F2F5;border-radius:16px;padding:8px 12px;">
@@ -16307,12 +16442,33 @@ function openCommentsModal(postId){
                   : `<div id="cmntTxt_${cId}" style="font-size:13px;color:#050505;line-height:1.5;">${c.text||''}</div>`
                 }
               </div>
-              <div style="display:flex;align-items:center;gap:12px;padding:3px 8px;">
+              <div style="display:flex;align-items:center;gap:12px;padding:3px 8px;flex-wrap:wrap;">
                 <span style="font-size:10px;color:#65676B;">${timeStr}</span>
-                ${isMe ? `
-                  <span onclick="editCommentInModal('${postId}','${cId}')" style="font-size:11px;color:#1877F2;cursor:pointer;font-weight:700;">تعديل</span>
-                  <span onclick="deleteCommentInModal('${postId}','${cId}')" style="font-size:11px;color:#e53935;cursor:pointer;font-weight:700;">حذف</span>
-                ` : ''}
+                <button id="cmntLikeBtn_${cId}" onclick="_modalToggleCommentLike('${postId}','${cId}',this)"
+                  style="background:none;border:none;font-size:11px;font-weight:700;color:${liked?'#1877F2':'#65676B'};cursor:pointer;padding:0;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:2px;">
+                  ${liked?'👍 معجب':'👍 إعجاب'}${likeCount>0?` <span style="font-size:10px;background:#E4E6EB;border-radius:8px;padding:1px 5px;">${likeCount}</span>`:''}
+                </button>
+                <button onclick="_modalToggleReplyBox('${cId}','${c.author}')"
+                  style="background:none;border:none;font-size:11px;font-weight:700;color:#65676B;cursor:pointer;padding:0;font-family:'Tajawal',sans-serif;">
+                  💬 رد${replies.length>0?` (${replies.length})`:''}
+                </button>
+                ${isMe && !c.audio ? `<span onclick="editCommentInModal('${postId}','${cId}')" style="font-size:11px;color:#1877F2;cursor:pointer;font-weight:700;">تعديل</span>` : ''}
+                ${isMe ? `<span onclick="deleteCommentInModal('${postId}','${cId}')" style="font-size:11px;color:#e53935;cursor:pointer;font-weight:700;">حذف</span>` : ''}
+              </div>
+              ${repliesHtml}
+              <!-- صندوق الرد -->
+              <div id="modalReplyArea_${cId}" style="display:none;margin-top:6px;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">${icon(name||'?')}</div>
+                  <div style="flex:1;background:#F0F2F5;border-radius:16px;display:flex;align-items:center;padding:0 8px;gap:4px;">
+                    <input id="modalReplyInput_${cId}" type="text" placeholder="اكتب ردّاً…"
+                      style="flex:1;border:none;background:transparent;padding:7px 2px;font-family:'Tajawal',sans-serif;font-size:12px;color:#050505;outline:none;text-align:right;"
+                      onkeydown="if(event.key==='Enter'){_modalSubmitReply('${postId}','${cId}');event.preventDefault();}">
+                    <button onclick="_modalSubmitReply('${postId}','${cId}')" style="background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+                      <svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='white'><path d='M2 21l21-9L2 3v7l15 2-15 2v7z'/></svg>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>`;
@@ -16379,10 +16535,31 @@ window._submitModalComment = function(postId){
           <div style="font-size:12px;font-weight:800;color:#050505;margin-bottom:3px;">${name}</div>
           <div id="cmntTxt_${commentId}" style="font-size:13px;color:#050505;line-height:1.5;">${text}</div>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:3px 8px;">
+        <div style="display:flex;align-items:center;gap:12px;padding:3px 8px;flex-wrap:wrap;">
           <span style="font-size:10px;color:#65676B;">${timeStr}</span>
+          <button id="cmntLikeBtn_${commentId}" onclick="_modalToggleCommentLike('${postId}','${commentId}',this)"
+            style="background:none;border:none;font-size:11px;font-weight:700;color:#65676B;cursor:pointer;padding:0;font-family:'Tajawal',sans-serif;">
+            👍 إعجاب
+          </button>
+          <button onclick="_modalToggleReplyBox('${commentId}','${name}')"
+            style="background:none;border:none;font-size:11px;font-weight:700;color:#65676B;cursor:pointer;padding:0;font-family:'Tajawal',sans-serif;">
+            💬 رد
+          </button>
           <span onclick="editCommentInModal('${postId}','${commentId}')" style="font-size:11px;color:#1877F2;cursor:pointer;font-weight:700;">تعديل</span>
           <span onclick="deleteCommentInModal('${postId}','${commentId}')" style="font-size:11px;color:#e53935;cursor:pointer;font-weight:700;">حذف</span>
+        </div>
+        <div id="modalReplyArea_${commentId}" style="display:none;margin-top:6px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(name):'👤'}</div>
+            <div style="flex:1;background:#F0F2F5;border-radius:16px;display:flex;align-items:center;padding:0 8px;gap:4px;">
+              <input id="modalReplyInput_${commentId}" type="text" placeholder="اكتب ردّاً…"
+                style="flex:1;border:none;background:transparent;padding:7px 2px;font-family:'Tajawal',sans-serif;font-size:12px;color:#050505;outline:none;text-align:right;"
+                onkeydown="if(event.key==='Enter'){_modalSubmitReply('${postId}','${commentId}');event.preventDefault();}">
+              <button onclick="_modalSubmitReply('${postId}','${commentId}')" style="background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+                <svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='white'><path d='M2 21l21-9L2 3v7l15 2-15 2v7z'/></svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>`;
     const empty = list.querySelector('[style*="لا توجد تعليقات"]');
@@ -16424,6 +16601,102 @@ window.deleteCommentInModal = function(postId, commentId){
   if(el) el.remove();
   refreshPostCard(postId);
   showToast('🗑️ تم حذف التعليق');
+};
+
+/* ── إعجاب التعليق من نافذة التعليقات الرئيسية ── */
+window._modalToggleCommentLike = function(postId, commentId, btn){
+  const me = typeof getCurrentUser==='function' ? getCurrentUser() : null;
+  if(!me){ if(typeof showToast==='function') showToast('🔒 سجّل دخولك أولاً'); return; }
+  const posts = typeof getSocialPosts==='function' ? getSocialPosts() : [];
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  const cid = String(commentId);
+  const comment = (post.comments||[]).find(c=>String(c.id||c.ts)===cid);
+  if(!comment) return;
+  if(!comment.likes) comment.likes = {};
+  if(comment.likes[me]) delete comment.likes[me];
+  else {
+    comment.likes[me] = true;
+    if(comment.author && comment.author!==me && typeof addSocialNotif==='function')
+      addSocialNotif(comment.author, `${me} أعجب بتعليقك 👍`, '👍');
+  }
+  if(typeof saveSocialPosts==='function') saveSocialPosts(posts);
+  const liked = !!comment.likes[me];
+  const count = Object.keys(comment.likes||{}).length;
+  if(btn){
+    btn.style.color = liked ? '#1877F2' : '#65676B';
+    btn.innerHTML = (liked?'👍 معجب':'👍 إعجاب')+(count>0?` <span style="font-size:10px;background:#E4E6EB;border-radius:8px;padding:1px 5px;">${count}</span>`:'');
+  }
+};
+
+/* ── إظهار/إخفاء صندوق الرد من نافذة التعليقات الرئيسية ── */
+window._modalToggleReplyBox = function(commentId, authorName){
+  const area = document.getElementById('modalReplyArea_'+commentId);
+  if(!area) return;
+  const open = area.style.display !== 'none';
+  area.style.display = open ? 'none' : 'block';
+  if(!open){
+    const inp = document.getElementById('modalReplyInput_'+commentId);
+    if(inp){ inp.focus(); inp.placeholder='ردّ على '+authorName+'…'; }
+  }
+};
+
+/* ── إرسال رد من نافذة التعليقات الرئيسية ── */
+window._modalSubmitReply = function(postId, commentId){
+  const me = typeof getCurrentUser==='function' ? getCurrentUser() : null;
+  if(!me) return;
+  const inp = document.getElementById('modalReplyInput_'+commentId);
+  const text = inp ? inp.value.trim() : '';
+  if(!text) return;
+  const cid = String(commentId);
+  const posts = typeof getSocialPosts==='function' ? getSocialPosts() : [];
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  const comment = (post.comments||[]).find(c=>String(c.id||c.ts)===cid);
+  if(!comment) return;
+  if(!comment.replies) comment.replies = [];
+  const replyId = 'r'+Date.now();
+  comment.replies.push({ id:replyId, author:me, text, ts:Date.now() });
+  if(typeof saveSocialPosts==='function') saveSocialPosts(posts);
+  if(inp) inp.value='';
+  if(comment.author && comment.author!==me && typeof addSocialNotif==='function')
+    addSocialNotif(comment.author, `${me} ردّ على تعليقك: "${text.substring(0,30)}"`, '💬');
+  /* إضافة الرد في الواجهة مباشرة */
+  const area = document.getElementById('modalReplyArea_'+cid);
+  if(area){
+    const icon = typeof getLeaderIcon==='function' ? getLeaderIcon : ()=>'👤';
+    const replyDiv = document.createElement('div');
+    replyDiv.style.cssText='display:flex;align-items:flex-start;gap:6px;margin-top:6px;padding-right:10px;';
+    replyDiv.innerHTML=`
+      <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">${icon(me)}</div>
+      <div style="background:#f5f0ff;border-radius:12px;padding:6px 10px;flex:1;border:1px solid rgba(168,85,247,0.18);">
+        <div style="font-size:11px;font-weight:900;color:#7c3aed;margin-bottom:2px;">${me}</div>
+        <div style="font-size:12px;color:#050505;">${text}</div>
+        <span onclick="_modalDeleteReply('${postId}','${cid}','${replyId}')" style="font-size:10px;color:#e53935;cursor:pointer;font-weight:700;">🗑️ حذف</span>
+      </div>`;
+    area.parentNode.insertBefore(replyDiv, area);
+  }
+  /* تحديث عداد الرد في الزر */
+  const commentEl = document.getElementById('cmnt_'+cid);
+  if(commentEl){
+    const btns = commentEl.querySelectorAll('button');
+    btns.forEach(b=>{ if(b.innerText.includes('رد')){ const c2=(comment.replies||[]).length; b.innerText='💬 رد'+(c2>0?` (${c2})`:''); } });
+  }
+  if(typeof showToast==='function') showToast('✅ تم إرسال الرد');
+};
+
+/* ── حذف رد من نافذة التعليقات الرئيسية ── */
+window._modalDeleteReply = function(postId, commentId, replyId){
+  if(!confirm('هل تريد حذف هذا الرد؟')) return;
+  const posts = typeof getSocialPosts==='function' ? getSocialPosts() : [];
+  const post = posts.find(p=>p.id===postId); if(!post) return;
+  const comment=(post.comments||[]).find(c=>String(c.id||c.ts)===String(commentId)); if(!comment) return;
+  comment.replies=(comment.replies||[]).filter(r=>String(r.id||r.ts)!==String(replyId));
+  if(typeof saveSocialPosts==='function') saveSocialPosts(posts);
+  if(typeof showToast==='function') showToast('🗑️ تم حذف الرد');
+  /* إعادة فتح النافذة لتحديث الواجهة */
+  const ov = document.getElementById('_commentsOverlay');
+  if(ov){ ov.remove(); openCommentsModal(postId); }
 };
 
 /* CSS: slideUpModal animation */
@@ -21029,6 +21302,7 @@ function doLogout(){
   document.getElementById('adminToggleBtn').style.display='none';
   const nb2=document.getElementById('adminNavBtn'); if(nb2) nb2.style.display='none';
   const broadcastBtn2=document.getElementById('adminBroadcastBtn'); if(broadcastBtn2) broadcastBtn2.style.display='none';
+  const allPtsBtn2=document.getElementById('adminAllPtsBtn'); if(allPtsBtn2) allPtsBtn2.style.display='none';
   /* ✅ استعادة حقلي تسجيل الدخول الرسميين مع التحقق من صيغة الإيميل */
   document.getElementById('authFields').innerHTML=`
     <div class="fb-input-wrapper">
@@ -29359,7 +29633,7 @@ window.openGroupChat = async function(groupId){
           ${group.name}
           <span style="font-size:10px;font-weight:800;color:#7c3aed;background:rgba(168,85,247,0.12);border-radius:5px;padding:1px 6px;flex-shrink:0;">لمة جماعية</span>
         </div>
-        <div id="_cdzGrpSubtitle" style="font-size:11px;color:#7c3aed;font-weight:700;">${group.members.length} أعضاء ${group.locked?'🔒':''}</div>
+        <div id="_cdzGrpSubtitle" style="font-size:11px;color:#7c3aed;font-weight:700;">${group.members.length} أعضاء ${group.locked?'🔒':''} • <span style="color:#22c55e;">●</span> مزامنة فورية</div>
       </div>
       ${isAdmin?`<div onclick="_openGroupSettings('${groupId}')" style="width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;" title="إعدادات اللمة">⚙️</div>`:''}
     </div>
@@ -29402,8 +29676,9 @@ window.openGroupChat = async function(groupId){
   /* ── عرض الرسائل ── */
   await _renderGrpMessages(groupId, myName);
 
-  /* ── استطلاع الرسائل الجديدة ── */
+  /* ── استطلاع الرسائل الجديدة كل ثانيتين للمزامنة الفورية ── */
   let _grpPollLast = Date.now();
+  let _grpLastCount = 0;
   const _grpPollInt = setInterval(async ()=>{
     if(!document.getElementById('_cdzGroupChatScreen')){ clearInterval(_grpPollInt); return; }
     const fresh = await _fetchGroups();
@@ -29411,8 +29686,9 @@ window.openGroupChat = async function(groupId){
     if(!grpFresh) return;
     const msgs = grpFresh.messages || [];
     const newMsgs = msgs.filter(m=>m.ts > _grpPollLast);
-    if(newMsgs.length){
-      _grpPollLast = Math.max(...newMsgs.map(m=>m.ts));
+    if(newMsgs.length || msgs.length !== _grpLastCount){
+      if(newMsgs.length) _grpPollLast = Math.max(...msgs.map(m=>m.ts||0));
+      _grpLastCount = msgs.length;
       await _renderGrpMessages(groupId, myName);
     }
     /* مؤشر الكتابة */
@@ -29423,7 +29699,7 @@ window.openGroupChat = async function(groupId){
         .map(([u])=>u);
       tyBar.innerText = typers.length ? typers.join('، ')+' يكتب…' : '';
     }
-  }, 3000);
+  }, 2000);
 };
 
 /* ── عرض رسائل المجموعة ── */
@@ -29446,12 +29722,22 @@ async function _renderGrpMessages(groupId, myName){
   if(needSave){ group.messages = msgs; await _saveGroup(group); }
 
   const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+
+  /* ألوان ثابتة لكل مرسل بناءً على الاسم */
+  function _getNameColor(name){
+    const palette = ['#a855f7','#0099ff','#00c853','#f59e0b','#ef4444','#06b6d4','#ec4899','#8b5cf6','#10b981','#f97316'];
+    let hash = 0;
+    for(let i=0;i<name.length;i++) hash = name.charCodeAt(i) + ((hash<<5)-hash);
+    return palette[Math.abs(hash) % palette.length];
+  }
+
   box.innerHTML = msgs.map(m=>{
     const isMe = m.from===myName;
+    const senderColor = isMe ? '#a855f7' : _getNameColor(m.from);
     const avatar = (()=>{
       const ph = localStorage.getItem('nld_photo_'+(m.from.replace(/\s+/g,'_')))||'';
-      return ph?`<img src="${ph}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
-               :`<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:13px;color:white;flex-shrink:0;">👤</div>`;
+      return ph?`<img src="${ph}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid ${senderColor}40;">`
+               :`<div style="width:30px;height:30px;border-radius:50%;background:${senderColor};display:flex;align-items:center;justify-content:center;font-size:13px;color:white;flex-shrink:0;font-weight:700;">${m.from.charAt(0)||'👤'}</div>`;
     })();
     const timeStr = new Date(m.ts).toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
     const readStr = (m.readBy&&m.readBy.length>1)?`✓✓ ${m.readBy.filter(r=>r!==myName).length}`:isMe?'✓':'';
@@ -29473,7 +29759,7 @@ async function _renderGrpMessages(groupId, myName){
       <div class="_cdzGMsg" style="display:flex;flex-direction:${isMe?'row-reverse':'row'};align-items:flex-end;gap:7px;margin-bottom:8px;">
         ${!isMe?avatar:''}
         <div style="max-width:80%;">
-          ${!isMe?`<div style="font-size:11px;font-weight:800;color:#7c3aed;margin-bottom:3px;padding:0 4px;">${m.from}</div>`:''}
+          ${!isMe?`<div style="font-size:11px;font-weight:800;color:${senderColor};margin-bottom:3px;padding:0 4px;">${m.from}</div>`:''}
           <div class="_cdzGBubble ${isMe?'_cdzGBubbleMy':'_cdzGBubbleOther'}" ondblclick="_showGrpReactPicker(this,'${groupId}','${m.id}')">
             ${m.text?`<div>${m.text}</div>`:''}
             ${mediaHtml}
@@ -29796,7 +30082,7 @@ async function _renderGroupsInInbox(){
 }
 
 /* استطلاع المجموعات في الخلفية */
-setInterval(_renderGroupsInInbox, 8000);
+setInterval(_renderGroupsInInbox, 3000);
 window.addEventListener('load',()=>setTimeout(_renderGroupsInInbox,2000));
 
 console.log('👥 [GroupChat] نظام المجموعات — مفعّل');
@@ -31732,6 +32018,23 @@ function _buildAdminFullPage(ov){
         <button class="afp-btn red" onclick="_afpBroadcast()">📢 إرسال للجميع</button>
       </div>
 
+      <!-- ➖ خصم النقاط -->
+      <div class="afp-section">
+        <div class="afp-section-title">➖ خصم النقاط من عضو</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.45);background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:8px 10px;margin-bottom:10px;line-height:1.6;font-weight:600;">
+          ⚠️ الخصم يُطبَّق على نقاط الكويز + التفاعلات فقط. نقاط الجدول لا تتأثر.
+        </div>
+        <select class="afp-select" id="afpDeductTarget" style="color:white;">
+          <option value="">👤 اختر عضو للخصم...</option>
+        </select>
+        <input class="afp-input" id="afpDeductAmount" type="number" min="1" placeholder="➖ عدد النقاط للخصم">
+        <input class="afp-input" id="afpDeductReason" placeholder="📝 سبب الخصم (مثال: غياب غير مبرر)">
+        <input class="afp-input" id="afpDeductLocation" placeholder="📍 مكان الخصم (اختياري)">
+        <div id="afpDeductMemberInfo" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#fca5a5;font-weight:700;"></div>
+        <button class="afp-btn red" onclick="_afpExecuteDeduct()">➖ تنفيذ الخصم</button>
+        <div id="afpDeductMsg" style="display:none;margin-top:8px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;"></div>
+      </div>
+
       <!-- إجراءات متقدمة -->
       <div class="afp-section">
         <div class="afp-section-title">⚙️ إجراءات متقدمة</div>
@@ -31783,9 +32086,112 @@ async function _afpLoadMembers(){
       sel.innerHTML = '<option value="">اختر عضو...</option>' +
         _afpAllMembers.map(n=>`<option value="${n}">${n}</option>`).join('');
     }
+    /* تعبئة select خصم النقاط */
+    const deductSel = document.getElementById('afpDeductTarget');
+    if(deductSel){
+      deductSel.innerHTML = '<option value="">👤 اختر عضو للخصم...</option>' +
+        _afpAllMembers.map(n=>`<option value="${n}">${n}</option>`).join('');
+      deductSel.onchange = function(){
+        const name = this.value;
+        const infoEl = document.getElementById('afpDeductMemberInfo');
+        if(!name || !infoEl){ if(infoEl) infoEl.style.display='none'; return; }
+        const normKey = name.replace(/\s+/g,'_');
+        const quizPts = parseInt(localStorage.getItem('nld_pts_'+normKey)||'0');
+        const interPts = parseInt(localStorage.getItem('nld_interaction_'+normKey)||'0');
+        const total = quizPts + interPts;
+        infoEl.style.display='block';
+        infoEl.innerHTML = `👤 <strong>${name}</strong> — نقاط الكويز: <strong>${quizPts}</strong> | تفاعلات: <strong>${interPts}</strong> | الإجمالي القابل للخصم: <strong style="color:#fbbf24;">${total}</strong>`;
+      };
+    }
     _afpRenderMembers(_afpAllMembers);
   }catch(e){}
 }
+
+/* ── تنفيذ خصم النقاط من لوحة المدير المنسدلة ── */
+window._afpExecuteDeduct = function(){
+  const name = (document.getElementById('afpDeductTarget')||{}).value;
+  const amount = parseInt((document.getElementById('afpDeductAmount')||{}).value||'0');
+  const reason = ((document.getElementById('afpDeductReason')||{}).value||'').trim();
+  const location = ((document.getElementById('afpDeductLocation')||{}).value||'').trim();
+  const msgEl = document.getElementById('afpDeductMsg');
+
+  function _showMsg(text, ok){
+    if(!msgEl) return;
+    msgEl.style.display='block';
+    msgEl.style.background = ok ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)';
+    msgEl.style.color = ok ? '#86efac' : '#fca5a5';
+    msgEl.style.border = ok ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(239,68,68,0.3)';
+    msgEl.innerText = text;
+  }
+
+  if(!name){ _showMsg('⚠️ اختر عضواً أولاً', false); return; }
+  if(!amount || amount < 1){ _showMsg('⚠️ أدخل عدد النقاط للخصم', false); return; }
+  if(!reason){ _showMsg('⚠️ أدخل سبب الخصم', false); return; }
+
+  const normKey = name.replace(/\s+/g,'_');
+  /* الخصم من نقاط الكويز + التفاعلات فقط — نقاط الجدول لا تُمسّ */
+  const quizKey = 'nld_pts_'+normKey;
+  const interKey = 'nld_interaction_'+normKey;
+  const quizPts = parseInt(localStorage.getItem(quizKey)||'0');
+  const interPts = parseInt(localStorage.getItem(interKey)||'0');
+  const totalDeductable = quizPts + interPts;
+  let remaining = amount;
+
+  /* نخصم أولاً من التفاعلات ثم الكويز */
+  const newInterPts = Math.max(0, interPts - remaining);
+  const deductedFromInter = interPts - newInterPts;
+  remaining -= deductedFromInter;
+  const newQuizPts = Math.max(0, quizPts - remaining);
+  localStorage.setItem(interKey, String(newInterPts));
+  localStorage.setItem(quizKey, String(newQuizPts));
+
+  const actualDeducted = (interPts - newInterPts) + (quizPts - newQuizPts);
+  const newTotal = newQuizPts + newInterPts;
+  const beforeTotal = totalDeductable;
+
+  /* حفظ في Firebase */
+  fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+normKey+'.json',{
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({deductedAt:Date.now()})
+  }).catch(()=>{});
+
+  /* سجل الخصم */
+  try{
+    const _DEDUCT_LOG_KEY='nld_deduct_log';
+    const log=JSON.parse(localStorage.getItem(_DEDUCT_LOG_KEY)||'[]');
+    log.push({id:'deduct_'+Date.now(),memberName:name,amount:actualDeducted,location,reason,beforePts:beforeTotal,afterPts:newTotal,ts:Date.now()});
+    localStorage.setItem(_DEDUCT_LOG_KEY,JSON.stringify(log));
+    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/appdata/nld_deduct_log.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(log)}).catch(()=>{});
+  }catch(e){}
+
+  /* إشعار للعضو عبر P2P */
+  try{
+    const now=new Date();
+    const dateStr=now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
+    const timeStr=now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+    const sorted=['المدير',name].sort();
+    const p2pKey='nld_p2p_'+sorted[0].replace(/\s+/g,'_')+'__'+sorted[1].replace(/\s+/g,'_');
+    const p2pMsgs=JSON.parse(localStorage.getItem(p2pKey)||'[]');
+    p2pMsgs.push({id:'deduct_notif_'+Date.now(),from:'المدير',to:name,
+      message:`⚠️ إشعار خصم نقاط\n\n👤 العضو: ${name}\n➖ المخصوم: ${actualDeducted} نقطة\n📍 المكان: ${location||'—'}\n📝 السبب: ${reason}\n📊 الرصيد الجديد: ${newTotal.toLocaleString()} نقطة (كويز+تفاعلات)\n📅 ${dateStr} — ${timeStr}`,
+      timestamp:now.toISOString(),read:false});
+    localStorage.setItem(p2pKey,JSON.stringify(p2pMsgs));
+  }catch(e){}
+
+  /* تحديث معلومات العضو في الواجهة */
+  const infoEl = document.getElementById('afpDeductMemberInfo');
+  if(infoEl){
+    infoEl.innerHTML = `👤 <strong>${name}</strong> — نقاط الكويز: <strong>${newQuizPts}</strong> | تفاعلات: <strong>${newInterPts}</strong> | الإجمالي: <strong style="color:#fbbf24;">${newTotal}</strong>`;
+  }
+
+  _showMsg(`✅ تم خصم ${actualDeducted} نقطة من "${name}" — الرصيد الجديد: ${newTotal}`, true);
+  if(typeof showToast==='function') showToast(`✅ تم خصم ${actualDeducted} نقطة من ${name}`);
+
+  /* تفريغ الحقول */
+  ['afpDeductAmount','afpDeductReason','afpDeductLocation'].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.value='';
+  });
+};
 
 function _afpRenderMembers(list){
   const div = document.getElementById('afpMemberList');
@@ -31855,6 +32261,150 @@ window._afpBroadcast = function(){
 
 console.log('✅ [AdminFullPage] صفحة المدير الكاملة — مفعّلة');
 })();
+
+/* ══════════════════════════════════════════════════════════════
+   📊 لوحة مجموع نقاط الأعضاء — للمدير فقط
+   ══════════════════════════════════════════════════════════════ */
+window.openAdminTotalPtsPanel = async function(){
+  if(!window._isAdmin){ if(typeof showToast==='function') showToast('⛔ للمدير فقط'); return; }
+
+  /* إزالة لوحة قديمة */
+  document.getElementById('_adminTotalPtsOverlay')?.remove();
+
+  const ov = document.createElement('div');
+  ov.id = '_adminTotalPtsOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;font-family:Tajawal,sans-serif;animation:_cdzSlideUp .3s ease both;';
+  ov.innerHTML = `
+    <div style="background:linear-gradient(160deg,#050a0e,#0d1117,#1a1a2e);border-radius:28px 28px 0 0;width:100%;max-width:500px;max-height:90vh;display:flex;flex-direction:column;border:1px solid rgba(0,229,255,0.2);box-shadow:0 -20px 60px rgba(0,0,0,0.7);">
+      <!-- هيدر -->
+      <div style="padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:17px;font-weight:900;color:#00e5ff;display:flex;align-items:center;gap:8px;">📊 مجموع نقاط الأعضاء</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:3px;">جدول النقاط الكلي لكل عضو مُرتَّب تنازلياً</div>
+          </div>
+          <button onclick="document.getElementById('_adminTotalPtsOverlay').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;color:white;font-size:16px;cursor:pointer;">✕</button>
+        </div>
+        <!-- شريط الإجمالي الكلي -->
+        <div id="_atpGrandTotal" style="margin-top:12px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:12px;padding:10px 14px;text-align:center;font-size:13px;font-weight:700;color:#00e5ff;">
+          ⏳ جاري حساب المجموع الكلي...
+        </div>
+      </div>
+      <!-- شريط البحث -->
+      <div style="padding:10px 14px;flex-shrink:0;">
+        <input id="_atpSearch" placeholder="🔍 ابحث عن عضو..." oninput="_atpFilter(this.value)"
+          style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:22px;color:white;font-family:Tajawal,sans-serif;font-size:13px;outline:none;box-sizing:border-box;text-align:right;">
+      </div>
+      <!-- القائمة -->
+      <div id="_atpList" style="flex:1;overflow-y:auto;padding:0 14px 20px;">
+        <div style="text-align:center;padding:40px;color:rgba(255,255,255,0.4);font-size:14px;">⏳ جاري تحميل البيانات...</div>
+      </div>
+    </div>`;
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+
+  /* جلب البيانات */
+  await _atpLoadData();
+};
+
+let _atpAllData = []; /* cache */
+
+async function _atpLoadData(){
+  const listEl = document.getElementById('_atpList');
+  if(!listEl) return;
+
+  /* جلب كل المستخدمين */
+  let allNames = [];
+  try{
+    const users = typeof getRegUsers==='function' ? getRegUsers() : [];
+    allNames = users.map(u=>(u.firstName+' '+u.lastName).trim()).filter(Boolean);
+  }catch(e){}
+
+  /* إضافة أسماء من localStorage */
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && (k.startsWith('nld_pts_') || k.startsWith('nld_interaction_'))){
+        const n = k.replace('nld_pts_','').replace('nld_interaction_','').replace(/_/g,' ').trim();
+        if(n && n!=='المدير' && n!=='زائر' && !allNames.includes(n)) allNames.push(n);
+      }
+    }
+  }catch(e){}
+
+  /* جلب نقاط الجدول من Firebase */
+  let sheetPtsMap = {};
+  try{
+    const r = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats.json');
+    const fbData = await r.json();
+    if(fbData && typeof fbData === 'object'){
+      Object.entries(fbData).forEach(([key, val])=>{
+        const name = key.replace(/_/g,' ');
+        if(val && (val.totalPts !== undefined || val.sheetPts !== undefined)){
+          sheetPtsMap[name] = parseInt(val.totalPts || val.sheetPts || 0);
+        }
+      });
+    }
+  }catch(e){}
+
+  /* حساب النقاط لكل عضو */
+  _atpAllData = allNames.map(name=>{
+    const normKey = name.replace(/\s+/g,'_');
+    const quizPts = parseInt(localStorage.getItem('nld_pts_'+normKey)||'0');
+    const interPts = parseInt(localStorage.getItem('nld_interaction_'+normKey)||'0');
+    const fbPts = sheetPtsMap[name] || 0;
+    const total = Math.max(quizPts + interPts, fbPts);
+    return { name, quizPts, interPts, fbPts, total };
+  });
+
+  /* ترتيب تنازلي */
+  _atpAllData.sort((a,b)=>b.total-a.total);
+
+  /* المجموع الكلي */
+  const grandTotal = _atpAllData.reduce((s,m)=>s+m.total,0);
+  const grandEl = document.getElementById('_atpGrandTotal');
+  if(grandEl) grandEl.innerHTML = `🏆 المجموع الكلي لكل النقاط: <strong style="color:#FFD700;font-size:16px;">${grandTotal.toLocaleString('ar-DZ')}</strong> نقطة — <strong style="color:#00e5a0;">${_atpAllData.length}</strong> عضو`;
+
+  _atpRender(_atpAllData);
+}
+
+function _atpRender(list){
+  const listEl = document.getElementById('_atpList');
+  if(!listEl) return;
+  if(!list || list.length===0){
+    listEl.innerHTML='<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.4);">لا توجد بيانات</div>';
+    return;
+  }
+  const medals = ['🥇','🥈','🥉'];
+  listEl.innerHTML = list.map((m,i)=>{
+    const photo = localStorage.getItem('nld_photo_'+m.name.replace(/\s+/g,'_'))||'';
+    const icon = typeof getLeaderIcon==='function' ? getLeaderIcon(m.name) : '👤';
+    const avatarHtml = photo
+      ? `<img src="${photo}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+      : `<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#00e5ff,#6366f1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${icon}</div>`;
+    const rankIcon = medals[i] || `<span style="font-size:11px;font-weight:900;color:rgba(255,255,255,0.5);">#${i+1}</span>`;
+    const barW = list[0].total > 0 ? Math.round((m.total/list[0].total)*100) : 0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:14px;margin-bottom:6px;border:1px solid rgba(255,255,255,0.06);transition:.15s;" onmouseover="this.style.background='rgba(0,229,255,0.07)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+      <div style="width:26px;text-align:center;flex-shrink:0;font-size:16px;">${rankIcon}</div>
+      ${avatarHtml}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:900;color:#e8eaed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</div>
+        <div style="height:4px;background:rgba(255,255,255,0.08);border-radius:99px;margin-top:5px;overflow:hidden;">
+          <div style="height:100%;width:${barW}%;background:linear-gradient(90deg,#00e5ff,#6366f1);border-radius:99px;transition:width .4s ease;"></div>
+        </div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:3px;">كويز: ${m.quizPts.toLocaleString()} • تفاعل: ${m.interPts.toLocaleString()} • جدول: ${m.fbPts.toLocaleString()}</div>
+      </div>
+      <div style="text-align:center;flex-shrink:0;">
+        <div style="font-size:15px;font-weight:900;color:#FFD700;">${m.total.toLocaleString()}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,0.35);">نقطة</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window._atpFilter = function(q){
+  const filtered = q.trim() ? _atpAllData.filter(m=>m.name.includes(q.trim())) : _atpAllData;
+  _atpRender(filtered);
+};
 
 /* ══════════════════════════════════════════════════════════════
    🤖 النشر التلقائي من حساب المدير — نصائح وإحصائيات
@@ -32065,13 +32615,18 @@ async function loadAllMembersWithPts(){
     });
   }
 
-  /* ③ Firebase — totalPts المحفوظ عند آخر دخول */
+  /* ③ Firebase — totalPts المحفوظ عند آخر دخول (يشمل شيت + تفاعل بدون كويز) */
   const fbStats = (fbResp.status==='fulfilled' && fbResp.value && typeof fbResp.value==='object')
     ? fbResp.value : {};
   Object.entries(fbStats).forEach(([rawKey, data])=>{
     if(!data) return;
     const name  = rawKey.replace(/_/g,' ');
-    const total = parseInt(data.totalPts||0)||0;
+    // البطولة = نقاط الجدول + نقاط التفاعل (بدون الكويز)
+    const sheetP = parseInt(data.sheetPts||0)||0;
+    const interactP = parseInt(data.interactionPts||0)||0;
+    const champTotal = sheetP + interactP;
+    // إذا لم تكن بيانات الجدول موجودة بعد، نستخدم totalPts كـ fallback
+    const total = champTotal > 0 ? champTotal : (parseInt(data.totalPts||0)||0);
     upsert(name, total);
   });
 
@@ -33652,6 +34207,275 @@ window._cdzGetSaved   = _getSavedAccount;
 window._cdzClearSaved = _clearSavedAccount;
 
 console.log('✅ [ConnectDZ v4.0] حفظ الحساب المتكامل — مقيّد بنفس الجهاز ✓');
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ⚡ نظام التبديل السريع بين الحسابات المحفوظة — ConnectDZ v5.0
+     يحفظ حتى 5 حسابات على نفس الجهاز مع تبديل فوري بدون إعادة تسجيل
+═══════════════════════════════════════════════════════════════ -->
+<style>
+#_cdzMultiAccPanel {
+  position:fixed;inset:0;z-index:99990;
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);
+  display:flex;align-items:flex-end;justify-content:center;
+  animation:_cdzSlideUp .3s ease both;font-family:'Tajawal',sans-serif;
+}
+#_cdzMultiAccPanel .cdz-mac-inner {
+  background:white;border-radius:28px 28px 0 0;
+  width:100%;max-width:480px;padding:20px 16px 36px;
+  max-height:85vh;overflow-y:auto;
+}
+#_cdzMultiAccPanel .cdz-mac-title {
+  font-size:16px;font-weight:900;color:#050505;
+  margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;
+}
+.cdz-mac-acc-row {
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:16px;cursor:pointer;
+  transition:.15s;margin-bottom:8px;
+  border:1.5px solid #E4E6EB;background:#F7F8FA;
+}
+.cdz-mac-acc-row:hover,.cdz-mac-acc-row:active { background:#e8f5e9;border-color:#2e7d32; }
+.cdz-mac-acc-row.cdz-mac-active { background:#e8f5e9;border-color:#2e7d32; }
+.cdz-mac-acc-avatar {
+  width:46px;height:46px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#1877F2,#00c853);
+  display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;
+}
+.cdz-mac-acc-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+.cdz-mac-add-btn {
+  width:100%;padding:13px;border:2px dashed #E4E6EB;border-radius:14px;
+  background:transparent;color:#65676B;font-family:'Tajawal',sans-serif;
+  font-size:14px;font-weight:800;cursor:pointer;transition:.15s;
+}
+.cdz-mac-add-btn:hover { border-color:#1877F2;color:#1877F2;background:#EBF5FB; }
+/* زر التبديل السريع — يظهر في الـ header */
+#_cdzSwitchFab {
+  position:fixed;bottom:80px;left:16px;z-index:9999;
+  width:50px;height:50px;border-radius:50%;
+  background:linear-gradient(135deg,#2e7d32,#00c853);
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;box-shadow:0 4px 18px rgba(46,125,50,0.45);
+  transition:.2s;animation:_cdzSlideUp .5s 1s both;
+}
+#_cdzSwitchFab:hover { transform:scale(1.08);filter:brightness(1.1); }
+#_cdzSwitchFab .cdz-switch-badge {
+  position:absolute;top:-4px;right:-4px;
+  width:18px;height:18px;border-radius:50%;
+  background:#ef4444;color:white;font-size:10px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid white;
+}
+</style>
+
+<script>
+(function(){
+'use strict';
+const CDZ_MAC_KEY = 'cdz_multi_accounts_v5'; // قائمة الحسابات المتعددة
+const CDZ_MAC_MAX = 5; // الحد الأقصى
+
+/* 🔒 معرّف الجهاز — نفس مفتاح نظام v4 لضمان التوافق */
+function _getMacDevId(){
+  try{
+    let id = localStorage.getItem('__deviceId');
+    if(id) return id;
+    id = 'cdz_' + Math.random().toString(36).slice(2,10) + '_' + Date.now().toString(36);
+    localStorage.setItem('__deviceId', id);
+    return id;
+  }catch(e){ return 'cdz_default'; }
+}
+
+/* 🔒 مفتاح التخزين مقيّد بهذا الجهاز فقط */
+function _getMacStorageKey(){
+  return CDZ_MAC_KEY + '_' + _getMacDevId();
+}
+
+function _getMacList(){
+  try{ return JSON.parse(localStorage.getItem(_getMacStorageKey())||'[]'); }catch(e){ return []; }
+}
+
+function _saveMacList(list){
+  try{ localStorage.setItem(_getMacStorageKey(), JSON.stringify(list)); }catch(e){}
+}
+
+/* إضافة أو تحديث حساب في القائمة */
+function _upsertAccount(acc){
+  if(!acc||!acc.name||acc.name==='زائر'||acc.name==='المدير') return;
+  const list = _getMacList();
+  const idx = list.findIndex(a=>a.name===acc.name);
+  const entry = {...acc, ts:Date.now()};
+  if(idx>=0) list[idx]=entry;
+  else{
+    if(list.length >= CDZ_MAC_MAX) list.shift(); // احذف الأقدم
+    list.push(entry);
+  }
+  _saveMacList(list);
+  _updateSwitchFab();
+}
+
+/* تحديث عداد زر التبديل */
+function _updateSwitchFab(){
+  const fab = document.getElementById('_cdzSwitchFab');
+  if(!fab) return;
+  const count = _getMacList().length;
+  const badge = fab.querySelector('.cdz-switch-badge');
+  if(count > 1){
+    fab.style.display='flex';
+    if(badge) badge.innerText=count;
+  } else {
+    fab.style.display='none';
+  }
+}
+
+/* عرض لوحة الحسابات */
+window.openMultiAccPanel = function(){
+  document.getElementById('_cdzMultiAccPanel')?.remove();
+  const list = _getMacList();
+  const currentUser = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+  const ov = document.createElement('div');
+  ov.id = '_cdzMultiAccPanel';
+  const rows = list.slice().reverse().map(acc=>{
+    const isActive = acc.name === currentUser;
+    const photo = acc.photo || localStorage.getItem('nld_photo_'+(acc.name||'').replace(/\s+/g,'_'))||'';
+    const icon = typeof getLeaderIcon==='function' ? getLeaderIcon(acc.name) : '👤';
+    const avatarHtml = photo ? `<img src="${photo}" alt="">` : icon;
+    const diff = Date.now()-(acc.ts||0);
+    const diffTxt = diff<60000?'الآن':diff<3600000?`منذ ${Math.floor(diff/60000)} دقيقة`:diff<86400000?`منذ ${Math.floor(diff/3600000)} ساعة`:`منذ ${Math.floor(diff/86400000)} يوم`;
+    return `<div class="cdz-mac-acc-row${isActive?' cdz-mac-active':''}" onclick="switchToAccount('${acc.name.replace(/'/g,"\\'")}','${acc.type||'sheets'}')">
+      <div class="cdz-mac-acc-avatar">${avatarHtml}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:900;color:#050505;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${acc.name}</div>
+        <div style="font-size:11px;color:#65676B;">${isActive?'✅ الحساب الحالي':diffTxt}</div>
+      </div>
+      ${isActive?'':`<div style="background:linear-gradient(135deg,#1877F2,#0d5bda);color:white;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:900;flex-shrink:0;">تبديل ⚡</div>`}
+      ${isActive?'':` <div onclick="event.stopPropagation();removeAccountFromList('${acc.name.replace(/'/g,"\\'")}',this.parentElement)" style="width:26px;height:26px;border-radius:50%;background:#FEE2E2;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">✕</div>`}
+    </div>`;
+  }).join('');
+
+  ov.innerHTML = `<div class="cdz-mac-inner">
+    <div class="cdz-mac-title">
+      <span>⚡ تبديل الحساب</span>
+      <button onclick="document.getElementById('_cdzMultiAccPanel').remove()" style="background:#F0F2F5;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+    ${rows||'<div style="text-align:center;padding:20px;color:#65676B;font-size:13px;">لا توجد حسابات محفوظة</div>'}
+    <button class="cdz-mac-add-btn" onclick="document.getElementById('_cdzMultiAccPanel').remove();logoutAndSwitch()">
+      ➕ تسجيل دخول بحساب آخر
+    </button>
+  </div>`;
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+};
+
+/* تبديل إلى حساب آخر */
+window.switchToAccount = async function(name, type){
+  document.getElementById('_cdzMultiAccPanel')?.remove();
+  const list = _getMacList();
+  const acc = list.find(a=>a.name===name);
+  if(!acc){ if(typeof showToast==='function') showToast('❌ لم يُعثر على الحساب'); return; }
+
+  // عرض شاشة التبديل
+  const ov = document.createElement('div');
+  ov.id = '_cdzAutoLoginMsg';
+  const photo = acc.photo||localStorage.getItem('nld_photo_'+name.replace(/\s+/g,'_'))||'';
+  const icon = typeof getLeaderIcon==='function' ? getLeaderIcon(name) : '👤';
+  ov.innerHTML = `<div class="cdz-auto-inner">
+    <div class="cdz-auto-avatar">${photo?`<img src="${photo}" alt="">`:icon}</div>
+    <div class="cdz-auto-name">${name}</div>
+    <div class="cdz-auto-sub">جارٍ التبديل إلى حسابك…</div>
+    <div class="cdz-auto-dots">● ● ●</div>
+  </div>`;
+  document.body.appendChild(ov);
+
+  await new Promise(r=>setTimeout(r,700));
+  ov.remove();
+
+  if(acc.type==='reg' && acc.email && typeof fbLoginUser==='function'){
+    try{
+      const users = typeof getRegUsers==='function' ? getRegUsers() : [];
+      const ud = users.find(u=>u.email===acc.email);
+      if(ud){ fbLoginUser(ud); return; }
+    }catch(e){}
+    // Fallback
+    const ef=document.getElementById('fbEmailPhone'); const pf=document.getElementById('fbPassword');
+    if(ef&&pf&&acc.email){
+      ef.value=acc.email;
+      const rawPass=acc.pass?atob(acc.pass):'';
+      if(rawPass) pf.value=rawPass;
+      if(typeof fbDoLogin==='function') fbDoLogin();
+    }
+  } else {
+    // حساب جدول
+    if(typeof processEntry==='function' && acc.email) processEntry(acc.email,'email');
+    else if(typeof renderApp==='function'){
+      const pts = parseInt(localStorage.getItem('nld_pts_'+name.replace(/\s+/g,'_'))||'0');
+      renderApp(name, pts, false, 0);
+    }
+  }
+};
+
+/* إزالة حساب من القائمة */
+window.removeAccountFromList = function(name, rowEl){
+  if(!confirm('إزالة "'+name+'" من القائمة؟')) return;
+  const list = _getMacList().filter(a=>a.name!==name);
+  _saveMacList(list);
+  if(rowEl) rowEl.remove();
+  _updateSwitchFab();
+  if(typeof showToast==='function') showToast('🗑️ تم الإزالة');
+};
+
+/* تسجيل الخروج والانتقال لشاشة الدخول */
+window.logoutAndSwitch = function(){
+  // الانتقال لشاشة الدخول بدون مسح الحسابات المحفوظة
+  const app=document.getElementById('app'); const login=document.getElementById('login');
+  if(app) app.style.display='none';
+  if(login){ login.style.display='flex'; login.style.opacity='1'; }
+};
+
+/* ── Hook: حفظ تلقائي عند الدخول ── */
+const _origRenderAppMAC = window.renderApp;
+if(typeof _origRenderAppMAC==='function'){
+  window.renderApp = function(name, pts, isReg, externalEarned){
+    try{
+      if(name && name!=='زائر' && name!=='المدير'){
+        const email=(document.getElementById('fbEmailPhone')||{}).value?.trim()||'';
+        const photo=typeof getProfilePhoto==='function'?getProfilePhoto(name):'';
+        _upsertAccount({type:'sheets',name,email,photo});
+      }
+    }catch(e){}
+    return _origRenderAppMAC.apply(this,arguments);
+  };
+}
+
+/* ── إنشاء زر التبديل السريع عند تحميل الصفحة ── */
+function _createSwitchFab(){
+  if(document.getElementById('_cdzSwitchFab')) return;
+  const btn = document.createElement('button');
+  btn.id = '_cdzSwitchFab';
+  btn.title = 'تبديل الحساب';
+  btn.style.display='none';
+  btn.innerHTML = `<span style="font-size:22px;">👤</span><span class="cdz-switch-badge">0</span>`;
+  btn.onclick = ()=> window.openMultiAccPanel();
+  document.body.appendChild(btn);
+  _updateSwitchFab();
+}
+
+/* ── تهيئة ── */
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>{ setTimeout(_createSwitchFab,500); });
+} else {
+  setTimeout(_createSwitchFab,500);
+}
+
+// استيراد الحسابات القديمة
+try{
+  const oldSaved = window._cdzGetSaved ? window._cdzGetSaved() : null;
+  if(oldSaved && oldSaved.name) _upsertAccount(oldSaved);
+}catch(e){}
+
+window._cdzMultiAccounts = { getList:_getMacList, upsert:_upsertAccount, update:_updateSwitchFab };
+console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات — حتى '+CDZ_MAC_MAX+' حسابات ✓');
 })();
 </script>
 
