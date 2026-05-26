@@ -6773,6 +6773,14 @@ async function syncQuizPts(name, pts){
       body: JSON.stringify({action:'set', name, pts})
     });
   }catch(e){}
+  // ✅ تحديث leaderboard عند تغيير نقاط الكويز
+  try{
+    const sheetPts    = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+    const interactPts = parseInt(localStorage.getItem('nld_interaction_'+name.replace(/\s+/g,'_'))||'0');
+    if(typeof window.syncLeaderboard === 'function'){
+      window.syncLeaderboard(name, sheetPts, pts, interactPts);
+    }
+  }catch(e){}
 }
 
 /* ===== فتح المنخرطون للمدير فقط ===== */
@@ -10646,6 +10654,14 @@ function _syncInteractionPts(name, pts){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({ interactionPts: pts, updatedAt: Date.now() })
     }).catch(()=>{});
+    // ✅ تحديث leaderboard عند تغيير نقاط التفاعل
+    try{
+      const sheetPts  = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+      const quizPts   = parseInt(localStorage.getItem('nld_earned_'+_n)||'0');
+      if(typeof window.syncLeaderboard === 'function'){
+        window.syncLeaderboard(name, sheetPts, quizPts, pts);
+      }
+    }catch(e){}
   }
 }
 
@@ -34774,6 +34790,114 @@ try{
 
 window._cdzMultiAccounts = { getList:_getMacList, upsert:_upsertAccount, update:_updateSwitchFab };
 console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات — حتى '+CDZ_MAC_MAX+' حسابات ✓');
+})();
+
+/* ══════════════════════════════════════════════════════════
+   🏆 قاعدة بيانات البطولة المحترفة — /leaderboard/{name}
+   يُحدَّث تلقائياً عند كل تغيير في نقاط الجدول أو الكويز أو التفاعلات
+   ══════════════════════════════════════════════════════════ */
+(function _initLeaderboardDB(){
+  'use strict';
+  const FB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+  /**
+   * syncLeaderboard — الدالة المركزية لتحديث البطولة
+   * تُكتب إلى /leaderboard/{normName} مع كل تفاصيل النقاط
+   */
+  window.syncLeaderboard = async function(name, sheetPts, quizPts, interactPts){
+    if(!name || name === 'زائر' || name === 'المدير') return;
+    const normName = name.replace(/\s+/g,'_');
+    const totalPts = (sheetPts||0) + (quizPts||0) + (interactPts||0);
+    if(totalPts <= 0) return;
+
+    const payload = {
+      name        : name,
+      sheetPts    : sheetPts    || 0,
+      quizPts     : quizPts     || 0,
+      interactPts : interactPts || 0,
+      totalPts    : totalPts,
+      updatedAt   : Date.now()
+    };
+
+    try {
+      await fetch(FB_BASE + '/leaderboard/' + normName + '.json', {
+        method  : 'PUT',
+        headers : {'Content-Type':'application/json'},
+        body    : JSON.stringify(payload)
+      });
+    } catch(e) {
+      // صامت — لا يوقف الكود الأصلي
+    }
+  };
+
+  /* ── Hook 1: نقاط الجدول + الكويز + التفاعلات (الدالة الرئيسية) ── */
+  const _origUpdateFull = window._updateMainPointsDisplayFull;
+  if(typeof _origUpdateFull === 'function'){
+    window._updateMainPointsDisplayFull = function(name, quizPtsOnly, interactPts){
+      _origUpdateFull.apply(this, arguments);
+      const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+      window.syncLeaderboard(name, sheetPts, quizPtsOnly, interactPts);
+    };
+  }
+
+  /* ── Hook 2: ربط مع _updateMainPointsDisplayFull مباشرةً (عند التحميل الأول) ──
+     يُضمن التحديث عند renderApp حتى لو لم تُستدعَ الدالة بعد */
+  const _hookLeaderOnLoad = function(){
+    // يُعاد التحقق بعد ثانية واحدة لضمان تحميل _sheetPtsCache
+    setTimeout(function(){
+      const name = (typeof getCurrentUser === 'function') ? getCurrentUser() : '';
+      if(!name || name === 'زائر' || name === 'المدير') return;
+      const sheetPts   = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+      const quizPts    = parseInt(localStorage.getItem('nld_earned_'  + name.replace(/\s+/g,'_'))||'0');
+      const interactPts= parseInt(localStorage.getItem('nld_interaction_'+ name.replace(/\s+/g,'_'))||'0');
+      window.syncLeaderboard(name, sheetPts, quizPts, interactPts);
+    }, 1200);
+  };
+
+  /* Hook على renderApp لضمان التحديث عند أول دخول */
+  const _origRenderAppLB = window.renderApp;
+  if(typeof _origRenderAppLB === 'function'){
+    window.renderApp = function(name, pts, isReg, externalEarned){
+      const result = _origRenderAppLB.apply(this, arguments);
+      _hookLeaderOnLoad();
+      return result;
+    };
+  } else {
+    // إذا renderApp لم تُعرَّف بعد، نستخدم DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', _hookLeaderOnLoad);
+  }
+
+  /* ── Hook 3: خصم النقاط من المدير → تحديث leaderboard فوراً ── */
+  const _origDoAdminSend = window.doAdminSendPoints;
+  if(typeof _origDoAdminSend === 'function'){
+    window.doAdminSendPoints = async function(){
+      await _origDoAdminSend.apply(this, arguments);
+      // إعادة جلب وتحديث leaderboard لكل عضو متأثر
+      setTimeout(async function(){
+        try {
+          const res = await fetch(FB_BASE + '/userStats.json?shallow=true');
+          const keys = await res.json();
+          if(!keys) return;
+          for(const normName of Object.keys(keys)){
+            try {
+              const r = await fetch(FB_BASE + '/userStats/' + normName + '.json');
+              const d = await r.json();
+              if(!d) continue;
+              const displayName = normName.replace(/_/g,' ');
+              await window.syncLeaderboard(
+                displayName,
+                parseInt(d.sheetPts||0),
+                parseInt(d.quizPts||0),
+                parseInt(d.interactionPts||0)
+              );
+            } catch(e){}
+          }
+        } catch(e){}
+      }, 800);
+    };
+  }
+
+  console.log('✅ [ConnectDZ] قاعدة بيانات البطولة /leaderboard — جاهزة ومتصلة');
 })();
 
 /* ══════════════════════════════════════════════════════════
