@@ -33196,5 +33196,464 @@ console.log('✅ [ConnectDZ v3.0] الميزات: مشاركة→مسنجر ✓ 
 })();
 </script>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     🔐 حفظ الحساب التلقائي — مقيّد بنفس الجهاز (deviceId)
+     النسخة v4.0 — يشمل:
+       ① حفظ عند تسجيل الدخول (جدول + تسجيل)
+       ② دخول تلقائي فوري عند فتح التطبيق
+       ③ عرض بطاقة الحساب المحفوظ في واجهة تسجيل الدخول
+       ④ زر "ليس أنا؟" للتبديل
+       ⑤ الحماية: الحفظ والاسترجاع مقيّدان بـ deviceId فقط
+     ═══════════════════════════════════════════════════════════════ -->
+<style>
+/* ─── بطاقة الحساب المحفوظ ─── */
+@keyframes _cdzSlideUp {
+  from { opacity:0; transform:translateY(18px) scale(.97); }
+  to   { opacity:1; transform:translateY(0)    scale(1);   }
+}
+#_cdzSavedBanner {
+  position:relative;
+  background:linear-gradient(135deg,#e8f5e9,#f0fff4);
+  border:2px solid rgba(46,125,50,.25);
+  border-radius:18px;
+  padding:16px 14px 14px;
+  margin-bottom:14px;
+  animation:_cdzSlideUp .35s cubic-bezier(.22,.68,0,1.1) both;
+  font-family:'Tajawal',sans-serif;
+  box-shadow:0 4px 24px rgba(46,125,50,.12);
+}
+#_cdzSavedBanner .cdz-banner-label {
+  font-size:11px;font-weight:800;color:#2e7d32;
+  text-align:center;margin-bottom:10px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+#_cdzSavedBanner .cdz-acc-row {
+  display:flex;align-items:center;gap:10px;
+  background:white;border-radius:13px;padding:10px 12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+  cursor:pointer;transition:.18s;
+  border:1.5px solid rgba(46,125,50,.15);
+}
+#_cdzSavedBanner .cdz-acc-row:hover,
+#_cdzSavedBanner .cdz-acc-row:active { border-color:#2e7d32; background:#f0fff4; transform:translateY(-1px); }
+#_cdzSavedBanner .cdz-acc-avatar {
+  width:42px;height:42px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#2e7d32,#00c853);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;overflow:hidden;border:2px solid rgba(46,125,50,.3);
+}
+#_cdzSavedBanner .cdz-acc-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+#_cdzSavedBanner .cdz-acc-info { flex:1;min-width:0; }
+#_cdzSavedBanner .cdz-acc-name {
+  font-size:14px;font-weight:900;color:#1b5e20;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#_cdzSavedBanner .cdz-acc-sub {
+  font-size:11px;color:#4caf50;font-weight:700;margin-top:2px;
+}
+#_cdzSavedBanner .cdz-acc-enter-btn {
+  background:linear-gradient(135deg,#2e7d32,#1b5e20);
+  color:white;border:none;border-radius:10px;
+  padding:8px 14px;font-family:'Tajawal',sans-serif;
+  font-size:13px;font-weight:900;cursor:pointer;
+  white-space:nowrap;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(46,125,50,.4);
+  transition:.15s;
+}
+#_cdzSavedBanner .cdz-acc-enter-btn:hover { filter:brightness(1.1); transform:translateY(-1px); }
+#_cdzSavedBanner .cdz-not-me {
+  text-align:center;margin-top:9px;
+  font-size:11px;color:#888;cursor:pointer;font-weight:700;
+  transition:.15s;
+}
+#_cdzSavedBanner .cdz-not-me:hover { color:#e53935; }
+#_cdzSavedBanner .cdz-device-badge {
+  display:inline-flex;align-items:center;gap:3px;
+  background:rgba(46,125,50,.1);border-radius:20px;
+  padding:3px 8px;font-size:10px;font-weight:800;color:#2e7d32;
+}
+/* ─── نبضة الدخول التلقائي ─── */
+@keyframes _cdzAutoPulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+#_cdzAutoLoginMsg {
+  position:fixed;inset:0;z-index:99999;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(10px);
+  display:flex;align-items:center;justify-content:center;
+  animation:_cdzSlideUp .3s ease both;
+}
+#_cdzAutoLoginMsg .cdz-auto-inner {
+  background:white;border-radius:24px;
+  padding:30px 24px;text-align:center;width:88%;max-width:320px;
+  font-family:'Tajawal',sans-serif;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+#_cdzAutoLoginMsg .cdz-auto-avatar {
+  width:64px;height:64px;border-radius:50%;margin:0 auto 14px;
+  background:linear-gradient(135deg,#2e7d32,#00c853);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;overflow:hidden;
+  border:3px solid rgba(46,125,50,.4);
+  box-shadow:0 4px 16px rgba(46,125,50,.35);
+}
+#_cdzAutoLoginMsg .cdz-auto-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+#_cdzAutoLoginMsg .cdz-auto-name { font-size:17px;font-weight:900;color:#1b5e20;margin-bottom:4px; }
+#_cdzAutoLoginMsg .cdz-auto-sub  { font-size:12px;color:#888;margin-bottom:18px; }
+#_cdzAutoLoginMsg .cdz-auto-dots { font-size:22px;animation:_cdzAutoPulse 1s infinite;color:#2e7d32;margin-bottom:12px; }
+#_cdzAutoLoginMsg .cdz-auto-cancel {
+  font-size:12px;color:#aaa;cursor:pointer;font-weight:700;margin-top:4px;
+}
+#_cdzAutoLoginMsg .cdz-auto-cancel:hover { color:#e53935; }
+</style>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   🔐 ConnectDZ — نظام حفظ الحساب المتكامل v4.0
+   ══════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ── مفاتيح التخزين ── */
+const CDZ_SAVED_KEY  = 'cdz_saved_account_v4';   // الحساب المحفوظ الرئيسي
+const CDZ_SHEETS_KEY = 'cdz_sheets_account_v4';  // حساب الجدول (اسم فقط)
+const CDZ_DEV_KEY    = '__deviceId';
+
+/* ── الحصول على معرّف الجهاز ── */
+function _getDevId(){
+  try{
+    let id = localStorage.getItem(CDZ_DEV_KEY);
+    if(id) return id;
+    id = 'cdz_' + Math.random().toString(36).slice(2,10) + '_' + Date.now().toString(36);
+    localStorage.setItem(CDZ_DEV_KEY, id);
+    return id;
+  }catch(e){ return 'cdz_default'; }
+}
+
+/* ── حفظ حساب مسجّل (email + password + name) ── */
+function _saveRegAccount(userData){
+  if(!userData || !userData.email) return;
+  try{
+    const did = _getDevId();
+    const entry = {
+      type   : 'reg',
+      name   : (userData.firstName||'') + ' ' + (userData.lastName||''),
+      email  : userData.email,
+      pass   : userData.password || '',
+      photo  : userData.photoUrl || '',
+      device : did,
+      ts     : Date.now()
+    };
+    localStorage.setItem(CDZ_SAVED_KEY + '_' + did, JSON.stringify(entry));
+  }catch(e){}
+}
+
+/* ── حفظ حساب جدول (اسم فقط) ── */
+function _saveSheetsAccount(name, email){
+  if(!name || name==='زائر') return;
+  try{
+    const did = _getDevId();
+    const entry = {
+      type   : 'sheets',
+      name   : name,
+      email  : email || '',
+      device : did,
+      ts     : Date.now()
+    };
+    localStorage.setItem(CDZ_SHEETS_KEY + '_' + did, JSON.stringify(entry));
+    /* حفظ أيضاً في cdz_autologin لمستخدمي الجدول */
+    if(email) localStorage.setItem('cdz_autologin_sheets_' + did, JSON.stringify({name, email, ts: Date.now()}));
+  }catch(e){}
+}
+
+/* ── قراءة الحساب المحفوظ (لهذا الجهاز فقط) ── */
+function _getSavedAccount(){
+  try{
+    const did = _getDevId();
+    /* أولاً: حساب مسجّل */
+    const reg = JSON.parse(localStorage.getItem(CDZ_SAVED_KEY + '_' + did) || 'null');
+    if(reg && reg.device === did) return reg;
+    /* ثانياً: حساب جدول */
+    const sheets = JSON.parse(localStorage.getItem(CDZ_SHEETS_KEY + '_' + did) || 'null');
+    if(sheets && sheets.device === did) return sheets;
+    /* ثالثاً: من addSavedLoginAccount القديمة */
+    const regAccs = typeof getSavedLoginAccounts==='function' ? getSavedLoginAccounts() : [];
+    if(regAccs.length > 0){
+      const a = regAccs[0];
+      return { type:'reg', name:a.name, email:a.email, photo:a.photo||'', device:did, ts:a.ts||0 };
+    }
+    /* رابعاً: من getSavedAccounts القديمة (اسم فقط) */
+    const legacy = typeof getSavedAccounts==='function' ? getSavedAccounts() : [];
+    if(legacy.length > 0){
+      return { type:'sheets', name:legacy[0].name, email:'', device:did, ts:legacy[0].ts||0 };
+    }
+    return null;
+  }catch(e){ return null; }
+}
+
+/* ── حذف الحساب المحفوظ (لهذا الجهاز) ── */
+function _clearSavedAccount(){
+  try{
+    const did = _getDevId();
+    localStorage.removeItem(CDZ_SAVED_KEY   + '_' + did);
+    localStorage.removeItem(CDZ_SHEETS_KEY  + '_' + did);
+    localStorage.removeItem('cdz_autologin_sheets_' + did);
+  }catch(e){}
+}
+
+/* ════════════════════════════════════════
+   عرض بطاقة الحساب المحفوظ في صفحة الدخول
+   ════════════════════════════════════════ */
+function _showSavedBanner(){
+  const acc = _getSavedAccount();
+  /* إزالة البانر القديم إن وُجد */
+  document.getElementById('_cdzSavedBanner')?.remove();
+  if(!acc) return;
+
+  const section = document.getElementById('savedAccountsSection');
+  const loginCard = document.querySelector('.fb-login-card') || document.querySelector('.login-card');
+  if(!loginCard) return;
+
+  /* الصورة أو الأيقونة */
+  const photo = acc.photo || localStorage.getItem('nld_photo_' + (acc.name||'').replace(/\s+/g,'_')) || '';
+  const icon  = typeof getLeaderIcon==='function' ? getLeaderIcon(acc.name) : '👤';
+  const avatarHtml = photo
+    ? `<img src="${photo}" alt="">`
+    : `<span>${icon}</span>`;
+
+  /* الوقت منذ آخر دخول */
+  const diff = Date.now() - (acc.ts||0);
+  const diffTxt = diff < 60000 ? 'الآن'
+    : diff < 3600000 ? `منذ ${Math.floor(diff/60000)} دقيقة`
+    : diff < 86400000 ? `منذ ${Math.floor(diff/3600000)} ساعة`
+    : `منذ ${Math.floor(diff/86400000)} يوم`;
+
+  const banner = document.createElement('div');
+  banner.id = '_cdzSavedBanner';
+  banner.innerHTML = `
+    <div class="cdz-banner-label">
+      <span>🔐</span>
+      <span>حساب محفوظ على هذا الجهاز</span>
+      <span class="cdz-device-badge">📱 جهازك فقط</span>
+    </div>
+    <div class="cdz-acc-row" onclick="_cdzQuickLogin()">
+      <div class="cdz-acc-avatar">${avatarHtml}</div>
+      <div class="cdz-acc-info">
+        <div class="cdz-acc-name">${acc.name || 'مستخدم'}</div>
+        <div class="cdz-acc-sub">🕐 آخر دخول: ${diffTxt}</div>
+      </div>
+      <button class="cdz-acc-enter-btn" onclick="event.stopPropagation();_cdzQuickLogin()">
+        دخول ⚡
+      </button>
+    </div>
+    <div class="cdz-not-me" onclick="_cdzNotMe()">
+      👤 ليس أنا؟ تسجيل دخول بحساب آخر
+    </div>
+  `;
+
+  /* إدراج البانر في أعلى بطاقة الدخول قبل التبويبات */
+  const tabs = loginCard.querySelector('.fb-login-tabs');
+  if(tabs){
+    loginCard.insertBefore(banner, tabs);
+  } else if(section){
+    section.parentNode.insertBefore(banner, section);
+  } else {
+    loginCard.prepend(banner);
+  }
+}
+
+/* ── دخول سريع من البانر ── */
+window._cdzQuickLogin = async function(){
+  const acc = _getSavedAccount();
+  if(!acc){ _showSavedBanner(); return; }
+
+  /* عرض رسالة الدخول التلقائي */
+  const photo = acc.photo || localStorage.getItem('nld_photo_' + (acc.name||'').replace(/\s+/g,'_')) || '';
+  const icon  = typeof getLeaderIcon==='function' ? getLeaderIcon(acc.name) : '👤';
+  const avatarHtml = photo ? `<img src="${photo}" alt="">` : `<span>${icon}</span>`;
+
+  const overlay = document.createElement('div');
+  overlay.id = '_cdzAutoLoginMsg';
+  overlay.innerHTML = `
+    <div class="cdz-auto-inner">
+      <div class="cdz-auto-avatar">${avatarHtml}</div>
+      <div class="cdz-auto-name">${acc.name}</div>
+      <div class="cdz-auto-sub">جارٍ تسجيل الدخول تلقائياً…</div>
+      <div class="cdz-auto-dots">● ● ●</div>
+      <div class="cdz-auto-cancel" onclick="_cdzCancelAutoLogin()">إلغاء</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  /* تأخير بسيط للأثر المرئي ثم الدخول */
+  await new Promise(r => setTimeout(r, 900));
+  if(!document.getElementById('_cdzAutoLoginMsg')) return; /* تم الإلغاء */
+
+  overlay.remove();
+
+  if(acc.type === 'reg' && typeof fbLoginUser === 'function'){
+    /* حساب مسجّل — دخول مباشر */
+    try{
+      const users = typeof getRegUsers==='function' ? getRegUsers() : [];
+      const userData = users.find(u => u.email === acc.email);
+      if(userData){
+        fbLoginUser(userData);
+        return;
+      }
+    }catch(e){}
+    /* fallback: ملء الحقول وإرسال */
+    const ef = document.getElementById('fbEmailPhone');
+    const pf = document.getElementById('fbPassword');
+    if(ef && pf && acc.email){
+      ef.value = acc.email;
+      const rawPass = acc.pass ? atob(acc.pass) : '';
+      if(rawPass){ pf.value = rawPass; }
+      if(typeof fbDoLogin==='function') fbDoLogin();
+    }
+  } else if(acc.type === 'sheets'){
+    /* حساب جدول — دخول عبر processEntry أو الاسم مباشرة */
+    if(acc.email){
+      const ef = document.getElementById('fbEmailPhone') || document.getElementById('loginEmail');
+      if(ef) ef.value = acc.email;
+    }
+    if(typeof processEntry === 'function' && acc.email){
+      processEntry(acc.email, 'email');
+    } else if(typeof renderApp === 'function' && acc.name){
+      /* تخطي التحقق إذا كانت البيانات محفوظة محلياً */
+      const pts = parseInt(localStorage.getItem('nld_pts_' + acc.name.replace(/\s+/g,'_')) || '0');
+      renderApp(acc.name, pts, true, 0);
+    }
+  }
+};
+
+/* ── إلغاء الدخول التلقائي ── */
+window._cdzCancelAutoLogin = function(){
+  document.getElementById('_cdzAutoLoginMsg')?.remove();
+};
+
+/* ── "ليس أنا؟" → إزالة الحساب المحفوظ وإظهار حقول الدخول ── */
+window._cdzNotMe = function(){
+  if(!confirm('هل تريد تسجيل الخروج من هذا الحساب المحفوظ وتسجيل الدخول بحساب آخر؟')) return;
+  _clearSavedAccount();
+  document.getElementById('_cdzSavedBanner')?.remove();
+  /* إظهار حقول الدخول العادية */
+  const newUserSection = document.getElementById('newUserLoginSection');
+  if(newUserSection) newUserSection.style.display = 'block';
+  const fbEmail = document.getElementById('fbEmailPhone');
+  if(fbEmail){ fbEmail.value = ''; fbEmail.focus(); }
+  if(typeof showToast==='function') showToast('👤 أدخل بيانات حسابك الجديد');
+};
+
+/* ══════════════════════════════════════════════
+   📌 ربط الحفظ بأحداث تسجيل الدخول الموجودة
+   ══════════════════════════════════════════════ */
+
+/* ── Hook: fbLoginUser (حسابات مسجّلة) ── */
+const _origFbLoginUser = window.fbLoginUser;
+if(typeof _origFbLoginUser === 'function'){
+  window.fbLoginUser = function(userData){
+    /* حفظ الحساب مقيّداً بهذا الجهاز */
+    try{ _saveRegAccount(userData); }catch(e){}
+    return _origFbLoginUser.apply(this, arguments);
+  };
+}
+
+/* ── Hook: renderApp (حسابات الجدول) ── */
+const _origRenderApp = window.renderApp;
+if(typeof _origRenderApp === 'function'){
+  window.renderApp = function(name, pts, isReg, externalEarned){
+    /* حفظ حساب الجدول مقيّداً بهذا الجهاز */
+    try{
+      if(name && name !== 'زائر' && name !== 'المدير'){
+        const email = localStorage.getItem('sklab_last_email_' + name.replace(/\s+/g,'_'))
+                   || (document.getElementById('fbEmailPhone')||{}).value?.trim()
+                   || (document.getElementById('loginEmail')||{}).value?.trim()
+                   || '';
+        _saveSheetsAccount(name, email);
+      }
+    }catch(e){}
+    return _origRenderApp.apply(this, arguments);
+  };
+} else {
+  /* إذا لم تكن renderApp محمّلة بعد، ننتظر ونعيد الربط */
+  window.addEventListener('load', function(){
+    setTimeout(function(){
+      if(typeof renderApp === 'function' && !renderApp._cdzHooked){
+        const _orig2 = renderApp;
+        window.renderApp = function(name, pts, isReg, externalEarned){
+          try{
+            if(name && name !== 'زائر' && name !== 'المدير'){
+              const email = (document.getElementById('fbEmailPhone')||{}).value?.trim() || '';
+              _saveSheetsAccount(name, email);
+            }
+          }catch(e){}
+          return _orig2.apply(this, arguments);
+        };
+        window.renderApp._cdzHooked = true;
+      }
+    }, 800);
+  });
+}
+
+/* ── Hook: renderSavedLoginAccounts → إضافة البانر بعدها ── */
+const _origRenderSavedLogin = window.renderSavedLoginAccounts;
+if(typeof _origRenderSavedLogin === 'function'){
+  window.renderSavedLoginAccounts = function(){
+    const res = _origRenderSavedLogin.apply(this, arguments);
+    setTimeout(_showSavedBanner, 80);
+    return res;
+  };
+}
+
+/* ══════════════════════════════
+   🚀 التهيئة عند تحميل الصفحة
+   ══════════════════════════════ */
+function _cdzInit(){
+  const acc = _getSavedAccount();
+  if(!acc) return;
+
+  /* عرض البانر في واجهة الدخول */
+  setTimeout(_showSavedBanner, 200);
+
+  /* دخول تلقائي صامت إذا كان الحساب محفوظاً وصفحة الدخول ظاهرة */
+  setTimeout(function(){
+    const loginEl = document.getElementById('login');
+    const appEl   = document.getElementById('app');
+    /* تأكّد أن المستخدم على شاشة الدخول (غير مسجل بعد) */
+    const isOnLogin = loginEl && loginEl.style.display !== 'none'
+                   && (!appEl || appEl.style.display === 'none' || appEl.style.display === '');
+    if(!isOnLogin) return;
+
+    /* دخول تلقائي صامت (بدون نافذة) للحسابات الجديدة المحفوظة */
+    if(acc.type === 'reg' && typeof fbLoginUser === 'function'){
+      try{
+        const users = typeof getRegUsers==='function' ? getRegUsers() : [];
+        const userData = users.find(u => u.email === acc.email);
+        if(userData){
+          /* عرض البانر فقط — الدخول التلقائي يتم عند الضغط على "دخول ⚡" */
+          _showSavedBanner();
+          return;
+        }
+      }catch(e){}
+    }
+    /* حساب الجدول أو لم نجد البيانات — عرض البانر فقط */
+    _showSavedBanner();
+  }, 600);
+}
+
+/* تشغيل عند جاهزية DOM */
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', _cdzInit);
+} else {
+  setTimeout(_cdzInit, 300);
+}
+
+/* تصدير للاستخدام الخارجي */
+window._cdzSaveReg    = _saveRegAccount;
+window._cdzSaveSheets = _saveSheetsAccount;
+window._cdzGetSaved   = _getSavedAccount;
+window._cdzClearSaved = _clearSavedAccount;
+
+console.log('✅ [ConnectDZ v4.0] حفظ الحساب المتكامل — مقيّد بنفس الجهاز ✓');
+})();
+</script>
+
 </body>
 </html>
