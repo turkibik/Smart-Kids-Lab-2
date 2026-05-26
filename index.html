@@ -32006,7 +32006,6 @@ async function loadAllMembersWithPts(){
   const _EXCL  = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء','المدير','زائر'];
   const norm   = s => (s||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
   const isExcl = n => !n || _EXCL.some(ex => norm(n)===norm(ex) || norm(n).startsWith(norm(ex)+' '));
-
   const csvParse = line => {
     const res=[]; let cur=''; let q=false;
     for(let i=0;i<=line.length;i++){
@@ -32017,112 +32016,74 @@ async function loadAllMembersWithPts(){
     }
     return res;
   };
+  const ts = '&_='+Date.now();
 
-  /* ══ 1) Google Sheets — جلب نقاط الجدول (آخر عمود = الإجمالي) ══ */
-  const sheetMap = {}; // norm(name) → { name, pts }
+  /* ══════════════════════════════════════════════════════════════
+     🚀 RADICAL v6 — 3 مصادر بالتوازي، الإجمالي = أكبر قيمة
+     ① rankingUrl  : الاسم في أي عمود — آخر عمود = الإجمالي الحقيقي
+     ② dataUrl     : الاسم c[2]       — آخر عمود = نقاط الجدول
+     ③ Firebase    : totalPts         — الإجمالي المحفوظ عند آخر دخول
+     النتيجة النهائية = max(①, ②, ③)  بدون انتظار دخول أي عضو
+     ══════════════════════════════════════════════════════════════ */
 
-  try{
-    const du = typeof dataUrl!=='undefined' ? dataUrl : '';
-    if(du){
-      const txt = await fetch(du+'&_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).catch(()=>'');
-      txt.split('\n').slice(1).filter(r=>r.trim()).forEach(row=>{
-        const c = csvParse(row);
-        const name = (c[2]||'').trim();
-        if(!name || isExcl(name)) return;
-        const pts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
-        const k = norm(name);
-        if(!sheetMap[k] || pts > sheetMap[k].pts) sheetMap[k] = { name, pts };
+  const [rankTxt, dataTxt, fbResp] = await Promise.allSettled([
+    fetch((typeof rankingUrl!=='undefined'?rankingUrl:'')  + ts, {cache:'no-store'}).then(r=>r.text()),
+    fetch((typeof dataUrl   !=='undefined'?dataUrl   :'')  + ts, {cache:'no-store'}).then(r=>r.text()),
+    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats.json', {cache:'no-store'}).then(r=>r.json())
+  ]);
+
+  /* ─── خريطة موحّدة: norm(name) → { name, pts } ─── */
+  const map = {};
+  const upsert = (name, pts) => {
+    if(!name || isExcl(name) || pts <= 0) return;
+    const k = norm(name);
+    if(!map[k] || pts > map[k].pts) map[k] = { name, pts };
+  };
+
+  /* ① rankingUrl — الاسم في عمود 0 أو 1 أو 2، النقاط في آخر عمود */
+  if(rankTxt.status==='fulfilled' && rankTxt.value){
+    rankTxt.value.split('\n').slice(1).forEach(row=>{
+      if(!row.trim()) return;
+      const c = csvParse(row);
+      const pts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+      // جرّب كل عمود نصي كاسم محتمل
+      [c[0],c[1],c[2]].forEach(cell=>{
+        const name = (cell||'').trim();
+        if(name && isNaN(Number(name))) upsert(name, pts);
       });
-    }
-  }catch(e){}
+    });
+  }
 
-  try{
-    const su = typeof smartUrl!=='undefined' ? smartUrl : '';
-    if(su){
-      const txt = await fetch(su+'&_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).catch(()=>'');
-      txt.split('\n').slice(1).filter(r=>r.trim()).forEach(row=>{
-        const c = csvParse(row);
-        const name = (c[2]||'').trim();
-        if(!name || isExcl(name)) return;
-        const rawPts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
-        const k = norm(name);
-        if(!sheetMap[k]) sheetMap[k] = { name, pts: rawPts };
-        else if(rawPts > sheetMap[k].pts) sheetMap[k].pts = rawPts;
-      });
-    }
-  }catch(e){}
+  /* ② dataUrl — الاسم في c[2]، آخر عمود = نقاط */
+  if(dataTxt.status==='fulfilled' && dataTxt.value){
+    dataTxt.value.split('\n').slice(1).forEach(row=>{
+      if(!row.trim()) return;
+      const c = csvParse(row);
+      const name = (c[2]||'').trim();
+      const pts  = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+      upsert(name, pts);
+    });
+  }
 
-  /* ══ 2) Firebase — مصدر نقاط الكويز والتفاعلات ══ */
-  let fbStats = {};
-  try{
-    const res = await fetch(
-      'https://connectdz-49fab-default-rtdb.firebaseio.com/userStats.json',
-      {cache:'no-store'}
-    );
-    if(res.ok){ const d=await res.json(); if(d && typeof d==='object') fbStats=d; }
-  }catch(e){}
-
-  /* فهرسة Firebase: norm(name) → { sheetPts, quizPts, totalPts } */
-  const fbIndex = {};
+  /* ③ Firebase — totalPts المحفوظ عند آخر دخول */
+  const fbStats = (fbResp.status==='fulfilled' && fbResp.value && typeof fbResp.value==='object')
+    ? fbResp.value : {};
   Object.entries(fbStats).forEach(([rawKey, data])=>{
     if(!data) return;
-    const obj = {
-      sheetPts : parseInt(data.sheetPts||0)||0,
-      quizPts  : parseInt(data.quizPts||0)||0,
-      totalPts : parseInt(data.totalPts||0)||0
-    };
-    if(obj.sheetPts===0 && obj.quizPts===0 && obj.totalPts===0) return;
-    // 3 صيغ للمفتاح
-    const k1 = norm(rawKey.replace(/_/g,' '));
-    const k2 = rawKey.replace(/_/g,' ').toLowerCase();
-    const k3 = rawKey.replace(/[_\s]/g,'').toLowerCase();
-    [k1,k2,k3].forEach(k=>{ if(!fbIndex[k]) fbIndex[k]=obj; });
+    const name  = rawKey.replace(/_/g,' ');
+    const total = parseInt(data.totalPts||0)||0;
+    upsert(name, total);
   });
 
-  /* ══ 3) الحل الجذري: sheetPts(جدول) + quizPts(Firebase) ══ */
-  const result = Object.values(sheetMap).map(({name, pts: sheetPtsFromSheet})=>{
-    const k  = norm(name);
-    const k2 = name.replace(/[_\s]/g,'').toLowerCase();
-    const fb = fbIndex[k] || fbIndex[k2] || {};
+  /* ─── بناء النتيجة النهائية ─── */
+  const result = Object.values(map).map(({name, pts: total})=>({
+    name,
+    total,
+    level       : getMemberLevel(total),
+    divisionIdx : getMemberDivisionIdx(total)
+  }));
 
-    const fbSheetPts = fb.sheetPts || 0;
-    const fbQuizPts  = fb.quizPts  || 0;
-    const fbTotalPts = fb.totalPts || 0;
-
-    // نقاط الجدول: الأكبر بين الجدول الحي وما خُزّن آخر مرة في Firebase
-    const realSheetPts = Math.max(sheetPtsFromSheet, fbSheetPts);
-
-    let total;
-    if(fbQuizPts > 0){
-      // ✅ الحالة المثالية: عندنا نقاط منفصلة → نجمعهما
-      total = realSheetPts + fbQuizPts;
-    } else if(fbTotalPts > sheetPtsFromSheet){
-      // Firebase totalPts أكبر = يحتوي نقاط إضافية قديمة
-      total = fbTotalPts;
-    } else {
-      // fallback: نقاط الجدول فقط
-      total = sheetPtsFromSheet;
-    }
-
-    return { name, total, level:getMemberLevel(total), divisionIdx:getMemberDivisionIdx(total) };
-  });
-
-  /* أعضاء في Firebase فقط (لم يظهروا في الجداول بعد) */
-  Object.entries(fbStats).forEach(([rawKey, data])=>{
-    if(!data) return;
-    const displayName = rawKey.replace(/_/g,' ');
-    if(isExcl(displayName)) return;
-    const k = norm(displayName);
-    if(result.find(m=>norm(m.name)===k)) return;
-    const fbSh = parseInt(data.sheetPts||0)||0;
-    const fbQz = parseInt(data.quizPts||0)||0;
-    const fbTt = parseInt(data.totalPts||0)||0;
-    const total = (fbQz > 0) ? fbSh + fbQz : fbTt;
-    if(total<=0) return;
-    result.push({ name:displayName, total, level:getMemberLevel(total), divisionIdx:getMemberDivisionIdx(total) });
-  });
-
-  console.log(`[NLDChamp v5] ✅ ${result.length} عضو — جدول:${Object.keys(sheetMap).length} / Firebase:${Object.keys(fbIndex).length}`);
+  console.log(`[NLDChamp v6] ✅ ${result.length} عضو — ranking:${rankTxt.status==='fulfilled'?'✓':'✗'} data:${dataTxt.status==='fulfilled'?'✓':'✗'} firebase:${Object.keys(fbStats).length}`);
   return result.sort((a,b)=>b.total-a.total);
 }
 
