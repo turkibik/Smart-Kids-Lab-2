@@ -6314,7 +6314,44 @@ function switchLoginTab(tab){
 
       <div class="admin-divider"></div>
 
-      <!-- ── Section: روابط الجداول ── -->
+      <!-- ── Section: خصم النقاط من المنخرطين ── -->
+      <div class="admin-section-head">
+        <div class="admin-icon-tile" style="background:linear-gradient(145deg,#fca5a5,#ef4444,#b91c1c);">➖</div>
+        <div class="admin-section-head-text">
+          <div class="admin-section-head-title">خصم النقاط من المنخرطين</div>
+          <div class="admin-section-head-sub">DEDUCT POINTS</div>
+        </div>
+        <button onclick="adminLoadDeductPanel()" style="background:rgba(255,255,255,0.6);border:1.5px solid rgba(180,40,40,0.18);border-radius:9px;padding:6px 12px;font-size:11px;font-weight:800;color:rgba(180,40,40,0.7);cursor:pointer;font-family:'Tajawal',sans-serif;">🔄 تحميل</button>
+      </div>
+      <div class="admin-glass-card">
+        <div style="font-size:11px;color:rgba(100,50,10,0.6);margin-bottom:10px;padding:8px 10px;background:rgba(239,68,68,0.07);border:1.5px solid rgba(239,68,68,0.2);border-radius:10px;line-height:1.6;font-weight:600;">
+          ⚠️ يُستخدم لخصم نقاط بسبب مخالفة أو عقوبة. سيتم إشعار العضو بسبب الخصم.
+        </div>
+        <!-- البحث عن عضو -->
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input class="admin-input" id="adminDeductName" placeholder="اسم العضو للخصم" style="flex:1;margin-bottom:0;"/>
+          <button onclick="adminSearchMemberForDeduct()" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;padding:10px 14px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0;">🔍</button>
+        </div>
+        <!-- بطاقة العضو المحدد -->
+        <div id="adminDeductMemberCard" style="display:none;background:rgba(239,68,68,0.06);border:1.5px solid rgba(239,68,68,0.2);border-radius:14px;padding:14px;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div id="adminDeductMemberAvatar" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#b91c1c);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;"></div>
+            <div>
+              <div id="adminDeductMemberName" style="font-size:14px;font-weight:900;color:#1a0000;"></div>
+              <div style="font-size:11px;color:#65676B;">إجمالي النقاط الحالية: <strong id="adminDeductMemberPts" style="color:#ef4444;"></strong></div>
+            </div>
+          </div>
+          <input class="admin-input" id="adminDeductAmount" placeholder="عدد النقاط للخصم (رقم)" type="number" min="1" style="margin-bottom:8px;"/>
+          <input class="admin-input" id="adminDeductLocation" placeholder="📍 مكان الخصم (مثال: قسم كذا)" style="margin-bottom:8px;"/>
+          <input class="admin-input" id="adminDeductReason" placeholder="📝 سبب الخصم (مثال: غياب غير مبرر)" style="margin-bottom:10px;"/>
+          <button onclick="adminExecuteDeduct()" style="width:100%;background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;border-radius:12px;padding:13px;color:white;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:900;cursor:pointer;">➖ تنفيذ الخصم</button>
+        </div>
+        <!-- سجل الخصومات -->
+        <div id="adminDeductLog" style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">
+          <p style="font-size:12px;color:rgba(100,50,10,0.4);text-align:center;padding:10px;font-weight:600;">لا توجد خصومات مسجّلة بعد</p>
+        </div>
+        <div class="admin-msg" id="adminDeductMsg"></div>
+      </div>
       <div class="admin-section-head">
         <div class="admin-icon-tile" style="background:linear-gradient(145deg,#c4b5fd,#8b5cf6,#5b21b6);">🔗</div>
         <div class="admin-section-head-text">
@@ -9317,6 +9354,71 @@ function adminEditPoints(){
   });
 }
 
+
+/* ═══════════════════════════════════════════════════════════════
+   ➖ لوحة خصم النقاط للمدير
+═══════════════════════════════════════════════════════════════ */
+const _DEDUCT_LOG_KEY = 'nld_deduct_log';
+function _getDeductLog(){ try{ return JSON.parse(localStorage.getItem(_DEDUCT_LOG_KEY)||'[]'); }catch(e){ return []; } }
+function _saveDeductLog(log){
+  try{
+    localStorage.setItem(_DEDUCT_LOG_KEY, JSON.stringify(log));
+    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/appdata/nld_deduct_log.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(log)}).catch(()=>{});
+  }catch(e){}
+}
+window.adminLoadDeductPanel = function(){
+  const log = _getDeductLog();
+  const el = document.getElementById('adminDeductLog');
+  if(!el) return;
+  if(!log.length){ el.innerHTML='<p style="font-size:12px;color:rgba(100,50,10,0.4);text-align:center;padding:10px;font-weight:600;">لا توجد خصومات بعد</p>'; return; }
+  el.innerHTML = log.slice().reverse().slice(0,20).map(d=>`<div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 12px;margin-bottom:4px;"><div style="display:flex;justify-content:space-between;"><span style="font-size:13px;font-weight:900;color:#1a0000;">${d.memberName}</span><span style="font-size:12px;font-weight:900;color:#ef4444;">−${d.amount} نقطة</span></div><div style="font-size:11px;color:#65676B;">📍 ${d.location||'—'} | 📝 ${d.reason||'—'}</div><div style="font-size:10px;color:#adb0b3;">${new Date(d.ts).toLocaleString('ar-DZ')}</div></div>`).join('');
+  if(typeof showToast==='function') showToast('تم تحميل السجل');
+};
+window.adminSearchMemberForDeduct = async function(){
+  const name = (document.getElementById('adminDeductName')||{}).value?.trim();
+  if(!name){ if(typeof showToast==='function') showToast('أدخل اسم العضو'); return; }
+  let memberPts=0;
+  try{ const r=await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+name.replace(/\s+/g,'_')+'.json'); const d=await r.json(); if(d&&d.totalPts) memberPts=parseInt(d.totalPts)||0; }catch(e){}
+  const card=document.getElementById('adminDeductMemberCard');
+  if(card) card.style.display='block';
+  const nameEl=document.getElementById('adminDeductMemberName'); if(nameEl) nameEl.innerText=name;
+  const ptsEl=document.getElementById('adminDeductMemberPts'); if(ptsEl) ptsEl.innerText=memberPts.toLocaleString()+' نقطة';
+  const avatarEl=document.getElementById('adminDeductMemberAvatar'); if(avatarEl) avatarEl.innerText=typeof getLeaderIcon==='function'?getLeaderIcon(name):'👤';
+  ['adminDeductAmount','adminDeductLocation','adminDeductReason'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
+  window._deductTargetName=name; window._deductTargetCurrentPts=memberPts;
+};
+window.adminExecuteDeduct = function(){
+  const memberName=window._deductTargetName;
+  const currentPts=window._deductTargetCurrentPts||0;
+  const amount=parseInt((document.getElementById('adminDeductAmount')||{}).value||'0');
+  const location=(document.getElementById('adminDeductLocation')||{}).value?.trim()||'';
+  const reason=(document.getElementById('adminDeductReason')||{}).value?.trim()||'';
+  const msgEl=document.getElementById('adminDeductMsg');
+  if(!memberName){ if(msgEl){msgEl.className='admin-msg err';msgEl.innerText='ابحث عن العضو أولاً';msgEl.style.display='block';}return; }
+  if(!amount||amount<1){ if(msgEl){msgEl.className='admin-msg err';msgEl.innerText='أدخل عدد نقاط الخصم';msgEl.style.display='block';}return; }
+  if(!reason){ if(msgEl){msgEl.className='admin-msg err';msgEl.innerText='أدخل سبب الخصم';msgEl.style.display='block';}return; }
+  const newPts=Math.max(0,currentPts-amount);
+  const normKey=memberName.replace(/\s+/g,'_');
+  fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+normKey+'.json',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({totalPts:newPts,deductedAt:Date.now()})}).catch(()=>{});
+  try{ const ik='nld_interaction_'+normKey; const ip=parseInt(localStorage.getItem(ik)||'0'); localStorage.setItem(ik,String(Math.max(0,ip-Math.min(amount,ip)))); }catch(e){}
+  const logEntry={id:'deduct_'+Date.now(),memberName,amount,location,reason,beforePts:currentPts,afterPts:newPts,ts:Date.now()};
+  const log=_getDeductLog(); log.push(logEntry); _saveDeductLog(log);
+  try{
+    const now=new Date(); const dateStr=now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'}); const timeStr=now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+    const sorted=['المدير',memberName].sort(); const p2pKey='nld_p2p_'+sorted[0].replace(/\s+/g,'_')+'__'+sorted[1].replace(/\s+/g,'_');
+    const p2pMsgs=JSON.parse(localStorage.getItem(p2pKey)||'[]');
+    p2pMsgs.push({id:'deduct_notif_'+Date.now(),from:'المدير',to:memberName,message:`⚠️ إشعار خصم نقاط\n\n👤 العضو: ${memberName}\n➖ المخصوم: ${amount} نقطة\n📍 المكان: ${location||'—'}\n📝 السبب: ${reason}\n📊 الرصيد الجديد: ${newPts.toLocaleString()} نقطة\n📅 ${dateStr} — ${timeStr}`,timestamp:now.toISOString(),read:false});
+    localStorage.setItem(p2pKey,JSON.stringify(p2pMsgs));
+    if(typeof sbSendMessage==='function') sbSendMessage(p2pMsgs[p2pMsgs.length-1]).catch(()=>{});
+  }catch(e){}
+  const ptsEl=document.getElementById('adminDeductMemberPts'); if(ptsEl) ptsEl.innerText=newPts.toLocaleString()+' نقطة';
+  window._deductTargetCurrentPts=newPts;
+  if(msgEl){msgEl.className='admin-msg ok';msgEl.innerText='تم خصم '+amount+' نقطة من "'+memberName+'" — الرصيد الجديد: '+newPts.toLocaleString();msgEl.style.display='block';}
+  adminLoadDeductPanel();
+  if(typeof showToast==='function') showToast('تم خصم '+amount+' نقطة من '+memberName);
+  ['adminDeductAmount','adminDeductLocation','adminDeductReason'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
+};
+
 /* ===== تحديث البيانات ===== */
 function adminReloadData(){
   const msg=document.getElementById("adminToolMsg");
@@ -9631,7 +9733,8 @@ function renderApp(name,pts,isReg, externalEarned){
   let rankPts = pts; // نقاط جدول الترتيب (للرصيد)
 
   function _applyDashboardUI(sheetPoints, rankingPoints, quizPoints){
-    const totalForLevel = sheetPoints + quizPoints;
+    const interactPts = parseInt(localStorage.getItem('nld_interaction_'+(name||'').replace(/\s+/g,'_'))||'0');
+    const totalForLevel = sheetPoints + quizPoints + interactPts;
     _basePoints = totalForLevel;
     window._sheetPtsCache = sheetPoints;
     window._rankPtsCache  = rankingPoints > 0 ? rankingPoints : sheetPoints;
@@ -9678,6 +9781,7 @@ function renderApp(name,pts,isReg, externalEarned){
         body:JSON.stringify({
           sheetPts : sheetPoints,
           quizPts  : quizPoints,
+          interactionPts: interactPts,
           totalPts : totalForLevel,
           updatedAt: Date.now()
         })
@@ -10435,41 +10539,50 @@ let _basePoints=0;
 /* مفتاح حفظ النقاط المكسوبة */
 function _earnedKey(name){return 'nld_earned_'+name.replace(/\s+/g,'_');}
 
-/* إضافة نقاط للمستخدم فوراً مع حفظ دائم - نقاط الكويز تُضاف للإجمالي لتحديد المستوى */
+/* ── مفتاح نقاط التفاعل المنفصلة (لا تُدمج مع الكويز) ── */
+function _interactionKey(name){ return 'nld_interaction_'+name.replace(/\s+/g,'_'); }
+
+/* ── حفظ نقاط التفاعل في Firebase بشكل مستقل ── */
+function _syncInteractionPts(name, pts){
+  try{ localStorage.setItem(_interactionKey(name), String(pts)); }catch(e){}
+  // حفظ في Firebase/userStats.interactionPts
+  if(name && pts >= 0){
+    const _n = name.replace(/\s+/g,'_');
+    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+_n+'.json',{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ interactionPts: pts, updatedAt: Date.now() })
+    }).catch(()=>{});
+  }
+}
+
+/* إضافة نقاط تفاعل فوراً — تُضاف للإجمالي وللبطولة ولا تُدمج مع الكويز */
 function addPointsInstant(pts){
   const name=document.getElementById("userNameTop").innerText||'';
   if(!name) return;
-  // حفظ نقاط الكويز الجديدة
-  const prev=parseInt(localStorage.getItem(_earnedKey(name))||'0');
-  const newQuizPts = prev + pts;
-  syncQuizPts(name, newQuizPts);
-  // تحديث عداد نقاط الكويز الشخصي
-  _updateQuizPtsDisplay(name, newQuizPts);
-  // ✅ تحديث مجموع النقاط الإجمالي في البطاقة الرئيسية تلقائياً
-  _updateMainPointsDisplay(name, newQuizPts);
+  // ── نقاط التفاعل تُحفظ في مفتاح منفصل (interactionPts) ──
+  const prevInteract = parseInt(localStorage.getItem(_interactionKey(name))||'0');
+  const newInteractPts = prevInteract + pts;
+  _syncInteractionPts(name, newInteractPts);
+  // ── نقاط الكويز الخالصة (بدون التفاعل) لا تتأثر ──
+  const quizPtsOnly = parseInt(localStorage.getItem(_earnedKey(name))||'0');
+  // تحديث عداد نقاط الكويز الشخصي (يبقى بدون تفاعل)
+  _updateQuizPtsDisplay(name, quizPtsOnly);
+  // ✅ تحديث مجموع النقاط الإجمالي = جدول + كويز + تفاعل
+  _updateMainPointsDisplayFull(name, quizPtsOnly, newInteractPts);
   // تأثير إضافة نقاط
   playGoldSound && playGoldSound();
 }
 
-/* تحديث عرض مجموع النقاط الإجمالي (نقاط الجدول + نقاط الكويز) في البطاقة الرئيسية */
-function _updateMainPointsDisplay(name, newQuizPts){
-  // _basePoints = نقاط الجدول + نقاط الكويز القديمة
-  // نستخرج نقاط الجدول الصافية ثم نضيف نقاط الكويز الجديدة
-  const oldQuizPts = _basePoints - Math.max(0, _basePoints - newQuizPts);
-  // طريقة أبسط: نحتفظ بنقاط الجدول الصافية في متغير خاص
-  if(typeof _sheetPtsCache === 'undefined'){
-    // أول مرة: استنتج نقاط الجدول من _basePoints وآخر قيمة كويز مسجّلة قبل هذا التحديث
-    window._sheetPtsCache = _basePoints - newQuizPts;
-  }
-  const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : (_basePoints - newQuizPts);
-  const newTotal = sheetPts + newQuizPts;
+/* تحديث العرض الكامل = شيت + كويز + تفاعل */
+function _updateMainPointsDisplayFull(name, quizPtsOnly, interactPts){
+  const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+  const newTotal = sheetPts + quizPtsOnly + interactPts;
   _basePoints = newTotal;
 
-  // تحديث العرض الرئيسي
   const mainPtsEl = document.getElementById("mainPoints");
   if(mainPtsEl) mainPtsEl.innerHTML=`${newTotal.toLocaleString()} <span>نقطة</span>`;
 
-  // تحديث شارة المستوى وشريط التقدم
   const LEVEL_PTS = 3000;
   const currentLevel = Math.floor(newTotal/LEVEL_PTS)+1;
   const ptsInLevel = newTotal % LEVEL_PTS;
@@ -10482,17 +10595,12 @@ function _updateMainPointsDisplay(name, newQuizPts){
   const bar = document.getElementById("mainBar");
   if(bar) bar.style.width=Math.min((ptsInLevel/LEVEL_PTS)*100,100)+"%";
 
-  // تحديث بطاقة الملف الشخصي أيضاً
-  const mgPts=document.getElementById("mgStatPoints");
-  if(mgPts) mgPts.innerText=sheetPts.toLocaleString(); // نقاط الجدول فقط (بدون كويز)
   const mgLevel=document.getElementById("mgStatLevel");
   if(mgLevel) mgLevel.innerText=`${currentLevel}`;
-
-  // تحديث cardPoints
   const cardPts=document.getElementById("cardPoints");
   if(cardPts) cardPts.innerText=newTotal.toLocaleString()+" نقطة";
 
-  // ✅ حفظ النقاط في Firebase بحقلين منفصلين — sheetPts + quizPts
+  // ✅ حفظ الإجمالي الكامل في Firebase للبطولة
   if(name && newTotal > 0){
     const _normSave = name.replace(/\s+/g,'_');
     fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+_normSave+'.json',{
@@ -10500,12 +10608,20 @@ function _updateMainPointsDisplay(name, newQuizPts){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         sheetPts : sheetPts,
-        quizPts  : newQuizPts,
+        quizPts  : quizPtsOnly,
+        interactionPts: interactPts,
         totalPts : newTotal,
         updatedAt: Date.now()
       })
     }).catch(()=>{});
   }
+}
+
+/* تحديث عرض مجموع النقاط الإجمالي (نقاط الجدول + نقاط الكويز + نقاط التفاعل) */
+function _updateMainPointsDisplay(name, newQuizPts){
+  const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+  const interactPts = parseInt(localStorage.getItem(_interactionKey ? _interactionKey(name) : 'nld_interaction_'+name.replace(/\s+/g,'_'))||'0');
+  _updateMainPointsDisplayFull(name, newQuizPts, interactPts);
 }
 
 /* تحديث عرض نقاط الكويز الخاصة بالمشترك */
@@ -32065,13 +32181,18 @@ async function loadAllMembersWithPts(){
     });
   }
 
-  /* ③ Firebase — totalPts المحفوظ عند آخر دخول */
+  /* ③ Firebase — totalPts المحفوظ عند آخر دخول (يشمل شيت + تفاعل بدون كويز) */
   const fbStats = (fbResp.status==='fulfilled' && fbResp.value && typeof fbResp.value==='object')
     ? fbResp.value : {};
   Object.entries(fbStats).forEach(([rawKey, data])=>{
     if(!data) return;
     const name  = rawKey.replace(/_/g,' ');
-    const total = parseInt(data.totalPts||0)||0;
+    // البطولة = نقاط الجدول + نقاط التفاعل (بدون الكويز)
+    const sheetP = parseInt(data.sheetPts||0)||0;
+    const interactP = parseInt(data.interactionPts||0)||0;
+    const champTotal = sheetP + interactP;
+    // إذا لم تكن بيانات الجدول موجودة بعد، نستخدم totalPts كـ fallback
+    const total = champTotal > 0 ? champTotal : (parseInt(data.totalPts||0)||0);
     upsert(name, total);
   });
 
@@ -33652,6 +33773,259 @@ window._cdzGetSaved   = _getSavedAccount;
 window._cdzClearSaved = _clearSavedAccount;
 
 console.log('✅ [ConnectDZ v4.0] حفظ الحساب المتكامل — مقيّد بنفس الجهاز ✓');
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ⚡ نظام التبديل السريع بين الحسابات المحفوظة — ConnectDZ v5.0
+     يحفظ حتى 5 حسابات على نفس الجهاز مع تبديل فوري بدون إعادة تسجيل
+═══════════════════════════════════════════════════════════════ -->
+<style>
+#_cdzMultiAccPanel {
+  position:fixed;inset:0;z-index:99990;
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);
+  display:flex;align-items:flex-end;justify-content:center;
+  animation:_cdzSlideUp .3s ease both;font-family:'Tajawal',sans-serif;
+}
+#_cdzMultiAccPanel .cdz-mac-inner {
+  background:white;border-radius:28px 28px 0 0;
+  width:100%;max-width:480px;padding:20px 16px 36px;
+  max-height:85vh;overflow-y:auto;
+}
+#_cdzMultiAccPanel .cdz-mac-title {
+  font-size:16px;font-weight:900;color:#050505;
+  margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;
+}
+.cdz-mac-acc-row {
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:16px;cursor:pointer;
+  transition:.15s;margin-bottom:8px;
+  border:1.5px solid #E4E6EB;background:#F7F8FA;
+}
+.cdz-mac-acc-row:hover,.cdz-mac-acc-row:active { background:#e8f5e9;border-color:#2e7d32; }
+.cdz-mac-acc-row.cdz-mac-active { background:#e8f5e9;border-color:#2e7d32; }
+.cdz-mac-acc-avatar {
+  width:46px;height:46px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#1877F2,#00c853);
+  display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;
+}
+.cdz-mac-acc-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+.cdz-mac-add-btn {
+  width:100%;padding:13px;border:2px dashed #E4E6EB;border-radius:14px;
+  background:transparent;color:#65676B;font-family:'Tajawal',sans-serif;
+  font-size:14px;font-weight:800;cursor:pointer;transition:.15s;
+}
+.cdz-mac-add-btn:hover { border-color:#1877F2;color:#1877F2;background:#EBF5FB; }
+/* زر التبديل السريع — يظهر في الـ header */
+#_cdzSwitchFab {
+  position:fixed;bottom:80px;left:16px;z-index:9999;
+  width:50px;height:50px;border-radius:50%;
+  background:linear-gradient(135deg,#2e7d32,#00c853);
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;box-shadow:0 4px 18px rgba(46,125,50,0.45);
+  transition:.2s;animation:_cdzSlideUp .5s 1s both;
+}
+#_cdzSwitchFab:hover { transform:scale(1.08);filter:brightness(1.1); }
+#_cdzSwitchFab .cdz-switch-badge {
+  position:absolute;top:-4px;right:-4px;
+  width:18px;height:18px;border-radius:50%;
+  background:#ef4444;color:white;font-size:10px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid white;
+}
+</style>
+
+<script>
+(function(){
+'use strict';
+const CDZ_MAC_KEY = 'cdz_multi_accounts_v5'; // قائمة الحسابات المتعددة
+const CDZ_MAC_MAX = 5; // الحد الأقصى
+
+function _getMacList(){
+  try{ return JSON.parse(localStorage.getItem(CDZ_MAC_KEY)||'[]'); }catch(e){ return []; }
+}
+
+function _saveMacList(list){
+  try{ localStorage.setItem(CDZ_MAC_KEY, JSON.stringify(list)); }catch(e){}
+}
+
+/* إضافة أو تحديث حساب في القائمة */
+function _upsertAccount(acc){
+  if(!acc||!acc.name||acc.name==='زائر'||acc.name==='المدير') return;
+  const list = _getMacList();
+  const idx = list.findIndex(a=>a.name===acc.name);
+  const entry = {...acc, ts:Date.now()};
+  if(idx>=0) list[idx]=entry;
+  else{
+    if(list.length >= CDZ_MAC_MAX) list.shift(); // احذف الأقدم
+    list.push(entry);
+  }
+  _saveMacList(list);
+  _updateSwitchFab();
+}
+
+/* تحديث عداد زر التبديل */
+function _updateSwitchFab(){
+  const fab = document.getElementById('_cdzSwitchFab');
+  if(!fab) return;
+  const count = _getMacList().length;
+  const badge = fab.querySelector('.cdz-switch-badge');
+  if(count > 1){
+    fab.style.display='flex';
+    if(badge) badge.innerText=count;
+  } else {
+    fab.style.display='none';
+  }
+}
+
+/* عرض لوحة الحسابات */
+window.openMultiAccPanel = function(){
+  document.getElementById('_cdzMultiAccPanel')?.remove();
+  const list = _getMacList();
+  const currentUser = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+  const ov = document.createElement('div');
+  ov.id = '_cdzMultiAccPanel';
+  const rows = list.slice().reverse().map(acc=>{
+    const isActive = acc.name === currentUser;
+    const photo = acc.photo || localStorage.getItem('nld_photo_'+(acc.name||'').replace(/\s+/g,'_'))||'';
+    const icon = typeof getLeaderIcon==='function' ? getLeaderIcon(acc.name) : '👤';
+    const avatarHtml = photo ? `<img src="${photo}" alt="">` : icon;
+    const diff = Date.now()-(acc.ts||0);
+    const diffTxt = diff<60000?'الآن':diff<3600000?`منذ ${Math.floor(diff/60000)} دقيقة`:diff<86400000?`منذ ${Math.floor(diff/3600000)} ساعة`:`منذ ${Math.floor(diff/86400000)} يوم`;
+    return `<div class="cdz-mac-acc-row${isActive?' cdz-mac-active':''}" onclick="switchToAccount('${acc.name.replace(/'/g,"\\'")}','${acc.type||'sheets'}')">
+      <div class="cdz-mac-acc-avatar">${avatarHtml}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:900;color:#050505;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${acc.name}</div>
+        <div style="font-size:11px;color:#65676B;">${isActive?'✅ الحساب الحالي':diffTxt}</div>
+      </div>
+      ${isActive?'':`<div style="background:linear-gradient(135deg,#1877F2,#0d5bda);color:white;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:900;flex-shrink:0;">تبديل ⚡</div>`}
+      ${isActive?'':` <div onclick="event.stopPropagation();removeAccountFromList('${acc.name.replace(/'/g,"\\'")}',this.parentElement)" style="width:26px;height:26px;border-radius:50%;background:#FEE2E2;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">✕</div>`}
+    </div>`;
+  }).join('');
+
+  ov.innerHTML = `<div class="cdz-mac-inner">
+    <div class="cdz-mac-title">
+      <span>⚡ تبديل الحساب</span>
+      <button onclick="document.getElementById('_cdzMultiAccPanel').remove()" style="background:#F0F2F5;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+    ${rows||'<div style="text-align:center;padding:20px;color:#65676B;font-size:13px;">لا توجد حسابات محفوظة</div>'}
+    <button class="cdz-mac-add-btn" onclick="document.getElementById('_cdzMultiAccPanel').remove();logoutAndSwitch()">
+      ➕ تسجيل دخول بحساب آخر
+    </button>
+  </div>`;
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+};
+
+/* تبديل إلى حساب آخر */
+window.switchToAccount = async function(name, type){
+  document.getElementById('_cdzMultiAccPanel')?.remove();
+  const list = _getMacList();
+  const acc = list.find(a=>a.name===name);
+  if(!acc){ if(typeof showToast==='function') showToast('❌ لم يُعثر على الحساب'); return; }
+
+  // عرض شاشة التبديل
+  const ov = document.createElement('div');
+  ov.id = '_cdzAutoLoginMsg';
+  const photo = acc.photo||localStorage.getItem('nld_photo_'+name.replace(/\s+/g,'_'))||'';
+  const icon = typeof getLeaderIcon==='function' ? getLeaderIcon(name) : '👤';
+  ov.innerHTML = `<div class="cdz-auto-inner">
+    <div class="cdz-auto-avatar">${photo?`<img src="${photo}" alt="">`:icon}</div>
+    <div class="cdz-auto-name">${name}</div>
+    <div class="cdz-auto-sub">جارٍ التبديل إلى حسابك…</div>
+    <div class="cdz-auto-dots">● ● ●</div>
+  </div>`;
+  document.body.appendChild(ov);
+
+  await new Promise(r=>setTimeout(r,700));
+  ov.remove();
+
+  if(acc.type==='reg' && acc.email && typeof fbLoginUser==='function'){
+    try{
+      const users = typeof getRegUsers==='function' ? getRegUsers() : [];
+      const ud = users.find(u=>u.email===acc.email);
+      if(ud){ fbLoginUser(ud); return; }
+    }catch(e){}
+    // Fallback
+    const ef=document.getElementById('fbEmailPhone'); const pf=document.getElementById('fbPassword');
+    if(ef&&pf&&acc.email){
+      ef.value=acc.email;
+      const rawPass=acc.pass?atob(acc.pass):'';
+      if(rawPass) pf.value=rawPass;
+      if(typeof fbDoLogin==='function') fbDoLogin();
+    }
+  } else {
+    // حساب جدول
+    if(typeof processEntry==='function' && acc.email) processEntry(acc.email,'email');
+    else if(typeof renderApp==='function'){
+      const pts = parseInt(localStorage.getItem('nld_pts_'+name.replace(/\s+/g,'_'))||'0');
+      renderApp(name, pts, false, 0);
+    }
+  }
+};
+
+/* إزالة حساب من القائمة */
+window.removeAccountFromList = function(name, rowEl){
+  if(!confirm('إزالة "'+name+'" من القائمة؟')) return;
+  const list = _getMacList().filter(a=>a.name!==name);
+  _saveMacList(list);
+  if(rowEl) rowEl.remove();
+  _updateSwitchFab();
+  if(typeof showToast==='function') showToast('🗑️ تم الإزالة');
+};
+
+/* تسجيل الخروج والانتقال لشاشة الدخول */
+window.logoutAndSwitch = function(){
+  // الانتقال لشاشة الدخول بدون مسح الحسابات المحفوظة
+  const app=document.getElementById('app'); const login=document.getElementById('login');
+  if(app) app.style.display='none';
+  if(login){ login.style.display='flex'; login.style.opacity='1'; }
+};
+
+/* ── Hook: حفظ تلقائي عند الدخول ── */
+const _origRenderAppMAC = window.renderApp;
+if(typeof _origRenderAppMAC==='function'){
+  window.renderApp = function(name, pts, isReg, externalEarned){
+    try{
+      if(name && name!=='زائر' && name!=='المدير'){
+        const email=(document.getElementById('fbEmailPhone')||{}).value?.trim()||'';
+        const photo=typeof getProfilePhoto==='function'?getProfilePhoto(name):'';
+        _upsertAccount({type:'sheets',name,email,photo});
+      }
+    }catch(e){}
+    return _origRenderAppMAC.apply(this,arguments);
+  };
+}
+
+/* ── إنشاء زر التبديل السريع عند تحميل الصفحة ── */
+function _createSwitchFab(){
+  if(document.getElementById('_cdzSwitchFab')) return;
+  const btn = document.createElement('button');
+  btn.id = '_cdzSwitchFab';
+  btn.title = 'تبديل الحساب';
+  btn.style.display='none';
+  btn.innerHTML = `<span style="font-size:22px;">👤</span><span class="cdz-switch-badge">0</span>`;
+  btn.onclick = ()=> window.openMultiAccPanel();
+  document.body.appendChild(btn);
+  _updateSwitchFab();
+}
+
+/* ── تهيئة ── */
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>{ setTimeout(_createSwitchFab,500); });
+} else {
+  setTimeout(_createSwitchFab,500);
+}
+
+// استيراد الحسابات القديمة
+try{
+  const oldSaved = window._cdzGetSaved ? window._cdzGetSaved() : null;
+  if(oldSaved && oldSaved.name) _upsertAccount(oldSaved);
+}catch(e){}
+
+window._cdzMultiAccounts = { getList:_getMacList, upsert:_upsertAccount, update:_updateSwitchFab };
+console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات — حتى '+CDZ_MAC_MAX+' حسابات ✓');
 })();
 </script>
 
