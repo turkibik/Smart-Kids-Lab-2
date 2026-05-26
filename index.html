@@ -5344,6 +5344,46 @@ function switchLoginTab(tab){
       </div>
     </div>
     <div style="font-size:11px;color:#65676B;margin-bottom:12px;">عضو القادة المستقبليين • الجزائر 🇩🇿</div>
+
+    <!-- ══ بطاقة تفصيل النقاط الإجمالية ══ -->
+    <div id="mpvPtsBreakdownCard" style="background:linear-gradient(135deg,#0d1117,#1a1a2e);border:1px solid rgba(255,215,0,0.2);border-radius:14px;padding:12px 14px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:900;color:#FFD700;display:flex;align-items:center;gap:6px;">
+          <span>🏆</span><span>تفاصيل النقاط الإجمالية</span>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;" id="mpvPtsBreakdownLoading">⏳ جارٍ التحميل...</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+        <!-- نقاط Google Sheets -->
+        <div style="background:rgba(24,119,242,0.12);border:1px solid rgba(24,119,242,0.25);border-radius:10px;padding:8px 4px;text-align:center;">
+          <div style="font-size:18px;margin-bottom:2px;">📊</div>
+          <div id="mpvPtsSheet" style="font-size:14px;font-weight:900;color:#60a5fa;">—</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;margin-top:2px;">جدول</div>
+        </div>
+        <!-- نقاط الكويز -->
+        <div style="background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.25);border-radius:10px;padding:8px 4px;text-align:center;">
+          <div style="font-size:18px;margin-bottom:2px;">🎯</div>
+          <div id="mpvPtsQuiz" style="font-size:14px;font-weight:900;color:#c084fc;">—</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;margin-top:2px;">كويز</div>
+        </div>
+        <!-- نقاط التفاعلات -->
+        <div style="background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.25);border-radius:10px;padding:8px 4px;text-align:center;">
+          <div style="font-size:18px;margin-bottom:2px;">⚡</div>
+          <div id="mpvPtsInteract" style="font-size:14px;font-weight:900;color:#34d399;">—</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;margin-top:2px;">تفاعلات</div>
+        </div>
+      </div>
+      <!-- شريط الإجمالي -->
+      <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;">المجموع الكلي</div>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <span style="font-size:16px;font-weight:900;color:#FFD700;" id="mpvPtsTotal">—</span>
+          <span style="font-size:10px;color:rgba(255,215,0,0.7);font-weight:700;">نقطة ⭐</span>
+        </div>
+      </div>
+    </div>
+    <!-- ══ نهاية بطاقة تفصيل النقاط ══ -->
+
     <div style="display:flex;gap:8px;">
       <button id="mpvFriendBtn" onclick="handleMpvFriendAction()" style="flex:1;padding:9px;background:linear-gradient(135deg,#00c853,#43a047);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">👥 إضافة صديق</button>
       <button onclick="startChatWithMpvUser()" style="flex:1;padding:9px;background:linear-gradient(135deg,#25D366,#128C7E);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">💬 رسالة</button>
@@ -34734,6 +34774,70 @@ try{
 
 window._cdzMultiAccounts = { getList:_getMacList, upsert:_upsertAccount, update:_updateSwitchFab };
 console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات — حتى '+CDZ_MAC_MAX+' حسابات ✓');
+})();
+
+/* ══════════════════════════════════════════════════════════
+   🏆 عرض تفاصيل النقاط في ملف العضو (جدول + كويز + تفاعلات)
+   يجلب البيانات من Firebase /userStats/{normName}
+   ══════════════════════════════════════════════════════════ */
+(function _initMpvPointsBreakdown(){
+  'use strict';
+  const FB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+  async function _fetchAndShowBreakdown(memberName){
+    if(!memberName) return;
+    const normName = memberName.replace(/\s+/g, '_');
+
+    /* إعادة ضبط سريعة */
+    ['mpvPtsSheet','mpvPtsQuiz','mpvPtsInteract','mpvPtsTotal'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.innerText = '—';
+    });
+    var loadEl = document.getElementById('mpvPtsBreakdownLoading');
+    if(loadEl) loadEl.innerText = '⏳ جارٍ التحميل...';
+
+    try{
+      var res = await fetch(FB_BASE + '/userStats/' + normName + '.json');
+      if(!res.ok) throw new Error('network');
+      var d = await res.json();
+
+      var sheetPts    = parseInt((d && d.sheetPts)       || 0);
+      var quizPts     = parseInt((d && d.quizPts)        || 0);
+      var interactPts = parseInt((d && d.interactionPts) || 0);
+      var totalPts    = parseInt((d && d.totalPts)       || (sheetPts + quizPts + interactPts));
+
+      var sheetEl    = document.getElementById('mpvPtsSheet');
+      var quizEl     = document.getElementById('mpvPtsQuiz');
+      var interactEl = document.getElementById('mpvPtsInteract');
+      var totalEl    = document.getElementById('mpvPtsTotal');
+
+      if(sheetEl)    sheetEl.innerText    = sheetPts.toLocaleString();
+      if(quizEl)     quizEl.innerText     = quizPts.toLocaleString();
+      if(interactEl) interactEl.innerText = interactPts.toLocaleString();
+      if(totalEl)    totalEl.innerText    = totalPts.toLocaleString();
+
+      if(loadEl) loadEl.innerText = '✅ محدّث';
+      setTimeout(function(){ if(loadEl) loadEl.innerText = ''; }, 2000);
+
+    }catch(e){
+      if(loadEl) loadEl.innerText = '—';
+      ['mpvPtsSheet','mpvPtsQuiz','mpvPtsInteract','mpvPtsTotal'].forEach(function(id){
+        var el = document.getElementById(id);
+        if(el) el.innerText = '0';
+      });
+    }
+  }
+
+  /* ربط مع openMemberProfileView */
+  var _prevOpenMpvPB = window.openMemberProfileView;
+  window.openMemberProfileView = function(memberName){
+    if(typeof _prevOpenMpvPB === 'function') _prevOpenMpvPB.apply(this, arguments);
+    setTimeout(function(){ _fetchAndShowBreakdown(memberName); }, 400);
+  };
+
+  /* تصدير للاستخدام الخارجي إن احتجت تحديث يدوي */
+  window._refreshMpvBreakdown = _fetchAndShowBreakdown;
+  console.log('✅ [ConnectDZ] تفاصيل النقاط في ملف العضو — جاهزة');
 })();
 </script>
 
