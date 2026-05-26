@@ -84,6 +84,48 @@
 }
 .admin-pts-send-btn:hover { transform:translateY(-2px); filter:brightness(1.1); }
 
+/* حاوية لوحة خصم النقاط */
+#adminDeductPointsPanel {
+  position:fixed;inset:0;z-index:50000;
+  background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);
+  display:flex;align-items:center;justify-content:center;
+  animation:fadeIn .25s ease;
+}
+.admin-deduct-panel-inner {
+  background:linear-gradient(160deg,#0d1117,#1a0505);
+  border:1px solid rgba(239,68,68,0.3);
+  border-radius:24px;padding:28px 24px;width:92%;max-width:440px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.7),0 0 40px rgba(239,68,68,0.1);
+}
+.admin-deduct-title {
+  font-size:18px;font-weight:900;color:#f87171;
+  text-align:center;margin-bottom:18px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.admin-deduct-input {
+  width:100%;padding:13px 16px;
+  background:rgba(255,255,255,0.07);border:1.5px solid rgba(239,68,68,0.25);
+  border-radius:12px;color:white;font-family:'Tajawal',sans-serif;
+  font-size:14px;font-weight:700;outline:none;box-sizing:border-box;
+  text-align:right;margin-bottom:10px;transition:.2s;
+}
+.admin-deduct-input:focus { border-color:#ef4444; box-shadow:0 0 0 3px rgba(239,68,68,0.15); }
+.admin-deduct-input::placeholder { color:rgba(255,255,255,0.4); }
+.admin-deduct-execute-btn {
+  width:100%;padding:14px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,#ef4444,#b91c1c);
+  color:white;font-family:'Tajawal',sans-serif;font-size:16px;font-weight:900;
+  cursor:pointer;transition:.15s;margin-top:4px;
+}
+.admin-deduct-execute-btn:hover { transform:translateY(-2px); filter:brightness(1.1); }
+.quick-deduct-btn {
+  padding:6px 12px;border-radius:20px;
+  background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);
+  color:#f87171;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;
+  cursor:pointer;transition:.15s;
+}
+.quick-deduct-btn:hover { background:rgba(239,68,68,0.25); }
+
 /* بطاقة النظام لإرسال المنشورات */
 #adminCommandPanel {
   position:fixed;inset:0;z-index:50000;
@@ -4297,8 +4339,8 @@ function switchLoginTab(tab){
 
         <!-- جرس التنبيهات من المدير -->
         <div class="notif-btn" id="notifBell" onclick="openNotifications()" title="التنبيهات" style="position:relative;background:linear-gradient(135deg,rgba(255,160,0,0.15),rgba(255,80,0,0.15));border-color:rgba(255,160,0,0.3);font-size:20px;">🔔<span id="notifBadge" style="display:none;position:absolute;top:-5px;left:-5px;min-width:18px;height:18px;border-radius:9px;background:#e52d27;border:2px solid var(--dark);font-size:10px;font-weight:900;color:white;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;"></span></div>
-        <!-- زر برمجة التطبيق - للمدير فقط: يفتح نافذة إرسال الرسائل -->
-        <div class="notif-btn" id="adminBroadcastBtn" onclick="openAdminBroadcastPanel()" title="برمجة التطبيق" style="display:none;position:relative;background:linear-gradient(135deg,rgba(0,150,255,0.2),rgba(168,85,247,0.2));border-color:rgba(0,150,255,0.4);font-size:18px;">💻</div>
+        <!-- زر خصم نقاط - للمدير فقط -->
+        <div class="notif-btn" id="adminDeductPtsBtn" onclick="openAdminDeductPointsPanel()" title="خصم نقاط من الأعضاء" style="display:none;position:relative;background:linear-gradient(135deg,rgba(239,68,68,0.25),rgba(185,28,28,0.2));border-color:rgba(239,68,68,0.5);font-size:18px;">➖</div>
         <!-- زر إرسال نقاط - للمدير فقط -->
         <div class="notif-btn" id="adminSendPtsBtn" onclick="openAdminSendPointsPanel()" title="إرسال نقاط للأعضاء" style="display:none;position:relative;background:linear-gradient(135deg,rgba(255,215,0,0.25),rgba(255,165,0,0.2));border-color:rgba(255,215,0,0.5);font-size:18px;">🌟</div>
         <!-- زر نشر منشور - للمدير فقط -->
@@ -9159,6 +9201,8 @@ function enterAsAdmin(){
   if(broadcastBtn) broadcastBtn.style.display="flex";
   const sendPtsBtn=document.getElementById("adminSendPtsBtn");
   if(sendPtsBtn) sendPtsBtn.style.display="flex";
+  const deductPtsBtn=document.getElementById("adminDeductPtsBtn");
+  if(deductPtsBtn) deductPtsBtn.style.display="flex";
   const postBtn=document.getElementById("adminPostBtn");
   if(postBtn) postBtn.style.display="flex";
   const allPtsBtn=document.getElementById("adminAllPtsBtn");
@@ -13061,6 +13105,185 @@ window._doAdminSendPoints = async function(){
   } catch(e) {
     st.style.background='rgba(229,45,39,0.15)'; st.style.color='#f87171'; st.style.border='1px solid rgba(229,45,39,0.2)';
     st.innerText = '❌ فشل الإرسال: ' + (e.message || 'خطأ');
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════
+   ➖ نظام خصم النقاط من الأعضاء — لوحة مستقلة للمدير
+   ══════════════════════════════════════════════════════════════ */
+window.openAdminDeductPointsPanel = async function(){
+  if(!window._isAdmin){ showToast('❌ للمدير فقط'); return; }
+
+  const old = document.getElementById('adminDeductPointsPanel');
+  if(old) old.remove();
+
+  /* جلب قائمة المنخرطين تلقائياً */
+  const names = await _fetchAllMembers();
+  const nameOptions = names.map(n => `<option value="${n}">👤 ${n}</option>`).join('');
+
+  const panel = document.createElement('div');
+  panel.id = 'adminDeductPointsPanel';
+  panel.style.cssText = 'position:fixed;inset:0;z-index:50000;background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;animation:fadeIn .25s ease;font-family:"Tajawal",sans-serif;';
+
+  panel.innerHTML = `
+    <div class="admin-deduct-panel-inner">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="admin-deduct-title">➖ خصم نقاط من عضو</div>
+        <div onclick="document.getElementById('adminDeductPointsPanel').remove()" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:rgba(255,255,255,0.7);">✕</div>
+      </div>
+
+      <!-- تنبيه -->
+      <div style="font-size:11px;color:rgba(248,113,113,0.85);margin-bottom:14px;padding:10px 12px;background:rgba(239,68,68,0.08);border:1.5px solid rgba(239,68,68,0.2);border-radius:10px;line-height:1.6;font-weight:600;">
+        ⚠️ سيتم خصم النقاط من الرصيد الإجمالي للعضو وسيتلقى إشعاراً بالسبب.
+      </div>
+
+      <!-- اختيار العضو -->
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:rgba(248,113,113,0.9);margin-bottom:5px;letter-spacing:.5px;">👥 العضو</div>
+        <select id="adminDeductPtsMember" class="admin-deduct-input" style="appearance:none;cursor:pointer;" onchange="window._loadDeductMemberPts(this.value)">
+          <option value="">— اختر عضواً —</option>
+          ${nameOptions}
+        </select>
+        <!-- بطاقة رصيد العضو -->
+        <div id="adminDeductPtsMemberCard" style="display:none;background:rgba(239,68,68,0.06);border:1.5px solid rgba(239,68,68,0.2);border-radius:12px;padding:12px;margin-top:6px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div id="adminDeductPtsAvatar" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#b91c1c);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;"></div>
+            <div>
+              <div id="adminDeductPtsName" style="font-size:14px;font-weight:900;color:white;"></div>
+              <div style="font-size:11px;color:rgba(248,113,113,0.8);margin-top:2px;">الرصيد الحالي: <strong id="adminDeductPtsCurrent" style="color:#f87171;"></strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- كمية النقاط -->
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:rgba(248,113,113,0.9);margin-bottom:5px;letter-spacing:.5px;">➖ عدد النقاط للخصم</div>
+        <input type="number" id="adminDeductPtsAmount" class="admin-deduct-input" placeholder="مثال: 100" min="1" max="1000000" value="">
+        <div class="quick-pts-row" style="margin-top:6px;">
+          <div class="quick-deduct-btn" onclick="document.getElementById('adminDeductPtsAmount').value=50">−50</div>
+          <div class="quick-deduct-btn" onclick="document.getElementById('adminDeductPtsAmount').value=100">−100</div>
+          <div class="quick-deduct-btn" onclick="document.getElementById('adminDeductPtsAmount').value=200">−200</div>
+          <div class="quick-deduct-btn" onclick="document.getElementById('adminDeductPtsAmount').value=500">−500</div>
+          <div class="quick-deduct-btn" onclick="document.getElementById('adminDeductPtsAmount').value=1000">−1,000</div>
+        </div>
+      </div>
+
+      <!-- سبب الخصم -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:700;color:rgba(248,113,113,0.9);margin-bottom:5px;letter-spacing:.5px;">📝 سبب الخصم</div>
+        <input type="text" id="adminDeductPtsReason" class="admin-deduct-input" placeholder="مثال: غياب غير مبرر / مخالفة نظام">
+      </div>
+
+      <button class="admin-deduct-execute-btn" onclick="window._doAdminDeductPoints()">
+        ➖ تنفيذ الخصم
+      </button>
+      <div id="adminDeductPtsStatus" style="display:none;margin-top:10px;padding:10px;border-radius:10px;font-size:13px;font-weight:700;text-align:center;"></div>
+    </div>
+  `;
+
+  panel.addEventListener('click', e => { if(e.target === panel) panel.remove(); });
+  document.body.appendChild(panel);
+};
+
+/* تحميل رصيد العضو عند اختياره */
+window._loadDeductMemberPts = async function(memberName){
+  const card = document.getElementById('adminDeductPtsMemberCard');
+  if(!memberName){ if(card) card.style.display='none'; return; }
+  if(card) card.style.display='block';
+  const avatarEl = document.getElementById('adminDeductPtsAvatar');
+  const nameEl = document.getElementById('adminDeductPtsName');
+  const curEl = document.getElementById('adminDeductPtsCurrent');
+  if(avatarEl) avatarEl.innerText = typeof getLeaderIcon==='function' ? getLeaderIcon(memberName) : '👤';
+  if(nameEl) nameEl.innerText = memberName;
+  if(curEl) curEl.innerText = '…';
+  try {
+    const r = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+memberName.replace(/\s+/g,'_')+'.json');
+    const d = await r.json();
+    const pts = (d && d.totalPts) ? parseInt(d.totalPts)||0 : 0;
+    if(curEl) curEl.innerText = pts.toLocaleString() + ' نقطة';
+    window._deductPtsPanelCurrentPts = pts;
+  } catch(e) {
+    if(curEl) curEl.innerText = '—';
+    window._deductPtsPanelCurrentPts = 0;
+  }
+};
+
+/* تنفيذ الخصم من اللوحة الجديدة */
+window._doAdminDeductPoints = async function(){
+  if(!window._isAdmin) return;
+  const memberName = (document.getElementById('adminDeductPtsMember')||{}).value?.trim();
+  const amount = parseInt(document.getElementById('adminDeductPtsAmount').value||'0');
+  const reason = (document.getElementById('adminDeductPtsReason').value||'').trim();
+  const st = document.getElementById('adminDeductPtsStatus');
+
+  if(!memberName){
+    st.style.display='block'; st.style.background='rgba(239,68,68,0.15)'; st.style.color='#f87171'; st.style.border='1px solid rgba(239,68,68,0.25)';
+    st.innerText = '⚠️ اختر عضواً من القائمة'; return;
+  }
+  if(!amount || amount < 1){
+    st.style.display='block'; st.style.background='rgba(239,68,68,0.15)'; st.style.color='#f87171'; st.style.border='1px solid rgba(239,68,68,0.25)';
+    st.innerText = '⚠️ أدخل عدداً صحيحاً من النقاط'; return;
+  }
+  if(!reason){
+    st.style.display='block'; st.style.background='rgba(239,68,68,0.15)'; st.style.color='#f87171'; st.style.border='1px solid rgba(239,68,68,0.25)';
+    st.innerText = '⚠️ أدخل سبب الخصم'; return;
+  }
+
+  st.style.display='block'; st.style.background='rgba(239,68,68,0.08)'; st.style.color='#fca5a5'; st.style.border='1px solid rgba(239,68,68,0.2)';
+  st.innerText = '⏳ جارٍ تنفيذ الخصم…';
+
+  try {
+    const normKey = memberName.replace(/\s+/g,'_');
+    const currentPts = window._deductPtsPanelCurrentPts || 0;
+    const newPts = Math.max(0, currentPts - amount);
+
+    /* تحديث Firebase */
+    await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+normKey+'.json',{
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({totalPts: newPts, deductedAt: Date.now()})
+    }).catch(()=>{});
+
+    /* تحديث localStorage */
+    try {
+      const ik = 'nld_interaction_'+normKey;
+      const ip = parseInt(localStorage.getItem(ik)||'0');
+      localStorage.setItem(ik, String(Math.max(0, ip - Math.min(amount, ip))));
+    } catch(e){}
+
+    /* سجل الخصومات */
+    const logEntry = {id:'deduct_'+Date.now(), memberName, amount, location:'', reason, beforePts:currentPts, afterPts:newPts, ts:Date.now()};
+    const log = _getDeductLog(); log.push(logEntry); _saveDeductLog(log);
+
+    /* إشعار العضو برسالة */
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
+    const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
+    const ts = now.toISOString();
+    const notifMsg = {
+      id: 'deduct_notif_'+Date.now(), from:'المدير', to:memberName, timestamp:ts, read:false,
+      message: `⚠️ إشعار خصم نقاط\n\n👤 العضو: ${memberName}\n➖ المخصوم: ${amount.toLocaleString()} نقطة\n📝 السبب: ${reason}\n📊 الرصيد الجديد: ${newPts.toLocaleString()} نقطة\n📅 ${dateStr} — ${timeStr}`
+    };
+    const chatMsgs = _getP2PMsgs('المدير', memberName);
+    chatMsgs.push(notifMsg);
+    _saveP2PMsgs('المدير', memberName, chatMsgs);
+    if(typeof sbSendMessage==='function') sbSendMessage(notifMsg).catch(()=>{});
+
+    /* تحديث بطاقة الرصيد في اللوحة */
+    const curEl = document.getElementById('adminDeductPtsCurrent');
+    if(curEl) curEl.innerText = newPts.toLocaleString() + ' نقطة';
+    window._deductPtsPanelCurrentPts = newPts;
+
+    st.style.background='rgba(239,68,68,0.12)'; st.style.color='#fca5a5'; st.style.border='1px solid rgba(239,68,68,0.25)';
+    st.innerText = '✅ تم خصم '+amount.toLocaleString()+' نقطة من "'+memberName+'" — الرصيد الجديد: '+newPts.toLocaleString();
+    if(typeof showToast==='function') showToast('➖ تم خصم '+amount.toLocaleString()+' نقطة من '+memberName);
+    document.getElementById('adminDeductPtsAmount').value='';
+    document.getElementById('adminDeductPtsReason').value='';
+    setTimeout(()=>{ document.getElementById('adminDeductPointsPanel')?.remove(); }, 3000);
+
+  } catch(e) {
+    st.style.background='rgba(239,68,68,0.15)'; st.style.color='#f87171'; st.style.border='1px solid rgba(239,68,68,0.25)';
+    st.innerText = '❌ فشل الخصم: ' + (e.message || 'خطأ');
   }
 };
 
@@ -21311,6 +21534,7 @@ function doLogout(){
   document.getElementById('adminToggleBtn').style.display='none';
   const nb2=document.getElementById('adminNavBtn'); if(nb2) nb2.style.display='none';
   const broadcastBtn2=document.getElementById('adminBroadcastBtn'); if(broadcastBtn2) broadcastBtn2.style.display='none';
+  const deductPtsBtn2=document.getElementById('adminDeductPtsBtn'); if(deductPtsBtn2) deductPtsBtn2.style.display='none';
   const allPtsBtn2=document.getElementById('adminAllPtsBtn'); if(allPtsBtn2) allPtsBtn2.style.display='none';
   /* ✅ استعادة حقلي تسجيل الدخول الرسميين مع التحقق من صيغة الإيميل */
   document.getElementById('authFields').innerHTML=`
