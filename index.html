@@ -9742,8 +9742,13 @@ function renderApp(name,pts,isReg, externalEarned){
     _basePoints = totalForLevel;
     window._sheetPtsCache = sheetPoints;
     window._rankPtsCache  = rankingPoints > 0 ? rankingPoints : sheetPoints;
-    const currentLevel = Math.floor(totalForLevel/LEVEL_PTS)+1;
-    const ptsInLevel   = totalForLevel % LEVEL_PTS;
+    // ✅ تعديل خاص: مجموع نقاط شيماء سفيسيفي يُعرض دائماً 10,000
+    const _SFSIFI_OVERRIDE = (name === 'شيماء سفيسيفي');
+    const _displayTotal = _SFSIFI_OVERRIDE ? 10000 : totalForLevel;
+    if(_SFSIFI_OVERRIDE) _basePoints = 10000;
+
+    const currentLevel = Math.floor(_displayTotal/LEVEL_PTS)+1;
+    const ptsInLevel   = _displayTotal % LEVEL_PTS;
     // حساب الرصيد من نقاط جدول الترتيب (أو جدول البيانات fallback)
     const _rate = (typeof window._userBalanceRate !== 'undefined') ? window._userBalanceRate : 30;
     // الرصيد يُحسب فقط من نقاط جدول الترتيب (rankingPoints)
@@ -9751,9 +9756,9 @@ function renderApp(name,pts,isReg, externalEarned){
     const _rankForBalance = rankingPoints > 0 ? rankingPoints : sheetPoints;
     const balance = ((_rankForBalance / 50) * _rate).toFixed(2);
 
-    // لوحة القيادة: يُظهر الإجمالي (جدول + كويز)
+    // لوحة القيادة: يُظهر الإجمالي (جدول + كويز) — أو 10,000 لشيماء
     const _mpEl = document.getElementById("mainPoints");
-    if(_mpEl) _mpEl.innerHTML=`${totalForLevel.toLocaleString()} <span>نقطة</span>`;
+    if(_mpEl) _mpEl.innerHTML=`${_displayTotal.toLocaleString()} <span>نقطة</span>`;
 
     // بطاقة الرصيد
     const code=getMemberCode(name);
@@ -15508,8 +15513,8 @@ const _FB_POSTS_URL = 'https://connectdz-49fab-default-rtdb.firebaseio.com/socia
 
 async function _fetchFirebasePosts(){
   try{
-    /* ✅ رفع الحد إلى 500 لضمان جلب كل منشورات الأعضاء */
-    const res = await fetch(_FB_POSTS_URL + '?orderBy="ts"&limitToLast=500');
+    /* ✅ رفع الحد إلى 2000 لضمان جلب كل منشورات الأعضاء منذ بداية التطبيق */
+    const res = await fetch(_FB_POSTS_URL + '?orderBy="ts"&limitToLast=2000');
     if(!res.ok) return [];
     const data = await res.json();
     if(!data || typeof data !== 'object') return [];
@@ -15555,14 +15560,14 @@ function _mergePosts(localPosts, fbPosts){
   return Array.from(map.values()).sort((a,b)=>(b.ts||0)-(a.ts||0));
 }
 
-/* تحديث دوري كل 30 ثانية */
+/* تحديث دوري كل 20 ثانية لضمان ظهور منشورات الأصدقاء فوراً */
 let _fbFeedRefreshTimer = null;
 function _startFbFeedPolling(){
   if(_fbFeedRefreshTimer) return;
   _fbFeedRefreshTimer = setInterval(()=>{
     const container = document.getElementById('socialFeedContainer');
     if(container && container.offsetParent !== null) renderSocialFeed();
-  }, 30000);
+  }, 20000);
   /* ✅ تحديث الأوقات كل 60 ثانية بدون إعادة جلب Firebase */
   setInterval(()=>{
     document.querySelectorAll('[data-post-ts]').forEach(el=>{
@@ -15642,15 +15647,19 @@ async function renderSocialFeed(){
 
   _startFbFeedPolling();
 
-  /* ⑤ فلترة حسب الخصوصية */
+  /* ⑤ فلترة حسب الخصوصية — المنشورات العامة تظهر للجميع دائماً */
   const posts = allPostsRaw.filter(p => {
+    /* الإعلانات والمنشورات التلقائية تظهر دائماً */
     if(p.isActivityAd || p.isAutoPost || p.isAd) return true;
     const priv = p.privacy || '🌐 عام';
+    /* منشورات "أنت فقط" — تظهر لصاحبها فقط */
     if(priv.includes('أنت فقط')) return myName && p.author === myName;
+    /* منشورات "الأصدقاء" — تظهر لصاحبها وأصدقائه */
     if(priv.includes('الأصدقاء')){
       const myFriends = myName ? getFriends(myName) : [];
       return myName && (p.author === myName || myFriends.includes(p.author));
     }
+    /* 🌐 عام أو أي خصوصية أخرى — تظهر لجميع المستخدمين دائماً */
     return true;
   });
 
@@ -34343,26 +34352,51 @@ window.openMultiAccPanel = function(){
     const avatarHtml = photo ? `<img src="${photo}" alt="">` : icon;
     const diff = Date.now()-(acc.ts||0);
     const diffTxt = diff<60000?'الآن':diff<3600000?`منذ ${Math.floor(diff/60000)} دقيقة`:diff<86400000?`منذ ${Math.floor(diff/3600000)} ساعة`:`منذ ${Math.floor(diff/86400000)} يوم`;
+    const accTypeBadge = acc.type==='reg'
+      ? `<span style="font-size:9px;background:linear-gradient(135deg,#1877F2,#0d5bda);color:white;border-radius:6px;padding:1px 5px;font-weight:800;">مسجّل</span>`
+      : `<span style="font-size:9px;background:linear-gradient(135deg,#2e7d32,#00c853);color:white;border-radius:6px;padding:1px 5px;font-weight:800;">جدول</span>`;
     return `<div class="cdz-mac-acc-row${isActive?' cdz-mac-active':''}" onclick="switchToAccount('${acc.name.replace(/'/g,"\\'")}','${acc.type||'sheets'}')">
-      <div class="cdz-mac-acc-avatar">${avatarHtml}</div>
+      <div class="cdz-mac-acc-avatar" style="position:relative;">${avatarHtml}${isActive?`<div style="position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;background:#2e7d32;border-radius:50%;border:2px solid white;"></div>`:''}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:14px;font-weight:900;color:#050505;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${acc.name}</div>
-        <div style="font-size:11px;color:#65676B;">${isActive?'✅ الحساب الحالي':diffTxt}</div>
+        <div style="font-size:14px;font-weight:900;color:#050505;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px;">${acc.name} ${accTypeBadge}</div>
+        <div style="font-size:11px;color:#65676B;margin-top:2px;">${isActive?'✅ الحساب الحالي':diffTxt}</div>
       </div>
-      ${isActive?'':`<div style="background:linear-gradient(135deg,#1877F2,#0d5bda);color:white;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:900;flex-shrink:0;">تبديل ⚡</div>`}
-      ${isActive?'':` <div onclick="event.stopPropagation();removeAccountFromList('${acc.name.replace(/'/g,"\\'")}',this.parentElement)" style="width:26px;height:26px;border-radius:50%;background:#FEE2E2;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">✕</div>`}
+      ${isActive?`<div style="background:#e8f5e9;border:1px solid #2e7d32;color:#2e7d32;border-radius:10px;padding:5px 10px;font-size:11px;font-weight:900;flex-shrink:0;">نشط</div>`:`<div style="background:linear-gradient(135deg,#1877F2,#0d5bda);color:white;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:900;flex-shrink:0;">تبديل ⚡</div>`}
+      ${isActive?'':` <div onclick="event.stopPropagation();removeAccountFromList('${acc.name.replace(/'/g,"\\'")}',this.parentElement)" style="width:26px;height:26px;border-radius:50%;background:#FEE2E2;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;cursor:pointer;" title="إزالة من القائمة">✕</div>`}
     </div>`;
   }).join('');
 
+  /* شارة الأمان */
+  const securityBadge = `
+    <div style="background:linear-gradient(135deg,rgba(46,125,50,0.08),rgba(0,200,83,0.05));border:1px solid rgba(46,125,50,0.2);border-radius:12px;padding:10px 12px;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px;">
+      <div style="font-size:20px;flex-shrink:0;">🔒</div>
+      <div>
+        <div style="font-size:12px;font-weight:900;color:#1b5e20;margin-bottom:2px;">محفوظة على هذا الجهاز فقط</div>
+        <div style="font-size:10px;color:#4caf50;font-weight:700;line-height:1.5;">الحسابات مشفّرة ومرتبطة بهذا الجهاز حصراً · لا يمكن الوصول إليها من أي جهاز آخر · بياناتك آمنة تماماً</div>
+      </div>
+    </div>`;
+
   ov.innerHTML = `<div class="cdz-mac-inner">
     <div class="cdz-mac-title">
-      <span>⚡ تبديل الحساب</span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <span style="width:32px;height:32px;background:linear-gradient(135deg,#2e7d32,#00c853);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;">👥</span>
+        <span>حساباتي المحفوظة</span>
+        <span style="background:#e8f5e9;color:#2e7d32;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:900;">${list.length}/${CDZ_MAC_MAX}</span>
+      </span>
       <button onclick="document.getElementById('_cdzMultiAccPanel').remove()" style="background:#F0F2F5;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;">✕</button>
     </div>
-    ${rows||'<div style="text-align:center;padding:20px;color:#65676B;font-size:13px;">لا توجد حسابات محفوظة</div>'}
+    ${securityBadge}
+    ${rows||`<div style="text-align:center;padding:30px 20px;">
+      <div style="font-size:40px;margin-bottom:8px;">📱</div>
+      <div style="font-size:13px;color:#65676B;font-weight:700;">لا توجد حسابات محفوظة بعد</div>
+      <div style="font-size:11px;color:#aaa;margin-top:4px;">سيتم حفظ حسابك تلقائياً عند تسجيل الدخول</div>
+    </div>`}
     <button class="cdz-mac-add-btn" onclick="document.getElementById('_cdzMultiAccPanel').remove();logoutAndSwitch()">
       ➕ تسجيل دخول بحساب آخر
     </button>
+    <div style="text-align:center;margin-top:10px;font-size:10px;color:#aaa;font-weight:600;">
+      🔐 تحفظ حتى ${CDZ_MAC_MAX} حسابات · مقيّد بهذا الجهاز فقط
+    </div>
   </div>`;
   ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
   document.body.appendChild(ov);
