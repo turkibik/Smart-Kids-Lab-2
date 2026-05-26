@@ -15522,34 +15522,39 @@ async function renderSocialFeed(){
 
   _startFbFeedPolling();
 
-  /* ⑤ تصنيف: منشورات الأعضاء = كل ما ليس إعلاناً ولا نظاماً حقيقياً */
-  const _isTrueSys = p => !!(p.isAdminPost === true && p.author === 'نظام ConnectDZ');
+  /* ⑤ فلترة حسب الخصوصية */
+  const posts = allPostsRaw.filter(p => {
+    if(p.isActivityAd || p.isAutoPost || p.isAd) return true;
+    const priv = p.privacy || '🌐 عام';
+    if(priv.includes('أنت فقط')) return myName && p.author === myName;
+    if(priv.includes('الأصدقاء')){
+      const myFriends = myName ? getFriends(myName) : [];
+      return myName && (p.author === myName || myFriends.includes(p.author));
+    }
+    return true;
+  });
 
-  const memberPosts = allPostsRaw
-    .filter(p => {
-      if(!p || !p.id) return false;
-      if(p.isActivityAd || p.isAd || _isTrueSys(p)) return false;
-      const priv = p.privacy || '🌐 عام';
-      if(priv.includes('أنت فقط')) return myName && p.author === myName;
-      if(priv.includes('الأصدقاء')){
-        const myFriends = myName ? getFriends(myName) : [];
-        return myName && (p.author === myName || myFriends.includes(p.author));
-      }
-      return true;
-    })
-    .sort((a,b) => (b.ts||0) - (a.ts||0));
-
-  const sysPosts = allPostsRaw
-    .filter(p => p && p.id && (_isTrueSys(p) || p.isActivityAd || p.isAd))
-    .sort((a,b) => (b.ts||0) - (a.ts||0));
-
-  if(memberPosts.length === 0 && sysPosts.length === 0){
-    container.innerHTML = '<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;border-radius:12px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. كن أول من ينشر!</div></div>';
+  if(posts.length === 0){
+    container.innerHTML = `<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;border-radius:12px;">
+      <div style="font-size:48px;margin-bottom:10px;">✍️</div>
+      <div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. كن أول من ينشر!</div>
+    </div>`;
     return;
   }
 
-  /* ⑦ العرض النهائي: أعضاء أولاً (الأحدث فوق) ثم النظام */
-  container.innerHTML = [...memberPosts, ...sysPosts].map(p => renderSocialPostCard(p)).join('');
+  /* ⑥ الترتيب: الأحدث أولاً للأعضاء، الإعلانات في آخر */
+  const memberPosts = posts
+    .filter(p => !p.isActivityAd && !p.isAd)
+    .slice()
+    .sort((a,b) => (b.ts||0) - (a.ts||0)); /* ✅ الأحدث أولاً دائماً */
+
+  const adPosts = posts
+    .filter(p => p.isActivityAd || p.isAd)
+    .slice()
+    .sort((a,b) => (b.ts||0) - (a.ts||0));
+
+  /* ⑦ الدمج النهائي: منشورات الأعضاء أولاً ثم الإعلانات */
+  container.innerHTML = [...memberPosts, ...adPosts].map(p => renderSocialPostCard(p)).join('');
 }
 
 function renderSocialPostCard(p){
@@ -32274,130 +32279,428 @@ setInterval(()=>{
 
 </script>
 
+<!-- ══════════════════════════════════════════════════════════════
+     🚀 ConnectDZ — حزمة الميزات الجديدة v2.1 (آمنة — لا تلغي الأصلي)
+     1) إعجاب وردود على التعليقات
+     2) مشاركة منشور مع عضو في المسنجر
+     3) منشورات النظام تُعرض مرة واحدة لكل عضو
+     4) منشورات الأعضاء مرتبة حسب عدد التعليقات
+     5) زر "تنبيه" في لوحة المدير — ينشر كمنشور نظام
+══════════════════════════════════════════════════════════════ -->
 <script>
-/* ══════════════════════════════════════════════════════════════
-   🔄 استعادة شاملة — يبحث في كل مصادر Firebase ويرجع المنشورات
-   يعمل تلقائياً عند فتح التطبيق بدون أي تدخل
-══════════════════════════════════════════════════════════════ */
 (function(){
-  var DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+'use strict';
 
-  /* الأعضاء المستهدفون */
-  var TARGETS = ['بن قدور ايمان','طبال شيماء','حمودي عبد الغاني','يحي ديش','حمودي محمد الامين'];
+/* ══════════════════════════════════════════════════════════════
+   ① إعجاب وردود على التعليقات
+══════════════════════════════════════════════════════════════ */
 
-  function authorMatch(author){
-    if(!author) return false;
-    var a = author.trim();
-    return TARGETS.some(function(t){ return a === t; });
+window.toggleCommentLike = function(postId, commentId){
+  const me = typeof getCurrentUser==='function' ? getCurrentUser() : null;
+  if(!me){ if(typeof showToast==='function') showToast('🔒 سجّل دخولك أولاً'); return; }
+  const posts = typeof getSocialPosts==='function' ? getSocialPosts() : [];
+  const post  = posts.find(p=>p.id===postId);
+  if(!post) return;
+  const cid = String(commentId);
+  const comment = (post.comments||[]).find(c=>String(c.id||c.ts)===cid);
+  if(!comment) return;
+  if(!comment.likes) comment.likes = {};
+  if(comment.likes[me]) delete comment.likes[me];
+  else {
+    comment.likes[me] = true;
+    if(comment.author && comment.author!==me && typeof addSocialNotif==='function')
+      addSocialNotif(comment.author, `${me} أعجب بتعليقك 👍`, '👍');
   }
-
-  function cleanPost(p){
-    var c = Object.assign({}, p);
-    delete c._archived; delete c._archivedAt; delete c._archivedBy;
-    return c;
+  if(typeof saveSocialPosts==='function') saveSocialPosts(posts);
+  const liked = !!comment.likes[me];
+  const count = Object.keys(comment.likes||{}).length;
+  const btn = document.getElementById('cLikeBtn_'+cid);
+  if(btn){
+    btn.style.color = liked ? '#1877F2' : '#65676B';
+    btn.innerHTML = (liked?'👍 معجب':'👍 إعجاب')+(count>0?` <span style="font-size:10px;background:#F0F2F5;border-radius:8px;padding:1px 5px;">${count}</span>`:'');
   }
+};
 
-  async function fetchAll(){
-    var map = new Map();
+window.toggleReplyBox = function(postId, commentId, authorName){
+  const replyArea = document.getElementById('replyArea_'+commentId);
+  if(!replyArea) return;
+  const open = replyArea.style.display !== 'none';
+  replyArea.style.display = open ? 'none' : 'block';
+  if(!open){ const inp=document.getElementById('replyInput_'+commentId); if(inp){inp.focus();inp.placeholder='ردّ على '+authorName+'…';} }
+};
 
-    /* 1️⃣ social_posts — بدون فلتر */
-    try{
-      var r1 = await fetch(DB + '/social_posts.json');
-      var d1 = await r1.json();
-      if(d1 && typeof d1 === 'object'){
-        Object.values(d1).forEach(function(p){ if(p && p.id) map.set(p.id, cleanPost(p)); });
-      }
-    }catch(e){}
+window.submitReply = function(postId, commentId){
+  const me = typeof getCurrentUser==='function' ? getCurrentUser() : null;
+  if(!me) return;
+  const inp = document.getElementById('replyInput_'+commentId);
+  const text = inp ? inp.value.trim() : '';
+  if(!text) return;
+  const posts = typeof getSocialPosts==='function' ? getSocialPosts() : [];
+  const post  = posts.find(p=>p.id===postId);
+  if(!post) return;
+  const cid = String(commentId);
+  const comment = (post.comments||[]).find(c=>String(c.id||c.ts)===cid);
+  if(!comment) return;
+  if(!comment.replies) comment.replies = [];
+  comment.replies.push({ id:'r'+Date.now(), author:me, text, ts:Date.now() });
+  if(typeof saveSocialPosts==='function') saveSocialPosts(posts);
+  if(inp) inp.value='';
+  if(comment.author && comment.author!==me && typeof addSocialNotif==='function')
+    addSocialNotif(comment.author, `${me} ردّ على تعليقك: "${text.substring(0,30)}"`, '💬');
+  if(typeof refreshPostCard==='function') refreshPostCard(postId);
+  const sec=document.getElementById('commentsSection_'+postId); if(sec) sec.style.display='block';
+  if(typeof showToast==='function') showToast('✅ تم إرسال الرد');
+};
 
-    /* 2️⃣ archived_posts — المنشورات المؤرشفة */
-    try{
-      var r2 = await fetch(DB + '/archived_posts.json');
-      var d2 = await r2.json();
-      if(d2 && typeof d2 === 'object'){
-        Object.values(d2).forEach(function(p){
-          if(p && p.id && authorMatch(p.author)){
-            map.set(p.id, cleanPost(p));
-          }
-        });
-      }
-    }catch(e){}
+window.deleteReply = function(postId, commentId, replyId){
+  if(!confirm('هل تريد حذف هذا الرد؟')) return;
+  const posts = typeof getSocialPosts==='function' ? getSocialPosts() : [];
+  const post = posts.find(p=>p.id===postId); if(!post) return;
+  const cid=String(commentId);
+  const comment=(post.comments||[]).find(c=>String(c.id||c.ts)===cid); if(!comment) return;
+  comment.replies=(comment.replies||[]).filter(r=>String(r.id||r.ts)!==String(replyId));
+  if(typeof saveSocialPosts==='function') saveSocialPosts(posts);
+  if(typeof refreshPostCard==='function') refreshPostCard(postId);
+  const sec=document.getElementById('commentsSection_'+postId); if(sec) sec.style.display='block';
+  if(typeof showToast==='function') showToast('🗑️ تم حذف الرد');
+};
 
-    /* 3️⃣ profile_posts لكل عضو مستهدف */
-    for(var i=0; i<TARGETS.length; i++){
-      var name = TARGETS[i];
-      var safeKey = name.replace(/\s+/g,'_');
-      try{
-        var r3 = await fetch(DB + '/profile_posts/' + safeKey + '.json');
-        var d3 = await r3.json();
-        if(d3 && typeof d3 === 'object'){
-          Object.values(d3).forEach(function(p){
-            if(p && p.id && !map.has(p.id)) map.set(p.id, cleanPost(p));
-          });
-        }
-      }catch(e){}
-    }
+/* تجاوز renderCommentItem — فقط لإضافة زرّي الإعجاب والرد */
+window.renderCommentItem = function(c, postId){
+  const myName = typeof getCurrentUser==='function' ? getCurrentUser() : null;
+  const isOwner = c.author === myName;
+  const cid = String(c.id||c.ts);
+  const liked = !!(myName && c.likes && c.likes[myName]);
+  const likeCount = c.likes ? Object.keys(c.likes).length : 0;
+  const replies = c.replies || [];
+  const icon = typeof getLeaderIcon==='function' ? getLeaderIcon : ()=>'👑';
+  const badge = typeof getAdminVerifiedBadgeHtml==='function' ? getAdminVerifiedBadgeHtml : ()=>'';
 
-    return Array.from(map.values());
-  }
+  const repliesHtml = replies.map(r=>`
+    <div style="display:flex;align-items:flex-start;gap:6px;margin-top:6px;padding-right:10px;">
+      <div onclick="viewMemberProfile('${r.author}')" style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;cursor:pointer;">${icon(r.author)}</div>
+      <div style="background:#f5f0ff;border-radius:12px;padding:6px 10px;flex:1;border:1px solid rgba(168,85,247,0.18);">
+        <div onclick="viewMemberProfile('${r.author}')" style="font-size:11px;font-weight:900;color:#7c3aed;cursor:pointer;margin-bottom:2px;">${r.author}</div>
+        <div style="font-size:12px;color:#050505;">${r.text}</div>
+        ${r.author===myName?`<span onclick="deleteReply('${postId}','${cid}','${r.id||r.ts}')" style="font-size:10px;color:#e53935;cursor:pointer;font-weight:700;">🗑️ حذف</span>`:''}
+      </div>
+    </div>`).join('');
 
-  async function doRestore(){
-    try{
-      var allFb = await fetchAll();
+  return `<div id="comment_${cid}" style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;">
+    <div onclick="viewMemberProfile('${c.author}')" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;cursor:pointer;">${icon(c.author)}</div>
+    <div style="flex:1;">
+      <div style="background:white;border-radius:16px;padding:8px 12px;border:1px solid #E4E6EB;">
+        <div onclick="viewMemberProfile('${c.author}')" style="font-size:12px;font-weight:900;color:#050505;margin-bottom:2px;cursor:pointer;">${c.author}${badge(c.author)}</div>
+        ${c.audio
+          ?`<audio controls src="${c.audio}" style="width:100%;height:32px;border-radius:8px;margin-top:4px;"></audio>`
+          :`<div id="commentText_${cid}" style="font-size:13px;color:#050505;line-height:1.5;">${c.text}</div>`}
+      </div>
+      <!-- أزرار التفاعل -->
+      <div style="display:flex;align-items:center;gap:14px;margin-top:4px;padding-right:4px;flex-wrap:wrap;">
+        <button id="cLikeBtn_${cid}" onclick="toggleCommentLike('${postId}','${cid}')"
+          style="background:none;border:none;font-size:12px;font-weight:700;color:${liked?'#1877F2':'#65676B'};cursor:pointer;padding:0;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:3px;">
+          ${liked?'👍 معجب':'👍 إعجاب'}${likeCount>0?` <span style="font-size:10px;background:#F0F2F5;border-radius:8px;padding:1px 5px;">${likeCount}</span>`:''}
+        </button>
+        <button onclick="toggleReplyBox('${postId}','${cid}','${c.author}')"
+          style="background:none;border:none;font-size:12px;font-weight:700;color:#65676B;cursor:pointer;padding:0;font-family:'Tajawal',sans-serif;">
+          💬 رد${replies.length>0?` (${replies.length})`:''}
+        </button>
+        ${isOwner&&!c.audio?`<button onclick="editComment('${postId}','${cid}')" style="background:none;border:none;font-size:12px;font-weight:700;color:#1877F2;cursor:pointer;padding:0;font-family:'Tajawal',sans-serif;">✏️ تعديل</button>`:''}
+        ${isOwner?`<button onclick="deleteComment('${postId}','${cid}')" style="background:none;border:none;font-size:12px;font-weight:700;color:#e53935;cursor:pointer;padding:0;font-family:'Tajawal',sans-serif;">🗑️ حذف</button>`:''}
+      </div>
+      ${repliesHtml}
+      <!-- صندوق الرد — مخفي افتراضياً -->
+      <div id="replyArea_${cid}" style="display:none;margin-top:6px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">${icon(myName||'?')}</div>
+          <div style="flex:1;background:#F0F2F5;border-radius:16px;display:flex;align-items:center;padding:0 8px;gap:4px;">
+            <input id="replyInput_${cid}" type="text" placeholder="اكتب ردّاً…"
+              style="flex:1;border:none;background:transparent;padding:7px 2px;font-family:'Tajawal',sans-serif;font-size:12px;color:#050505;outline:none;text-align:right;"
+              onkeydown="if(event.key==='Enter'){submitReply('${postId}','${cid}');event.preventDefault();}">
+            <button onclick="submitReply('${postId}','${cid}')"
+              style="background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+              <svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='white'><path d='M2 21l21-9L2 3v7l15 2-15 2v7z'/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+};
 
-      /* منشورات الأعضاء المستهدفين */
-      var targetPosts = allFb.filter(function(p){ return authorMatch(p.author); });
+/* ══════════════════════════════════════════════════════════════
+   ② مشاركة المنشور — قائمة أعضاء → إرسال في المسنجر
+══════════════════════════════════════════════════════════════ */
 
-      if(targetPosts.length === 0){
-        console.warn('[Restore] لم تُعثر على أي منشور للأعضاء المستهدفين في Firebase');
-        return;
-      }
+window.sharePost = function(postId){
+  if(typeof ebPointsShare==='function') ebPointsShare();
+  const posts = typeof getSocialPosts==='function' ? getSocialPosts() : [];
+  const post = posts.find(p=>p.id===postId);
+  if(!post) return;
+  _openShareModal(post);
+};
 
-      console.log('[Restore] عُثر على ' + targetPosts.length + ' منشور للأعضاء');
+function _openShareModal(post){
+  const old=document.getElementById('_cdzShareModal'); if(old) old.remove();
+  const ov=document.createElement('div');
+  ov.id='_cdzShareModal';
+  ov.style.cssText='position:fixed;inset:0;z-index:60000;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;font-family:\'Tajawal\',sans-serif;';
+  ov.innerHTML=`
+    <div style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:500px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .25s ease;">
+      <div style="padding:14px 18px 10px;border-bottom:1px solid #F0F2F5;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative;">
+        <div style="width:40px;height:4px;background:#E4E6EB;border-radius:4px;position:absolute;top:6px;left:50%;transform:translateX(-50%);"></div>
+        <div style="font-size:16px;font-weight:900;color:#050505;">↗️ مشاركة المنشور</div>
+        <button onclick="document.getElementById('_cdzShareModal').remove()" style="background:#F0F2F5;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:10px 16px 8px;background:#F7F8FA;border-bottom:1px solid #E4E6EB;flex-shrink:0;">
+        <div style="font-size:12px;color:#65676B;font-weight:700;">${post.author}</div>
+        <div style="font-size:13px;color:#050505;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(post.text||'').substring(0,90)}${(post.text||'').length>90?'…':''}</div>
+      </div>
+      <div style="padding:8px 16px;flex-shrink:0;">
+        <div style="background:#F0F2F5;border-radius:20px;display:flex;align-items:center;padding:7px 12px;gap:8px;">
+          <span>🔍</span>
+          <input id="_shareSearchInp" type="text" placeholder="ابحث عن عضو…"
+            style="flex:1;border:none;background:transparent;font-family:'Tajawal',sans-serif;font-size:13px;color:#050505;outline:none;text-align:right;"
+            oninput="_filterShareMembers(this.value)">
+        </div>
+      </div>
+      <div id="_shareMemList" style="flex:1;overflow-y:auto;padding:0 12px 20px;">
+        <div style="text-align:center;padding:30px;color:#65676B;font-size:13px;">⏳ جارٍ تحميل قائمة الأعضاء…</div>
+      </div>
+    </div>`;
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+  _loadShareMembers(post);
+}
 
-      /* إعادة رفع المنشورات المفقودة إلى social_posts */
-      var uploads = targetPosts.map(function(p){
-        return fetch(DB + '/social_posts/' + p.id + '.json', {
-          method: 'PUT',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify(p)
-        }).catch(function(){});
-      });
-      await Promise.all(uploads);
+async function _loadShareMembers(post){
+  const myName=typeof getCurrentUser==='function'?getCurrentUser():null;
+  let names=[];
+  try{ const c=localStorage.getItem('nld_members_cache')||localStorage.getItem('sklab_members_list')||localStorage.getItem('cdz_members'); if(c){ const p=JSON.parse(c); names=p.map(m=>typeof m==='string'?m:m.name).filter(Boolean); } }catch(e){}
+  try{
+    const du=typeof window.dataUrl!=='undefined'?window.dataUrl:(typeof window.membersUrl!=='undefined'?window.membersUrl:'');
+    if(du){ const r=await fetch(du); if(r.ok){ const csv=await r.text(); const fr=csv.split('\n').slice(1).filter(l=>l.trim()).map(l=>(l.split(',')[2]||'').replace(/"/g,'').trim()).filter(n=>n&&n!=='ممتاز'&&n!=='لؤي'); if(fr.length) names=fr; } }
+  }catch(e){}
+  names=[...new Set(names)].filter(n=>n&&n!==myName);
+  window._shareAllNames=names; window._sharePost=post;
+  _renderShareList(names,post);
+}
 
-      /* دمج مع localStorage */
-      var local = [];
-      try{ local = JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){}
-      var lmap = new Map();
-      local.forEach(function(p){ if(p&&p.id) lmap.set(p.id,p); });
-      allFb.forEach(function(p){ if(p&&p.id) lmap.set(p.id, Object.assign(lmap.get(p.id)||{}, p)); });
-      var merged = Array.from(lmap.values()).sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
-      try{ localStorage.setItem('nld_social_posts', JSON.stringify(merged)); }catch(e){}
+window._filterShareMembers=function(q){ _renderShareList((window._shareAllNames||[]).filter(n=>!q.trim()||n.includes(q.trim())),window._sharePost); };
 
-      /* إعادة رسم الفيد */
-      if(typeof renderSocialFeed === 'function'){
-        setTimeout(function(){
-          if(document.getElementById('socialFeedContainer')) renderSocialFeed();
-        }, 300);
-      }
+function _renderShareList(names,post){
+  const el=document.getElementById('_shareMemList'); if(!el) return;
+  if(!names.length){ el.innerHTML='<div style="text-align:center;padding:30px;color:#65676B;font-size:13px;">لا يوجد أعضاء</div>'; return; }
+  const av=n=>typeof getMemberAvatarHtml==='function'?getMemberAvatarHtml(n,44,13,false):`<div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(n):'👤'}</div>`;
+  el.innerHTML=names.map(n=>`
+    <div onclick="_doShareToMember('${n.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}',this)" style="display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:12px;cursor:pointer;transition:.15s;margin-bottom:4px;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      ${av(n)}
+      <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">${n}</div><div style="font-size:11px;color:#65676B;">إرسال في المسنجر</div></div>
+      <div id="shareBtn_${n.replace(/\s+/g,'_')}" style="background:linear-gradient(135deg,#1877F2,#0d5bda);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:800;color:white;flex-shrink:0;">↗️ إرسال</div>
+    </div>`).join('');
+}
 
-      if(typeof showToast === 'function') showToast('✅ تم استعادة ' + targetPosts.length + ' منشور');
-      console.log('[Restore] ✅ اكتمل — ' + targetPosts.length + ' منشور مستعاد');
-
-    }catch(ex){
-      console.error('[Restore] خطأ:', ex);
-    }
-  }
-
-  /* تشغيل عند التحميل */
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(doRestore, 2500); });
+window._doShareToMember=async function(targetName,rowEl){
+  const me=typeof getCurrentUser==='function'?getCurrentUser():null;
+  if(!me){ if(typeof showToast==='function') showToast('🔒 سجّل دخولك أولاً'); return; }
+  const post=window._sharePost; if(!post) return;
+  const safeKey=targetName.replace(/\s+/g,'_');
+  const btnEl=document.getElementById('shareBtn_'+safeKey);
+  if(btnEl){ btnEl.innerText='⏳'; btnEl.style.opacity='0.7'; }
+  const shareText=`📤 مشاركة منشور من *${post.author}*:\n\n"${(post.text||'').substring(0,200)}${(post.text||'').length>200?'…':''}"`;
+  const msgObj={ id:'share_'+Date.now(), from:me, to:targetName, message:shareText, timestamp:new Date().toISOString(), read:false };
+  let ok=false;
+  try{ if(typeof sbSendMessage==='function') ok=await sbSendMessage(msgObj); }catch(e){}
+  if(!ok){ try{ const k='cdz_msgs_'+[me,targetName].sort().join('__'); const a=JSON.parse(localStorage.getItem(k)||'[]'); a.push(msgObj); localStorage.setItem(k,JSON.stringify(a)); ok=true; }catch(e){} }
+  if(ok){
+    if(btnEl){ btnEl.innerText='✅ تم الإرسال'; btnEl.style.background='linear-gradient(135deg,#22c55e,#16a34a)'; btnEl.style.opacity='1'; }
+    if(typeof addSocialNotif==='function') addSocialNotif(targetName,`${me} شارك معك منشوراً 📤`,'📤');
+    if(typeof showToast==='function') showToast('✅ تم الإرسال إلى '+targetName+' في المسنجر');
+    setTimeout(()=>{ const m=document.getElementById('_cdzShareModal'); if(m) m.remove(); },1800);
   } else {
-    setTimeout(doRestore, 2500);
+    if(btnEl){ btnEl.innerText='❌ فشل'; btnEl.style.background='linear-gradient(135deg,#ef4444,#dc2626)'; btnEl.style.opacity='1'; }
+    if(typeof showToast==='function') showToast('❌ فشل الإرسال، حاول مجدداً');
   }
+};
 
-  /* متاح يدوياً من الكونسول */
-  window._forceRestore = doRestore;
+/* ══════════════════════════════════════════════════════════════
+   ③ منشورات النظام مرة واحدة + ④ ترتيب الأعضاء حسب التعليقات
+   النهج الآمن: نستدعي الدالة الأصلية ثم نعالج DOM فقط
+══════════════════════════════════════════════════════════════ */
+
+function _viewedSysKey(){ const me=typeof getCurrentUser==='function'?getCurrentUser():'guest'; return 'cdz_vsys_'+me.replace(/\s+/g,'_'); }
+function _getViewedSys(){ try{ return JSON.parse(localStorage.getItem(_viewedSysKey())||'[]'); }catch(e){ return []; } }
+function _markSysViewed(ids){ try{ const v=[...new Set([..._getViewedSys(),...ids])]; localStorage.setItem(_viewedSysKey(),JSON.stringify(v)); }catch(e){} }
+function _isSysPost(p){ return !!(p.isAdminPost||p.isAutoPost||p.isAd||p.isActivityAd); }
+
+/* معالجة DOM بعد renderSocialFeed الأصلي */
+function _postProcessFeed(){
+  const container=document.getElementById('socialFeedContainer'); if(!container) return;
+  const posts=typeof getSocialPosts==='function'?getSocialPosts():[];
+  const viewed=_getViewedSys();
+
+  /* اجمع كل عناصر المنشورات */
+  const allEls=Array.from(container.children);
+  const memberItems=[], sysItems=[];
+
+  allEls.forEach(el=>{
+    if(!el.id||!el.id.startsWith('spost_')) return;
+    const pid=el.id.replace('spost_','');
+    const post=posts.find(p=>p.id===pid);
+    if(post && _isSysPost(post)){
+      if(viewed.includes(pid)){ el.remove(); } /* إخفاء المشاهدة */
+      else sysItems.push({el,post});
+    } else {
+      memberItems.push({el, cmtCount:post?(post.comments||[]).length:0});
+    }
+  });
+
+  /* ترتيب الأعضاء تنازلياً حسب التعليقات */
+  memberItems.sort((a,b)=>b.cmtCount-a.cmtCount);
+
+  /* إعادة ترتيب: أعضاء أولاً، نظام ثانياً */
+  const frag=document.createDocumentFragment();
+  memberItems.forEach(({el})=>frag.appendChild(el));
+  sysItems.forEach(({el})=>frag.appendChild(el));
+  container.appendChild(frag);
+
+  /* IntersectionObserver لتتبع مشاهدة منشورات النظام */
+  if(sysItems.length){
+    const obs=new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{
+        if(!entry.isIntersecting) return;
+        const pid=entry.target.id.replace('spost_','');
+        _markSysViewed([pid]);
+        obs.unobserve(entry.target);
+      });
+    },{threshold:0.75});
+    sysItems.forEach(({el})=>obs.observe(el));
+  }
+}
+
+/* لفّ renderSocialFeed بدلاً من استبدالها */
+(function _wrapRenderSocialFeed(){
+  function tryWrap(){
+    if(typeof window.renderSocialFeed !== 'function'){ setTimeout(tryWrap,300); return; }
+    const _orig=window.renderSocialFeed;
+    window.renderSocialFeed=async function(){
+      await _orig.apply(this,arguments);
+      /* بعد انتهاء الأصلي نعالج DOM */
+      requestAnimationFrame(()=>setTimeout(_postProcessFeed,100));
+    };
+    console.log('✅ [CDZ] renderSocialFeed مُلفَّفة بنجاح');
+  }
+  tryWrap();
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   ⑤ زر تنبيه في لوحة المدير — ينشر كمنشور نظام
+══════════════════════════════════════════════════════════════ */
+
+function _injectAdminAlertSection(){
+  if(document.getElementById('_adminAlertSection')) return;
+  /* ابحث عن حاوية rسالة التنبيه الفورية */
+  const notifStatus=document.getElementById('adminNotifStatus');
+  if(!notifStatus) return;
+  const parentCard=notifStatus.closest('.admin-glass-card');
+  if(!parentCard) return;
+
+  const wrapper=document.createElement('div');
+  wrapper.id='_adminAlertSection';
+  wrapper.style.cssText='margin-top:18px;';
+  wrapper.innerHTML=`
+    <div class="admin-divider"></div>
+    <div class="admin-section-head">
+      <div class="admin-icon-tile" style="background:linear-gradient(145deg,#f43f5e,#e11d48,#9f1239);">🔔</div>
+      <div class="admin-section-head-text">
+        <div class="admin-section-head-title">تنبيه — ينشر كمنشور نظام</div>
+        <div class="admin-section-head-sub">SYSTEM ALERT POST</div>
+      </div>
+    </div>
+    <div class="admin-glass-card" style="margin-top:10px;">
+      <div class="admin-section">
+        <div style="font-size:11px;color:rgba(100,50,10,0.6);margin-bottom:8px;padding:7px 10px;background:rgba(244,63,94,0.06);border:1.5px solid rgba(244,63,94,0.18);border-radius:9px;line-height:1.7;font-weight:600;">
+          🔔 الرسالة ستُنشر كمنشور من <b>النظام</b> — يراها كل عضو جديد مرة واحدة فقط.
+        </div>
+        <textarea class="admin-input" id="adminAlertText" rows="3"
+          placeholder="اكتب نص التنبيه هنا… (سيظهر كمنشور نظام للأعضاء)"
+          style="width:100%;min-height:80px;resize:vertical;box-sizing:border-box;"></textarea>
+        <div class="admin-row" style="margin-top:8px;">
+          <button id="adminAlertSendBtn" class="admin-btn"
+            onclick="adminSendAlertPost()"
+            style="background:linear-gradient(135deg,#f43f5e,#e11d48);border-color:rgba(244,63,94,0.4);color:white;font-weight:900;">
+            🔔 إرسال كتنبيه نظام
+          </button>
+        </div>
+        <div class="admin-msg" id="adminAlertStatus" style="display:none;margin-top:8px;"></div>
+      </div>
+    </div>`;
+
+  /* أدرج بعد البطاقة الأم */
+  parentCard.parentNode.insertBefore(wrapper, parentCard.nextSibling);
+}
+
+window.adminSendAlertPost=async function(){
+  if(!window._isAdmin){ if(typeof showToast==='function') showToast('❌ للمدير فقط'); return; }
+  const textEl=document.getElementById('adminAlertText');
+  const statusEl=document.getElementById('adminAlertStatus');
+  const btn=document.getElementById('adminAlertSendBtn');
+  const text=textEl?textEl.value.trim():'';
+  if(!text){ if(statusEl){statusEl.className='admin-msg err';statusEl.innerText='⚠️ اكتب نص التنبيه أولاً';statusEl.style.display='block';} return; }
+  if(btn){btn.disabled=true;btn.innerText='⏳ جارٍ النشر…';}
+  if(statusEl){statusEl.className='admin-msg';statusEl.innerText='⏳ جارٍ النشر…';statusEl.style.display='block';}
+  const nowDate=new Date().toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const postId='alert_sys_'+Date.now();
+  const post={
+    id:postId, author:'نظام ConnectDZ', authorBadge:'🔔',
+    text:'🔔 '+text, image:null, feeling:null, date:nowDate, ts:Date.now(),
+    reactions:{}, comments:[], privacy:'🌐 عام',
+    isAdminPost:true, isAutoPost:true, autoCategory:'alert', isVerified:true
+  };
+  try{
+    const posts=typeof getSocialPosts==='function'?getSocialPosts():JSON.parse(localStorage.getItem('nld_social_posts')||'[]');
+    posts.unshift(post);
+    if(typeof saveSocialPosts==='function') saveSocialPosts(posts);
+    else localStorage.setItem('nld_social_posts',JSON.stringify(posts));
+    /* رفع Firebase */
+    fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts/${postId}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(post)}).catch(()=>{});
+    if(typeof showAdminNotifBanner==='function') showAdminNotifBanner('🔔 '+text);
+    if(statusEl){statusEl.className='admin-msg ok';statusEl.innerText='✅ تم نشر التنبيه بنجاح!';}
+    if(textEl) textEl.value='';
+    if(typeof renderSocialFeed==='function') setTimeout(renderSocialFeed,500);
+    if(typeof showToast==='function') showToast('✅ تم نشر التنبيه');
+    if(typeof _addAdminPoints==='function') _addAdminPoints('إرسال تنبيه نظام');
+  }catch(e){
+    if(statusEl){statusEl.className='admin-msg err';statusEl.innerText='❌ فشل النشر: '+(e.message||'خطأ');}
+  }
+  if(btn){btn.disabled=false;btn.innerText='🔔 إرسال كتنبيه نظام';}
+};
+
+/* حقن قسم التنبيه بمجرد ظهور لوحة المدير */
+(function _watchAdminPanel(){
+  let injected=false;
+  const obs=new MutationObserver(()=>{
+    if(window._isAdmin && document.getElementById('adminNotifStatus') && !injected){
+      injected=true;
+      _injectAdminAlertSection();
+    }
+  });
+  obs.observe(document.body,{childList:true,subtree:true});
+  /* فحص فوري أيضاً */
+  if(window._isAdmin && document.getElementById('adminNotifStatus')) _injectAdminAlertSection();
+})();
+
+/* ══ Animation helper ══ */
+if(!document.getElementById('_cdzSlideUpStyle')){
+  const s=document.createElement('style');
+  s.id='_cdzSlideUpStyle';
+  s.textContent='@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}';
+  document.head.appendChild(s);
+}
+
+console.log('✅ [ConnectDZ v2.1] الميزات النشطة: إعجاب التعليق ✓ | ردود ✓ | مشاركة للمسنجر ✓ | منشورات النظام مرة واحدة ✓ | ترتيب التعليقات ✓ | تنبيه المدير ✓');
 })();
 </script>
+
 </body>
 </html>
