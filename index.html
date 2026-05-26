@@ -15522,19 +15522,34 @@ async function renderSocialFeed(){
 
   _startFbFeedPolling();
 
-  /* ⑤ فلترة حسب الخصوصية */
-  const posts = allPostsRaw.filter(p => {
-    if(p.isActivityAd || p.isAutoPost || p.isAd) return true;
-    const priv = p.privacy || '🌐 عام';
-    if(priv.includes('أنت فقط')) return myName && p.author === myName;
-    if(priv.includes('الأصدقاء')){
-      const myFriends = myName ? getFriends(myName) : [];
-      return myName && (p.author === myName || myFriends.includes(p.author));
-    }
-    return true;
-  });
+  /* ⑤ تصنيف المنشورات: أعضاء حقيقيون vs نظام/إعلانات */
+  /* ✅ منشور النظام الحقيقي: isAdminPost=true AND author='نظام ConnectDZ' */
+  const isTrueSysPost = p => !!(p.isAdminPost === true && p.author === 'نظام ConnectDZ');
 
-  if(posts.length === 0){
+  /* ⑤أ فلترة منشورات الأعضاء حسب الخصوصية فقط — لا تُحذف أبداً بسبب أي علامة أخرى */
+  const memberPosts = allPostsRaw
+    .filter(p => {
+      /* أي منشور ليس إعلاناً ولا نظاماً حقيقياً هو منشور عضو */
+      if(p.isActivityAd || p.isAd) return false;
+      if(isTrueSysPost(p)) return false;
+      /* فلترة الخصوصية */
+      const priv = p.privacy || '🌐 عام';
+      if(priv.includes('أنت فقط')) return myName && p.author === myName;
+      if(priv.includes('الأصدقاء')){
+        const myFriends = myName ? getFriends(myName) : [];
+        return myName && (p.author === myName || myFriends.includes(p.author));
+      }
+      return true; /* عام — يظهر للجميع */
+    })
+    .sort((a,b) => (b.ts||0) - (a.ts||0)); /* ✅ الأحدث دائماً أولاً */
+
+  /* ⑤ب منشورات النظام والإعلانات — في الآخر */
+  const sysPosts = allPostsRaw
+    .filter(p => isTrueSysPost(p) || p.isActivityAd || p.isAd)
+    .sort((a,b) => (b.ts||0) - (a.ts||0));
+
+  /* ⑥ إذا لم توجد منشورات أعضاء على الإطلاق */
+  if(memberPosts.length === 0 && sysPosts.length === 0){
     container.innerHTML = `<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;border-radius:12px;">
       <div style="font-size:48px;margin-bottom:10px;">✍️</div>
       <div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. كن أول من ينشر!</div>
@@ -15542,19 +15557,8 @@ async function renderSocialFeed(){
     return;
   }
 
-  /* ⑥ الترتيب: الأحدث أولاً للأعضاء، الإعلانات في آخر */
-  const memberPosts = posts
-    .filter(p => !p.isActivityAd && !p.isAd)
-    .slice()
-    .sort((a,b) => (b.ts||0) - (a.ts||0)); /* ✅ الأحدث أولاً دائماً */
-
-  const adPosts = posts
-    .filter(p => p.isActivityAd || p.isAd)
-    .slice()
-    .sort((a,b) => (b.ts||0) - (a.ts||0));
-
-  /* ⑦ الدمج النهائي: منشورات الأعضاء أولاً ثم الإعلانات */
-  container.innerHTML = [...memberPosts, ...adPosts].map(p => renderSocialPostCard(p)).join('');
+  /* ⑦ الترتيب النهائي: منشورات الأعضاء أولاً (الأحدث فالأحدث) ثم النظام */
+  container.innerHTML = [...memberPosts, ...sysPosts].map(p => renderSocialPostCard(p)).join('');
 }
 
 function renderSocialPostCard(p){
@@ -32524,74 +32528,11 @@ window._doShareToMember=async function(targetName,rowEl){
 };
 
 /* ══════════════════════════════════════════════════════════════
-   ③ منشورات النظام مرة واحدة + ④ ترتيب الأعضاء حسب التعليقات
-   النهج الآمن: نستدعي الدالة الأصلية ثم نعالج DOM فقط
+   ③ منشورات النظام مرة واحدة + ④ ترتيب الأعضاء
+   تمت معالجتهما داخل renderSocialFeed مباشرة — لا حاجة للف خارجي
 ══════════════════════════════════════════════════════════════ */
 
 function _viewedSysKey(){ const me=typeof getCurrentUser==='function'?getCurrentUser():'guest'; return 'cdz_vsys_'+me.replace(/\s+/g,'_'); }
-function _getViewedSys(){ try{ return JSON.parse(localStorage.getItem(_viewedSysKey())||'[]'); }catch(e){ return []; } }
-function _markSysViewed(ids){ try{ const v=[...new Set([..._getViewedSys(),...ids])]; localStorage.setItem(_viewedSysKey(),JSON.stringify(v)); }catch(e){} }
-function _isSysPost(p){ return !!(p.isAdminPost||p.isAutoPost||p.isAd||p.isActivityAd); }
-
-/* معالجة DOM بعد renderSocialFeed الأصلي */
-function _postProcessFeed(){
-  const container=document.getElementById('socialFeedContainer'); if(!container) return;
-  const posts=typeof getSocialPosts==='function'?getSocialPosts():[];
-  const viewed=_getViewedSys();
-
-  /* اجمع كل عناصر المنشورات */
-  const allEls=Array.from(container.children);
-  const memberItems=[], sysItems=[];
-
-  allEls.forEach(el=>{
-    if(!el.id||!el.id.startsWith('spost_')) return;
-    const pid=el.id.replace('spost_','');
-    const post=posts.find(p=>p.id===pid);
-    if(post && _isSysPost(post)){
-      if(viewed.includes(pid)){ el.remove(); } /* إخفاء المشاهدة */
-      else sysItems.push({el,post});
-    } else {
-      memberItems.push({el, cmtCount:post?(post.comments||[]).length:0});
-    }
-  });
-
-  /* ترتيب الأعضاء تنازلياً حسب التعليقات */
-  memberItems.sort((a,b)=>b.cmtCount-a.cmtCount);
-
-  /* إعادة ترتيب: أعضاء أولاً، نظام ثانياً */
-  const frag=document.createDocumentFragment();
-  memberItems.forEach(({el})=>frag.appendChild(el));
-  sysItems.forEach(({el})=>frag.appendChild(el));
-  container.appendChild(frag);
-
-  /* IntersectionObserver لتتبع مشاهدة منشورات النظام */
-  if(sysItems.length){
-    const obs=new IntersectionObserver(entries=>{
-      entries.forEach(entry=>{
-        if(!entry.isIntersecting) return;
-        const pid=entry.target.id.replace('spost_','');
-        _markSysViewed([pid]);
-        obs.unobserve(entry.target);
-      });
-    },{threshold:0.75});
-    sysItems.forEach(({el})=>obs.observe(el));
-  }
-}
-
-/* لفّ renderSocialFeed بدلاً من استبدالها */
-(function _wrapRenderSocialFeed(){
-  function tryWrap(){
-    if(typeof window.renderSocialFeed !== 'function'){ setTimeout(tryWrap,300); return; }
-    const _orig=window.renderSocialFeed;
-    window.renderSocialFeed=async function(){
-      await _orig.apply(this,arguments);
-      /* بعد انتهاء الأصلي نعالج DOM */
-      requestAnimationFrame(()=>setTimeout(_postProcessFeed,100));
-    };
-    console.log('✅ [CDZ] renderSocialFeed مُلفَّفة بنجاح');
-  }
-  tryWrap();
-})();
 
 /* ══════════════════════════════════════════════════════════════
    ⑤ زر تنبيه في لوحة المدير — ينشر كمنشور نظام
