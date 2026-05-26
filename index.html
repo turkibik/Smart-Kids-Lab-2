@@ -34901,6 +34901,137 @@ console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات �
 })();
 
 /* ══════════════════════════════════════════════════════════
+   📊 مزامنة النقاط مع Google Sheets تلقائياً
+   يُحدَّث عند كل تغيير في نقاط الكويز أو التفاعلات
+   ══════════════════════════════════════════════════════════ */
+(function _initGoogleSheetsSync(){
+  'use strict';
+
+  /* ── إعدادات Google Sheets ── */
+  const SHEET_ID      = '1NbIqAur5m-UduBriLSFTOHLzsbJb-b5CebF1xYB7Tr8';
+  const CLIENT_EMAIL  = 'firebase-adminsdk-fbsvc@connectdz-49fab.iam.gserviceaccount.com';
+  const PRIVATE_KEY   = '-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDUsnV+zgl+7mU6\n+QX+J1CwfZHnI4S5w4OmzQXAlyocprkVx1nwZr78R7GxWt2lqedL9Ow6myBz6T30\nm5HoFBhtpHw0pdyHn/yVS13KvW8YDC0MaN9+AKb2TQH+ftJPlf2TbGc4crOgcGOV\nmxeX7aASaIlBBPkRQ2/aBf3bpSaQYHY+7dCyzIeddhn5i4sf6co+xR0FCqH2kAq6\npcTc7UU6h9h/YC75Lk+BGrnd8UFOzmrgtcoONDhBfudcvzBiYe0R+iivG0h9N6lh\ngl9qGuD3V80bmzMoEmqG+wgxHE5uLJ3K+qEy0URtF4+1Hj63wm41WRtGDONBRkD/\nx6k8RJodAgMBAAECggEAWD7UZbBpGysgf9eqp1g7b4YhnyLK4eGewPkmDlIJTErV\n1pXXmFigm33JWPqIpD96Mbbjvar3y291X4OeBQo1WmQYjiVUekaj3nMe7ksrCPCg\nThpCw33Ux7KKhcKrUg66XsxmhPJ92S5X+s2We9fAhnKto3bDOWjfwrairNr3xYUm\nTX4/Ihnvks3HaaHfNXNIf5Vfs7GOBHHGJawXx5nLkEJ8aNMfItokTK1Fuyr015Pi\nUD9dzc9/uLDUiBVDxbtjt+uxu2vbLAav+zxjydI/1JjU6M0y6fyvqSLF2pHbF0xp\nYwWSt8DFLgOXzTJMkYOHwIw3u4KB5mYTg4HadrNK9wKBgQDugEi7CGQoQATtNTDG\nUg2gvJ8c7OU+LlttZcJl8Uh+lYYgOnHo/KHPO2GpcfRBZr1G/J3lMrrGfaFjn9D8\nMCrI8kSUqJcL3fK/Afd4t5y2OLW302Th9ZMP/eb2HhG1rCv/MOyijubzt8CFY2QK\n6Zpmzn4mLwLiaVzbIa7flLPJFwKBgQDkTYDyzs9zmujfARQ387CUkXaV+M9yep0D\nNSql3HAJNpKH+MlFyMqqz6+KrBHwSV/FYtsdV109xfzm/NPhebw9/4soQnm5WWMl\nreoplaFxmV3ontpqMUXHeo01oInK5W+aOXJ6swpqoUm/fFWP91/hlxbCWG3XY8qX\nupk/OXpO6wKBgBwib/H4THBfFPWyh51tgoQKnC56V5SdPVXLYkJKU0Xzd44HtvZI\nDwJ2O9AUTD8G0p80H6Aw+s19dnNdH/cP64wm4CY1ORRCS2dy4PGRn1/zkqQrwMPT\nB1Ukm4E/DNHEjLAe4ltOxjnL3F8f2WZcJkWoaEMy2oFA8p46+/kN/qNjAoGBAOKm\nyxjDFpM3vG8AnDj8Flc4npk/HXwSnGR92Ow3D4cmBY02AWPldsbjTuwF7f02av0E\nKnJTtH7KW0xavmM/vxFx7I44iK3pPxQ+N5W3NkMYNnHlmwMIDbV/RkdyLLog044x\n8CQ+MV4w541R+4Pk2+yTWgXxUoMeUBgYKWHqRzGnAoGBAJkeKxI2wJFM50C6pELX\n9EhHjzFG/4PhM18tSIlaXMBB0mtpEILeJxfGdskzhm1lkmaZmhruEwizeJYzBi6S\nuftIiZq2KuIS2xDYlrKCx4gqVRMymtfZD65x2j6ytRbgly1KQdZipob85Yed5ZyN\nMh82Olb1dJEVSQTVCAFzvheQ\n-----END PRIVATE KEY-----\n';
+  const SHEET_NAME    = 'Sheet1';
+  const HEADERS       = ['الاسم','نقاط الجدول','نقاط الكويز','نقاط التفاعل','المجموع','آخر تحديث'];
+
+  /* ── توليد JWT للمصادقة مع Google ── */
+  async function _getAccessToken(){
+    try {
+      const now   = Math.floor(Date.now()/1000);
+      const header  = { alg:'RS256', typ:'JWT' };
+      const payload = {
+        iss   : CLIENT_EMAIL,
+        scope : 'https://www.googleapis.com/auth/spreadsheets',
+        aud   : 'https://oauth2.googleapis.com/token',
+        exp   : now + 3600,
+        iat   : now
+      };
+      const enc = s => btoa(unescape(encodeURIComponent(JSON.stringify(s))))
+                        .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+      const sigInput = enc(header) + '.' + enc(payload);
+
+      /* استيراد المفتاح الخاص */
+      const pemBody = PRIVATE_KEY
+        .replace(/-----BEGIN PRIVATE KEY-----/,'')
+        .replace(/-----END PRIVATE KEY-----/,'')
+        .replace(/\s+/g,'');
+      const binaryDer = Uint8Array.from(atob(pemBody), c => c.charCodeAt(0));
+      const cryptoKey = await crypto.subtle.importKey(
+        'pkcs8', binaryDer.buffer,
+        { name:'RSASSA-PKCS1-v1_5', hash:'SHA-256' },
+        false, ['sign']
+      );
+      const sig = await crypto.subtle.sign(
+        'RSASSA-PKCS1-v1_5', cryptoKey,
+        new TextEncoder().encode(sigInput)
+      );
+      const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)))
+                      .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+      const jwt = sigInput + '.' + sigB64;
+
+      /* استبدال الـ JWT بـ Access Token */
+      const res = await fetch('https://oauth2.googleapis.com/token',{
+        method : 'POST',
+        headers: {'Content-Type':'application/x-www-form-urlencoded'},
+        body   : 'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion='+jwt
+      });
+      const d = await res.json();
+      return d.access_token || null;
+    } catch(e){ return null; }
+  }
+
+  /* ── جلب كل بيانات الـ Sheet ── */
+  async function _getSheetData(token){
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}`;
+    const res = await fetch(url,{ headers:{ Authorization:'Bearer '+token } });
+    const d   = await res.json();
+    return d.values || [];
+  }
+
+  /* ── إعداد رأس الجدول إذا كان فارغاً ── */
+  async function _ensureHeaders(token){
+    const data = await _getSheetData(token);
+    if(data.length === 0){
+      await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:F1?valueInputOption=USER_ENTERED`,
+        { method:'PUT', headers:{ Authorization:'Bearer '+token,'Content-Type':'application/json' },
+          body: JSON.stringify({ values:[HEADERS] }) }
+      );
+    }
+  }
+
+  /* ── الدالة الرئيسية: كتابة/تحديث صف المستخدم ── */
+  window.syncToGoogleSheets = async function(name, sheetPts, quizPts, interactPts){
+    if(!name || name==='زائر' || name==='المدير') return;
+    try {
+      const token = await _getAccessToken();
+      if(!token){ console.warn('[Sheets] فشل الحصول على token'); return; }
+
+      await _ensureHeaders(token);
+
+      const data     = await _getSheetData(token);
+      const totalPts = (sheetPts||0)+(quizPts||0)+(interactPts||0);
+      const now      = new Date().toLocaleString('ar-DZ');
+      const newRow   = [name, sheetPts||0, quizPts||0, interactPts||0, totalPts, now];
+
+      /* ابحث عن صف المستخدم */
+      let rowIndex = -1;
+      for(let i=1; i<data.length; i++){
+        if(data[i][0] === name){ rowIndex = i+1; break; }
+      }
+
+      if(rowIndex === -1){
+        /* مستخدم جديد — أضف صفاً */
+        await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A1:F1:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+          { method:'POST', headers:{ Authorization:'Bearer '+token,'Content-Type':'application/json' },
+            body: JSON.stringify({ values:[newRow] }) }
+        );
+      } else {
+        /* مستخدم موجود — حدّث صفه */
+        await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A${rowIndex}:F${rowIndex}?valueInputOption=USER_ENTERED`,
+          { method:'PUT', headers:{ Authorization:'Bearer '+token,'Content-Type':'application/json' },
+            body: JSON.stringify({ values:[newRow] }) }
+        );
+      }
+      console.log(`✅ [Sheets] تم حفظ نقاط ${name} في Google Sheets`);
+    } catch(e){
+      console.warn('[Sheets] خطأ:', e);
+    }
+  };
+
+  /* ── ربط مع syncLeaderboard الأصلية ── */
+  const _origSyncLB = window.syncLeaderboard;
+  window.syncLeaderboard = async function(name, sheetPts, quizPts, interactPts){
+    if(typeof _origSyncLB === 'function') await _origSyncLB.apply(this, arguments);
+    window.syncToGoogleSheets(name, sheetPts, quizPts, interactPts);
+  };
+
+  console.log('✅ [ConnectDZ] مزامنة Google Sheets — جاهزة ومتصلة');
+})();
+
+/* ══════════════════════════════════════════════════════════
    🏆 عرض تفاصيل النقاط في ملف العضو (جدول + كويز + تفاعلات)
    يجلب البيانات من Firebase /userStats/{normName}
    ══════════════════════════════════════════════════════════ */
