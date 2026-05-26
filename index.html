@@ -9675,7 +9675,12 @@ function renderApp(name,pts,isReg, externalEarned){
       fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+_normDB+'.json',{
         method:'PATCH',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({totalPts: totalForLevel, updatedAt: Date.now()})
+        body:JSON.stringify({
+          sheetPts : sheetPoints,
+          quizPts  : quizPoints,
+          totalPts : totalForLevel,
+          updatedAt: Date.now()
+        })
       }).catch(()=>{});
     }
   }
@@ -10487,13 +10492,18 @@ function _updateMainPointsDisplay(name, newQuizPts){
   const cardPts=document.getElementById("cardPoints");
   if(cardPts) cardPts.innerText=newTotal.toLocaleString()+" نقطة";
 
-  // ✅ حفظ مجموع النقاط في Firebase — حتى تقرأه البطولة لجميع الأعضاء
+  // ✅ حفظ النقاط في Firebase بحقلين منفصلين — sheetPts + quizPts
   if(name && newTotal > 0){
     const _normSave = name.replace(/\s+/g,'_');
     fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+_normSave+'.json',{
       method:'PATCH',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({totalPts: newTotal, updatedAt: Date.now()})
+      body:JSON.stringify({
+        sheetPts : sheetPts,
+        quizPts  : newQuizPts,
+        totalPts : newTotal,
+        updatedAt: Date.now()
+      })
     }).catch(()=>{});
   }
 }
@@ -32008,16 +32018,13 @@ async function loadAllMembersWithPts(){
     return res;
   };
 
-  /* ══ 1) Google Sheets — المصدر الأساسي للنقاط ══
-     dataUrl : c[2]=الاسم  c[last]=نقاط الجدول
-     smartUrl: c[2]=الاسم  (النقاط من dataUrl أو آخر عمود)
-  ══ */
+  /* ══ 1) Google Sheets — جلب نقاط الجدول (آخر عمود = الإجمالي) ══ */
   const sheetMap = {}; // norm(name) → { name, pts }
 
   try{
     const du = typeof dataUrl!=='undefined' ? dataUrl : '';
     if(du){
-      const txt = await fetch(du).then(r=>r.text()).catch(()=>'');
+      const txt = await fetch(du+'&_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).catch(()=>'');
       txt.split('\n').slice(1).filter(r=>r.trim()).forEach(row=>{
         const c = csvParse(row);
         const name = (c[2]||'').trim();
@@ -32032,7 +32039,7 @@ async function loadAllMembersWithPts(){
   try{
     const su = typeof smartUrl!=='undefined' ? smartUrl : '';
     if(su){
-      const txt = await fetch(su).then(r=>r.text()).catch(()=>'');
+      const txt = await fetch(su+'&_='+Date.now(),{cache:'no-store'}).then(r=>r.text()).catch(()=>'');
       txt.split('\n').slice(1).filter(r=>r.trim()).forEach(row=>{
         const c = csvParse(row);
         const name = (c[2]||'').trim();
@@ -32045,49 +32052,77 @@ async function loadAllMembersWithPts(){
     }
   }catch(e){}
 
-  /* ══ 2) Firebase — مصدر تكميلي لنقاط الكويز ══ */
+  /* ══ 2) Firebase — مصدر نقاط الكويز والتفاعلات ══ */
   let fbStats = {};
   try{
-    const res = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats.json');
+    const res = await fetch(
+      'https://connectdz-49fab-default-rtdb.firebaseio.com/userStats.json',
+      {cache:'no-store'}
+    );
     if(res.ok){ const d=await res.json(); if(d && typeof d==='object') fbStats=d; }
   }catch(e){}
 
-  /* فهرس Firebase بمفاتيح متعددة */
-  const fbIndex = {}; // norm(name) → totalPts
+  /* فهرسة Firebase: norm(name) → { sheetPts, quizPts, totalPts } */
+  const fbIndex = {};
   Object.entries(fbStats).forEach(([rawKey, data])=>{
-    if(!data || !data.totalPts) return;
-    const v = parseInt(data.totalPts)||0;
+    if(!data) return;
+    const obj = {
+      sheetPts : parseInt(data.sheetPts||0)||0,
+      quizPts  : parseInt(data.quizPts||0)||0,
+      totalPts : parseInt(data.totalPts||0)||0
+    };
+    if(obj.sheetPts===0 && obj.quizPts===0 && obj.totalPts===0) return;
+    // 3 صيغ للمفتاح
     const k1 = norm(rawKey.replace(/_/g,' '));
     const k2 = rawKey.replace(/_/g,' ').toLowerCase();
-    if(!fbIndex[k1]||v>fbIndex[k1]) fbIndex[k1]=v;
-    if(!fbIndex[k2]||v>fbIndex[k2]) fbIndex[k2]=v;
-    // بحث بدون مسافات (مطابقة تقريبية)
-    const k3 = rawKey.replace(/_/g,'').toLowerCase();
-    if(!fbIndex[k3]||v>fbIndex[k3]) fbIndex[k3]=v;
+    const k3 = rawKey.replace(/[_\s]/g,'').toLowerCase();
+    [k1,k2,k3].forEach(k=>{ if(!fbIndex[k]) fbIndex[k]=obj; });
   });
 
-  /* ══ 3) دمج: الإجمالي = max(شيتس، فايربيس) ══ */
-  const result = Object.values(sheetMap).map(({name, pts: sheetPts})=>{
-    const k = norm(name);
-    const k2 = name.replace(/\s+/g,'').toLowerCase();
-    const fbTotal = fbIndex[k] || fbIndex[k2] || 0;
-    const total = Math.max(sheetPts, fbTotal);
+  /* ══ 3) الحل الجذري: sheetPts(جدول) + quizPts(Firebase) ══ */
+  const result = Object.values(sheetMap).map(({name, pts: sheetPtsFromSheet})=>{
+    const k  = norm(name);
+    const k2 = name.replace(/[_\s]/g,'').toLowerCase();
+    const fb = fbIndex[k] || fbIndex[k2] || {};
+
+    const fbSheetPts = fb.sheetPts || 0;
+    const fbQuizPts  = fb.quizPts  || 0;
+    const fbTotalPts = fb.totalPts || 0;
+
+    // نقاط الجدول: الأكبر بين الجدول الحي وما خُزّن آخر مرة في Firebase
+    const realSheetPts = Math.max(sheetPtsFromSheet, fbSheetPts);
+
+    let total;
+    if(fbQuizPts > 0){
+      // ✅ الحالة المثالية: عندنا نقاط منفصلة → نجمعهما
+      total = realSheetPts + fbQuizPts;
+    } else if(fbTotalPts > sheetPtsFromSheet){
+      // Firebase totalPts أكبر = يحتوي نقاط إضافية قديمة
+      total = fbTotalPts;
+    } else {
+      // fallback: نقاط الجدول فقط
+      total = sheetPtsFromSheet;
+    }
+
     return { name, total, level:getMemberLevel(total), divisionIdx:getMemberDivisionIdx(total) };
   });
 
-  /* أعضاء في Firebase فقط (لم يُضافوا للجدول بعد) */
+  /* أعضاء في Firebase فقط (لم يظهروا في الجداول بعد) */
   Object.entries(fbStats).forEach(([rawKey, data])=>{
-    if(!data||!data.totalPts) return;
+    if(!data) return;
     const displayName = rawKey.replace(/_/g,' ');
     if(isExcl(displayName)) return;
     const k = norm(displayName);
     if(result.find(m=>norm(m.name)===k)) return;
-    const total = parseInt(data.totalPts)||0;
+    const fbSh = parseInt(data.sheetPts||0)||0;
+    const fbQz = parseInt(data.quizPts||0)||0;
+    const fbTt = parseInt(data.totalPts||0)||0;
+    const total = (fbQz > 0) ? fbSh + fbQz : fbTt;
     if(total<=0) return;
     result.push({ name:displayName, total, level:getMemberLevel(total), divisionIdx:getMemberDivisionIdx(total) });
   });
 
-  console.log(`[NLDChamp v4] ✅ ${result.length} عضو — جدول:${Object.keys(sheetMap).length} / Firebase:${Object.keys(fbIndex).length/3|0}`);
+  console.log(`[NLDChamp v5] ✅ ${result.length} عضو — جدول:${Object.keys(sheetMap).length} / Firebase:${Object.keys(fbIndex).length}`);
   return result.sort((a,b)=>b.total-a.total);
 }
 
