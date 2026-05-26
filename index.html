@@ -15213,133 +15213,6 @@ window._restorePostsAfterUpdate = async function(){
 window.addEventListener('load', function(){
   setTimeout(window._restorePostsAfterUpdate, 4000);
 });
-
-/* ══════════════════════════════════════════════════════════════
-   🔄 استعادة منشورات الأعضاء المحذوفة خطأً من الأرشيف
-   يجلب منشورات الأعضاء من archived_posts ويعيدها لـ social_posts
-══════════════════════════════════════════════════════════════ */
-(function _restoreArchivedMemberPosts(){
-  /* الأعضاء الذين اختفت منشوراتهم */
-  var TARGET_AUTHORS = [
-    'بن قدور ايمان',
-    'طبال شيماء',
-    'حمودي عبد الغاني',
-    'يحي ديش',
-    'حمودي محمد الامين'
-  ];
-
-  var DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-  var _done = false;
-
-  async function doRestore(){
-    if(_done) return;
-    _done = true;
-    try{
-      console.log('🔄 [Restore] جاري استعادة منشورات الأعضاء...');
-
-      /* ① جلب كل الأرشيف من Firebase */
-      var res = await fetch(DB + '/archived_posts.json');
-      var archivedData = {};
-      if(res.ok){
-        var d = await res.json();
-        if(d && typeof d === 'object') archivedData = d;
-      }
-
-      /* ② جلب social_posts الحالية */
-      var res2 = await fetch(DB + '/social_posts.json?orderBy="ts"&limitToLast=500');
-      var socialData = {};
-      if(res2.ok){
-        var d2 = await res2.json();
-        if(d2 && typeof d2 === 'object') socialData = d2;
-      }
-
-      /* ③ جمع كل المنشورات الموجودة حالياً في social_posts */
-      var existingIds = new Set(Object.keys(socialData));
-
-      /* ④ ابحث في الأرشيف عن منشورات الأعضاء المستهدفين */
-      var toRestore = [];
-      Object.values(archivedData).forEach(function(p){
-        if(!p || !p.id || !p.author) return;
-        var author = (p.author || '').trim();
-        if(TARGET_AUTHORS.some(function(a){ return author === a || author.includes(a) || a.includes(author); })){
-          if(!existingIds.has(p.id)){
-            /* إزالة علامات الأرشيف */
-            var clean = Object.assign({}, p);
-            delete clean._archived;
-            delete clean._archivedAt;
-            delete clean._archivedBy;
-            toRestore.push(clean);
-          }
-        }
-      });
-
-      /* ⑤ أيضاً ابحث في social_posts الحالية (قد تكون موجودة لكن مع _archived=true) */
-      Object.values(socialData).forEach(function(p){
-        if(!p || !p.id || !p.author) return;
-        var author = (p.author || '').trim();
-        if(TARGET_AUTHORS.some(function(a){ return author === a; })){
-          if(p._archived){
-            /* إزالة علامة الأرشيف من social_posts مباشرة */
-            var clean = Object.assign({}, p);
-            delete clean._archived;
-            delete clean._archivedAt;
-            delete clean._archivedBy;
-            toRestore.push(clean);
-          }
-        }
-      });
-
-      if(toRestore.length === 0){
-        console.log('ℹ️ [Restore] لم تُعثر على منشورات في الأرشيف لهؤلاء الأعضاء');
-        return;
-      }
-
-      console.log('✅ [Restore] سيتم استعادة ' + toRestore.length + ' منشور');
-
-      /* ⑥ رفع المنشورات المستعادة إلى social_posts في Firebase */
-      var uploadPromises = toRestore.map(function(p){
-        return fetch(DB + '/social_posts/' + p.id + '.json', {
-          method: 'PUT',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify(p)
-        }).catch(function(){});
-      });
-      await Promise.all(uploadPromises);
-
-      /* ⑦ دمج مع المحلية وحفظ */
-      var local = [];
-      try{ local = JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){}
-      var map = new Map();
-      local.forEach(function(p){ if(p&&p.id) map.set(p.id, p); });
-      toRestore.forEach(function(p){ map.set(p.id, p); });
-      var merged = Array.from(map.values()).sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
-      try{ localStorage.setItem('nld_social_posts', JSON.stringify(merged)); }catch(e){}
-
-      /* ⑧ إعادة عرض الفيد */
-      if(typeof renderSocialFeed === 'function'){
-        setTimeout(function(){
-          var feed = document.getElementById('socialFeedContainer');
-          if(feed) renderSocialFeed();
-        }, 500);
-      }
-
-      if(typeof showToast === 'function'){
-        showToast('✅ تم استعادة ' + toRestore.length + ' منشور للأعضاء');
-      }
-
-    }catch(ex){
-      console.warn('⚠️ [Restore] خطأ:', ex);
-    }
-  }
-
-  /* تشغيل بعد 2 ثانية من تحميل الصفحة */
-  window.addEventListener('load', function(){
-    setTimeout(doRestore, 2000);
-  });
-
-  /* تصدير للاستخدام اليدوي من الكونسول */
-  window._forceRestoreArchivedPosts = doRestore;
-})();
 function getFriends(name){ return JSON.parse(localStorage.getItem(_friendsKey(name))||'[]'); }
 function getFriendRequests(name){ return JSON.parse(localStorage.getItem(_friendReqKey(name))||'[]'); }
 function getSocialNotifs(name){ return JSON.parse(localStorage.getItem(_socialNotifsKey(name))||'[]'); }
@@ -15649,7 +15522,7 @@ async function renderSocialFeed(){
 
   _startFbFeedPolling();
 
-  /* ⑤ تصنيف المنشورات بدقة */
+  /* ⑤ تصنيف: منشورات الأعضاء = كل ما ليس إعلاناً ولا نظاماً حقيقياً */
   const _isTrueSys = p => !!(p.isAdminPost === true && p.author === 'نظام ConnectDZ');
 
   const memberPosts = allPostsRaw
@@ -15671,13 +15544,11 @@ async function renderSocialFeed(){
     .sort((a,b) => (b.ts||0) - (a.ts||0));
 
   if(memberPosts.length === 0 && sysPosts.length === 0){
-    container.innerHTML = `<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;border-radius:12px;">
-      <div style="font-size:48px;margin-bottom:10px;">✍️</div>
-      <div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. كن أول من ينشر!</div>
-    </div>`;
+    container.innerHTML = '<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;border-radius:12px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. كن أول من ينشر!</div></div>';
     return;
   }
 
+  /* ⑦ العرض النهائي: أعضاء أولاً (الأحدث فوق) ثم النظام */
   container.innerHTML = [...memberPosts, ...sysPosts].map(p => renderSocialPostCard(p)).join('');
 }
 
@@ -32401,6 +32272,132 @@ setInterval(()=>{
 })();
 </script>
 
+</script>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   🔄 استعادة شاملة — يبحث في كل مصادر Firebase ويرجع المنشورات
+   يعمل تلقائياً عند فتح التطبيق بدون أي تدخل
+══════════════════════════════════════════════════════════════ */
+(function(){
+  var DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+  /* الأعضاء المستهدفون */
+  var TARGETS = ['بن قدور ايمان','طبال شيماء','حمودي عبد الغاني','يحي ديش','حمودي محمد الامين'];
+
+  function authorMatch(author){
+    if(!author) return false;
+    var a = author.trim();
+    return TARGETS.some(function(t){ return a === t; });
+  }
+
+  function cleanPost(p){
+    var c = Object.assign({}, p);
+    delete c._archived; delete c._archivedAt; delete c._archivedBy;
+    return c;
+  }
+
+  async function fetchAll(){
+    var map = new Map();
+
+    /* 1️⃣ social_posts — بدون فلتر */
+    try{
+      var r1 = await fetch(DB + '/social_posts.json');
+      var d1 = await r1.json();
+      if(d1 && typeof d1 === 'object'){
+        Object.values(d1).forEach(function(p){ if(p && p.id) map.set(p.id, cleanPost(p)); });
+      }
+    }catch(e){}
+
+    /* 2️⃣ archived_posts — المنشورات المؤرشفة */
+    try{
+      var r2 = await fetch(DB + '/archived_posts.json');
+      var d2 = await r2.json();
+      if(d2 && typeof d2 === 'object'){
+        Object.values(d2).forEach(function(p){
+          if(p && p.id && authorMatch(p.author)){
+            map.set(p.id, cleanPost(p));
+          }
+        });
+      }
+    }catch(e){}
+
+    /* 3️⃣ profile_posts لكل عضو مستهدف */
+    for(var i=0; i<TARGETS.length; i++){
+      var name = TARGETS[i];
+      var safeKey = name.replace(/\s+/g,'_');
+      try{
+        var r3 = await fetch(DB + '/profile_posts/' + safeKey + '.json');
+        var d3 = await r3.json();
+        if(d3 && typeof d3 === 'object'){
+          Object.values(d3).forEach(function(p){
+            if(p && p.id && !map.has(p.id)) map.set(p.id, cleanPost(p));
+          });
+        }
+      }catch(e){}
+    }
+
+    return Array.from(map.values());
+  }
+
+  async function doRestore(){
+    try{
+      var allFb = await fetchAll();
+
+      /* منشورات الأعضاء المستهدفين */
+      var targetPosts = allFb.filter(function(p){ return authorMatch(p.author); });
+
+      if(targetPosts.length === 0){
+        console.warn('[Restore] لم تُعثر على أي منشور للأعضاء المستهدفين في Firebase');
+        return;
+      }
+
+      console.log('[Restore] عُثر على ' + targetPosts.length + ' منشور للأعضاء');
+
+      /* إعادة رفع المنشورات المفقودة إلى social_posts */
+      var uploads = targetPosts.map(function(p){
+        return fetch(DB + '/social_posts/' + p.id + '.json', {
+          method: 'PUT',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(p)
+        }).catch(function(){});
+      });
+      await Promise.all(uploads);
+
+      /* دمج مع localStorage */
+      var local = [];
+      try{ local = JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){}
+      var lmap = new Map();
+      local.forEach(function(p){ if(p&&p.id) lmap.set(p.id,p); });
+      allFb.forEach(function(p){ if(p&&p.id) lmap.set(p.id, Object.assign(lmap.get(p.id)||{}, p)); });
+      var merged = Array.from(lmap.values()).sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+      try{ localStorage.setItem('nld_social_posts', JSON.stringify(merged)); }catch(e){}
+
+      /* إعادة رسم الفيد */
+      if(typeof renderSocialFeed === 'function'){
+        setTimeout(function(){
+          if(document.getElementById('socialFeedContainer')) renderSocialFeed();
+        }, 300);
+      }
+
+      if(typeof showToast === 'function') showToast('✅ تم استعادة ' + targetPosts.length + ' منشور');
+      console.log('[Restore] ✅ اكتمل — ' + targetPosts.length + ' منشور مستعاد');
+
+    }catch(ex){
+      console.error('[Restore] خطأ:', ex);
+    }
+  }
+
+  /* تشغيل عند التحميل */
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(doRestore, 2500); });
+  } else {
+    setTimeout(doRestore, 2500);
+  }
+
+  /* متاح يدوياً من الكونسول */
+  window._forceRestore = doRestore;
+})();
 </script>
 </body>
 </html>
