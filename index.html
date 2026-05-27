@@ -6700,7 +6700,7 @@ const newShabaabUrl = null;
 /* ▼ جدول استمارة "انظم إلينا" (Smart) ▼ */
 const smartUrl      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDI3Sw6dUaU02463Rj5xpZ5Q3_vUq4WpaZVLnErKubqDbfBcWt_tPbQSckySuRzeSS0IU-25T2XZcI/pub?output=csv';
 const quizUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQi_JTvEBgrlT-nba8SzIEiuTvPS6sz-eIRLM-cESaztFr35bl6mGq7rzwNc-tiP1BY-44d7x6rcvEf/pubhtml';
-const rankingUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP7Q70E0ey5k7JnnOh7Ju7281ytxEDTViCVRiv4JM0FakJSgxZM47XmZN1bgZSGwCU5fIHzldOQhid/pub?output=csv';
+const rankingUrl    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRn7MHyT3mXCDW9k0lXbkOBOuqAsIlTrlwYo9SOsYM0dW0mQSJ0AQ0A4iE_PJCqUrgnri_LD6FFEVCI/pub?gid=0&single=true&output=csv';
 
 /* ▼ رابط Google Apps Script لحفظ نقاط الكويز المشتركة بين جميع المستخدمين ▼
    ← ضع رابط الـ Web App الذي ستنشره من Google Apps Script هنا             */
@@ -32880,16 +32880,14 @@ async function loadAllMembersWithPts(){
   };
 
   /* ① rankingUrl — الاسم في عمود 0 أو 1 أو 2، النقاط في آخر عمود */
+  /* ① rankingUrl — الاسم في عمود A (c[0])، المجموع في عمود E (c[4]) */
   if(rankTxt.status==='fulfilled' && rankTxt.value){
     rankTxt.value.split('\n').slice(1).forEach(row=>{
       if(!row.trim()) return;
       const c = csvParse(row);
-      const pts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
-      // جرّب كل عمود نصي كاسم محتمل
-      [c[0],c[1],c[2]].forEach(cell=>{
-        const name = (cell||'').trim();
-        if(name && isNaN(Number(name))) upsert(name, pts);
-      });
+      const pts = parseInt((c[4]||'').replace(/[^\d]/g,''))||0;
+      const name = (c[0]||'').trim();
+      if(name && isNaN(Number(name))) upsert(name, pts);
     });
   }
 
