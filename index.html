@@ -17,7 +17,9 @@
     overscroll-behavior: none !important;
     overscroll-behavior-y: none !important;
     height: 100% !important;
-    position: fixed !important;
+    /* ✅ إصلاح: position:fixed كان يسبب الخروج عند التمرير في WebView
+       الـ scroll الحقيقي يحدث داخل #socialMainScroll وليس الـ body */
+    position: relative !important;
     width: 100% !important;
     overflow: hidden !important;
   }
@@ -15839,15 +15841,38 @@ function _mergePosts(localPosts, fbPosts){
   return Array.from(map.values()).sort((a,b)=>(b.ts||0)-(a.ts||0));
 }
 
-/* تحديث دوري كل 20 ثانية لضمان ظهور منشورات الأصدقاء فوراً */
+/* ✅ إصلاح: SSE بدلاً من polling كل 20 ثانية — توفير ~95% من الطلبات */
 let _fbFeedRefreshTimer = null;
+let _feedSSESource = null;
+
 function _startFbFeedPolling(){
-  if(_fbFeedRefreshTimer) return;
-  _fbFeedRefreshTimer = setInterval(()=>{
-    const container = document.getElementById('socialFeedContainer');
-    if(container && container.offsetParent !== null) renderSocialFeed();
-  }, 20000);
-  /* ✅ تحديث الأوقات كل 60 ثانية بدون إعادة جلب Firebase */
+  if(_feedSSESource) return;
+  try {
+    const feedUrl = 'https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json?orderBy="ts"&limitToLast=1';
+    _feedSSESource = new EventSource(feedUrl);
+    let _feedSSEReady = false;
+    _feedSSESource.addEventListener('put', function(){
+      if(!_feedSSEReady){ _feedSSEReady = true; return; }
+      const container = document.getElementById('socialFeedContainer');
+      if(container && container.offsetParent !== null) renderSocialFeed();
+    });
+    _feedSSESource.onerror = function(){
+      if(_feedSSESource){ try{ _feedSSESource.close(); }catch(e){} _feedSSESource = null; }
+      if(!_fbFeedRefreshTimer){
+        _fbFeedRefreshTimer = setInterval(()=>{
+          const container = document.getElementById('socialFeedContainer');
+          if(container && container.offsetParent !== null) renderSocialFeed();
+        }, 60000);
+      }
+    };
+  } catch(e) {
+    if(!_fbFeedRefreshTimer){
+      _fbFeedRefreshTimer = setInterval(()=>{
+        const container = document.getElementById('socialFeedContainer');
+        if(container && container.offsetParent !== null) renderSocialFeed();
+      }, 60000);
+    }
+  }
   setInterval(()=>{
     document.querySelectorAll('[data-post-ts]').forEach(el=>{
       const ts = parseInt(el.getAttribute('data-post-ts'));
@@ -27656,12 +27681,16 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
     if(_sseSource){ try{ _sseSource.close(); }catch(e){} _sseSource = null; }
   }
 
-  /* ══ Polling احتياطي — 800ms للتأكد من وصول كل رسالة ══ */
+  /* ══ Polling احتياطي — يعمل فقط عند فشل SSE ══ */
   function _startPoll(){
     if(_pollTimer) return;
+    /* إذا SSE نشط لا نشغّل الـ polling أبداً — يوفّر آلاف الطلبات */
+    if(_sseActive) return;
     _pollTimer = setInterval(function(){
+      /* وقّف الـ polling فوراً لو SSE نجح أثناء الانتظار */
+      if(_sseActive){ _stopPoll(); return; }
       _fetchAndRender(false);
-    }, 800); /* تسريع: 800ms بدلاً من 1500ms */
+    }, 5000); /* 5 ثوانٍ بدلاً من 800ms — احتياطي فقط */
   }
 
   function _stopPoll(){
@@ -27697,13 +27726,23 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
 
   /* ══ تشغيل عند تحميل الصفحة ══ */
   function _init(){
-    _startPoll();
-    /* بعد ثانية: حاول SSE للمحادثة المفتوحة إن وُجدت */
-    setTimeout(function(){
-      const myName = _me();
-      const target = window._currentChatTarget;
-      if(myName && target) _startSSE(myName, target);
-    }, 1000);
+    /* SSE أولاً — إذا نجح خلال 3 ثوانٍ لا نشغّل الـ polling أبداً */
+    const myName = _me();
+    const target = window._currentChatTarget;
+    if(myName && target){
+      _startSSE(myName, target);
+      /* انتظر 3 ثوانٍ: إذا فشل SSE شغّل الـ polling الاحتياطي */
+      setTimeout(function(){
+        if(!_sseActive) _startPoll();
+      }, 3000);
+    } else {
+      /* لا توجد محادثة مفتوحة — لا polling ولا SSE */
+      setTimeout(function(){
+        const n = _me();
+        const t = window._currentChatTarget;
+        if(n && t) _startSSE(n, t);
+      }, 1000);
+    }
   }
 
   if(document.readyState === 'complete'){
@@ -28990,16 +29029,14 @@ function _startSSE(me, target){
   }
 }
 
-/* ── Fast Polling احتياطي — يعمل دائماً مهما كان SSE ── */
+/* ── Fast Polling احتياطي — يعمل فقط عند موت SSE ── */
 function _startFastPoll(){
   if(_fastPollT) return;
   _fastPollT = setInterval(function(){
-    /* إذا SSE حي: نُقلل الضغط — نُشغله مرة كل 3 دورات فقط */
-    if(_sseAlive){
-      if(Math.random() > 0.33) return; /* ~33% من الوقت */
-    }
+    /* ✅ إصلاح: إذا SSE حي لا نرسل أي طلب — SSE يكفي */
+    if(_sseAlive) return;
     _fetchRender(false);
-  }, FAST_POLL_MS);
+  }, 5000); /* ✅ 5 ثوانٍ بدلاً من 600ms عند فشل SSE فقط */
 }
 
 /* ── badge الرسائل: تحديث فوري من Firebase SSE ── */
