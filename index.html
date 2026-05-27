@@ -197,18 +197,30 @@ document.addEventListener('touchmove', function(e){
 
   /* ابحث عن أقرب عنصر يمكنه التمرير للأعلى (scrollTop > 0) */
   var el = e.target;
+  var foundScrollable = false;
   while(el && el !== document.documentElement){
     var ov = window.getComputedStyle(el).overflowY;
-    if((ov === 'auto' || ov === 'scroll') && el.scrollTop > 0){
-      /* هذا العنصر لم يصل للأعلى بعد — السحب تمرير عادي، لا نمنع */
-      return;
+    var isScrollable = (ov === 'auto' || ov === 'scroll') && el.scrollHeight > el.clientHeight;
+    if(isScrollable){
+      foundScrollable = true;
+      if(el.scrollTop > 0){
+        /* هذا العنصر لم يصل للأعلى بعد — السحب تمرير عادي، لا نمنع */
+        return;
+      }
+      /* العنصر scrollable لكن في الأعلى — نمنع pull-to-refresh */
+      break;
     }
     el = el.parentElement;
   }
-  /* وصلنا للأعلى أو لا يوجد عنصر scroll — هذا pull-to-refresh، نمنعه */
+  /* لا يوجد عنصر scroll أو وصلنا للأعلى — هذا pull-to-refresh، نمنعه */
   e.preventDefault();
 
 }, {passive:false, capture:true});
+
+/* منع إضافي: overscroll عبر pointer events */
+document.addEventListener('touchstart', function(e){
+  if(window.scrollY === 0){ e.preventDefault(); }
+}, {passive:false, capture:false});
 })();
 </script>
 <meta name="description" content="Connect DZ - منصة الشباب الجزائري للتعلم والإبداع">
@@ -15090,11 +15102,11 @@ function startOnlineHeartbeat(name){
   // إرسال أول نبضة فوراً
   setOnlinePresence(name);
   refreshOnlineBar();
-  // إرسال نبضة كل 15 ثانية
+  // إرسال نبضة كل 60 ثانية (تقليل استهلاك البيانات)
   _onlineHeartbeatTimer = setInterval(()=>{
     setOnlinePresence(name);
     refreshOnlineBar();
-  }, 15000);
+  }, 60000);
 
   // الاستماع لتغييرات localStorage من التبويبات الأخرى
   window.addEventListener('storage', (e)=>{
@@ -15846,7 +15858,7 @@ function _startFbFeedPolling(){
   _fbFeedRefreshTimer = setInterval(()=>{
     const container = document.getElementById('socialFeedContainer');
     if(container && container.offsetParent !== null) renderSocialFeed();
-  }, 20000);
+  }, 60000);
   /* ✅ تحديث الأوقات كل 60 ثانية بدون إعادة جلب Firebase */
   setInterval(()=>{
     document.querySelectorAll('[data-post-ts]').forEach(el=>{
@@ -21458,7 +21470,7 @@ function _showStoryViewer(authorName, stories, startIdx){
    🔄 تهيئة عند فتح التطبيق
    ═══════════════════════════════════════════════════════════ */
 // مزامنة badge المسنجر كل 10 ثواني
-setInterval(()=>{ if(document.getElementById('socialHomeCard')?.style.display==='flex') refreshSocialMsgBadge(); }, 10000);
+setInterval(()=>{ if(document.getElementById('socialHomeCard')?.style.display==='flex') refreshSocialMsgBadge(); }, 30000);
 
 (function(){
   const saved = getCurrentLang();
@@ -27661,7 +27673,7 @@ console.log('✅ ConnectDZ Profile Stats Fix v4.0 — Firebase-powered stats loa
     if(_pollTimer) return;
     _pollTimer = setInterval(function(){
       _fetchAndRender(false);
-    }, 800); /* تسريع: 800ms بدلاً من 1500ms */
+    }, 3000); /* تقليل الضغط على الشبكة */
   }
 
   function _stopPoll(){
@@ -28841,7 +28853,7 @@ let _heartbeatT  = null;
 let _fastPollT   = null;
 let _fastSig     = '';
 const SSE_TIMEOUT   = 15000;  /* 15 ثانية بدون حدث = اعتبر SSE ميتاً */
-const FAST_POLL_MS  = 600;    /* polling احتياطي كل 600ms */
+const FAST_POLL_MS  = 3000;    /* polling احتياطي كل 3 ثوانٍ (تقليل استهلاك البيانات) */
 const RECONNECT_MS  = 2000;   /* إعادة اتصال بعد 2 ثانية */
 
 /* ── جلب وعرض الرسائل (نسخة محسّنة) ── */
@@ -29965,7 +29977,7 @@ window.openGroupChat = async function(groupId){
   /* ── عرض الرسائل ── */
   await _renderGrpMessages(groupId, myName);
 
-  /* ── استطلاع الرسائل الجديدة كل ثانيتين للمزامنة الفورية ── */
+  /* ── استطلاع الرسائل الجديدة كل 5 ثوانٍ للمزامنة (تقليل استهلاك البيانات) ── */
   let _grpPollLast = Date.now();
   let _grpLastCount = 0;
   const _grpPollInt = setInterval(async ()=>{
@@ -29988,10 +30000,8 @@ window.openGroupChat = async function(groupId){
         .map(([u])=>u);
       tyBar.innerText = typers.length ? typers.join('، ')+' يكتب…' : '';
     }
-  }, 2000);
+  }, 5000);
 };
-
-/* ── عرض رسائل المجموعة ── */
 async function _renderGrpMessages(groupId, myName){
   const groups = await _fetchGroups();
   const group = groups.find(g=>g.id===groupId);
@@ -30371,7 +30381,7 @@ async function _renderGroupsInInbox(){
 }
 
 /* استطلاع المجموعات في الخلفية */
-setInterval(_renderGroupsInInbox, 3000);
+setInterval(_renderGroupsInInbox, 10000);
 window.addEventListener('load',()=>setTimeout(_renderGroupsInInbox,2000));
 
 console.log('👥 [GroupChat] نظام المجموعات — مفعّل');
@@ -31316,7 +31326,7 @@ window._msngStartPolling = function(){
       const myN = typeof getCurrentUser==='function' ? getCurrentUser() : null;
       if(myN && typeof _renderSmInbox==='function') _renderSmInbox(myN);
     }
-  }, 3000);
+  }, 8000);
 };
 
 window._msngStopPolling = function(){
@@ -32007,7 +32017,7 @@ setInterval(function(){
       setTimeout(_updateProfileTotalPoints, 50);
       setTimeout(_fixRankingBalance, 100);
     }
-  }, 500);
+  }, 3000);
 })();
 
 /* ═══ 5) حذف الحسابات المحظورة من العرض في كل القوائم ═══ */
