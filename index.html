@@ -15943,11 +15943,19 @@ async function renderSocialFeed(){
   _startFbFeedPolling();
 
   /* ⑤ فلترة: إزالة منشورات المجموعات/الصفحات — إظهار جميع منشورات المستخدمين */
+  const _bannedCheck = (function(){ try{ return JSON.parse(localStorage.getItem('nld_banned_users_v2')||'{}'); }catch(e){ return {}; } })();
   const posts = allPostsRaw.filter(p => {
+    // إخفاء منشورات الأعضاء المحظورين
+    if(p.author && !p.isAutoPost && !p.isAdminPost && !p.isActivityAd){
+      const bKey = (p.author||'').replace(/\s+/g,'_');
+      if(_bannedCheck[bKey]) return false;
+    }
     /* إزالة منشورات المجموعات والصفحات من الفيد الرئيسي */
     if(p.groupId || p.pageId || p.isGroupPost || p.isPagePost) return false;
-    /* الإعلانات والمنشورات التلقائية تظهر دائماً */
-    if(p.isActivityAd || p.isAutoPost || p.isAd) return true;
+    /* الإعلانات تظهر دائماً — لكن المنشورات التلقائية من النظام مُخفاة */
+    if(p.isActivityAd || p.isAd) return true;
+    // إخفاء منشورات النظام التلقائية (isAutoPost) — يظهر فقط ما كتبه المستخدمون أو المدير يدوياً
+    if(p.isAutoPost && !p.isAdminPost) return false;
     const priv = p.privacy || '🌐 عام';
     /* منشورات "أنت فقط" — تظهر لصاحبها فقط */
     if(priv.includes('أنت فقط')) return myName && p.author === myName;
@@ -17712,6 +17720,24 @@ let _mpvCurrentUser = null;
 /* viewMemberProfile الكاملة معرّفة لاحقاً (تشمل الأصدقاء + Firebase) */
 function viewMemberProfile(memberName){
   _mpvCurrentUser = memberName;
+  // إضافة زر الحظر للمدير بعد فتح الملف
+  if(window._isAdmin && memberName && memberName !== 'المدير'){
+    setTimeout(function(){
+      const mpvView = document.getElementById('memberProfileView');
+      if(!mpvView) return;
+      const existingBtn = document.getElementById('_quickBanBtn');
+      if(existingBtn) existingBtn.remove();
+
+      const isBanned = window.isMemberBanned && window.isMemberBanned(memberName);
+      const banBtn = document.createElement('div');
+      banBtn.id = '_quickBanBtn';
+      banBtn.style.cssText = 'position:sticky;top:0;z-index:100;padding:8px 16px;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);';
+      banBtn.innerHTML = isBanned
+        ? '<button onclick="openBanConfirm(\'' + memberName.replace(/'/g,"\\'") + '\')" style="width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;">✅ رفع الحظر عن ' + memberName + '</button>'
+        : '<button onclick="openBanConfirm(\'' + memberName.replace(/'/g,"\\'") + '\')" style="width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;">🚫 حظر ' + memberName + ' نهائياً</button>';
+      mpvView.prepend(banBtn);
+    }, 200);
+  }
 }
 
 function updateMpvFriendBtn(memberName){
@@ -32402,6 +32428,7 @@ function _buildAdminFullPage(ov){
       <div class="afp-section">
         <div class="afp-section-title">🎛️ أدوات التحكم الرئيسية</div>
         <button class="afp-btn" onclick="hideModal('adminModal');openAdminFullPage();showModal('adminModal')">⚙️ لوحة الإدارة الكاملة</button>
+        <button class="afp-btn red" onclick="openBanListPanel()">🚫 قائمة الحظر</button>
         <button class="afp-btn green" onclick="closeAdminFullPage();openMessages()">💬 مسنجر الأعضاء</button>
         <button class="afp-btn blue" onclick="closeAdminFullPage();openAdminSendPointsPanel()">⭐ إرسال نقاط للأعضاء</button>
         <button class="afp-btn purple" onclick="closeAdminFullPage();openAdminCommandPanel()">📣 نشر منشور رسمي</button>
@@ -32454,6 +32481,7 @@ function _buildAdminFullPage(ov){
       <!-- إجراءات متقدمة -->
       <div class="afp-section">
         <div class="afp-section-title">⚙️ إجراءات متقدمة</div>
+        <button class="afp-btn red" onclick="openBanListPanel()">🚫 قائمة الحظر — عرض المحظورين</button>
         <button class="afp-btn dark" onclick="closeAdminFullPage();showSocialHome&&showSocialHome()">🏠 العودة للصفحة الرئيسية</button>
         <button class="afp-btn dark" onclick="closeAdminFullPage();logout&&logout()">🚪 تسجيل الخروج</button>
       </div>
@@ -32616,13 +32644,20 @@ function _afpRenderMembers(list){
     div.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.4);">لا توجد أعضاء</div>';
     return;
   }
-  div.innerHTML = list.map(n=>`
-    <div class="afp-member-row">
-      <div class="afp-member-badge">✓</div>
-      <div class="afp-member-name">${n}</div>
-      <div onclick="closeAdminFullPage();openAdminChat('${n.replace(/'/g,"\\'")}',false)" style="padding:5px 12px;background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.3);border-radius:20px;font-size:11px;font-weight:800;color:#00e5a0;cursor:pointer;flex-shrink:0;">💬 محادثة</div>
+  div.innerHTML = list.map(n=>{
+    const isBanned = window.isMemberBanned && window.isMemberBanned(n);
+    return `
+    <div class="afp-member-row" style="${isBanned?'opacity:0.6;border-color:rgba(239,68,68,0.3);':''}">
+      <div class="afp-member-badge" style="${isBanned?'background:linear-gradient(135deg,#ef4444,#b91c1c);':''}">
+        ${isBanned?'🚫':'✓'}
+      </div>
+      <div class="afp-member-name">${n}${isBanned?'<span style="font-size:10px;color:#ef4444;margin-right:5px;"> — محظور</span>':''}</div>
+      <div style="display:flex;gap:5px;flex-shrink:0;">
+        <div onclick="closeAdminFullPage();openAdminChat('${n.replace(/'/g,"\\'")}',false)" style="padding:5px 10px;background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.3);border-radius:20px;font-size:11px;font-weight:800;color:#00e5a0;cursor:pointer;">💬</div>
+        <div onclick="openBanConfirm('${n.replace(/'/g,"\\'")}');" style="padding:5px 10px;background:${isBanned?'rgba(34,197,94,0.15)':'rgba(239,68,68,0.12)'};border:1px solid ${isBanned?'rgba(34,197,94,0.3)':'rgba(239,68,68,0.3)'};border-radius:20px;font-size:11px;font-weight:800;color:${isBanned?'#22c55e':'#ef4444'};cursor:pointer;">${isBanned?'✅':'🚫'}</div>
+      </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 window._afpFilterMembers = function(q){
@@ -32845,6 +32880,8 @@ window._atpFilter = function(q){
   ];
 
   function _doAdminAutoPost(){
+    // ✅ تم إيقاف المنشورات التلقائية من النظام
+    return;
     try {
       const now = Date.now();
       const last = parseInt(localStorage.getItem(ADMIN_AUTO_KEY) || '0');
@@ -33167,16 +33204,17 @@ function renderDivision(divIdx, allMembers){
 
   const rows = members.map((m,i)=>{
     const isMe = (m.name||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase()===normCurr;
-    // صعود: أول 3 يصعدون (أخضر)
-    const isPromo = i < 3 && divIdx > 0;
-    // هبوط: آخر 2 ينزلون (أحمر)
-    const isRelg = i >= members.length - 2 && members.length > 2 && divIdx < NLD_DIVISIONS.length - 1;
+    // صعود: أول 5 يصعدون (أخضر) — حد أقصى 5
+    const isPromo = i < 5 && divIdx > 0;
+    // هبوط: آخر 5 ينزلون (أحمر) — حد أقصى 5
+    const isRelg = i >= members.length - 5 && members.length > 5 && divIdx < NLD_DIVISIONS.length - 1;
 
     const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
     const borderL = isPromo ? '3px solid #22c55e' : isRelg ? '3px solid #ef4444' : '3px solid transparent';
-    const promoBadge = isPromo ? '<span style="font-size:10px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.15);border-radius:6px;padding:2px 6px;">↑ صعود</span>' : '';
-    const relegBadge = isRelg ? '<span style="font-size:10px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.12);border-radius:6px;padding:2px 6px;">↓ هبوط</span>' : '';
+    const promoLabel = isFirstWeekPromo ? '🌟▲ سيصعد السبت' : '🟢▲ صعود';
+    const promoBadge = isPromo ? `<span style="font-size:11px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.15);border-radius:6px;padding:2px 6px;">${promoLabel}</span>` : '';
+    const relegBadge = isRelg ? '<span style="font-size:11px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.12);border-radius:6px;padding:2px 6px;">🔴▼ هبوط</span>' : '';
     const meBadge = isMe ? '<span style="font-size:10px;font-weight:900;color:#00e5a0;background:rgba(0,229,160,0.15);border-radius:6px;padding:2px 6px;">✦ أنت</span>' : '';
 
     const photo = typeof localStorage!=='undefined' ? localStorage.getItem('nld_photo_'+m.name.replace(/\s+/g,'_')) : null;
@@ -33227,8 +33265,9 @@ function renderDivision(divIdx, allMembers){
       <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px;">النقاط المطلوبة: ${div.rangeLabel}</div>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);">${members.length} عضو</div>
-        ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون</div>`:''}
-        ${divIdx<NLD_DIVISIONS.length-1?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ 2 أخيرين ينزلون</div>`:''}
+        ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">🟢▲ حتى 5 أوائل يصعدون</div>`:''}
+        ${isBeginners?`<div style="background:rgba(0,150,255,0.1);border:1px solid rgba(0,150,255,0.3);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#60a5fa;">🌟 الأسبوع 1: أعلى 10 يصعدون مباشرة!</div>`:''}
+        ${divIdx<NLD_DIVISIONS.length-1&&!isBeginners?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">🔴▼ حتى 5 أخيرين ينزلون</div>`:''}
         ${myRankBadge}
       </div>
     </div>
@@ -33258,7 +33297,7 @@ console.log('✅ [NLDChampionship v4] البطولة المحترفة — Google
    ══════════════════════════════════════════════════════════════ */
 
 const _NLD_FB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-const NLD_PROMO_COUNT = 3; // عدد الصاعدين والنازلين
+const NLD_PROMO_COUNT = 5; // عدد الصاعدين والنازلين (حد أقصى 5، يعمل أيضاً مع أقل)
 const NLD_MAX_MEMBERS = 10; // الحد الأقصى لكل قسم
 
 /* ── تحميل تعيينات الأقسام من Firebase ── */
@@ -33346,10 +33385,26 @@ async function _runWeeklyEvaluation(allMembers, assignments){
 
   /* ══════════════════════════════════════════════════════
      منطق التبادل: للقسم i والقسم i-1 (الأعلى)
-     الشرط: أعلى 3 في القسم i > أدنى 3 في القسم i-1
-     إذا تحقق → يتبادلون (3 يصعدون، 3 ينزلون)
+     الشرط: أعلى 5 في القسم i > أدنى 5 في القسم i-1
+     إذا تحقق → يتبادلون (حتى 5 يصعدون، حتى 5 ينزلون)
      إذا لم يتحقق → لا يتحرك أحد
+     المبتدئون (أسبوع أول): أعلى 10 يصعدون مباشرة للهاوي
      ══════════════════════════════════════════════════════ */
+  // ══ الأسبوع الأول: إذا كانت هذه أول عملية تقييم → أعلى 10 مبتدئين يصعدون مباشرة للهاوي
+  const isFirstWeek = lastEvalWeek === -1;
+  if(isFirstWeek){
+    const beginners = divMap['beginner'] || [];
+    if(beginners.length > 0){
+      const top10 = beginners.slice(0, 10);
+      const ts = Date.now();
+      top10.forEach(m => {
+        const key = (m.name||'').replace(/\s+/g,'_');
+        newAssignments[key] = { divId:'amateur', updatedAt: ts, promotedFrom:'beginner', firstWeekPromo:true };
+      });
+      console.log('[NLD] 🌟 الأسبوع الأول: ' + top10.map(m=>m.name).join('، ') + ' صعدوا من المبتدئين للهاوي');
+    }
+  }
+
   for(let i = divCount - 1; i >= 1; i--){
     const lowerDiv  = NLD_DIVISIONS[i];
     const upperDiv  = NLD_DIVISIONS[i-1];
@@ -33445,6 +33500,11 @@ function renderDivision(divIdx, allMembers, assignments){
   members = members.slice(0, maxShow);
 
   const isFull = !isBeginners && totalInDiv >= NLD_MAX_MEMBERS;
+
+  // فحص إذا كانت أول تقييم (لعرض مؤشر الـ10 المحتملين)
+  const WEEK_KEY = 'nld_last_eval_week';
+  const lastEvalWeek = parseInt(localStorage.getItem(WEEK_KEY)||'-1');
+  const isFirstEvalPending = isBeginners && lastEvalWeek === -1;
   const currentUser = typeof getCurrentUser==='function' ? getCurrentUser() : '';
   const normCurr = (currentUser||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
 
@@ -33462,7 +33522,9 @@ function renderDivision(divIdx, allMembers, assignments){
   const rows = members.map((m,i)=>{
     const isMe = (m.name||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase()===normCurr;
     // صعود: أعلى 3 (فقط إذا القسم ممتلئ وأعلى 3 هنا أعلى من أدنى 3 في القسم الأعلى)
-    const isPromo = i < NLD_PROMO_COUNT && divIdx > 0 && isFull && (()=>{
+    // في الأسبوع الأول: أول 10 مبتدئين سيصعدون مباشرة
+    const isFirstWeekPromo = isFirstEvalPending && isBeginners && i < 10;
+    const isPromo = isFirstWeekPromo || (i < NLD_PROMO_COUNT && divIdx > 0 && isFull && (()=>{
       if(!assignments || divIdx === 0) return false;
       const upperDiv = NLD_DIVISIONS[divIdx - 1];
       const upperMembers = allMembers.filter(m => {
@@ -33475,8 +33537,8 @@ function renderDivision(divIdx, allMembers, assignments){
       const minPromo = Math.min(...top3Lower.map(m=>m.total));
       const maxReleg = Math.max(...bottom3Upper.map(m=>m.total));
       return minPromo > maxReleg;
-    })();
-    // هبوط: آخر 3 (فقط إذا القسم ممتلئ وشرط التبادل تحقق من القسم الأدنى)
+    })());
+    // هبوط: آخر 5 (فقط إذا القسم ممتلئ وشرط التبادل تحقق من القسم الأدنى)
     const isRelg = !isBeginners && isFull && i >= members.length - NLD_PROMO_COUNT && members.length >= NLD_PROMO_COUNT && divIdx < NLD_DIVISIONS.length - 1 && (()=>{
       const lowerDiv = NLD_DIVISIONS[divIdx + 1];
       const lowerMembers = allMembers.filter(m => {
@@ -33497,8 +33559,8 @@ function renderDivision(divIdx, allMembers, assignments){
     const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
     const borderL = isPromo ? '3px solid #22c55e' : isRelg ? '3px solid #ef4444' : '3px solid transparent';
-    const promoBadge = isPromo ? '<span style="font-size:10px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.15);border-radius:6px;padding:2px 6px;">↑ صعود</span>' : '';
-    const relegBadge = isRelg ? '<span style="font-size:10px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.12);border-radius:6px;padding:2px 6px;">↓ هبوط</span>' : '';
+    const promoBadge = isPromo ? '<span style="font-size:11px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.15);border-radius:6px;padding:2px 6px;">🟢▲ صعود</span>' : '';
+    const relegBadge = isRelg ? '<span style="font-size:11px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.12);border-radius:6px;padding:2px 6px;">🔴▼ هبوط</span>' : '';
     const meBadge = isMe ? '<span style="font-size:10px;font-weight:900;color:#00e5a0;background:rgba(0,229,160,0.15);border-radius:6px;padding:2px 6px;">✦ أنت</span>' : '';
 
     const photo = typeof localStorage!=='undefined' ? localStorage.getItem('nld_photo_'+m.name.replace(/\s+/g,'_')) : null;
@@ -34051,7 +34113,7 @@ window.adminSendAlertPost=async function(){
     id:postId, author:'نظام ConnectDZ', authorBadge:'🔔',
     text:'🔔 '+text, image:null, feeling:null, date:nowDate, ts:Date.now(),
     reactions:{}, comments:[], privacy:'🌐 عام',
-    isAdminPost:true, isAutoPost:true, autoCategory:'alert', isVerified:true
+    isAdminPost:true, isAutoPost:false, autoCategory:'alert', isVerified:true
   };
   try{
     const posts=typeof getSocialPosts==='function'?getSocialPosts():JSON.parse(localStorage.getItem('nld_social_posts')||'[]');
@@ -35666,1073 +35728,281 @@ console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات �
 })();
 </script>
 
-<!-- ═══════════════════════════════════════════════════════════════════
-     🚀 ConnectDZ MEGA PATCH v10.0
-     ① حظر الأعضاء + قائمة إدارة شاملة للمدير
-     ② نظام صعود/هبوط البطولة بأسهم + ترقية تلقائية
-     ③ توقيف النشر + نشر باسم النظام + صلاحيات النشر
-     ④ منشورات وتعليقات دائمة + ترتيب ذكي
-     ═══════════════════════════════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     🚫 نظام حظر الأعضاء — للمدير فقط
+     ✅ حظر نهائي من التطبيق + قائمة الحظر + رفع العقوبة
+     ══════════════════════════════════════════════════════════════ -->
 <script>
 (function(){
 'use strict';
 
-/* ════════════════════════════════════════════════════════════
-   ① نظام حظر الأعضاء + قائمة إدارة المدير الشاملة
-   ════════════════════════════════════════════════════════════ */
+/* ── مفاتيح Firebase ── */
+const _FB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+const _BAN_KEY_LS = 'nld_banned_users_v2';
 
-const _BAN_LIST_KEY = 'cdz_banned_members_v2';
-const _BADGE_KEY    = n => 'cdz_member_badge_' + n.replace(/\s+/g,'_');
-
-function _getBanList(){
-  try{ return JSON.parse(localStorage.getItem(_BAN_LIST_KEY)||'[]'); }catch(e){ return []; }
-}
-function _saveBanList(arr){
-  try{ localStorage.setItem(_BAN_LIST_KEY, JSON.stringify(arr)); }catch(e){}
-}
-
-window.isMemberBanned = function(name){
-  return _getBanList().some(b => b.name === name);
-};
-
-window.banMember = function(name){
-  if(!name || name==='المدير') return;
-  const list = _getBanList();
-  if(list.some(b=>b.name===name)){ showToast('⚠️ العضو محظور بالفعل'); return; }
-
-  // حفظ بيانات العضو قبل الحظر
-  const pts = localStorage.getItem('sklab_pts_'+name.replace(/\s+/g,'_'));
-  const photo = localStorage.getItem('nld_photo_'+name.replace(/\s+/g,'_'));
-  const badge = localStorage.getItem(_BADGE_KEY(name));
-
-  list.push({ name, ts: Date.now(), pts, photo, badge, reason: '' });
-  _saveBanList(list);
-
-  // إزالة من قوائم الأعضاء النشطين
+/* ── جلب قائمة المحظورين من Firebase ── */
+async function _getBanList(){
   try{
-    const actKey = 'nld_online_users';
-    const online = JSON.parse(localStorage.getItem(actKey)||'{}');
-    delete online[name]; delete online[name.replace(/\s+/g,'_')];
-    localStorage.setItem(actKey, JSON.stringify(online));
-  }catch(e){}
-
-  if(typeof showToast==='function') showToast('🚫 تم حظر العضو: ' + name);
-  _closeAdminMemberMenu();
-  _renderBanListIfOpen();
-};
-
-window.unbanMember = function(name){
-  const list = _getBanList().filter(b=>b.name!==name);
-  _saveBanList(list);
-  if(typeof showToast==='function') showToast('✅ تم رفع الحظر عن: ' + name);
-  _renderBanListIfOpen();
-};
-
-function _renderBanListIfOpen(){
-  const ov = document.getElementById('_adminBanListOv');
-  if(ov) _openAdminBanList();
+    const r = await fetch(_FB_BASE+'/banned_users.json?_='+Date.now(),{cache:'no-store'});
+    if(!r.ok) return {};
+    const d = await r.json();
+    return d && typeof d==='object' ? d : {};
+  }catch(e){
+    // fallback localStorage
+    try{ return JSON.parse(localStorage.getItem(_BAN_KEY_LS)||'{}'); }catch(ex){ return {}; }
+  }
 }
 
-window._openAdminBanList = function(){
-  const old = document.getElementById('_adminBanListOv'); if(old) old.remove();
-  const list = _getBanList();
-  const ov = document.createElement('div');
-  ov.id = '_adminBanListOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;font-family:Tajawal,sans-serif;';
-  const rows = list.length === 0
-    ? '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);font-size:14px;">لا يوجد أعضاء محظورون</div>'
-    : list.map(b=>`
-      <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.08);">
-        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#b91c1c);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🚫</div>
-        <div style="flex:1;">
-          <div style="font-size:14px;font-weight:800;color:white;">${b.name}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.5);">محظور ${new Date(b.ts).toLocaleDateString('ar-DZ')}</div>
-        </div>
-        <button onclick="unbanMember('${b.name.replace(/'/g,"\\'")}')" style="padding:8px 16px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;color:white;font-family:Tajawal,sans-serif;font-size:12px;font-weight:800;cursor:pointer;">رفع الحظر ✅</button>
-      </div>`).join('');
-
-  ov.innerHTML = `
-    <div style="background:#0d1117;border-radius:22px 22px 0 0;padding:20px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;">
-      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 18px;"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div style="font-size:17px;font-weight:900;color:#ef4444;">🚫 قائمة الحظر (${list.length})</div>
-        <button onclick="document.getElementById('_adminBanListOv').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);cursor:pointer;font-size:16px;">✕</button>
-      </div>
-      ${rows}
-    </div>`;
-  document.body.appendChild(ov);
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-};
-
-/* ─── قائمة إدارة المدير الشاملة عند الضغط على اسم أي عضو ─── */
-function _showAdminMemberMenu(memberName){
-  if(!window._isAdmin) return;
-  if(!memberName || memberName==='المدير') return;
-
-  const old = document.getElementById('_adminMemberMenuOv'); if(old) old.remove();
-  const isBanned = window.isMemberBanned(memberName);
-  const ov = document.createElement('div');
-  ov.id = '_adminMemberMenuOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;font-family:Tajawal,sans-serif;';
-
-  const curBadge = localStorage.getItem(_BADGE_KEY(memberName)) || '';
-  const BADGES = ['🏆','⭐','🥇','🥈','🥉','💎','🔥','👑','🎯','🏅','✨','🌟'];
-
-  ov.innerHTML = `
-    <div style="background:linear-gradient(160deg,#0d1117,#1a1a2e);border:1px solid rgba(255,215,0,0.2);border-radius:22px 22px 0 0;padding:20px 16px 32px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;">
-      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 16px;"></div>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:12px;background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.15);border-radius:16px;">
-        <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;font-size:24px;">👤</div>
-        <div>
-          <div style="font-size:16px;font-weight:900;color:white;">${memberName}</div>
-          <div style="font-size:11px;color:rgba(255,215,0,0.7);">إدارة العضو • المدير</div>
-        </div>
-        ${isBanned ? '<span style="margin-right:auto;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.5);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:800;color:#f87171;">🚫 محظور</span>' : ''}
-      </div>
-
-      <!-- خيارات الإدارة -->
-      <div style="display:flex;flex-direction:column;gap:8px;">
-
-        ${isBanned ? `
-        <button onclick="unbanMember('${memberName.replace(/'/g,"\\'")}');document.getElementById('_adminMemberMenuOv').remove();"
-          style="width:100%;padding:14px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
-          ✅ رفع الحظر واستعادة العضو
-        </button>` : `
-        <button onclick="_adminBanMemberConfirm('${memberName.replace(/'/g,"\\'")}');"
-          style="width:100%;padding:14px;background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
-          🚫 حظر العضو نهائياً
-        </button>`}
-
-        <button onclick="_adminSendWarnMsg('${memberName.replace(/'/g,"\\'")}');"
-          style="width:100%;padding:14px;background:linear-gradient(135deg,#f59e0b,#b45309);border:none;border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
-          📢 إرسال رسالة تنبيه
-        </button>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button onclick="_adminAddPtsMenu('${memberName.replace(/'/g,"\\'")}');"
-            style="padding:14px;background:linear-gradient(135deg,#22c55e,#15803d);border:none;border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;">
-            ➕ إضافة نقاط
-          </button>
-          <button onclick="_adminDeductPtsMenu('${memberName.replace(/'/g,"\\'")}');"
-            style="padding:14px;background:linear-gradient(135deg,#ef4444,#991b1b);border:none;border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;">
-            ➖ خصم نقاط
-          </button>
-        </div>
-
-        <!-- وسام العضو -->
-        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px;">
-          <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.7);margin-bottom:10px;">🏅 وضع وسام للعضو ${curBadge?'— الحالي: '+curBadge:''}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;">
-            ${BADGES.map(b=>`<span onclick="_adminSetBadge('${memberName.replace(/'/g,"\\'")}','${b}')" style="font-size:28px;cursor:pointer;padding:6px;border-radius:10px;background:${curBadge===b?'rgba(255,215,0,0.2)':'rgba(255,255,255,0.05)'};border:2px solid ${curBadge===b?'rgba(255,215,0,0.6)':'transparent'};transition:.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'">${b}</span>`).join('')}
-            ${curBadge?`<span onclick="_adminSetBadge('${memberName.replace(/'/g,"\\'")}','')" style="font-size:12px;font-weight:700;color:#f87171;cursor:pointer;padding:8px;border-radius:10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);">إزالة الوسام</span>`:''}
-          </div>
-        </div>
-
-        <button onclick="document.getElementById('_adminMemberMenuOv').remove()"
-          style="width:100%;padding:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;color:rgba(255,255,255,0.5);font-family:Tajawal,sans-serif;font-size:14px;font-weight:700;cursor:pointer;">
-          إلغاء
-        </button>
-      </div>
-    </div>`;
-
-  document.body.appendChild(ov);
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+/* ── تحديث localStorage بقائمة الحظر ── */
+async function _syncBanListLocal(){
+  const list = await _getBanList();
+  try{ localStorage.setItem(_BAN_KEY_LS, JSON.stringify(list)); }catch(e){}
+  return list;
 }
 
-function _closeAdminMemberMenu(){
-  const ov = document.getElementById('_adminMemberMenuOv');
-  if(ov) ov.remove();
-}
+/* ── حظر عضو ── */
+window.banMember = async function(memberName, reason){
+  if(!window._isAdmin){ if(typeof showToast==='function') showToast('❌ هذه الميزة للمدير فقط'); return; }
+  if(!memberName){ if(typeof showToast==='function') showToast('⚠️ اسم العضو غير صحيح'); return; }
+  if(memberName==='المدير'||memberName==='زائر'){ if(typeof showToast==='function') showToast('❌ لا يمكن حظر هذا الحساب'); return; }
 
-window._adminBanMemberConfirm = function(name){
-  _closeAdminMemberMenu();
-  const confirmOv = document.createElement('div');
-  confirmOv.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;';
-  confirmOv.innerHTML = `
-    <div style="background:linear-gradient(160deg,#0d1117,#1a0505);border:1px solid rgba(239,68,68,0.35);border-radius:22px;padding:28px 24px;width:88%;max-width:360px;text-align:center;">
-      <div style="font-size:48px;margin-bottom:12px;">🚫</div>
-      <div style="font-size:17px;font-weight:900;color:#f87171;margin-bottom:8px;">حظر العضو</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:20px;line-height:1.6;">هل تريد حظر <strong style="color:white;">"${name}"</strong> نهائياً؟<br>يمكن رفع الحظر لاحقاً من قائمة الحظر.</div>
-      <div style="display:flex;gap:10px;">
-        <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:14px;cursor:pointer;">إلغاء</button>
-        <button onclick="banMember('${name.replace(/'/g,"\\'")}');this.closest('[style*=fixed]').remove();" style="flex:1;padding:12px;background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;">🚫 حظر</button>
-      </div>
-    </div>`;
-  document.body.appendChild(confirmOv);
-  confirmOv.addEventListener('click',e=>{ if(e.target===confirmOv) confirmOv.remove(); });
-};
-
-window._adminSendWarnMsg = function(name){
-  _closeAdminMemberMenu();
-  const ov = document.createElement('div');
-  ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;';
-  ov.innerHTML = `
-    <div style="background:linear-gradient(160deg,#0d1117,#1a1500);border:1px solid rgba(245,158,11,0.3);border-radius:22px;padding:26px 22px;width:90%;max-width:420px;">
-      <div style="font-size:17px;font-weight:900;color:#f59e0b;text-align:center;margin-bottom:16px;">📢 رسالة تنبيه للعضو</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:12px;text-align:right;">إلى: <strong style="color:white;">${name}</strong></div>
-      <textarea id="_warnMsgTxt" placeholder="اكتب رسالة التنبيه هنا..." style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(245,158,11,0.3);border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:13px;outline:none;resize:vertical;min-height:100px;text-align:right;box-sizing:border-box;"></textarea>
-      <div style="display:flex;gap:8px;margin-top:12px;">
-        <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إلغاء</button>
-        <button onclick="_doSendWarnMsg('${name.replace(/'/g,"\\'")}',document.getElementById('_warnMsgTxt').value);this.closest('[style*=fixed]').remove();"
-          style="flex:1;padding:12px;background:linear-gradient(135deg,#f59e0b,#b45309);border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;">📢 إرسال</button>
-      </div>
-    </div>`;
-  document.body.appendChild(ov);
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-};
-
-window._doSendWarnMsg = function(name, msg){
-  if(!msg || !msg.trim()){ showToast('⚠️ اكتب الرسالة أولاً'); return; }
-  // حفظ الرسالة كإشعار للعضو
-  const warnKey = 'cdz_warn_notifs_' + name.replace(/\s+/g,'_');
-  let warns = [];
-  try{ warns = JSON.parse(localStorage.getItem(warnKey)||'[]'); }catch(e){}
-  warns.unshift({ msg: msg.trim(), ts: Date.now(), from: 'المدير' });
-  try{ localStorage.setItem(warnKey, JSON.stringify(warns.slice(0,20))); }catch(e){}
-
-  // إرسال كرسالة مباشرة إذا كانت الدالة متاحة
-  if(typeof openAdminChat === 'function'){
-    // إرسال مباشر للعضو
-    const warnMsg = { id:'warn_'+Date.now(), from:'المدير', to:name, message:'⚠️ تنبيه من الإدارة:\n'+msg.trim(), timestamp:new Date().toISOString(), read:false, isWarn:true };
-    if(typeof sbSendMessage==='function') sbSendMessage(warnMsg);
-    if(typeof _saveP2PMsgs==='function'){
-      try{
-        const existMsgs = typeof _getP2PMsgs==='function' ? _getP2PMsgs('المدير',name) : [];
-        existMsgs.push(warnMsg);
-        _saveP2PMsgs('المدير', name, existMsgs);
-      }catch(e){}
-    }
-  }
-
-  // إرسال Firebase notification
-  try{
-    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/warn_notifs/'+name.replace(/\s+/g,'_')+'/'+Date.now()+'.json',{
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ msg: msg.trim(), from:'المدير', ts: Date.now() })
-    }).catch(()=>{});
-  }catch(e){}
-
-  showToast('✅ تم إرسال رسالة التنبيه إلى ' + name);
-};
-
-window._adminAddPtsMenu = function(name){
-  _closeAdminMemberMenu();
-  const ov = document.createElement('div');
-  ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;';
-  ov.innerHTML = `
-    <div style="background:linear-gradient(160deg,#0d1117,#001a0a);border:1px solid rgba(34,197,94,0.3);border-radius:22px;padding:26px 22px;width:90%;max-width:420px;">
-      <div style="font-size:17px;font-weight:900;color:#22c55e;text-align:center;margin-bottom:16px;">➕ إضافة نقاط</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:12px;text-align:right;">العضو: <strong style="color:white;">${name}</strong></div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
-        ${[50,100,200,500,1000].map(v=>`<span onclick="document.getElementById('_addPtsVal').value=${v}" style="padding:6px 14px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:20px;color:#22c55e;font-weight:800;font-size:12px;cursor:pointer;">+${v}</span>`).join('')}
-      </div>
-      <input id="_addPtsVal" type="number" placeholder="أدخل عدد النقاط" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(34,197,94,0.3);border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:14px;outline:none;text-align:right;box-sizing:border-box;margin-bottom:12px;">
-      <div style="display:flex;gap:8px;">
-        <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إلغاء</button>
-        <button onclick="_doAdminAddPts('${name.replace(/'/g,"\\'")}',parseInt(document.getElementById('_addPtsVal').value)||0);this.closest('[style*=fixed]').remove();"
-          style="flex:1;padding:12px;background:linear-gradient(135deg,#22c55e,#15803d);border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;">➕ إضافة</button>
-      </div>
-    </div>`;
-  document.body.appendChild(ov);
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-};
-
-window._doAdminAddPts = function(name, pts){
-  if(!pts || pts <= 0){ showToast('⚠️ أدخل عدداً صحيحاً'); return; }
-  const normKey = 'sklab_pts_' + name.replace(/\s+/g,'_');
-  try{
-    let data = JSON.parse(localStorage.getItem(normKey)||'{"total":0,"earned":0}');
-    data.total = (data.total||0) + pts;
-    data.earned = (data.earned||0) + pts;
-    localStorage.setItem(normKey, JSON.stringify(data));
-    // Firebase
-    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+name.replace(/\s+/g,'_')+'.json',{
-      method:'PATCH', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ adminAddedPts: pts, totalPts: data.total })
-    }).catch(()=>{});
-    showToast('✅ تمت إضافة '+pts+' نقطة للعضو '+name);
-  }catch(e){ showToast('❌ حدث خطأ'); }
-};
-
-window._adminDeductPtsMenu = function(name){
-  _closeAdminMemberMenu();
-  const ov = document.createElement('div');
-  ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;';
-  ov.innerHTML = `
-    <div style="background:linear-gradient(160deg,#0d1117,#1a0505);border:1px solid rgba(239,68,68,0.3);border-radius:22px;padding:26px 22px;width:90%;max-width:420px;">
-      <div style="font-size:17px;font-weight:900;color:#f87171;text-align:center;margin-bottom:16px;">➖ خصم نقاط</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:12px;text-align:right;">العضو: <strong style="color:white;">${name}</strong></div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
-        ${[10,25,50,100,200].map(v=>`<span onclick="document.getElementById('_deductPtsVal').value=${v}" style="padding:6px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:20px;color:#f87171;font-weight:800;font-size:12px;cursor:pointer;">-${v}</span>`).join('')}
-      </div>
-      <input id="_deductPtsVal" type="number" placeholder="أدخل عدد النقاط المراد خصمها" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(239,68,68,0.3);border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:14px;outline:none;text-align:right;box-sizing:border-box;margin-bottom:12px;">
-      <div style="display:flex;gap:8px;">
-        <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إلغاء</button>
-        <button onclick="_doAdminDeductPts('${name.replace(/'/g,"\\'")}',parseInt(document.getElementById('_deductPtsVal').value)||0);this.closest('[style*=fixed]').remove();"
-          style="flex:1;padding:12px;background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;">➖ خصم</button>
-      </div>
-    </div>`;
-  document.body.appendChild(ov);
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-};
-
-window._doAdminDeductPts = function(name, pts){
-  if(!pts || pts <= 0){ showToast('⚠️ أدخل عدداً صحيحاً'); return; }
-  const normKey = 'sklab_pts_' + name.replace(/\s+/g,'_');
-  try{
-    let data = JSON.parse(localStorage.getItem(normKey)||'{"total":0}');
-    data.total = Math.max(0, (data.total||0) - pts);
-    localStorage.setItem(normKey, JSON.stringify(data));
-    showToast('✅ تم خصم '+pts+' نقطة من العضو '+name);
-  }catch(e){ showToast('❌ حدث خطأ'); }
-};
-
-window._adminSetBadge = function(name, badge){
-  localStorage.setItem(_BADGE_KEY(name), badge);
-  // تحديث في Firebase
-  try{
-    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/member_badges/'+name.replace(/\s+/g,'_')+'.json',{
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ badge, ts: Date.now() })
-    }).catch(()=>{});
-  }catch(e){}
-  if(badge) showToast('✅ تم وضع وسام '+badge+' للعضو '+name);
-  else showToast('🗑️ تم إزالة وسام العضو '+name);
-  _closeAdminMemberMenu();
-};
-
-/* ─── حقن قائمة الإدارة عند الضغط على أي اسم عضو ─── */
-/* نعترض viewMemberProfile و openMemberProfileView */
-const _prevViewMemberProfile_MEGA = window.viewMemberProfile;
-window.viewMemberProfile = function(name){
-  if(window._isAdmin && name && name !== 'المدير'){
-    // تحقق من الحظر قبل فتح الملف
-    if(window.isMemberBanned(name)){
-      // العضو محظور — أظهر قائمة إدارة مباشرة
-      _showAdminMemberMenu(name);
-      return;
-    }
-  }
-  if(typeof _prevViewMemberProfile_MEGA === 'function') _prevViewMemberProfile_MEGA.apply(this, arguments);
-  // للمدير: أضف زر الإدارة على ملف العضو بعد 500ms
-  if(window._isAdmin && name && name !== 'المدير'){
-    setTimeout(()=> _injectAdminBtnOnProfile(name), 500);
-  }
-};
-
-function _injectAdminBtnOnProfile(name){
-  // ابحث عن رأس الملف الشخصي وأضف زر الإدارة
-  const existing = document.getElementById('_adminProfileBtn_'+name.replace(/\s+/g,'_'));
-  if(existing) return;
-  // ابحث عن حاوية ملف العضو
-  const profileView = document.getElementById('memberProfileView') || document.getElementById('mpvContainer');
-  if(!profileView) return;
-  const adminBtn = document.createElement('button');
-  adminBtn.id = '_adminProfileBtn_'+name.replace(/\s+/g,'_');
-  adminBtn.onclick = ()=> _showAdminMemberMenu(name);
-  adminBtn.style.cssText = 'position:fixed;bottom:90px;left:16px;z-index:9999;padding:10px 18px;background:linear-gradient(135deg,#FFD700,#FFA500);border:none;border-radius:20px;color:#0d1117;font-family:Tajawal,sans-serif;font-size:12px;font-weight:900;cursor:pointer;box-shadow:0 4px 16px rgba(255,165,0,0.4);display:flex;align-items:center;gap:6px;';
-  adminBtn.innerHTML = '👑 إدارة العضو';
-  document.body.appendChild(adminBtn);
-  // إزالة الزر عند إغلاق الملف
-  setTimeout(()=> adminBtn.remove(), 30000);
-}
-
-/* ─── منع دخول المحظورين ─── */
-const _prevRenderApp_BAN = window.renderApp;
-window.renderApp = function(name, pts, isReg, earnedPts){
-  if(name && name !== 'المدير' && window.isMemberBanned && window.isMemberBanned(name)){
-    // إخفاء التطبيق وإظهار رسالة الحظر
-    const loginEl = document.getElementById('login');
-    const appEl = document.getElementById('app');
-    if(appEl) appEl.style.display = 'none';
-    if(loginEl){ loginEl.style.display = 'flex'; loginEl.style.flexDirection = 'column'; }
-    setTimeout(()=>{
-      const banMsg = document.createElement('div');
-      banMsg.style.cssText = 'position:fixed;inset:0;z-index:200000;background:linear-gradient(135deg,#0d1117,#1a0505);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;text-align:center;padding:30px;';
-      banMsg.innerHTML = `
-        <div style="font-size:80px;margin-bottom:20px;">🚫</div>
-        <div style="font-size:24px;font-weight:900;color:#f87171;margin-bottom:12px;">تم حظرك من التطبيق</div>
-        <div style="font-size:14px;color:rgba(255,255,255,0.5);line-height:1.8;max-width:320px;">تواصل مع إدارة Connect DZ<br>لمعرفة سبب الحظر وإمكانية رفعه.</div>`;
-      document.body.appendChild(banMsg);
-    }, 100);
-    return;
-  }
-  if(typeof _prevRenderApp_BAN === 'function') _prevRenderApp_BAN.apply(this, arguments);
-};
-
-/* ─── إضافة تحذيرات المدير في شريط الإشعارات ─── */
-window._checkWarnNotifs = function(){
-  const name = localStorage.getItem('sklab_user_name');
-  if(!name || name==='المدير') return;
-  const warnKey = 'cdz_warn_notifs_' + name.replace(/\s+/g,'_');
-  const seenKey = 'cdz_warn_seen_' + name.replace(/\s+/g,'_');
-  let warns = [];
-  try{ warns = JSON.parse(localStorage.getItem(warnKey)||'[]'); }catch(e){}
-  const lastSeen = parseInt(localStorage.getItem(seenKey)||'0');
-  const newWarns = warns.filter(w=>w.ts > lastSeen);
-  if(newWarns.length > 0){
-    const latest = newWarns[0];
-    const warnDiv = document.createElement('div');
-    warnDiv.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:200000;background:linear-gradient(135deg,#f59e0b,#b45309);width:100%;max-width:480px;padding:14px 18px;font-family:Tajawal,sans-serif;box-shadow:0 4px 20px rgba(0,0,0,0.5);';
-    warnDiv.innerHTML = `
-      <div style="display:flex;align-items:flex-start;gap:10px;">
-        <span style="font-size:22px;flex-shrink:0;">📢</span>
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:900;color:white;margin-bottom:4px;">تنبيه من الإدارة</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.9);line-height:1.6;">${latest.msg}</div>
-        </div>
-        <button onclick="this.parentElement.parentElement.remove();localStorage.setItem('${seenKey}',Date.now())" style="background:none;border:none;color:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;padding:0;flex-shrink:0;">✕</button>
-      </div>`;
-    document.body.appendChild(warnDiv);
-    localStorage.setItem(seenKey, String(Date.now()));
-  }
-};
-
-window.addEventListener('load', function(){
-  setTimeout(window._checkWarnNotifs, 2000);
-});
-
-/* ════════════════════════════════════════════════════════════
-   ② نظام صعود/هبوط البطولة مع أسهم + ترقية تلقائية
-   ════════════════════════════════════════════════════════════ */
-
-const _CHAMPIONSHIP_KEY  = 'cdz_championship_state_v2';
-const _CHAMP_WEEK_KEY    = 'cdz_championship_week_v2';
-const _CHAMP_PROMOTED_KEY= 'cdz_champ_promoted_v2';
-
-function _getChampState(){
-  try{ return JSON.parse(localStorage.getItem(_CHAMPIONSHIP_KEY)||'{}'); }catch(e){ return {}; }
-}
-function _saveChampState(obj){
-  try{ localStorage.setItem(_CHAMPIONSHIP_KEY, JSON.stringify(obj)); }catch(e){}
-}
-
-function _getCurrentChampWeek(){
-  return parseInt(localStorage.getItem(_CHAMP_WEEK_KEY)||'1');
-}
-
-function _advanceChampWeek(){
-  const w = _getCurrentChampWeek();
-  localStorage.setItem(_CHAMP_WEEK_KEY, String(w+1));
-}
-
-/* ─── حساب الصاعدين والنازلين بناءً على النقاط ─── */
-window._calcChampMovement = function(proLeague, amateurLeague, maxMove){
-  /* proLeague: مصفوفة {name, pts} للقسم المحترف (ترتيب تنازلي)
-     amateurLeague: مصفوفة {name, pts} للقسم الهاوي (ترتيب تنازلي)
-     maxMove: الحد الأقصى للحركة (5 افتراضياً)
-     
-     المنطق: آخر X في proLeague ينزلون فقط إذا كانت نقاطهم
-             أقل من أعلى X في amateurLeague
-     يُعيد: { up:[names], down:[names] }
-  */
-  if(!proLeague.length || !amateurLeague.length) return { up:[], down:[] };
-
-  const week = _getCurrentChampWeek();
-
-  // الأسبوع الأول: أفضل 10 ينتقلون مباشرة
-  if(week === 1){
-    const autoUp = amateurLeague.slice(0, Math.min(10, amateurLeague.length)).map(m=>m.name);
-    return { up: autoUp, down: [] };
-  }
-
-  // بعد الأسبوع الأول: منطق صعود/هبوط بناءً على المقارنة
-  const proBottom = proLeague.slice(-maxMove).reverse(); // الأضعف في المحترفين
-  const amateurTop = amateurLeague.slice(0, maxMove);    // الأقوى في الهواة
-
-  const up = [];
-  const down = [];
-  const count = Math.min(proBottom.length, amateurTop.length);
-
-  for(let i=0; i<count; i++){
-    const weakPro = proBottom[i];
-    const strongAmateur = amateurTop[i];
-    // الصعود فقط إذا كان الهاوي أكثر نقاطاً من المحترف الضعيف
-    if(strongAmateur && weakPro && strongAmateur.pts > weakPro.pts){
-      up.push(strongAmateur.name);
-      down.push(weakPro.name);
-    }
-  }
-  return { up, down };
-};
-
-/* ─── تطبيق الأسهم على صفوف الترتيب ─── */
-window._applyChampArrows = function(containerEl, movement){
-  if(!containerEl || !movement) return;
-  const { up=[], down=[] } = movement;
-  const rows = containerEl.querySelectorAll('[data-member-name]');
-  rows.forEach(row=>{
-    const name = row.getAttribute('data-member-name');
-    // إزالة الأسهم القديمة
-    const oldArrow = row.querySelector('.champ-move-arrow');
-    if(oldArrow) oldArrow.remove();
-
-    let arrowHtml = '';
-    if(up.includes(name)){
-      arrowHtml = '<span class="champ-move-arrow" title="صاعد" style="color:#22c55e;font-size:14px;font-weight:900;margin-right:4px;animation:arrowPulse 1s ease infinite;">▲</span>';
-    } else if(down.includes(name)){
-      arrowHtml = '<span class="champ-move-arrow" title="نازل" style="color:#ef4444;font-size:14px;font-weight:900;margin-right:4px;animation:arrowPulse 1s ease infinite;">▼</span>';
-    }
-    if(arrowHtml){
-      const firstChild = row.querySelector('.member-rank-num, [class*="rank"], span:first-child') || row.firstElementChild;
-      if(firstChild){ firstChild.insertAdjacentHTML('afterbegin', arrowHtml); }
-      else { row.insertAdjacentHTML('afterbegin', arrowHtml); }
-    }
-  });
-};
-
-/* CSS للأسهم */
-(function(){
-  if(document.getElementById('_champArrowStyle')) return;
-  const s = document.createElement('style');
-  s.id = '_champArrowStyle';
-  s.textContent = `
-    @keyframes arrowPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.3)} }
-    .champ-move-arrow { display:inline-block !important; }
-  `;
-  document.head.appendChild(s);
-})();
-
-/* ─── زر لوحة التحكم للبطولة (للمدير فقط) ─── */
-window._openChampAdminPanel = function(){
-  const old = document.getElementById('_champAdminOv'); if(old) old.remove();
-  const week = _getCurrentChampWeek();
-  const ov = document.createElement('div');
-  ov.id = '_champAdminOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:99997;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;';
-  ov.innerHTML = `
-    <div style="background:linear-gradient(160deg,#0d1117,#1a1a2e);border:1px solid rgba(255,215,0,0.25);border-radius:22px;padding:26px 22px;width:90%;max-width:440px;">
-      <div style="font-size:17px;font-weight:900;color:#FFD700;text-align:center;margin-bottom:18px;">🏆 إدارة البطولة المحترفة</div>
-      <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:14px;margin-bottom:14px;">
-        <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:6px;">الأسبوع الحالي</div>
-        <div style="font-size:28px;font-weight:900;color:#FFD700;">الأسبوع ${week}</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;">${week===1?'الأسبوع الأول: أفضل 10 ينتقلون للقسم الهاوي تلقائياً':'نظام صعود 5 / هبوط 5 بالمقارنة بالنقاط'}</div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <button onclick="window._advanceChampWeek();document.getElementById('_champAdminOv').remove();showToast('✅ تم الانتقال للأسبوع '+(parseInt(localStorage.getItem('cdz_championship_week_v2')||'1')))"
-          style="padding:13px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:800;cursor:pointer;">⏭️ الانتقال للأسبوع التالي</button>
-        <button onclick="localStorage.setItem('cdz_championship_week_v2','1');document.getElementById('_champAdminOv').remove();showToast('✅ تم إعادة تعيين إلى الأسبوع 1')"
-          style="padding:13px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;cursor:pointer;">🔄 إعادة تعيين البطولة</button>
-        <button onclick="document.getElementById('_champAdminOv').remove()"
-          style="padding:13px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:rgba(255,255,255,0.4);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إغلاق</button>
-      </div>
-    </div>`;
-  document.body.appendChild(ov);
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-};
-
-/* ════════════════════════════════════════════════════════════
-   ③ توقيف النشر + نشر باسم النظام + صلاحيات النشر
-   ════════════════════════════════════════════════════════════ */
-
-const _POST_DISABLED_KEY = 'cdz_posting_disabled';
-const _POST_SYSTEM_NAME  = 'النظام';
-
-window.isPostingDisabled = function(){
-  return localStorage.getItem(_POST_DISABLED_KEY) === '1';
-};
-window.togglePostingDisabled = function(){
-  const val = localStorage.getItem(_POST_DISABLED_KEY) === '1';
-  localStorage.setItem(_POST_DISABLED_KEY, val ? '0' : '1');
-  showToast(val ? '✅ تم تفعيل النشر للجميع' : '🔒 تم إيقاف النشر — فقط المدير يمكنه النشر');
-  const btn = document.getElementById('_togglePostingBtn');
-  if(btn) btn.innerHTML = val ? '📝 إيقاف النشر' : '✅ تفعيل النشر';
-};
-
-/* اعتراض دالة submitPost لمنع النشر إذا كانت مُوقفة */
-const _prevSubmitPost_PATCH = window.submitPost;
-window.submitPost = function(){
-  if(window.isPostingDisabled() && !window._isAdmin){
-    showToast('🔒 النشر موقوف مؤقتاً من قِبَل الإدارة');
-    const modal = document.getElementById('createPostModal');
-    if(modal) modal.style.display='none';
-    return;
-  }
-  if(typeof _prevSubmitPost_PATCH === 'function') _prevSubmitPost_PATCH.apply(this, arguments);
-};
-
-/* نشر باسم النظام — للمدير فقط */
-window.publishAsSystem = function(text, imageUrl){
-  if(!window._isAdmin){ showToast('❌ هذه الميزة للمدير فقط'); return; }
-  if(!text && !imageUrl){ showToast('⚠️ اكتب نصاً أو أضف صورة'); return; }
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
-  const post = {
-    id: 'sys_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
-    author: _POST_SYSTEM_NAME,
-    text: text || '',
-    image: imageUrl || null,
-    date: dateStr, ts: Date.now(),
-    reactions:{}, comments:[], views:0,
-    privacy:'🌐 عام',
-    isSystemPost: true
-  };
-  const posts = typeof getSocialPosts === 'function' ? getSocialPosts() : [];
-  posts.unshift(post);
-  if(typeof saveSocialPosts === 'function') saveSocialPosts(posts);
-  if(typeof renderSocialFeed === 'function') renderSocialFeed();
-
-  // Firebase
-  try{
-    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts/'+post.id+'.json',{
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(post)
-    }).catch(()=>{});
-  }catch(e){}
-
-  showToast('✅ تم النشر باسم النظام');
-};
-
-/* ─── زر "مشاركة معلومة" العائم — يظهر في كل صفحات التطبيق ─── */
-window._openShareInfoPanel = function(){
-  const old = document.getElementById('_shareInfoOv'); if(old) old.remove();
-  const myName = window._isAdmin ? 'المدير (النظام)' : (localStorage.getItem('sklab_user_name') || 'زائر');
-  const canPost = window._isAdmin || !window.isPostingDisabled();
-
-  const ov = document.createElement('div');
-  ov.id = '_shareInfoOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:99996;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;font-family:Tajawal,sans-serif;';
-
-  if(!canPost){
-    ov.innerHTML = `
-      <div style="background:#0d1117;border-radius:22px 22px 0 0;padding:26px 20px 36px;max-width:480px;width:100%;text-align:center;">
-        <div style="font-size:48px;margin-bottom:12px;">🔒</div>
-        <div style="font-size:16px;font-weight:900;color:white;margin-bottom:8px;">النشر موقوف مؤقتاً</div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.5);">تم إيقاف النشر من قِبَل الإدارة</div>
-        <button onclick="document.getElementById('_shareInfoOv').remove()" style="margin-top:16px;padding:12px 24px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:14px;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:14px;cursor:pointer;">إغلاق</button>
-      </div>`;
-    document.body.appendChild(ov);
-    ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-    return;
-  }
-
-  ov.innerHTML = `
-    <div style="background:#0d1117;border:1px solid rgba(255,255,255,0.08);border-radius:22px 22px 0 0;padding:20px 16px 36px;max-width:480px;width:100%;">
-      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 18px;"></div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-        <div style="font-size:24px;">📤</div>
-        <div>
-          <div style="font-size:16px;font-weight:900;color:white;">مشاركة معلومة</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.4);">${window._isAdmin?'ستُنشر باسم النظام':('بقلم: '+myName)}</div>
-        </div>
-        ${window._isAdmin ? `<label style="margin-right:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,215,0,0.8);cursor:pointer;"><input type="checkbox" id="_postAsSystemChk" checked style="width:16px;height:16px;accent-color:#FFD700;"> باسم النظام</label>` : ''}
-      </div>
-      <textarea id="_shareInfoText" placeholder="اكتب المعلومة أو الخبر هنا..." style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.12);border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:14px;outline:none;resize:none;min-height:100px;text-align:right;line-height:1.7;box-sizing:border-box;"></textarea>
-      <div style="display:flex;gap:8px;margin-top:12px;align-items:center;">
-        <label style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);cursor:pointer;font-size:20px;" title="أضف صورة">
-          🖼️<input type="file" accept="image/*" id="_shareInfoImg" style="display:none;" onchange="_onShareInfoImg(event)">
-        </label>
-        <div id="_shareInfoImgPreview" style="display:none;width:44px;height:44px;border-radius:10px;overflow:hidden;flex-shrink:0;"></div>
-        <button onclick="document.getElementById('_shareInfoOv').remove()" style="padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:rgba(255,255,255,0.5);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إلغاء</button>
-        <button onclick="_doShareInfo()" style="flex:1;padding:12px;background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;">نشر المعلومة ✅</button>
-      </div>
-    </div>`;
-  document.body.appendChild(ov);
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-};
-
-window._shareInfoImgData = null;
-window._onShareInfoImg = function(event){
-  const file = event.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e=>{
-    window._shareInfoImgData = e.target.result;
-    const prev = document.getElementById('_shareInfoImgPreview');
-    if(prev){ prev.style.display='block'; prev.innerHTML = `<img src="${e.target.result}" style="width:44px;height:44px;object-fit:cover;">`; }
-  };
-  reader.readAsDataURL(file);
-};
-
-window._doShareInfo = function(){
-  const text = (document.getElementById('_shareInfoText')||{}).value?.trim() || '';
-  const img = window._shareInfoImgData || null;
-  if(!text && !img){ showToast('⚠️ اكتب شيئاً أو أضف صورة'); return; }
-
-  const asSystem = window._isAdmin && (document.getElementById('_postAsSystemChk')||{}).checked;
-  const name = asSystem ? _POST_SYSTEM_NAME : (localStorage.getItem('sklab_user_name')||'زائر');
-
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
-  const post = {
-    id: 'info_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
-    author: name,
-    text: text,
-    image: img,
-    date: dateStr, ts: Date.now(),
-    reactions:{}, comments:[], views:0,
-    privacy:'🌐 عام',
-    isSystemPost: asSystem,
-    isSharedInfo: true
+  const key = memberName.replace(/\s+/g,'_');
+  const banData = {
+    name: memberName,
+    bannedAt: Date.now(),
+    bannedDate: new Date().toLocaleString('ar-DZ'),
+    reason: reason || 'مخالفة قوانين المنصة',
+    bannedBy: 'المدير'
   };
 
-  const posts = typeof getSocialPosts === 'function' ? getSocialPosts() : [];
-  posts.unshift(post);
-  if(typeof saveSocialPosts === 'function') saveSocialPosts(posts);
-  if(typeof renderSocialFeed === 'function') renderSocialFeed();
-
-  // مزامنة Firebase
   try{
-    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts/'+post.id+'.json',{
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ ...post, image: img ? '[image]' : null })
-    }).catch(()=>{});
-  }catch(e){}
-
-  window._shareInfoImgData = null;
-  document.getElementById('_shareInfoOv')?.remove();
-  showToast('✅ تم نشر المعلومة بنجاح!');
-};
-
-/* ─── إضافة زر "مشاركة معلومة" عائم في كل الصفحات ─── */
-(function _injectFloatingShareBtn(){
-  const btn = document.createElement('div');
-  btn.id = '_floatingShareBtn';
-  btn.onclick = ()=> window._openShareInfoPanel();
-  btn.style.cssText = `
-    position:fixed;bottom:85px;right:16px;z-index:9500;
-    width:52px;height:52px;border-radius:50%;
-    background:linear-gradient(135deg,#1877F2,#0d5bda);
-    box-shadow:0 4px 18px rgba(24,119,242,0.5);
-    display:flex;align-items:center;justify-content:center;
-    font-size:24px;cursor:pointer;
-    transition:transform .2s,box-shadow .2s;
-    border:2px solid rgba(255,255,255,0.2);
-  `;
-  btn.innerHTML = '📤';
-  btn.title = 'مشاركة معلومة';
-  btn.addEventListener('mouseenter',()=>{ btn.style.transform='scale(1.1)'; });
-  btn.addEventListener('mouseleave',()=>{ btn.style.transform='scale(1)'; });
-  document.addEventListener('DOMContentLoaded',()=>{ document.body.appendChild(btn); });
-  if(document.readyState !== 'loading') document.body.appendChild(btn);
-})();
-
-/* ─── لوحة تحكم النشر للمدير (عند الضغط على أيقونة النشاطات) ─── */
-window._openAdminPostControl = function(){
-  if(!window._isAdmin) return;
-  const old = document.getElementById('_adminPostCtrlOv'); if(old) old.remove();
-  const isDisabled = window.isPostingDisabled();
-  const ov = document.createElement('div');
-  ov.id = '_adminPostCtrlOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:99997;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;font-family:Tajawal,sans-serif;animation:fadeIn .2s ease;';
-  ov.innerHTML = `
-    <div style="background:#0d1117;border:1px solid rgba(255,255,255,0.1);border-radius:22px 22px 0 0;padding:22px 18px 36px;max-width:480px;width:100%;">
-      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 18px;"></div>
-      <div style="font-size:16px;font-weight:900;color:white;margin-bottom:18px;text-align:center;">⚙️ إدارة النشر</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.05);border-radius:14px;padding:14px 16px;">
-          <div>
-            <div style="font-size:13px;font-weight:800;color:white;">حالة النشر</div>
-            <div style="font-size:11px;color:${isDisabled?'#f87171':'#22c55e'};margin-top:3px;">${isDisabled?'🔒 موقوف':'✅ مفعّل'}</div>
-          </div>
-          <button id="_togglePostingBtn" onclick="window.togglePostingDisabled();document.getElementById('_adminPostCtrlOv').remove();"
-            style="padding:10px 20px;background:${isDisabled?'linear-gradient(135deg,#22c55e,#15803d)':'linear-gradient(135deg,#ef4444,#b91c1c)'};border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:800;cursor:pointer;">
-            ${isDisabled?'✅ تفعيل النشر':'🔒 إيقاف النشر'}
-          </button>
-        </div>
-
-        <button onclick="document.getElementById('_adminPostCtrlOv').remove();window._openSystemPostComposer();"
-          style="width:100%;padding:14px;background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,165,0,0.1));border:1px solid rgba(255,215,0,0.3);border-radius:14px;color:#FFD700;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:10px;">
-          <span style="font-size:20px;">📣</span> نشر رسالة باسم النظام
-        </button>
-        <button onclick="document.getElementById('_adminPostCtrlOv').remove();window._openAdminBanList();"
-          style="width:100%;padding:14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:14px;color:#f87171;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:10px;">
-          <span style="font-size:20px;">🚫</span> قائمة الحظر
-        </button>
-        <button onclick="document.getElementById('_adminPostCtrlOv').remove();window._openChampAdminPanel();"
-          style="width:100%;padding:14px;background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:14px;color:#FFD700;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:10px;">
-          <span style="font-size:20px;">🏆</span> إدارة البطولة
-        </button>
-        <button onclick="document.getElementById('_adminPostCtrlOv').remove()"
-          style="width:100%;padding:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;color:rgba(255,255,255,0.4);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إغلاق</button>
-      </div>
-    </div>`;
-  document.body.appendChild(ov);
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-};
-
-window._openSystemPostComposer = function(){
-  const old = document.getElementById('_sysPostOv'); if(old) old.remove();
-  const ov = document.createElement('div');
-  ov.id = '_sysPostOv';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;font-family:Tajawal,sans-serif;animation:fadeIn .2s ease;';
-  ov.innerHTML = `
-    <div style="background:linear-gradient(160deg,#0d1117,#1a1a2e);border:1px solid rgba(255,215,0,0.2);border-radius:22px 22px 0 0;padding:20px 16px 36px;max-width:480px;width:100%;">
-      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 16px;"></div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;font-size:20px;">⚡</div>
-        <div>
-          <div style="font-size:15px;font-weight:900;color:#FFD700;">النظام</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.4);">منشور رسمي من الإدارة</div>
-        </div>
-      </div>
-      <textarea id="_sysPostText" placeholder="اكتب رسالة النظام..." style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,215,0,0.2);border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:14px;outline:none;resize:none;min-height:110px;text-align:right;line-height:1.7;box-sizing:border-box;"></textarea>
-      <div style="display:flex;gap:8px;margin-top:12px;">
-        <button onclick="document.getElementById('_sysPostOv').remove()" style="padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:rgba(255,255,255,0.5);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إلغاء</button>
-        <button onclick="window.publishAsSystem(document.getElementById('_sysPostText').value);document.getElementById('_sysPostOv').remove();"
-          style="flex:1;padding:12px;background:linear-gradient(135deg,#FFD700,#FFA500);border:none;border-radius:12px;color:#0d1117;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;">📣 نشر باسم النظام</button>
-      </div>
-    </div>`;
-  document.body.appendChild(ov);
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-};
-
-/* ════════════════════════════════════════════════════════════
-   ④ منشورات وتعليقات دائمة + ترتيب ذكي
-   ════════════════════════════════════════════════════════════ */
-
-const _HALF_HOUR_MS = 30 * 60 * 1000; // نصف ساعة بالمللي ثانية
-
-/* ─── دالة الترتيب الذكي ─── */
-window._smartSortPosts = function(posts){
-  if(!posts || !posts.length) return posts;
-  const now = Date.now();
-  return posts.slice().sort(function(a, b){
-    const aAge = now - (a.ts || 0);
-    const bAge = now - (b.ts || 0);
-    const aNew = aAge < _HALF_HOUR_MS; // أقل من نصف ساعة
-    const bNew = bAge < _HALF_HOUR_MS;
-
-    // المنشورات الجديدة (أقل من 30 دقيقة): تظهر بالترتيب الزمني (الأحدث أولاً)
-    if(aNew && bNew) return (b.ts||0) - (a.ts||0);
-    if(aNew && !bNew) return -1;
-    if(!aNew && bNew) return 1;
-
-    // المنشورات القديمة: ترتيب حسب أعلى تفاعل (تعليقات + إعجابات + مشاهدات)
-    const aScore = _postEngagement(a);
-    const bScore = _postEngagement(b);
-    if(bScore !== aScore) return bScore - aScore;
-    return (b.ts||0) - (a.ts||0); // عند التساوي: الأحدث أولاً
-  });
-};
-
-function _postEngagement(p){
-  if(!p) return 0;
-  const comments = (p.comments || []).length;
-  const views    = p.views || 0;
-  const reacts   = Object.values(p.reactions || {}).flat().length;
-  // وزن: التعليقات × 3 + الإعجابات × 2 + المشاهدات × 1
-  return (comments * 3) + (reacts * 2) + views;
-}
-
-/* ─── اعتراض renderSocialFeed لتطبيق الترتيب الذكي ─── */
-const _prevRenderSocialFeed_SORT = window.renderSocialFeed;
-window.renderSocialFeed = function(){
-  if(typeof _prevRenderSocialFeed_SORT === 'function') _prevRenderSocialFeed_SORT.apply(this, arguments);
-};
-
-/* ─── حفظ التعليقات دائمياً في Firebase ─── */
-const _prevToggleComments_PERSIST = window.toggleComments;
-window.toggleComments = function(postId){
-  if(typeof _prevToggleComments_PERSIST === 'function') _prevToggleComments_PERSIST.apply(this, arguments);
-};
-
-/* ─── اعتراض saveSocialPosts لتطبيق الترتيب الذكي ─── */
-const _prevSaveSocialPosts_SORT = window.saveSocialPosts;
-window.saveSocialPosts = function(arr){
-  // الترتيب الذكي قبل الحفظ
-  const sorted = window._smartSortPosts ? window._smartSortPosts(arr) : arr;
-  if(typeof _prevSaveSocialPosts_SORT === 'function') _prevSaveSocialPosts_SORT.call(this, sorted);
-};
-
-/* ─── تحديث تلقائي لعرض المنشور الجديد ─── */
-(function _scheduleRefreshForOldPosts(){
-  setInterval(function(){
-    // بعد نصف ساعة من نشر أي منشور، أعد عرض الفيد
-    const posts = typeof getSocialPosts === 'function' ? getSocialPosts() : [];
-    const now = Date.now();
-    const hasRecentlyExpired = posts.some(p => {
-      const age = now - (p.ts||0);
-      // منشور أصبح قديماً منذ دقيقتين أو أقل
-      return age >= _HALF_HOUR_MS && age <= _HALF_HOUR_MS + 120000;
+    // حفظ في Firebase
+    await fetch(_FB_BASE+'/banned_users/'+key+'.json',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(banData)
     });
-    if(hasRecentlyExpired && typeof renderSocialFeed === 'function'){
-      renderSocialFeed();
-    }
-  }, 60000); // فحص كل دقيقة
-})();
+    // حفظ محلي
+    const list = await _getBanList();
+    list[key] = banData;
+    localStorage.setItem(_BAN_KEY_LS, JSON.stringify(list));
 
-/* ─── تثبيت التعليقات والإعجابات عبر Firebase ─── */
-const _FB_CDZ = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+    if(typeof showToast==='function') showToast('🚫 تم حظر '+memberName+' نهائياً');
+    // إعادة تحميل قائمة المحظورين إن كانت مفتوحة
+    if(document.getElementById('_banListPanel')){ _renderBanList(); }
+    return true;
+  }catch(e){
+    if(typeof showToast==='function') showToast('❌ فشل الحظر: '+e.message);
+    return false;
+  }
+};
 
-window._persistCommentToFirebase = function(postId, comment){
-  if(!postId || !comment) return;
+/* ── رفع الحظر عن عضو ── */
+window.unbanMember = async function(memberName){
+  if(!window._isAdmin){ if(typeof showToast==='function') showToast('❌ هذه الميزة للمدير فقط'); return; }
+  if(!memberName) return;
+
+  const key = memberName.replace(/\s+/g,'_');
   try{
-    const cKey = comment.id || ('c_'+Date.now());
-    fetch(`${_FB_CDZ}/post_comments/${postId}/${cKey}.json`,{
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({...comment, _postId: postId })
-    }).catch(()=>{});
-  }catch(e){}
+    await fetch(_FB_BASE+'/banned_users/'+key+'.json',{ method:'DELETE' });
+    const list = await _getBanList();
+    delete list[key];
+    localStorage.setItem(_BAN_KEY_LS, JSON.stringify(list));
+
+    if(typeof showToast==='function') showToast('✅ تم رفع الحظر عن '+memberName+' — العضو عاد نشطاً');
+    if(document.getElementById('_banListPanel')){ _renderBanList(); }
+    // إغلاق نافذة الحظر إن كانت مفتوحة
+    const banModal = document.getElementById('_banMemberModal');
+    if(banModal) banModal.remove();
+  }catch(e){
+    if(typeof showToast==='function') showToast('❌ فشل رفع الحظر: '+e.message);
+  }
 };
 
-window._persistReactionToFirebase = function(postId, emoji, userName){
-  if(!postId || !emoji || !userName) return;
+/* ── التحقق من حظر مستخدم ── */
+window.isMemberBanned = function(memberName){
+  if(!memberName) return false;
   try{
-    const safeUser = userName.replace(/\s+/g,'_');
-    fetch(`${_FB_CDZ}/post_reactions/${postId}/${safeUser}.json`,{
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ emoji, userName, ts: Date.now() })
-    }).catch(()=>{});
-  }catch(e){}
+    const list = JSON.parse(localStorage.getItem(_BAN_KEY_LS)||'{}');
+    const key = memberName.replace(/\s+/g,'_');
+    return !!list[key];
+  }catch(e){ return false; }
 };
 
-/* ─── اعتراض إضافة التعليقات ─── */
-const _prevAddCommentToPost = window.addCommentToPost;
-window.addCommentToPost = function(postId, commentText, authorName){
-  if(typeof _prevAddCommentToPost === 'function') _prevAddCommentToPost.apply(this, arguments);
-  // حفظ في Firebase
-  const cObj = {
-    id: 'c_'+Date.now(),
-    author: authorName || (localStorage.getItem('sklab_user_name')||'مجهول'),
-    text: commentText,
-    ts: Date.now(),
-    postId
-  };
-  window._persistCommentToFirebase(postId, cObj);
+/* ── فتح نافذة تأكيد الحظر ── */
+window.openBanConfirm = function(memberName){
+  if(!window._isAdmin){ if(typeof showToast==='function') showToast('❌ هذه الميزة للمدير فقط'); return; }
+  if(!memberName) return;
+
+  const existing = document.getElementById('_banMemberModal');
+  if(existing) existing.remove();
+
+  const isBanned = window.isMemberBanned(memberName);
+
+  const modal = document.createElement('div');
+  modal.id = '_banMemberModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;font-family:Tajawal,sans-serif;direction:rtl;';
+
+  if(isBanned){
+    modal.innerHTML = `
+      <div style="width:100%;max-width:480px;background:linear-gradient(160deg,#0d1117,#1a0a00);border:1px solid rgba(34,197,94,0.3);border-radius:28px 28px 0 0;padding:24px 20px 36px;animation:slideUp .3s ease;">
+        <div style="width:38px;height:4px;background:rgba(255,255,255,0.15);border-radius:10px;margin:0 auto 20px;"></div>
+        <div style="font-size:18px;font-weight:900;color:#22c55e;text-align:center;margin-bottom:6px;">✅ رفع الحظر</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.6);text-align:center;margin-bottom:20px;">${memberName} — محظور حالياً</div>
+        <button onclick="unbanMember('${memberName.replace(/'/g,"\\'")}');this.closest('#_banMemberModal').remove();" style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;font-family:Tajawal,sans-serif;font-size:16px;font-weight:900;cursor:pointer;margin-bottom:10px;">✅ رفع الحظر — إعادة العضو نشطاً</button>
+        <button onclick="this.closest('#_banMemberModal').remove();" style="width:100%;padding:12px;border:1px solid rgba(255,255,255,0.15);border-radius:14px;background:transparent;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:14px;cursor:pointer;">إلغاء</button>
+      </div>`;
+  } else {
+    modal.innerHTML = `
+      <div style="width:100%;max-width:480px;background:linear-gradient(160deg,#0d1117,#1a0505);border:1px solid rgba(239,68,68,0.3);border-radius:28px 28px 0 0;padding:24px 20px 36px;animation:slideUp .3s ease;">
+        <div style="width:38px;height:4px;background:rgba(255,255,255,0.15);border-radius:10px;margin:0 auto 20px;"></div>
+        <div style="font-size:18px;font-weight:900;color:#ef4444;text-align:center;margin-bottom:6px;">🚫 حظر نهائي</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.6);text-align:center;margin-bottom:4px;">${memberName}</div>
+        <div style="font-size:11px;color:rgba(239,68,68,0.7);text-align:center;margin-bottom:18px;">سيُحظر من التطبيق نهائياً ويُضاف لقائمة الحظر</div>
+        <input id="_banReasonInput" placeholder="سبب الحظر (اختياري)..." style="width:100%;padding:12px 14px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(239,68,68,0.25);border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:14px;outline:none;box-sizing:border-box;text-align:right;margin-bottom:14px;">
+        <button onclick="_confirmBan('${memberName.replace(/'/g,"\\'")}');" style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:white;font-family:Tajawal,sans-serif;font-size:16px;font-weight:900;cursor:pointer;margin-bottom:10px;">🚫 تأكيد الحظر النهائي</button>
+        <button onclick="this.closest('#_banMemberModal').remove();" style="width:100%;padding:12px;border:1px solid rgba(255,255,255,0.15);border-radius:14px;background:transparent;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:14px;cursor:pointer;">إلغاء</button>
+      </div>`;
+  }
+
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
 };
 
-/* ─── استعادة التعليقات من Firebase عند بدء التطبيق ─── */
-window._restoreCommentsFromFirebase = async function(){
-  try{
-    const posts = typeof getSocialPosts === 'function' ? getSocialPosts() : [];
-    if(!posts.length) return;
-    let changed = false;
-    for(const p of posts.slice(0,30)){
-      try{
-        const res = await fetch(`${_FB_CDZ}/post_comments/${p.id}.json`);
-        if(!res.ok) continue;
-        const fbComments = await res.json();
-        if(!fbComments || typeof fbComments !== 'object') continue;
-        const fbArr = Object.values(fbComments).filter(c=>c&&c.text);
-        if(!fbArr.length) continue;
-        // دمج مع التعليقات المحلية
-        const local = p.comments || [];
-        const localIds = new Set(local.map(c=>c.id||c.ts));
-        let added = false;
-        fbArr.forEach(fc=>{
-          if(fc.id && !localIds.has(fc.id)){ local.push(fc); added=true; }
-        });
-        if(added){ p.comments = local.sort((a,b)=>(a.ts||0)-(b.ts||0)); changed=true; }
-      }catch(e){}
-    }
-    if(changed){
-      if(typeof saveSocialPosts === 'function') saveSocialPosts(posts);
-      if(typeof renderSocialFeed === 'function') renderSocialFeed();
-    }
-  }catch(e){}
+window._confirmBan = function(memberName){
+  const reason = (document.getElementById('_banReasonInput')||{}).value?.trim() || 'مخالفة قوانين المنصة';
+  const modal = document.getElementById('_banMemberModal');
+  if(modal) modal.remove();
+  window.banMember(memberName, reason);
 };
 
-window.addEventListener('load', function(){
-  setTimeout(window._restoreCommentsFromFirebase, 5000);
-});
+/* ── عرض قائمة المحظورين ── */
+async function _renderBanList(){
+  const panel = document.getElementById('_banListPanel');
+  if(!panel) return;
+  const list = await _getBanList();
+  const entries = Object.values(list);
+  if(entries.length === 0){
+    panel.innerHTML = '<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);font-size:13px;">لا يوجد أعضاء محظورون حالياً ✅</div>';
+    return;
+  }
+  panel.innerHTML = entries.map(b=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:14px;margin-bottom:8px;">
+      <div style="width:40px;height:40px;border-radius:50%;background:rgba(239,68,68,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🚫</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:900;color:#e8eaed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${b.name}</div>
+        <div style="font-size:10px;color:rgba(239,68,68,0.8);margin-top:2px;">${b.reason||'مخالفة قوانين المنصة'}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:1px;">${b.bannedDate||''}</div>
+      </div>
+      <button onclick="unbanMember('${(b.name||'').replace(/'/g,"\\'")}');" style="padding:7px 12px;border:none;border-radius:10px;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;font-family:Tajawal,sans-serif;font-size:11px;font-weight:900;cursor:pointer;flex-shrink:0;">رفع العقوبة</button>
+    </div>`).join('');
+}
 
-/* ════════════════════════════════════════════════════════════
-   ⚙️ لوحة تحكم المدير السريعة — تُضاف للشريط السفلي
-   ════════════════════════════════════════════════════════════ */
+/* ── فتح لوحة قائمة المحظورين ── */
+window.openBanListPanel = function(){
+  if(!window._isAdmin){ if(typeof showToast==='function') showToast('❌ هذه الميزة للمدير فقط'); return; }
 
-window._openAdminQuickPanel = function(){
-  if(!window._isAdmin){ showToast('❌ هذه الميزة للمدير فقط'); return; }
-  const old = document.getElementById('_adminQuickPanel'); if(old) old.remove();
-  const isDisabled = window.isPostingDisabled();
-  const week = _getCurrentChampWeek();
+  const existing = document.getElementById('_banListOverlay');
+  if(existing){ existing.remove(); return; }
 
   const ov = document.createElement('div');
-  ov.id = '_adminQuickPanel';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:99997;background:rgba(0,0,0,0.8);backdrop-filter:blur(14px);display:flex;align-items:flex-end;justify-content:center;font-family:Tajawal,sans-serif;animation:fadeIn .2s ease;';
+  ov.id = '_banListOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);display:flex;flex-direction:column;font-family:Tajawal,sans-serif;direction:rtl;animation:fadeIn .25s ease;';
   ov.innerHTML = `
-    <div style="background:linear-gradient(160deg,#0d1117,#1a1a2e);border:1px solid rgba(255,215,0,0.15);border-radius:22px 22px 0 0;padding:22px 16px 36px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;">
-      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 18px;"></div>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-        <div style="width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 16px rgba(255,215,0,0.4);">👑</div>
-        <div>
-          <div style="font-size:17px;font-weight:900;color:#FFD700;">لوحة تحكم المدير</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.4);">Connect DZ • الإدارة الشاملة</div>
-        </div>
+    <div style="display:flex;align-items:center;gap:12px;padding:16px;background:linear-gradient(135deg,#1a0505,#0d1117);border-bottom:1px solid rgba(239,68,68,0.3);flex-shrink:0;">
+      <button onclick="document.getElementById('_banListOverlay').remove();" style="width:36px;height:36px;border-radius:50%;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#ef4444;font-size:18px;cursor:pointer;">‹</button>
+      <div style="flex:1;">
+        <div style="font-size:17px;font-weight:900;color:#ef4444;">🚫 قائمة الحظر</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);">الأعضاء المحظورون نهائياً</div>
       </div>
-
-      <!-- إحصائيات سريعة -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
-        <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px;text-align:center;">
-          <div style="font-size:18px;font-weight:900;color:${isDisabled?'#f87171':'#22c55e'};">${isDisabled?'🔒':'✅'}</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px;">النشر</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px;text-align:center;">
-          <div style="font-size:18px;font-weight:900;color:#FFD700;">${_getBanList().length}</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px;">محظور</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px;text-align:center;">
-          <div style="font-size:18px;font-weight:900;color:#3b82f6;">أ.${week}</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px;">الأسبوع</div>
-        </div>
-      </div>
-
-      <!-- أزرار الإجراءات -->
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <button onclick="document.getElementById('_adminQuickPanel').remove();window._openSystemPostComposer();"
-          style="padding:14px;background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,165,0,0.08));border:1px solid rgba(255,215,0,0.3);border-radius:14px;color:#FFD700;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;">
-          <span style="font-size:22px;">📣</span> نشر رسالة باسم النظام
-        </button>
-        <button onclick="document.getElementById('_adminQuickPanel').remove();window.togglePostingDisabled();"
-          style="padding:14px;background:${isDisabled?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};border:1px solid ${isDisabled?'rgba(34,197,94,0.3)':'rgba(239,68,68,0.3)'};border-radius:14px;color:${isDisabled?'#22c55e':'#f87171'};font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;">
-          <span style="font-size:22px;">${isDisabled?'✅':'🔒'}</span> ${isDisabled?'تفعيل النشر للجميع':'إيقاف النشر'}
-        </button>
-        <button onclick="document.getElementById('_adminQuickPanel').remove();window._openAdminBanList();"
-          style="padding:14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:14px;color:#f87171;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;">
-          <span style="font-size:22px;">🚫</span> قائمة الحظر (${_getBanList().length} عضو)
-        </button>
-        <button onclick="document.getElementById('_adminQuickPanel').remove();window._openChampAdminPanel();"
-          style="padding:14px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:14px;color:#60a5fa;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;">
-          <span style="font-size:22px;">🏆</span> إدارة البطولة (أسبوع ${week})
-        </button>
-        <button onclick="document.getElementById('_adminQuickPanel').remove();window._openShareInfoPanel();"
-          style="padding:14px;background:rgba(24,119,242,0.1);border:1px solid rgba(24,119,242,0.25);border-radius:14px;color:#60a5fa;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;">
-          <span style="font-size:22px;">📤</span> نشر معلومة / مشاركة خبر
-        </button>
-        <button onclick="document.getElementById('_adminQuickPanel').remove()"
-          style="padding:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;color:rgba(255,255,255,0.4);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إغلاق</button>
-      </div>
+    </div>
+    <div id="_banListPanel" style="flex:1;overflow-y:auto;padding:14px;">
+      <div style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">⏳ جارٍ التحميل...</div>
     </div>`;
+  ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
   document.body.appendChild(ov);
-  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  _renderBanList();
 };
 
-/* ─── إضافة زر لوحة تحكم المدير في الشريط السفلي ─── */
-(function _injectAdminNavBtn(){
-  const tryInject = function(){
-    if(!window._isAdmin) return;
-    if(document.getElementById('_adminNavBtn')) return;
-    // ابحث عن الشريط السفلي
-    const navBar = document.querySelector('.nav-bar, #bottomNav, [id*="bottomNav"], [class*="nav-bar"], [class*="bottom-nav"]');
-    if(!navBar) return;
-    const btn = document.createElement('div');
-    btn.id = '_adminNavBtn';
-    btn.onclick = ()=> window._openAdminQuickPanel();
-    btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:4px 8px;flex:1;';
-    btn.innerHTML = '<span style="font-size:20px;animation:adminGoldPulse 2s ease infinite;">👑</span><span style="font-size:9px;font-weight:700;color:#FFD700;">إدارة</span>';
-    navBar.appendChild(btn);
-  };
-  setTimeout(tryInject, 1500);
-  setTimeout(tryInject, 3000);
-})();
+/* ══════════════════════════════════════════════════════════════
+   🔒 منع دخول الأعضاء المحظورين
+   ══════════════════════════════════════════════════════════════ */
+// التحقق عند تسجيل الدخول
+const _origFbLoginUser = window.fbLoginUser;
+window.fbLoginUser = async function(user){
+  if(!user) return;
+  const name = ((user.firstName||'') + ' ' + (user.lastName||'')).trim();
+  if(!name) return _origFbLoginUser && _origFbLoginUser.apply(this, arguments);
 
-/* ─── تحقق: عرض قائمة الإدارة عند الضغط على اسم عضو في الفيد ─── */
-document.addEventListener('click', function(e){
-  if(!window._isAdmin) return;
-  const target = e.target;
-  // البحث عن عنصر onclick يحتوي viewMemberProfile
-  const clickable = target.closest('[onclick*="viewMemberProfile"]');
-  if(!clickable) return;
-  const match = (clickable.getAttribute('onclick')||'').match(/viewMemberProfile\(['"]([^'"]+)['"]\)/);
-  if(!match) return;
-  const memberName = match[1];
-  if(memberName && memberName !== 'المدير'){
-    // لا نمنع السلوك الافتراضي — فقط نضيف القائمة بعد 300ms
-    setTimeout(()=> _injectAdminBtnOnProfile(memberName), 300);
+  // مزامنة قائمة الحظر من Firebase
+  await _syncBanListLocal();
+  if(window.isMemberBanned(name)){
+    if(typeof showToast==='function') showToast('🚫 هذا الحساب محظور من التطبيق.');
+    // إظهار رسالة الحظر
+    const loginEl = document.getElementById('login');
+    if(loginEl){
+      const banMsg = document.createElement('div');
+      banMsg.style.cssText = 'position:fixed;inset:0;z-index:999999;background:#0d0208;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;direction:rtl;padding:24px;';
+      banMsg.innerHTML = `
+        <div style="font-size:64px;margin-bottom:20px;">🚫</div>
+        <div style="font-size:22px;font-weight:900;color:#ef4444;margin-bottom:10px;text-align:center;">حسابك محظور</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.6);text-align:center;line-height:1.8;margin-bottom:24px;">تم حظر حسابك من منصة Connect DZ.<br>للاستفسار، تواصل مع الإدارة.</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.3);">ConnectDZ — Next Leaders DZ</div>`;
+      document.body.appendChild(banMsg);
+    }
+    return;
   }
-}, true);
+  if(typeof _origFbLoginUser === 'function') _origFbLoginUser.apply(this, arguments);
+};
 
-console.log('✅ ConnectDZ MEGA PATCH v10.0 — جميع الميزات الأربع مُفعّلة');
+/* ══════════════════════════════════════════════════════════════
+   🎯 إضافة زر الحظر عند الضغط على اسم أي عضو
+   يظهر فقط للمدير
+   ══════════════════════════════════════════════════════════════ */
+const _origOpenMpvBan = window.openMemberProfileView;
+window.openMemberProfileView = function(memberName){
+  if(typeof _origOpenMpvBan === 'function') _origOpenMpvBan.apply(this, arguments);
 
+  if(!window._isAdmin || !memberName) return;
+
+  // إضافة زر الحظر بعد فتح الملف الشخصي
+  setTimeout(function(){
+    // البحث عن مكان مناسب لإضافة زر الحظر في ملف العضو
+    const mpvPanel = document.getElementById('memberProfileView');
+    if(!mpvPanel) return;
+
+    // تحقق إذا الزر موجود مسبقاً
+    if(document.getElementById('_adminBanBtn_'+memberName.replace(/\s+/g,'_'))) return;
+
+    const isBanned = window.isMemberBanned(memberName);
+    const btnWrap = document.createElement('div');
+    btnWrap.id = '_adminBanBtn_'+memberName.replace(/\s+/g,'_');
+    btnWrap.style.cssText = 'padding:0 16px 12px;';
+
+    btnWrap.innerHTML = isBanned
+      ? `<button onclick="openBanConfirm('${memberName.replace(/'/g,"\\'")}');" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;">✅ رفع الحظر عن ${memberName}</button>`
+      : `<button onclick="openBanConfirm('${memberName.replace(/'/g,"\\'")}');" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;">🚫 حظر ${memberName} نهائياً</button>`;
+
+    // إضافة الزر في أعلى محتوى ملف العضو
+    const firstChild = mpvPanel.firstElementChild;
+    if(firstChild && firstChild.nextElementSibling){
+      mpvPanel.insertBefore(btnWrap, firstChild.nextElementSibling);
+    } else {
+      mpvPanel.appendChild(btnWrap);
+    }
+  }, 300);
+};
+
+/* ══════════════════════════════════════════════════════════════
+   🛡️ إضافة زر قائمة الحظر في لوحة الإدارة
+   ══════════════════════════════════════════════════════════════ */
+window.addEventListener('load', function(){
+  // تحميل قائمة الحظر المحلية عند البداية
+  _syncBanListLocal().catch(()=>{});
+});
+
+console.log('✅ [ConnectDZ] نظام الحظر v2.0 — للمدير فقط — جاهز');
 })();
 </script>
 
