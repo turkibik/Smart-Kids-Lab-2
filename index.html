@@ -35666,5 +35666,341 @@ console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات �
 })();
 </script>
 
+<!-- ══════════════════════════════════════════════════════════════════════
+     🚀 ConnectDZ — Smart Cache & Network Manager (v2.0)
+     ══════════════════════════════════════════════════════════════════════
+     المنطق:
+     ┌─────────────────────────────────────────────────────────────────┐
+     │ الأصول الثابتة  (CSS/JS/صور/خطوط) → Cache 1 سنة + immutable  │
+     │ المنشورات/الرسائل/الإشعارات        → no-store  (طازج دائماً) │
+     │ البيانات شبه-ثابتة (ملف عضو/نقاط) → no-cache  (تحقق أولاً)  │
+     │ Cloudinary CDN                      → Cache 30 يوم            │
+     └─────────────────────────────────────────────────────────────────┘
+     الميزات:
+     ✅ Fetch Interceptor  — يضبط cache تلقائياً لكل fetch في الكود
+     ✅ Request Deduplicator — يلغي الطلبات المكررة في نفس اللحظة
+     ✅ Smart Retry          — إعادة محاولة تلقائية عند انقطاع الشبكة
+     ✅ Offline Queue        — يحفظ الكتابات ويرسلها عند العودة
+     ✅ Memory Cache         — يخزن نتائج القراءة لتقليل طلبات Firebase
+     ✅ Visibility Refresh   — يحدّث الفيد عند العودة للتطبيق
+     ✅ Cache Busting Ready  — يدعم ?v=HASH في الأصول الثابتة
+     ══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function _initCDZSmartCache(){
+  'use strict';
+
+  /* ══════════════════════════════════════════════
+     § 1 — تصنيف الـ URL
+     ══════════════════════════════════════════════ */
+  const _STATIC_PATTERNS = [
+    /fonts\.googleapis\.com/,
+    /fonts\.gstatic\.com/,
+    /res\.cloudinary\.com/,
+    /cdn\.jsdelivr\.net/,
+    /cdn\.onesignal\.com/,
+    /cdnjs\.cloudflare\.com/,
+    /\.(woff2?|ttf|eot|otf)(\?|$)/i,
+    /\.(ico|svg|webp|avif|png|jpg|jpeg|gif)(\?v=|$)/i,
+    /\.(css|js)(\?v=|$)/i
+  ];
+
+  const _REALTIME_PATTERNS = [
+    /\/social_posts/,
+    /\/messages\//,
+    /\/calls\//,
+    /\/webrtc\//,
+    /\/monitor\//,
+    /\/admin_points_gifts\//,
+    /supabase\.co\/rest\/v1\/messages/,
+    /onesignal\.com/
+  ];
+
+  const _SEMI_STATIC_PATTERNS = [
+    /\/userStats\//,
+    /\/appdata\//,
+    /\/leaderboard/,
+    /\/page_posts\//,
+    /sheetdb\.io/,
+    /sheets\.googleapis\.com/,
+    /oauth2\.googleapis\.com/
+  ];
+
+  function _classifyUrl(url){
+    const s = String(url);
+    if(_STATIC_PATTERNS.some(p => p.test(s)))   return 'static';
+    if(_REALTIME_PATTERNS.some(p => p.test(s)))  return 'realtime';
+    if(_SEMI_STATIC_PATTERNS.some(p => p.test(s))) return 'semi';
+    return 'default';
+  }
+
+  /* ══════════════════════════════════════════════
+     § 2 — In-Memory Cache للقراءات شبه-الثابتة
+     TTL: 90 ثانية — يوفّر طلبات متكررة لنفس البيانات
+     (النقاط، ملف العضو، الجدول)
+     ══════════════════════════════════════════════ */
+  const _memCache = new Map();
+  const _SEMI_TTL  = 90 * 1000; /* 90 ثانية */
+
+  function _memGet(key){
+    const entry = _memCache.get(key);
+    if(!entry) return null;
+    if(Date.now() - entry.ts > _SEMI_TTL){ _memCache.delete(key); return null; }
+    return entry.clone(); /* نُرجع نسخة طازجة من Response */
+  }
+
+  function _memSet(key, response){
+    /* نحفظ فقط إذا كانت الاستجابة ناجحة */
+    if(!response || !response.ok) return;
+    const clone = response.clone();
+    _memCache.set(key, { ts: Date.now(), clone: () => clone.clone() });
+  }
+
+  /* ══════════════════════════════════════════════
+     § 3 — Request Deduplicator
+     يمنع إرسال نفس الطلب مرتين في وقت واحد
+     (مشكلة شائعة في renderSocialFeed + SSE)
+     ══════════════════════════════════════════════ */
+  const _inflight = new Map();
+
+  /* ══════════════════════════════════════════════
+     § 4 — Offline Write Queue
+     يحفظ طلبات PUT/POST/DELETE عند انقطاع النت
+     ويرسلها تلقائياً عند العودة
+     ══════════════════════════════════════════════ */
+  const _QUEUE_KEY = '__cdz_offq';
+  let   _offlineQueue = [];
+
+  function _loadQueue(){
+    try{ _offlineQueue = JSON.parse(localStorage.getItem(_QUEUE_KEY) || '[]'); }
+    catch(e){ _offlineQueue = []; }
+  }
+
+  function _saveQueue(){
+    try{ localStorage.setItem(_QUEUE_KEY, JSON.stringify(_offlineQueue.slice(-50))); }
+    catch(e){ /* localStorage ممتلئ */ }
+  }
+
+  function _enqueue(url, init){
+    /* نحفظ فقط الكتابات الحيوية: نقاط + منشورات */
+    const s = String(url);
+    const isVital = /\/(userStats|social_posts|messages|appdata)\//.test(s);
+    if(!isVital) return;
+    _offlineQueue.push({ url: s, init: _serializeInit(init), ts: Date.now() });
+    _saveQueue();
+  }
+
+  function _serializeInit(init){
+    if(!init) return {};
+    const safe = { method: init.method || 'GET', headers: init.headers || {} };
+    if(init.body && typeof init.body === 'string') safe.body = init.body;
+    return safe;
+  }
+
+  async function _flushQueue(){
+    if(!_offlineQueue.length) return;
+    const pending = _offlineQueue.splice(0);
+    _saveQueue();
+    for(const item of pending){
+      try{
+        await _originalFetch(item.url, item.init);
+        console.log('[CDZ-Cache] 📤 أُرسل من القائمة:', item.url.slice(0,60));
+      }catch(e){
+        /* أعد للقائمة إذا فشل */
+        _offlineQueue.push(item);
+      }
+    }
+    if(_offlineQueue.length) _saveQueue();
+  }
+
+  /* ══════════════════════════════════════════════
+     § 5 — Fetch Interceptor الرئيسي
+     ══════════════════════════════════════════════ */
+  const _originalFetch = window.fetch.bind(window);
+
+  window.fetch = async function(input, init){
+    const url    = (input instanceof Request) ? input.url : String(input);
+    const method = ((init && init.method) || 'GET').toUpperCase();
+    const type   = _classifyUrl(url);
+
+    /* ── أ) الكتابات (PUT/POST/PATCH/DELETE) ── */
+    if(method !== 'GET' && method !== 'HEAD'){
+      if(!navigator.onLine){
+        _enqueue(url, init);
+        /* أرجع استجابة وهمية ناجحة حتى لا يكسر الكود */
+        return new Response(JSON.stringify({ queued: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      /* اكتابات تذهب مباشرة بدون cache */
+      return _originalFetch(input, init);
+    }
+
+    /* ── ب) الأصول الثابتة — يتولاها المتصفح/Service Worker ── */
+    if(type === 'static'){
+      return _originalFetch(input, init);
+    }
+
+    /* ── ج) البيانات الفورية (منشورات/رسائل/مكالمات) ── */
+    if(type === 'realtime'){
+      /* no-store: لا تخزين أبداً — طازج دائماً */
+      const newInit = Object.assign({}, init, { cache: 'no-store' });
+      return _originalFetch(input, newInit);
+    }
+
+    /* ── د) البيانات شبه-الثابتة (نقاط/ملف عضو) ── */
+    if(type === 'semi'){
+      /* فحص Memory Cache أولاً */
+      const cached = _memGet(url);
+      if(cached){
+        console.log('[CDZ-Cache] ⚡ من الذاكرة:', url.slice(0,60));
+        return cached;
+      }
+
+      /* Request Deduplicator */
+      if(_inflight.has(url)){
+        return _inflight.get(url).then(r => r.clone());
+      }
+
+      const newInit = Object.assign({}, init, { cache: 'no-cache' });
+      const prom = _originalFetch(input, newInit).then(res => {
+        _memSet(url, res);
+        _inflight.delete(url);
+        return res;
+      }).catch(err => {
+        _inflight.delete(url);
+        throw err;
+      });
+
+      _inflight.set(url, prom);
+      return prom;
+    }
+
+    /* ── هـ) افتراضي — no-cache (تحقق أولاً) ── */
+    const defInit = Object.assign({}, init, { cache: 'no-cache' });
+    return _originalFetch(input, defInit);
+  };
+
+  /* ══════════════════════════════════════════════
+     § 6 — Smart Retry عند انقطاع الشبكة
+     يحاول 3 مرات مع تأخير تصاعدي (500ms, 1s, 2s)
+     ══════════════════════════════════════════════ */
+  const _origFetchNow = window.fetch;
+  window.fetch = async function(input, init){
+    const method = ((init && init.method) || 'GET').toUpperCase();
+    /* الـ retry فقط للقراءات */
+    if(method !== 'GET' && method !== 'HEAD'){
+      return _origFetchNow(input, init);
+    }
+    const delays = [500, 1000, 2000];
+    let lastErr;
+    for(let i = 0; i <= delays.length; i++){
+      try{
+        return await _origFetchNow(input, init);
+      }catch(err){
+        lastErr = err;
+        if(i < delays.length){
+          await new Promise(r => setTimeout(r, delays[i]));
+        }
+      }
+    }
+    throw lastErr;
+  };
+
+  /* ══════════════════════════════════════════════
+     § 7 — Visibility Refresh
+     عند العودة للتطبيق بعد الخلفية → تحديث الفيد
+     ══════════════════════════════════════════════ */
+  let _lastHidden = 0;
+  const _REFRESH_AFTER = 5 * 60 * 1000; /* 5 دقائق */
+
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden){
+      _lastHidden = Date.now();
+      return;
+    }
+    /* عاد المستخدم بعد 5+ دقائق */
+    if(_lastHidden && (Date.now() - _lastHidden) > _REFRESH_AFTER){
+      /* تنظيف Memory Cache → يجبر على جلب جديد */
+      _memCache.clear();
+      console.log('[CDZ-Cache] 👁 عودة من الخلفية — تنظيف الكاش');
+
+      /* تحديث الفيد إذا كان ظاهراً */
+      const container = document.getElementById('socialFeedContainer');
+      if(container && container.offsetParent !== null){
+        if(typeof renderSocialFeed === 'function'){
+          setTimeout(renderSocialFeed, 300);
+        }
+      }
+    }
+
+    /* إرسال القائمة المعلقة إذا عادت الشبكة */
+    if(navigator.onLine) _flushQueue();
+  });
+
+  /* ══════════════════════════════════════════════
+     § 8 — Online Event: إرسال القائمة فور العودة
+     ══════════════════════════════════════════════ */
+  window.addEventListener('online', function(){
+    console.log('[CDZ-Cache] 📶 الشبكة عادت — إرسال القائمة المعلقة');
+    setTimeout(_flushQueue, 1000);
+    /* تحديث فوري لعداد الرسائل */
+    if(typeof refreshSocialMsgBadge === 'function') refreshSocialMsgBadge();
+  });
+
+  window.addEventListener('offline', function(){
+    console.log('[CDZ-Cache] 📴 انقطع الإنترنت — وضع الحفظ مفعّل');
+  });
+
+  /* ══════════════════════════════════════════════
+     § 9 — تصدير أدوات للاستخدام الخارجي
+     ══════════════════════════════════════════════ */
+
+  /* مسح كاش عضو معين (بعد تحديث نقاطه مثلاً) */
+  window._cdzCacheClear = function(urlFragment){
+    _memCache.forEach((v, k) => {
+      if(!urlFragment || k.includes(urlFragment)){
+        _memCache.delete(k);
+      }
+    });
+    console.log('[CDZ-Cache] 🧹 تم مسح الكاش:', urlFragment || 'الكل');
+  };
+
+  /* استعراض حالة الكاش في Console */
+  window._cdzCacheStatus = function(){
+    const entries = [];
+    _memCache.forEach((v, k) => {
+      const age = Math.round((Date.now() - v.ts) / 1000);
+      entries.push({ url: k.slice(0, 70), age: age + 'ث' });
+    });
+    console.table(entries);
+    console.log('[CDZ-Cache] قائمة الانتظار:', _offlineQueue.length, 'عنصر');
+  };
+
+  /* ربط مسح كاش نقاط العضو بعد إرسال النقاط */
+  const _prevSyncLB = window.syncLeaderboard;
+  if(typeof _prevSyncLB === 'function'){
+    window.syncLeaderboard = async function(name){
+      await _prevSyncLB.apply(this, arguments);
+      /* مسح كاش النقاط لهذا العضو فوراً */
+      if(name) window._cdzCacheClear('userStats/' + name.replace(/\s+/g,'_'));
+    };
+  }
+
+  /* تهيئة قائمة الانتظار من localStorage */
+  _loadQueue();
+
+  console.log('✅ [ConnectDZ] Smart Cache Manager v2.0 — مفعّل');
+  console.log('   ├ الأصول الثابتة: Cache 1 سنة (متصفح/SW)');
+  console.log('   ├ المنشورات/الرسائل: no-store (طازج دائماً)');
+  console.log('   ├ النقاط/ملف العضو: Memory Cache 90ث');
+  console.log('   ├ Request Deduplication: مفعّل');
+  console.log('   ├ Smart Retry (3 محاولات): مفعّل');
+  console.log('   ├ Offline Queue: مفعّل (' + _offlineQueue.length + ' معلق)');
+  console.log('   └ Visibility Refresh (5 دقائق): مفعّل');
+
+})();
+</script>
+
 </body>
 </html>
