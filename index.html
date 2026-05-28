@@ -29,16 +29,6 @@
     overscroll-behavior-y: none !important;
   }
 
-  /* ✅ إصلاح WebView: منع back-gesture عند التمرير للأسفل
-     يشمل كل العناصر ذات overflow-y حتى لا يفسّرها WebView كـ gesture للخروج */
-  * {
-    overscroll-behavior: none !important;
-  }
-  /* منع touch-action الأفقي الذي يُطلق back/forward gesture في بعض WebViews */
-  html, body, .app, #socialMainScroll, #memberProfileView, #digitalCard {
-    touch-action: pan-y !important;
-  }
-
 <style id="admin-gold-styles">
 /* ══════════════════════════════════════════════════════
    🌟 أنماط المدير الذهبية — شارة ذهبية + ميزات إدارة
@@ -202,29 +192,23 @@ document.addEventListener('touchstart', function(e){
 
 document.addEventListener('touchmove', function(e){
   if(!e.touches[0]) return;
-  var dy = e.touches[0].clientY - _sy;
+  var dy = e.touches[0].clientY - _sy; /*양수 = سحب للأسفل */
 
-  /* السحب للأسفل فقط هو الخطر (pull-to-refresh / back-gesture في WebView) */
+  /* فقط نهتم بالسحب للأسفل (pull-to-refresh) */
   if(dy <= 0) return;
 
-  /* ابحث عن أقرب عنصر scroll يمكنه التمرير للأعلى فعلاً */
+  /* ابحث عن أقرب عنصر يمكنه التمرير للأعلى (scrollTop > 0) */
   var el = e.target;
-  var canScrollUp = false;
   while(el && el !== document.documentElement){
     var ov = window.getComputedStyle(el).overflowY;
     if((ov === 'auto' || ov === 'scroll') && el.scrollTop > 0){
-      canScrollUp = true;
-      break;
+      /* هذا العنصر لم يصل للأعلى بعد — السحب تمرير عادي، لا نمنع */
+      return;
     }
     el = el.parentElement;
   }
-
-  /* إذا لا يوجد عنصر يمكنه التمرير للأعلى — امنع بشكل مطلق
-     هذا يمنع pull-to-refresh AND back-gesture في WebView */
-  if(!canScrollUp){
-    e.preventDefault();
-    e.stopPropagation();
-  }
+  /* وصلنا للأعلى أو لا يوجد عنصر scroll — هذا pull-to-refresh، نمنعه */
+  e.preventDefault();
 
 }, {passive:false, capture:true});
 })();
@@ -5677,7 +5661,7 @@ function switchLoginTab(tab){
     </div>
 
     <!-- Scrollable Content -->
-    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;overscroll-behavior-y:none;">
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
       
       <!-- Author Info -->
       <div style="padding:12px 16px 8px;">
