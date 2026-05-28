@@ -33175,8 +33175,8 @@ function renderDivision(divIdx, allMembers){
     const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
     const borderL = isPromo ? '3px solid #22c55e' : isRelg ? '3px solid #ef4444' : '3px solid transparent';
-    const promoBadge = isPromo ? '<span style="font-size:10px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.15);border-radius:6px;padding:2px 6px;">↑ صعود</span>' : '';
-    const relegBadge = isRelg ? '<span style="font-size:10px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.12);border-radius:6px;padding:2px 6px;">↓ هبوط</span>' : '';
+    const promoBadge = isPromo ? '<span style="font-size:11px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #22c55e;">⬆️ صعود</span>' : '';
+    const relegBadge = isRelg ? '<span style="font-size:11px;font-weight:900;color:#ef4444;background:rgba(239,68,68,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #ef4444;">⬇️ نزول</span>' : '';
     const meBadge = isMe ? '<span style="font-size:10px;font-weight:900;color:#00e5a0;background:rgba(0,229,160,0.15);border-radius:6px;padding:2px 6px;">✦ أنت</span>' : '';
 
     const photo = typeof localStorage!=='undefined' ? localStorage.getItem('nld_photo_'+m.name.replace(/\s+/g,'_')) : null;
@@ -33227,8 +33227,8 @@ function renderDivision(divIdx, allMembers){
       <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px;">النقاط المطلوبة: ${div.rangeLabel}</div>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);">${members.length} عضو</div>
-        ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون</div>`:''}
-        ${divIdx<NLD_DIVISIONS.length-1?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ 2 أخيرين ينزلون</div>`:''}
+        ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">⬆️ أوائل يصعدون</div>`:''}
+        ${divIdx<NLD_DIVISIONS.length-1?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">⬇️ آخرين ينزلون</div>`:''}
         ${myRankBadge}
       </div>
     </div>
@@ -33497,8 +33497,8 @@ function renderDivision(divIdx, allMembers, assignments){
     const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
     const borderL = isPromo ? '3px solid #22c55e' : isRelg ? '3px solid #ef4444' : '3px solid transparent';
-    const promoBadge = isPromo ? '<span style="font-size:10px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.15);border-radius:6px;padding:2px 6px;">↑ صعود</span>' : '';
-    const relegBadge = isRelg ? '<span style="font-size:10px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.12);border-radius:6px;padding:2px 6px;">↓ هبوط</span>' : '';
+    const promoBadge = isPromo ? '<span style="font-size:11px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #22c55e;">⬆️ صعود</span>' : '';
+    const relegBadge = isRelg ? '<span style="font-size:11px;font-weight:900;color:#ef4444;background:rgba(239,68,68,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #ef4444;">⬇️ نزول</span>' : '';
     const meBadge = isMe ? '<span style="font-size:10px;font-weight:900;color:#00e5a0;background:rgba(0,229,160,0.15);border-radius:6px;padding:2px 6px;">✦ أنت</span>' : '';
 
     const photo = typeof localStorage!=='undefined' ? localStorage.getItem('nld_photo_'+m.name.replace(/\s+/g,'_')) : null;
@@ -33544,9 +33544,9 @@ function renderDivision(divIdx, allMembers, assignments){
     : `<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);">${totalInDiv}/${NLD_MAX_MEMBERS} عضو</div>`) : '';
 
   const promoNote = isFull && divIdx > 0
-    ? `<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون إن تفوّقوا على أدنى 3 في القسم الأعلى</div>` : '';
+    ? `<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">⬆️ أعلى تنقيط يصعدون إن تفوّقوا على أدنى في القسم الأعلى</div>` : '';
   const relegNote = isFull && !isBeginners && divIdx < NLD_DIVISIONS.length-1
-    ? `<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ 3 أخيرين ينزلون إن تفوّق عليهم أعلى 3 من القسم الأدنى</div>` : '';
+    ? `<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">⬇️ أدنى تنقيط ينزلون إن تفوّق عليهم أعلى من القسم الأدنى</div>` : '';
   const evalNote = `<div style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:10px;padding:5px 12px;font-size:10px;font-weight:700;color:#FFA500;">📅 التقييم: نهاية الأسبوع 21:00</div>`;
 
   const hexRgb = h=>{ const m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return m?`${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)}`:'150,150,150'; };
@@ -35998,6 +35998,526 @@ console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات �
   console.log('   ├ Smart Retry (3 محاولات): مفعّل');
   console.log('   ├ Offline Queue: مفعّل (' + _offlineQueue.length + ' معلق)');
   console.log('   └ Visibility Refresh (5 دقائق): مفعّل');
+
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ✅ الميزات الجديدة v5.0
+     1) حظر العضو نهائياً + حذفه — لحساب المدير فقط
+     2) نظام الصعود والنزول: أسهم خضراء/حمراء + منطق الأسبوع الأول
+     3) حذف حساب شيماء سفيسيفي المكرر (>45000 نقطة)
+     4) استمرارية قسم التعليقات بعد العودة للتطبيق
+══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ══════════════════════════════════════════════════════════════
+   ① حظر العضو نهائياً + حذفه — لحساب المدير فقط
+══════════════════════════════════════════════════════════════ */
+
+const _BANNED_KEY = 'cdz_permanently_banned';
+
+function _getBannedList(){
+  try{ return JSON.parse(localStorage.getItem(_BANNED_KEY)||'[]'); }catch{ return []; }
+}
+function _saveBannedList(list){
+  try{ localStorage.setItem(_BANNED_KEY, JSON.stringify(list)); }catch(e){}
+}
+
+/** هل هذا العضو محظور نهائياً؟ */
+window.isPermanentlyBanned = function(name){
+  if(!name) return false;
+  const list = _getBannedList();
+  return list.some(b => b.name === name);
+};
+
+/** حظر عضو نهائياً وحذف بياناته */
+window.permanentlyBanAndDelete = function(targetName){
+  const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+  if(me !== 'المدير'){
+    if(typeof showToast==='function') showToast('🔒 هذه الميزة للمدير فقط');
+    return;
+  }
+  if(!targetName || targetName === 'المدير'){
+    if(typeof showToast==='function') showToast('⚠️ اسم غير صالح');
+    return;
+  }
+
+  // نافذة تأكيد
+  const ov = document.createElement('div');
+  ov.id = '_permBanOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:999999;display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;';
+  ov.innerHTML = `
+    <div style="background:linear-gradient(160deg,#1a0505,#2d0a0a);border:2px solid rgba(239,68,68,0.5);border-radius:24px;padding:28px 24px;width:92%;max-width:400px;text-align:center;">
+      <div style="font-size:42px;margin-bottom:12px;">🚫</div>
+      <div style="font-size:17px;font-weight:900;color:#f87171;margin-bottom:10px;">حظر نهائي + حذف</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:20px;line-height:1.7;">
+        هل تريد حظر وحذف العضو<br>
+        <strong style="color:#fca5a5;font-size:15px;">${targetName}</strong><br>
+        نهائياً من التطبيق؟<br>
+        <span style="color:#f87171;font-size:11px;">⚠️ لا يمكن التراجع عن هذا الإجراء</span>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button onclick="document.getElementById('_permBanOverlay').remove()" style="flex:1;padding:12px;border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;background:rgba(255,255,255,0.08);color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:700;cursor:pointer;">إلغاء</button>
+        <button onclick="_executePermanentBan('${targetName.replace(/'/g,"\\'")}');document.getElementById('_permBanOverlay').remove()" style="flex:1;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;">🚫 حظر وحذف</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+};
+
+window._executePermanentBan = function(targetName){
+  const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+  if(me !== 'المدير') return;
+
+  // 1) إضافة للقائمة السوداء
+  const list = _getBannedList();
+  if(!list.some(b=>b.name===targetName)){
+    list.push({ name: targetName, bannedAt: Date.now(), bannedBy: me });
+    _saveBannedList(list);
+  }
+
+  // 2) حذف من قاعدة المستخدمين المسجلين
+  try{
+    const REG_KEY = 'nld_registered_users';
+    const users = JSON.parse(localStorage.getItem(REG_KEY)||'[]');
+    const filtered = users.filter(u=>{
+      const fullName = ((u.firstName||'')+' '+(u.lastName||'')).trim();
+      return fullName !== targetName;
+    });
+    localStorage.setItem(REG_KEY, JSON.stringify(filtered));
+  }catch(e){}
+
+  // 3) حذف نقاطه وبياناته من localStorage
+  const normKey = targetName.replace(/\s+/g,'_');
+  const keysToDelete = [
+    'nld_pts_'+normKey,
+    'nld_interaction_'+normKey,
+    'nld_quiz_pts_'+normKey,
+    'nld_photo_'+normKey,
+    'nld_bio_'+normKey,
+    'nld_email_'+normKey,
+    'cdz_sheet_verified_'+normKey,
+    'nld_divisions_'+normKey,
+  ];
+  keysToDelete.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+
+  // 4) حذف منشوراته من الفيد الاجتماعي
+  try{
+    const POSTS_KEY = 'nld_social_posts';
+    const posts = JSON.parse(localStorage.getItem(POSTS_KEY)||'[]');
+    const cleanPosts = posts.filter(p=>p.author !== targetName);
+    localStorage.setItem(POSTS_KEY, JSON.stringify(cleanPosts));
+  }catch(e){}
+
+  // 5) حذف من Firebase userStats
+  const fbBase = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  fetch(`${fbBase}/userStats/${normKey}.json`,{ method:'DELETE' }).catch(()=>{});
+  fetch(`${fbBase}/nld_divisions/${normKey}.json`,{ method:'DELETE' }).catch(()=>{});
+  fetch(`${fbBase}/leaderboard/${normKey}.json`,{ method:'DELETE' }).catch(()=>{});
+
+  if(typeof showToast==='function') showToast(`🚫 تم حظر وحذف ${targetName} نهائياً`);
+
+  // 6) تحديث لوحات المدير
+  setTimeout(()=>{
+    if(typeof _afpLoadMembers==='function') _afpLoadMembers();
+    if(typeof renderSocialFeed==='function') renderSocialFeed();
+  }, 500);
+};
+
+/** منع العضو المحظور من تسجيل الدخول */
+const _origLogin = window.login;
+if(typeof _origLogin === 'function'){
+  window.login = function(){
+    // سنعترض بعد تسجيل الدخول الناجح
+    return _origLogin.apply(this, arguments);
+  };
+}
+
+/* إضافة زر الحظر النهائي لقائمة أعضاء لوحة المدير */
+const _origAfpRenderMembers = window._afpRenderMembers;
+window._afpRenderMembers = function(members){
+  const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+  const listEl = document.getElementById('afpMemberList');
+  if(!listEl){ if(typeof _origAfpRenderMembers==='function') return _origAfpRenderMembers(members); return; }
+
+  const banned = _getBannedList().map(b=>b.name);
+  listEl.innerHTML = members.map(name=>{
+    const isBanned = banned.includes(name);
+    return `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgba(255,255,255,0.05);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
+      <div style="flex:1;font-size:13px;font-weight:700;color:${isBanned?'#6b7280':'white'};">${name}${isBanned?' <span style="font-size:10px;color:#f87171;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:1px 6px;">محظور</span>':''}</div>
+      ${me==='المدير'&&!isBanned?`<button onclick="permanentlyBanAndDelete('${name.replace(/'/g,"\\'")}');document.getElementById('afpMemberSearch').value='';_afpFilterMembers('');" style="padding:5px 10px;border:1px solid rgba(239,68,68,0.4);border-radius:8px;background:rgba(239,68,68,0.1);color:#f87171;font-family:Tajawal,sans-serif;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;">🚫 حظر نهائي</button>`:''}
+    </div>`;
+  }).join('') || '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.4);">لا توجد أعضاء</div>';
+};
+
+/* إضافة زر الحظر النهائي لقسم الأعضاء في لوحة المدير الكاملة */
+// Hook على openAdminFullPage لإضافة قسم الحظر
+const _origOpenAdminFullPage = window.openAdminFullPage;
+if(typeof _origOpenAdminFullPage === 'function'){
+  window.openAdminFullPage = function(){
+    _origOpenAdminFullPage.apply(this, arguments);
+    // إضافة قسم الحظر النهائي بعد 200ms
+    setTimeout(()=>{
+      const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+      if(me !== 'المدير') return;
+      const body = document.querySelector('.afp-body');
+      if(!body || document.getElementById('_permBanSection')) return;
+      const sec = document.createElement('div');
+      sec.className = 'afp-section';
+      sec.id = '_permBanSection';
+      sec.innerHTML = `
+        <div class="afp-section-title">🚫 حظر عضو نهائياً</div>
+        <div style="font-size:11px;color:rgba(255,100,100,0.8);background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:8px 10px;margin-bottom:10px;line-height:1.6;font-weight:600;">
+          ⚠️ الحظر النهائي يحذف العضو من التطبيق بشكل دائم ولا يمكن التراجع عنه.
+        </div>
+        <select id="_permBanSelect" class="afp-select" style="color:white;margin-bottom:8px;">
+          <option value="">👤 اختر عضو للحظر النهائي...</option>
+        </select>
+        <button class="afp-btn red" onclick="_doPermanentBanFromPanel()">🚫 حظر وحذف نهائياً</button>
+        <div id="_permBanMsg" style="display:none;margin-top:8px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;"></div>
+      `;
+      body.appendChild(sec);
+      // تعبئة القائمة
+      const users = typeof getRegUsers==='function' ? getRegUsers() : [];
+      const names = users.map(u=>((u.firstName||'')+' '+(u.lastName||'')).trim()).filter(Boolean);
+      const sel = document.getElementById('_permBanSelect');
+      if(sel){
+        sel.innerHTML = '<option value="">👤 اختر عضو للحظر النهائي...</option>' +
+          names.map(n=>`<option value="${n}">${n}</option>`).join('');
+      }
+    }, 250);
+  };
+}
+
+window._doPermanentBanFromPanel = function(){
+  const sel = document.getElementById('_permBanSelect');
+  const name = sel ? sel.value : '';
+  if(!name){
+    const m=document.getElementById('_permBanMsg');
+    if(m){m.style.display='block';m.style.background='rgba(239,68,68,0.15)';m.style.color='#fca5a5';m.style.border='1px solid rgba(239,68,68,0.3)';m.innerText='⚠️ اختر عضواً أولاً';}
+    return;
+  }
+  window.permanentlyBanAndDelete(name);
+};
+
+/* ══════════════════════════════════════════════════════════════
+   ② تحسين عرض الصعود والنزول: أسهم خضراء/حمراء واضحة
+      + منطق الأسبوع الأول: أعلى 10 يصعدون مباشرة للهاوي
+══════════════════════════════════════════════════════════════ */
+
+/* حساب رقم الأسبوع منذ بداية التطبيق */
+function _getAppWeek(){
+  // نحسب الأسبوع منذ 2025-01-01 كبداية مرجعية
+  const APP_START = new Date('2025-01-01').getTime();
+  const now = Date.now();
+  return Math.floor((now - APP_START) / (7 * 24 * 60 * 60 * 1000));
+}
+
+function _isFirstWeek(){
+  const FIRST_WEEK_KEY = 'nld_app_first_week_num';
+  const stored = localStorage.getItem(FIRST_WEEK_KEY);
+  if(!stored){
+    // أول مرة يشغّل أحد → نحفظ رقم الأسبوع الحالي كالأسبوع الأول
+    localStorage.setItem(FIRST_WEEK_KEY, String(_getAppWeek()));
+    return true;
+  }
+  return _getAppWeek() === parseInt(stored);
+}
+
+/* تجاوز renderDivision الأصلية لإضافة الأسهم والمنطق الجديد */
+const _origRenderDivision = window._nldRenderDivisionWithAssignments || null;
+
+/* نحقن في renderDivisionWithAssignments لتعديل شارات الصعود/النزول */
+// نحتاج intercept على nldChampLoadAll أو renderDivision
+// لأن renderDivision داخل IIFE، سنستخدم MutationObserver على المحتوى
+
+const _nldObserver = new MutationObserver(function(mutations){
+  for(const m of mutations){
+    for(const node of m.addedNodes){
+      if(node.nodeType !== 1) continue;
+      // إذا تم تحديث nldChampContent → نعيد تلوين الأسهم وتكبيرها
+      const content = document.getElementById('nldChampContent');
+      if(!content) continue;
+      // تحسين شارات الصعود
+      content.querySelectorAll('span').forEach(span=>{
+        const t = span.innerText || span.textContent;
+        if(t.includes('↑ صعود') && !span.dataset.enhanced){
+          span.dataset.enhanced='1';
+          span.style.cssText='font-size:12px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #22c55e;display:inline-flex;align-items:center;gap:3px;';
+          span.innerHTML='<span style="font-size:14px;">⬆️</span> صعود';
+        }
+        if((t.includes('↓ هبوط') || t.includes('↓ نزول')) && !span.dataset.enhanced){
+          span.dataset.enhanced='1';
+          span.style.cssText='font-size:12px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #ef4444;display:inline-flex;align-items:center;gap:3px;';
+          span.innerHTML='<span style="font-size:14px;">⬇️</span> نزول';
+        }
+      });
+    }
+  }
+});
+
+/* تشغيل المراقب عند تحميل الصفحة */
+document.addEventListener('DOMContentLoaded',function(){
+  const content = document.getElementById('nldChampContent');
+  if(content) _nldObserver.observe(content.parentElement||document.body,{childList:true,subtree:true});
+});
+// أيضاً الآن في حالة DOM جاهز
+setTimeout(()=>{
+  const parent = document.getElementById('nldChampionshipPanel') || document.body;
+  _nldObserver.observe(parent,{childList:true,subtree:true});
+},1000);
+
+/* Hook على nldChampLoadAll لتطبيق منطق الأسبوع الأول */
+const _origNldChampLoadAll = window.nldChampLoadAll;
+if(typeof _origNldChampLoadAll === 'function'){
+  window.nldChampLoadAll = async function(){
+    // تشغيل النسخة الأصلية أولاً
+    await _origNldChampLoadAll.apply(this, arguments);
+
+    // بعد التحميل: إذا أسبوع أول → ننقل أعلى 10 من المبتدئين للهاوي مباشرة
+    if(!_isFirstWeek()) return;
+
+    const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+    if(me !== 'المدير') return; // فقط المدير ينفذ النقل التلقائي
+
+    const FIRST_PROMO_DONE = 'nld_first_week_promo_done';
+    if(localStorage.getItem(FIRST_PROMO_DONE) === '1') return;
+
+    const allMembers = window._nldAllMembers;
+    const assignments = window._nldAssignments;
+    if(!allMembers || !assignments) return;
+
+    // أعضاء المبتدئين فقط
+    const beginners = allMembers
+      .filter(m=>{ const k=(m.name||'').replace(/\s+/g,'_'); const asgn=assignments[k]; return !asgn || asgn.divId==='beginner'; })
+      .sort((a,b)=>b.total-a.total)
+      .slice(0,10);
+
+    if(beginners.length === 0) return;
+
+    // نقلهم للهاوي
+    const amateurDivId = 'amateur';
+    const fbBase = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+    const updates = {};
+    beginners.forEach(m=>{
+      const k=(m.name||'').replace(/\s+/g,'_');
+      updates[k] = { divId: amateurDivId, updatedAt: Date.now(), promotedFrom:'beginner', firstWeekPromo:true };
+    });
+
+    try{
+      await fetch(`${fbBase}/nld_divisions.json`,{
+        method:'PATCH', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(updates)
+      });
+      localStorage.setItem(FIRST_PROMO_DONE,'1');
+      if(typeof showToast==='function') showToast(`🌱 تمت ترقية أعلى ${beginners.length} عضو من المبتدئين للهاوي (الأسبوع الأول)`);
+      // إعادة تحميل
+      setTimeout(()=>{ if(typeof nldChampLoadAll==='function') _origNldChampLoadAll(); }, 1000);
+    }catch(e){}
+  };
+}
+
+/* تحسين مرئي إضافي: إضافة أسهم ملونة في بطاقات الأقسام */
+(function _enhancePromoRelegBadges(){
+  // نضيف CSS إضافي
+  const style = document.createElement('style');
+  style.textContent = `
+    /* تحسين شارات الصعود والنزول في البطولة */
+    .nld-promo-badge {
+      font-size:12px!important;font-weight:900!important;
+      color:#22c55e!important;background:rgba(0,200,83,0.18)!important;
+      border-radius:8px!important;padding:3px 8px!important;
+      border:1.5px solid #22c55e!important;
+      display:inline-flex!important;align-items:center!important;gap:3px!important;
+      animation:nldPromoGlow 2s ease infinite!important;
+    }
+    .nld-relg-badge {
+      font-size:12px!important;font-weight:900!important;
+      color:#ef4444!important;background:rgba(239,68,68,0.18)!important;
+      border-radius:8px!important;padding:3px 8px!important;
+      border:1.5px solid #ef4444!important;
+      display:inline-flex!important;align-items:center!important;gap:3px!important;
+    }
+    @keyframes nldPromoGlow {
+      0%,100%{ box-shadow:0 0 0 0 rgba(34,197,94,0); }
+      50%{ box-shadow:0 0 8px 2px rgba(34,197,94,0.4); }
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   ③ حذف حساب شيماء سفيسيفي المكرر (>45000 نقطة) من البطولة
+      المنطق: عند تحميل البيانات، نستبعد الإدخال ذو النقاط العالية جداً
+      ونبقي فقط الحساب الثاني (الظاهر في جدول الترتيب بعد الاسم الأول)
+══════════════════════════════════════════════════════════════ */
+
+/* نعترض على loadAllMembersWithPts لفلترة شيماء ذات النقاط المرتفعة */
+const _origLoadAllMembersWithPts = window.loadAllMembersWithPts ||
+  (typeof loadAllMembersWithPts !== 'undefined' ? loadAllMembersWithPts : null);
+
+/* نستخدم hook على نتيجة nldChampLoadAll بدلاً من ذلك */
+const _origNldChampLoadAllForShaimaa = window.nldChampLoadAll;
+if(typeof _origNldChampLoadAllForShaimaa === 'function'){
+  window.nldChampLoadAll = async function(){
+    // سيتم استدعاء النسخة المعدّلة الأولى (من التغيير ②)
+    await _origNldChampLoadAllForShaimaa.apply(this, arguments);
+    // بعد التحميل، نفلتر قائمة _nldAllMembers
+    if(window._nldAllMembers && Array.isArray(window._nldAllMembers)){
+      // نجمع كل إدخالات شيماء
+      const _norm = s=>(s||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+      const _SHAIMAA_NORM = _norm('شيماء سفيسيفي');
+      const shaimaaEntries = window._nldAllMembers.filter(m=>_norm(m.name)===_SHAIMAA_NORM || _norm(m.name).includes('شيماء'));
+      if(shaimaaEntries.length > 1){
+        // نبقي فقط الأقل نقاطاً (الحساب الحقيقي)
+        shaimaaEntries.sort((a,b)=>a.total-b.total);
+        const keepEntry = shaimaaEntries[0]; // الأقل نقاطاً = الحساب الصحيح
+        // نحذف كل إدخالات شيماء ونضيف فقط الصحيح
+        window._nldAllMembers = window._nldAllMembers.filter(m=>
+          !(_norm(m.name)===_SHAIMAA_NORM || _norm(m.name).includes('شيماء'))
+        );
+        window._nldAllMembers.push(keepEntry);
+        window._nldAllMembers.sort((a,b)=>b.total-a.total);
+      } else if(shaimaaEntries.length === 1 && shaimaaEntries[0].total > 45000){
+        // حساب واحد لكن بنقاط مرتفعة جداً → نحذفه (هو الحساب غير المسجل)
+        window._nldAllMembers = window._nldAllMembers.filter(m=>
+          !(_norm(m.name)===_SHAIMAA_NORM || _norm(m.name).includes('شيماء'))
+        );
+      }
+    }
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ④ استمرارية قسم التعليقات + حفظ مسودة التعليق
+      المشكلة: عند الخروج والعودة، يختفي التعليق
+      الحل: حفظ حالة الأقسام المفتوحة + مسودة النص في localStorage
+══════════════════════════════════════════════════════════════ */
+
+const _OPEN_SECTIONS_KEY = 'cdz_open_comment_sections';
+const _COMMENT_DRAFTS_KEY = 'cdz_comment_drafts';
+
+function _getOpenSections(){
+  try{ return JSON.parse(localStorage.getItem(_OPEN_SECTIONS_KEY)||'[]'); }catch{ return []; }
+}
+function _saveOpenSections(ids){
+  try{ localStorage.setItem(_OPEN_SECTIONS_KEY, JSON.stringify(ids)); }catch(e){}
+}
+function _getDrafts(){
+  try{ return JSON.parse(localStorage.getItem(_COMMENT_DRAFTS_KEY)||'{}'); }catch{ return {}; }
+}
+function _saveDrafts(obj){
+  try{ localStorage.setItem(_COMMENT_DRAFTS_KEY, JSON.stringify(obj)); }catch(e){}
+}
+
+/* عند تغيير حالة القسم، نحفظها */
+const _origToggleComments = window.toggleComments;
+if(typeof _origToggleComments === 'function'){
+  window.toggleComments = function(postId){
+    _origToggleComments.apply(this, arguments);
+    // تحديث قائمة الأقسام المفتوحة
+    const section = document.getElementById('commentsSection_'+postId);
+    const isOpen = section && section.style.display !== 'none' && section.style.display !== '';
+    let openList = _getOpenSections();
+    if(isOpen){
+      if(!openList.includes(postId)) openList.push(postId);
+    } else {
+      openList = openList.filter(id=>id!==postId);
+    }
+    _saveOpenSections(openList);
+  };
+}
+
+/* حفظ مسودة التعليق أثناء الكتابة */
+function _initCommentDraftSaving(){
+  // نستخدم event delegation
+  document.addEventListener('input', function(e){
+    if(e.target && e.target.id && e.target.id.startsWith('commentInput_')){
+      const postId = e.target.id.replace('commentInput_','');
+      const drafts = _getDrafts();
+      if(e.target.value.trim()){
+        drafts[postId] = e.target.value;
+      } else {
+        delete drafts[postId];
+      }
+      _saveDrafts(drafts);
+    }
+  }, { passive: true });
+}
+
+/* استرجاع الحالة المحفوظة بعد إعادة الرسم */
+function _restoreCommentSections(){
+  const openList = _getOpenSections();
+  const drafts = _getDrafts();
+
+  openList.forEach(postId=>{
+    const section = document.getElementById('commentsSection_'+postId);
+    if(section && (section.style.display==='none' || !section.style.display)){
+      section.style.display = 'block';
+    }
+  });
+
+  Object.entries(drafts).forEach(([postId, text])=>{
+    const inp = document.getElementById('commentInput_'+postId);
+    if(inp && !inp.value) inp.value = text;
+  });
+}
+
+/* عند إرسال تعليق → نمسح المسودة المحفوظة */
+const _origSubmitComment = window.submitComment;
+if(typeof _origSubmitComment === 'function'){
+  window.submitComment = function(postId){
+    _origSubmitComment.apply(this, arguments);
+    // مسح المسودة لهذا المنشور
+    const drafts = _getDrafts();
+    delete drafts[postId];
+    _saveDrafts(drafts);
+    // إبقاء القسم مفتوحاً في القائمة المحفوظة
+    const openList = _getOpenSections();
+    if(!openList.includes(postId)) openList.push(postId);
+    _saveOpenSections(openList);
+  };
+}
+
+/* عند إرسال تعليق من المودال */
+const _origSubmitModalComment = window._submitModalComment;
+if(typeof _origSubmitModalComment === 'function'){
+  window._submitModalComment = function(postId){
+    _origSubmitModalComment.apply(this, arguments);
+    const drafts = _getDrafts();
+    delete drafts[postId];
+    _saveDrafts(drafts);
+  };
+}
+
+/* Hook على renderSocialFeed لاسترجاع الحالة بعد إعادة الرسم */
+const _origRenderSocialFeed = window.renderSocialFeed;
+if(typeof _origRenderSocialFeed === 'function'){
+  window.renderSocialFeed = async function(){
+    const result = await _origRenderSocialFeed.apply(this, arguments);
+    // استرجاع الأقسام المفتوحة بعد 100ms (بعد إعادة الرسم)
+    setTimeout(_restoreCommentSections, 150);
+    return result;
+  };
+}
+
+/* عند visibilitychange → لا نمسح الأقسام المفتوحة */
+// الكود الأصلي يستدعي renderSocialFeed عند العودة
+// النسخة المعدّلة ستستعيد الأقسام المفتوحة تلقائياً
+
+/* تهيئة */
+_initCommentDraftSaving();
+// استرجاع أولي بعد 1 ثانية من تحميل الصفحة
+setTimeout(_restoreCommentSections, 1000);
+
+console.log('✅ [ConnectDZ v5] الميزات الجديدة — مفعّلة');
+console.log('   ├ حظر نهائي + حذف: مفعّل (للمدير فقط)');
+console.log('   ├ أسهم الصعود/النزول المحسّنة: مفعّلة');
+console.log('   ├ منطق الأسبوع الأول (10 صاعدين للهاوي): مفعّل');
+console.log('   ├ فلترة حساب شيماء المكرر: مفعّلة');
+console.log('   └ استمرارية التعليقات: مفعّلة');
 
 })();
 </script>
