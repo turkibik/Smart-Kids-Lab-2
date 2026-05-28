@@ -33175,8 +33175,8 @@ function renderDivision(divIdx, allMembers){
     const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
     const borderL = isPromo ? '3px solid #22c55e' : isRelg ? '3px solid #ef4444' : '3px solid transparent';
-    const promoBadge = isPromo ? '<span style="font-size:11px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #22c55e;">⬆️ صعود</span>' : '';
-    const relegBadge = isRelg ? '<span style="font-size:11px;font-weight:900;color:#ef4444;background:rgba(239,68,68,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #ef4444;">⬇️ نزول</span>' : '';
+    const promoBadge = isPromo ? '<span style="font-size:10px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.15);border-radius:6px;padding:2px 6px;">↑ صعود</span>' : '';
+    const relegBadge = isRelg ? '<span style="font-size:10px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.12);border-radius:6px;padding:2px 6px;">↓ هبوط</span>' : '';
     const meBadge = isMe ? '<span style="font-size:10px;font-weight:900;color:#00e5a0;background:rgba(0,229,160,0.15);border-radius:6px;padding:2px 6px;">✦ أنت</span>' : '';
 
     const photo = typeof localStorage!=='undefined' ? localStorage.getItem('nld_photo_'+m.name.replace(/\s+/g,'_')) : null;
@@ -33227,8 +33227,8 @@ function renderDivision(divIdx, allMembers){
       <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px;">النقاط المطلوبة: ${div.rangeLabel}</div>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);">${members.length} عضو</div>
-        ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">⬆️ أوائل يصعدون</div>`:''}
-        ${divIdx<NLD_DIVISIONS.length-1?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">⬇️ آخرين ينزلون</div>`:''}
+        ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون</div>`:''}
+        ${divIdx<NLD_DIVISIONS.length-1?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ 2 أخيرين ينزلون</div>`:''}
         ${myRankBadge}
       </div>
     </div>
@@ -33497,8 +33497,8 @@ function renderDivision(divIdx, allMembers, assignments){
     const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
     const borderL = isPromo ? '3px solid #22c55e' : isRelg ? '3px solid #ef4444' : '3px solid transparent';
-    const promoBadge = isPromo ? '<span style="font-size:11px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #22c55e;">⬆️ صعود</span>' : '';
-    const relegBadge = isRelg ? '<span style="font-size:11px;font-weight:900;color:#ef4444;background:rgba(239,68,68,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #ef4444;">⬇️ نزول</span>' : '';
+    const promoBadge = isPromo ? '<span style="font-size:10px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.15);border-radius:6px;padding:2px 6px;">↑ صعود</span>' : '';
+    const relegBadge = isRelg ? '<span style="font-size:10px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.12);border-radius:6px;padding:2px 6px;">↓ هبوط</span>' : '';
     const meBadge = isMe ? '<span style="font-size:10px;font-weight:900;color:#00e5a0;background:rgba(0,229,160,0.15);border-radius:6px;padding:2px 6px;">✦ أنت</span>' : '';
 
     const photo = typeof localStorage!=='undefined' ? localStorage.getItem('nld_photo_'+m.name.replace(/\s+/g,'_')) : null;
@@ -33544,9 +33544,9 @@ function renderDivision(divIdx, allMembers, assignments){
     : `<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);">${totalInDiv}/${NLD_MAX_MEMBERS} عضو</div>`) : '';
 
   const promoNote = isFull && divIdx > 0
-    ? `<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">⬆️ أعلى تنقيط يصعدون إن تفوّقوا على أدنى في القسم الأعلى</div>` : '';
+    ? `<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون إن تفوّقوا على أدنى 3 في القسم الأعلى</div>` : '';
   const relegNote = isFull && !isBeginners && divIdx < NLD_DIVISIONS.length-1
-    ? `<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">⬇️ أدنى تنقيط ينزلون إن تفوّق عليهم أعلى من القسم الأدنى</div>` : '';
+    ? `<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ 3 أخيرين ينزلون إن تفوّق عليهم أعلى 3 من القسم الأدنى</div>` : '';
   const evalNote = `<div style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:10px;padding:5px 12px;font-size:10px;font-weight:700;color:#FFA500;">📅 التقييم: نهاية الأسبوع 21:00</div>`;
 
   const hexRgb = h=>{ const m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return m?`${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)}`:'150,150,150'; };
@@ -35666,879 +35666,1072 @@ console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات �
 })();
 </script>
 
-<!-- ══════════════════════════════════════════════════════════════════════
-     🚀 ConnectDZ — Smart Cache & Network Manager (v2.0)
-     ══════════════════════════════════════════════════════════════════════
-     المنطق:
-     ┌─────────────────────────────────────────────────────────────────┐
-     │ الأصول الثابتة  (CSS/JS/صور/خطوط) → Cache 1 سنة + immutable  │
-     │ المنشورات/الرسائل/الإشعارات        → no-store  (طازج دائماً) │
-     │ البيانات شبه-ثابتة (ملف عضو/نقاط) → no-cache  (تحقق أولاً)  │
-     │ Cloudinary CDN                      → Cache 30 يوم            │
-     └─────────────────────────────────────────────────────────────────┘
-     الميزات:
-     ✅ Fetch Interceptor  — يضبط cache تلقائياً لكل fetch في الكود
-     ✅ Request Deduplicator — يلغي الطلبات المكررة في نفس اللحظة
-     ✅ Smart Retry          — إعادة محاولة تلقائية عند انقطاع الشبكة
-     ✅ Offline Queue        — يحفظ الكتابات ويرسلها عند العودة
-     ✅ Memory Cache         — يخزن نتائج القراءة لتقليل طلبات Firebase
-     ✅ Visibility Refresh   — يحدّث الفيد عند العودة للتطبيق
-     ✅ Cache Busting Ready  — يدعم ?v=HASH في الأصول الثابتة
-     ══════════════════════════════════════════════════════════════════════ -->
-<script>
-(function _initCDZSmartCache(){
-  'use strict';
-
-  /* ══════════════════════════════════════════════
-     § 1 — تصنيف الـ URL
-     ══════════════════════════════════════════════ */
-  const _STATIC_PATTERNS = [
-    /fonts\.googleapis\.com/,
-    /fonts\.gstatic\.com/,
-    /res\.cloudinary\.com/,
-    /cdn\.jsdelivr\.net/,
-    /cdn\.onesignal\.com/,
-    /cdnjs\.cloudflare\.com/,
-    /\.(woff2?|ttf|eot|otf)(\?|$)/i,
-    /\.(ico|svg|webp|avif|png|jpg|jpeg|gif)(\?v=|$)/i,
-    /\.(css|js)(\?v=|$)/i
-  ];
-
-  const _REALTIME_PATTERNS = [
-    /\/social_posts/,
-    /\/messages\//,
-    /\/calls\//,
-    /\/webrtc\//,
-    /\/monitor\//,
-    /\/admin_points_gifts\//,
-    /supabase\.co\/rest\/v1\/messages/,
-    /onesignal\.com/
-  ];
-
-  const _SEMI_STATIC_PATTERNS = [
-    /\/userStats\//,
-    /\/appdata\//,
-    /\/leaderboard/,
-    /\/page_posts\//,
-    /sheetdb\.io/,
-    /sheets\.googleapis\.com/,
-    /oauth2\.googleapis\.com/
-  ];
-
-  function _classifyUrl(url){
-    const s = String(url);
-    if(_STATIC_PATTERNS.some(p => p.test(s)))   return 'static';
-    if(_REALTIME_PATTERNS.some(p => p.test(s)))  return 'realtime';
-    if(_SEMI_STATIC_PATTERNS.some(p => p.test(s))) return 'semi';
-    return 'default';
-  }
-
-  /* ══════════════════════════════════════════════
-     § 2 — In-Memory Cache للقراءات شبه-الثابتة
-     TTL: 90 ثانية — يوفّر طلبات متكررة لنفس البيانات
-     (النقاط، ملف العضو، الجدول)
-     ══════════════════════════════════════════════ */
-  const _memCache = new Map();
-  const _SEMI_TTL  = 90 * 1000; /* 90 ثانية */
-
-  function _memGet(key){
-    const entry = _memCache.get(key);
-    if(!entry) return null;
-    if(Date.now() - entry.ts > _SEMI_TTL){ _memCache.delete(key); return null; }
-    return entry.clone(); /* نُرجع نسخة طازجة من Response */
-  }
-
-  function _memSet(key, response){
-    /* نحفظ فقط إذا كانت الاستجابة ناجحة */
-    if(!response || !response.ok) return;
-    const clone = response.clone();
-    _memCache.set(key, { ts: Date.now(), clone: () => clone.clone() });
-  }
-
-  /* ══════════════════════════════════════════════
-     § 3 — Request Deduplicator
-     يمنع إرسال نفس الطلب مرتين في وقت واحد
-     (مشكلة شائعة في renderSocialFeed + SSE)
-     ══════════════════════════════════════════════ */
-  const _inflight = new Map();
-
-  /* ══════════════════════════════════════════════
-     § 4 — Offline Write Queue
-     يحفظ طلبات PUT/POST/DELETE عند انقطاع النت
-     ويرسلها تلقائياً عند العودة
-     ══════════════════════════════════════════════ */
-  const _QUEUE_KEY = '__cdz_offq';
-  let   _offlineQueue = [];
-
-  function _loadQueue(){
-    try{ _offlineQueue = JSON.parse(localStorage.getItem(_QUEUE_KEY) || '[]'); }
-    catch(e){ _offlineQueue = []; }
-  }
-
-  function _saveQueue(){
-    try{ localStorage.setItem(_QUEUE_KEY, JSON.stringify(_offlineQueue.slice(-50))); }
-    catch(e){ /* localStorage ممتلئ */ }
-  }
-
-  function _enqueue(url, init){
-    /* نحفظ فقط الكتابات الحيوية: نقاط + منشورات */
-    const s = String(url);
-    const isVital = /\/(userStats|social_posts|messages|appdata)\//.test(s);
-    if(!isVital) return;
-    _offlineQueue.push({ url: s, init: _serializeInit(init), ts: Date.now() });
-    _saveQueue();
-  }
-
-  function _serializeInit(init){
-    if(!init) return {};
-    const safe = { method: init.method || 'GET', headers: init.headers || {} };
-    if(init.body && typeof init.body === 'string') safe.body = init.body;
-    return safe;
-  }
-
-  async function _flushQueue(){
-    if(!_offlineQueue.length) return;
-    const pending = _offlineQueue.splice(0);
-    _saveQueue();
-    for(const item of pending){
-      try{
-        await _originalFetch(item.url, item.init);
-        console.log('[CDZ-Cache] 📤 أُرسل من القائمة:', item.url.slice(0,60));
-      }catch(e){
-        /* أعد للقائمة إذا فشل */
-        _offlineQueue.push(item);
-      }
-    }
-    if(_offlineQueue.length) _saveQueue();
-  }
-
-  /* ══════════════════════════════════════════════
-     § 5 — Fetch Interceptor الرئيسي
-     ══════════════════════════════════════════════ */
-  const _originalFetch = window.fetch.bind(window);
-
-  window.fetch = async function(input, init){
-    const url    = (input instanceof Request) ? input.url : String(input);
-    const method = ((init && init.method) || 'GET').toUpperCase();
-    const type   = _classifyUrl(url);
-
-    /* ── أ) الكتابات (PUT/POST/PATCH/DELETE) ── */
-    if(method !== 'GET' && method !== 'HEAD'){
-      if(!navigator.onLine){
-        _enqueue(url, init);
-        /* أرجع استجابة وهمية ناجحة حتى لا يكسر الكود */
-        return new Response(JSON.stringify({ queued: true }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-      /* اكتابات تذهب مباشرة بدون cache */
-      return _originalFetch(input, init);
-    }
-
-    /* ── ب) الأصول الثابتة — يتولاها المتصفح/Service Worker ── */
-    if(type === 'static'){
-      return _originalFetch(input, init);
-    }
-
-    /* ── ج) البيانات الفورية (منشورات/رسائل/مكالمات) ── */
-    if(type === 'realtime'){
-      /* no-store: لا تخزين أبداً — طازج دائماً */
-      const newInit = Object.assign({}, init, { cache: 'no-store' });
-      return _originalFetch(input, newInit);
-    }
-
-    /* ── د) البيانات شبه-الثابتة (نقاط/ملف عضو) ── */
-    if(type === 'semi'){
-      /* فحص Memory Cache أولاً */
-      const cached = _memGet(url);
-      if(cached){
-        console.log('[CDZ-Cache] ⚡ من الذاكرة:', url.slice(0,60));
-        return cached;
-      }
-
-      /* Request Deduplicator */
-      if(_inflight.has(url)){
-        return _inflight.get(url).then(r => r.clone());
-      }
-
-      const newInit = Object.assign({}, init, { cache: 'no-cache' });
-      const prom = _originalFetch(input, newInit).then(res => {
-        _memSet(url, res);
-        _inflight.delete(url);
-        return res;
-      }).catch(err => {
-        _inflight.delete(url);
-        throw err;
-      });
-
-      _inflight.set(url, prom);
-      return prom;
-    }
-
-    /* ── هـ) افتراضي — no-cache (تحقق أولاً) ── */
-    const defInit = Object.assign({}, init, { cache: 'no-cache' });
-    return _originalFetch(input, defInit);
-  };
-
-  /* ══════════════════════════════════════════════
-     § 6 — Smart Retry عند انقطاع الشبكة
-     يحاول 3 مرات مع تأخير تصاعدي (500ms, 1s, 2s)
-     ══════════════════════════════════════════════ */
-  const _origFetchNow = window.fetch;
-  window.fetch = async function(input, init){
-    const method = ((init && init.method) || 'GET').toUpperCase();
-    /* الـ retry فقط للقراءات */
-    if(method !== 'GET' && method !== 'HEAD'){
-      return _origFetchNow(input, init);
-    }
-    const delays = [500, 1000, 2000];
-    let lastErr;
-    for(let i = 0; i <= delays.length; i++){
-      try{
-        return await _origFetchNow(input, init);
-      }catch(err){
-        lastErr = err;
-        if(i < delays.length){
-          await new Promise(r => setTimeout(r, delays[i]));
-        }
-      }
-    }
-    throw lastErr;
-  };
-
-  /* ══════════════════════════════════════════════
-     § 7 — Visibility Refresh
-     عند العودة للتطبيق بعد الخلفية → تحديث الفيد
-     ══════════════════════════════════════════════ */
-  let _lastHidden = 0;
-  const _REFRESH_AFTER = 5 * 60 * 1000; /* 5 دقائق */
-
-  document.addEventListener('visibilitychange', function(){
-    if(document.hidden){
-      _lastHidden = Date.now();
-      return;
-    }
-    /* عاد المستخدم بعد 5+ دقائق */
-    if(_lastHidden && (Date.now() - _lastHidden) > _REFRESH_AFTER){
-      /* تنظيف Memory Cache → يجبر على جلب جديد */
-      _memCache.clear();
-      console.log('[CDZ-Cache] 👁 عودة من الخلفية — تنظيف الكاش');
-
-      /* تحديث الفيد إذا كان ظاهراً */
-      const container = document.getElementById('socialFeedContainer');
-      if(container && container.offsetParent !== null){
-        if(typeof renderSocialFeed === 'function'){
-          setTimeout(renderSocialFeed, 300);
-        }
-      }
-    }
-
-    /* إرسال القائمة المعلقة إذا عادت الشبكة */
-    if(navigator.onLine) _flushQueue();
-  });
-
-  /* ══════════════════════════════════════════════
-     § 8 — Online Event: إرسال القائمة فور العودة
-     ══════════════════════════════════════════════ */
-  window.addEventListener('online', function(){
-    console.log('[CDZ-Cache] 📶 الشبكة عادت — إرسال القائمة المعلقة');
-    setTimeout(_flushQueue, 1000);
-    /* تحديث فوري لعداد الرسائل */
-    if(typeof refreshSocialMsgBadge === 'function') refreshSocialMsgBadge();
-  });
-
-  window.addEventListener('offline', function(){
-    console.log('[CDZ-Cache] 📴 انقطع الإنترنت — وضع الحفظ مفعّل');
-  });
-
-  /* ══════════════════════════════════════════════
-     § 9 — تصدير أدوات للاستخدام الخارجي
-     ══════════════════════════════════════════════ */
-
-  /* مسح كاش عضو معين (بعد تحديث نقاطه مثلاً) */
-  window._cdzCacheClear = function(urlFragment){
-    _memCache.forEach((v, k) => {
-      if(!urlFragment || k.includes(urlFragment)){
-        _memCache.delete(k);
-      }
-    });
-    console.log('[CDZ-Cache] 🧹 تم مسح الكاش:', urlFragment || 'الكل');
-  };
-
-  /* استعراض حالة الكاش في Console */
-  window._cdzCacheStatus = function(){
-    const entries = [];
-    _memCache.forEach((v, k) => {
-      const age = Math.round((Date.now() - v.ts) / 1000);
-      entries.push({ url: k.slice(0, 70), age: age + 'ث' });
-    });
-    console.table(entries);
-    console.log('[CDZ-Cache] قائمة الانتظار:', _offlineQueue.length, 'عنصر');
-  };
-
-  /* ربط مسح كاش نقاط العضو بعد إرسال النقاط */
-  const _prevSyncLB = window.syncLeaderboard;
-  if(typeof _prevSyncLB === 'function'){
-    window.syncLeaderboard = async function(name){
-      await _prevSyncLB.apply(this, arguments);
-      /* مسح كاش النقاط لهذا العضو فوراً */
-      if(name) window._cdzCacheClear('userStats/' + name.replace(/\s+/g,'_'));
-    };
-  }
-
-  /* تهيئة قائمة الانتظار من localStorage */
-  _loadQueue();
-
-  console.log('✅ [ConnectDZ] Smart Cache Manager v2.0 — مفعّل');
-  console.log('   ├ الأصول الثابتة: Cache 1 سنة (متصفح/SW)');
-  console.log('   ├ المنشورات/الرسائل: no-store (طازج دائماً)');
-  console.log('   ├ النقاط/ملف العضو: Memory Cache 90ث');
-  console.log('   ├ Request Deduplication: مفعّل');
-  console.log('   ├ Smart Retry (3 محاولات): مفعّل');
-  console.log('   ├ Offline Queue: مفعّل (' + _offlineQueue.length + ' معلق)');
-  console.log('   └ Visibility Refresh (5 دقائق): مفعّل');
-
-})();
-</script>
-
-<!-- ══════════════════════════════════════════════════════════════
-     ✅ الميزات الجديدة v5.0
-     1) حظر العضو نهائياً + حذفه — لحساب المدير فقط
-     2) نظام الصعود والنزول: أسهم خضراء/حمراء + منطق الأسبوع الأول
-     3) حذف حساب شيماء سفيسيفي المكرر (>45000 نقطة)
-     4) استمرارية قسم التعليقات بعد العودة للتطبيق
-══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════
+     🚀 ConnectDZ MEGA PATCH v10.0
+     ① حظر الأعضاء + قائمة إدارة شاملة للمدير
+     ② نظام صعود/هبوط البطولة بأسهم + ترقية تلقائية
+     ③ توقيف النشر + نشر باسم النظام + صلاحيات النشر
+     ④ منشورات وتعليقات دائمة + ترتيب ذكي
+     ═══════════════════════════════════════════════════════════════════ -->
 <script>
 (function(){
 'use strict';
 
-/* ══════════════════════════════════════════════════════════════
-   ① حظر العضو نهائياً + حذفه — لحساب المدير فقط
-══════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════
+   ① نظام حظر الأعضاء + قائمة إدارة المدير الشاملة
+   ════════════════════════════════════════════════════════════ */
 
-const _BANNED_KEY = 'cdz_permanently_banned';
+const _BAN_LIST_KEY = 'cdz_banned_members_v2';
+const _BADGE_KEY    = n => 'cdz_member_badge_' + n.replace(/\s+/g,'_');
 
-function _getBannedList(){
-  try{ return JSON.parse(localStorage.getItem(_BANNED_KEY)||'[]'); }catch{ return []; }
+function _getBanList(){
+  try{ return JSON.parse(localStorage.getItem(_BAN_LIST_KEY)||'[]'); }catch(e){ return []; }
 }
-function _saveBannedList(list){
-  try{ localStorage.setItem(_BANNED_KEY, JSON.stringify(list)); }catch(e){}
+function _saveBanList(arr){
+  try{ localStorage.setItem(_BAN_LIST_KEY, JSON.stringify(arr)); }catch(e){}
 }
 
-/** هل هذا العضو محظور نهائياً؟ */
-window.isPermanentlyBanned = function(name){
-  if(!name) return false;
-  const list = _getBannedList();
-  return list.some(b => b.name === name);
+window.isMemberBanned = function(name){
+  return _getBanList().some(b => b.name === name);
 };
 
-/** حظر عضو نهائياً وحذف بياناته */
-window.permanentlyBanAndDelete = function(targetName){
-  const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-  if(me !== 'المدير'){
-    if(typeof showToast==='function') showToast('🔒 هذه الميزة للمدير فقط');
-    return;
-  }
-  if(!targetName || targetName === 'المدير'){
-    if(typeof showToast==='function') showToast('⚠️ اسم غير صالح');
-    return;
-  }
+window.banMember = function(name){
+  if(!name || name==='المدير') return;
+  const list = _getBanList();
+  if(list.some(b=>b.name===name)){ showToast('⚠️ العضو محظور بالفعل'); return; }
 
-  // نافذة تأكيد
+  // حفظ بيانات العضو قبل الحظر
+  const pts = localStorage.getItem('sklab_pts_'+name.replace(/\s+/g,'_'));
+  const photo = localStorage.getItem('nld_photo_'+name.replace(/\s+/g,'_'));
+  const badge = localStorage.getItem(_BADGE_KEY(name));
+
+  list.push({ name, ts: Date.now(), pts, photo, badge, reason: '' });
+  _saveBanList(list);
+
+  // إزالة من قوائم الأعضاء النشطين
+  try{
+    const actKey = 'nld_online_users';
+    const online = JSON.parse(localStorage.getItem(actKey)||'{}');
+    delete online[name]; delete online[name.replace(/\s+/g,'_')];
+    localStorage.setItem(actKey, JSON.stringify(online));
+  }catch(e){}
+
+  if(typeof showToast==='function') showToast('🚫 تم حظر العضو: ' + name);
+  _closeAdminMemberMenu();
+  _renderBanListIfOpen();
+};
+
+window.unbanMember = function(name){
+  const list = _getBanList().filter(b=>b.name!==name);
+  _saveBanList(list);
+  if(typeof showToast==='function') showToast('✅ تم رفع الحظر عن: ' + name);
+  _renderBanListIfOpen();
+};
+
+function _renderBanListIfOpen(){
+  const ov = document.getElementById('_adminBanListOv');
+  if(ov) _openAdminBanList();
+}
+
+window._openAdminBanList = function(){
+  const old = document.getElementById('_adminBanListOv'); if(old) old.remove();
+  const list = _getBanList();
   const ov = document.createElement('div');
-  ov.id = '_permBanOverlay';
-  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:999999;display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;';
+  ov.id = '_adminBanListOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;font-family:Tajawal,sans-serif;';
+  const rows = list.length === 0
+    ? '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);font-size:14px;">لا يوجد أعضاء محظورون</div>'
+    : list.map(b=>`
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.08);">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#b91c1c);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🚫</div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:800;color:white;">${b.name}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);">محظور ${new Date(b.ts).toLocaleDateString('ar-DZ')}</div>
+        </div>
+        <button onclick="unbanMember('${b.name.replace(/'/g,"\\'")}')" style="padding:8px 16px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:10px;color:white;font-family:Tajawal,sans-serif;font-size:12px;font-weight:800;cursor:pointer;">رفع الحظر ✅</button>
+      </div>`).join('');
+
   ov.innerHTML = `
-    <div style="background:linear-gradient(160deg,#1a0505,#2d0a0a);border:2px solid rgba(239,68,68,0.5);border-radius:24px;padding:28px 24px;width:92%;max-width:400px;text-align:center;">
-      <div style="font-size:42px;margin-bottom:12px;">🚫</div>
-      <div style="font-size:17px;font-weight:900;color:#f87171;margin-bottom:10px;">حظر نهائي + حذف</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:20px;line-height:1.7;">
-        هل تريد حظر وحذف العضو<br>
-        <strong style="color:#fca5a5;font-size:15px;">${targetName}</strong><br>
-        نهائياً من التطبيق؟<br>
-        <span style="color:#f87171;font-size:11px;">⚠️ لا يمكن التراجع عن هذا الإجراء</span>
+    <div style="background:#0d1117;border-radius:22px 22px 0 0;padding:20px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 18px;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="font-size:17px;font-weight:900;color:#ef4444;">🚫 قائمة الحظر (${list.length})</div>
+        <button onclick="document.getElementById('_adminBanListOv').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);cursor:pointer;font-size:16px;">✕</button>
       </div>
-      <div style="display:flex;gap:10px;justify-content:center;">
-        <button onclick="document.getElementById('_permBanOverlay').remove()" style="flex:1;padding:12px;border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;background:rgba(255,255,255,0.08);color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:700;cursor:pointer;">إلغاء</button>
-        <button onclick="_executePermanentBan('${targetName.replace(/'/g,"\\'")}');document.getElementById('_permBanOverlay').remove()" style="flex:1;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;">🚫 حظر وحذف</button>
+      ${rows}
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+};
+
+/* ─── قائمة إدارة المدير الشاملة عند الضغط على اسم أي عضو ─── */
+function _showAdminMemberMenu(memberName){
+  if(!window._isAdmin) return;
+  if(!memberName || memberName==='المدير') return;
+
+  const old = document.getElementById('_adminMemberMenuOv'); if(old) old.remove();
+  const isBanned = window.isMemberBanned(memberName);
+  const ov = document.createElement('div');
+  ov.id = '_adminMemberMenuOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;font-family:Tajawal,sans-serif;';
+
+  const curBadge = localStorage.getItem(_BADGE_KEY(memberName)) || '';
+  const BADGES = ['🏆','⭐','🥇','🥈','🥉','💎','🔥','👑','🎯','🏅','✨','🌟'];
+
+  ov.innerHTML = `
+    <div style="background:linear-gradient(160deg,#0d1117,#1a1a2e);border:1px solid rgba(255,215,0,0.2);border-radius:22px 22px 0 0;padding:20px 16px 32px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 16px;"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:12px;background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.15);border-radius:16px;">
+        <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;font-size:24px;">👤</div>
+        <div>
+          <div style="font-size:16px;font-weight:900;color:white;">${memberName}</div>
+          <div style="font-size:11px;color:rgba(255,215,0,0.7);">إدارة العضو • المدير</div>
+        </div>
+        ${isBanned ? '<span style="margin-right:auto;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.5);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:800;color:#f87171;">🚫 محظور</span>' : ''}
+      </div>
+
+      <!-- خيارات الإدارة -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+
+        ${isBanned ? `
+        <button onclick="unbanMember('${memberName.replace(/'/g,"\\'")}');document.getElementById('_adminMemberMenuOv').remove();"
+          style="width:100%;padding:14px;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+          ✅ رفع الحظر واستعادة العضو
+        </button>` : `
+        <button onclick="_adminBanMemberConfirm('${memberName.replace(/'/g,"\\'")}');"
+          style="width:100%;padding:14px;background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+          🚫 حظر العضو نهائياً
+        </button>`}
+
+        <button onclick="_adminSendWarnMsg('${memberName.replace(/'/g,"\\'")}');"
+          style="width:100%;padding:14px;background:linear-gradient(135deg,#f59e0b,#b45309);border:none;border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+          📢 إرسال رسالة تنبيه
+        </button>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button onclick="_adminAddPtsMenu('${memberName.replace(/'/g,"\\'")}');"
+            style="padding:14px;background:linear-gradient(135deg,#22c55e,#15803d);border:none;border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;">
+            ➕ إضافة نقاط
+          </button>
+          <button onclick="_adminDeductPtsMenu('${memberName.replace(/'/g,"\\'")}');"
+            style="padding:14px;background:linear-gradient(135deg,#ef4444,#991b1b);border:none;border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;">
+            ➖ خصم نقاط
+          </button>
+        </div>
+
+        <!-- وسام العضو -->
+        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px;">
+          <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.7);margin-bottom:10px;">🏅 وضع وسام للعضو ${curBadge?'— الحالي: '+curBadge:''}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            ${BADGES.map(b=>`<span onclick="_adminSetBadge('${memberName.replace(/'/g,"\\'")}','${b}')" style="font-size:28px;cursor:pointer;padding:6px;border-radius:10px;background:${curBadge===b?'rgba(255,215,0,0.2)':'rgba(255,255,255,0.05)'};border:2px solid ${curBadge===b?'rgba(255,215,0,0.6)':'transparent'};transition:.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'">${b}</span>`).join('')}
+            ${curBadge?`<span onclick="_adminSetBadge('${memberName.replace(/'/g,"\\'")}','')" style="font-size:12px;font-weight:700;color:#f87171;cursor:pointer;padding:8px;border-radius:10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);">إزالة الوسام</span>`:''}
+          </div>
+        </div>
+
+        <button onclick="document.getElementById('_adminMemberMenuOv').remove()"
+          style="width:100%;padding:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;color:rgba(255,255,255,0.5);font-family:Tajawal,sans-serif;font-size:14px;font-weight:700;cursor:pointer;">
+          إلغاء
+        </button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+}
+
+function _closeAdminMemberMenu(){
+  const ov = document.getElementById('_adminMemberMenuOv');
+  if(ov) ov.remove();
+}
+
+window._adminBanMemberConfirm = function(name){
+  _closeAdminMemberMenu();
+  const confirmOv = document.createElement('div');
+  confirmOv.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;';
+  confirmOv.innerHTML = `
+    <div style="background:linear-gradient(160deg,#0d1117,#1a0505);border:1px solid rgba(239,68,68,0.35);border-radius:22px;padding:28px 24px;width:88%;max-width:360px;text-align:center;">
+      <div style="font-size:48px;margin-bottom:12px;">🚫</div>
+      <div style="font-size:17px;font-weight:900;color:#f87171;margin-bottom:8px;">حظر العضو</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:20px;line-height:1.6;">هل تريد حظر <strong style="color:white;">"${name}"</strong> نهائياً؟<br>يمكن رفع الحظر لاحقاً من قائمة الحظر.</div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:14px;cursor:pointer;">إلغاء</button>
+        <button onclick="banMember('${name.replace(/'/g,"\\'")}');this.closest('[style*=fixed]').remove();" style="flex:1;padding:12px;background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;">🚫 حظر</button>
+      </div>
+    </div>`;
+  document.body.appendChild(confirmOv);
+  confirmOv.addEventListener('click',e=>{ if(e.target===confirmOv) confirmOv.remove(); });
+};
+
+window._adminSendWarnMsg = function(name){
+  _closeAdminMemberMenu();
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;';
+  ov.innerHTML = `
+    <div style="background:linear-gradient(160deg,#0d1117,#1a1500);border:1px solid rgba(245,158,11,0.3);border-radius:22px;padding:26px 22px;width:90%;max-width:420px;">
+      <div style="font-size:17px;font-weight:900;color:#f59e0b;text-align:center;margin-bottom:16px;">📢 رسالة تنبيه للعضو</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:12px;text-align:right;">إلى: <strong style="color:white;">${name}</strong></div>
+      <textarea id="_warnMsgTxt" placeholder="اكتب رسالة التنبيه هنا..." style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(245,158,11,0.3);border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:13px;outline:none;resize:vertical;min-height:100px;text-align:right;box-sizing:border-box;"></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إلغاء</button>
+        <button onclick="_doSendWarnMsg('${name.replace(/'/g,"\\'")}',document.getElementById('_warnMsgTxt').value);this.closest('[style*=fixed]').remove();"
+          style="flex:1;padding:12px;background:linear-gradient(135deg,#f59e0b,#b45309);border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;">📢 إرسال</button>
       </div>
     </div>`;
   document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
 };
 
-window._executePermanentBan = function(targetName){
-  const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-  if(me !== 'المدير') return;
+window._doSendWarnMsg = function(name, msg){
+  if(!msg || !msg.trim()){ showToast('⚠️ اكتب الرسالة أولاً'); return; }
+  // حفظ الرسالة كإشعار للعضو
+  const warnKey = 'cdz_warn_notifs_' + name.replace(/\s+/g,'_');
+  let warns = [];
+  try{ warns = JSON.parse(localStorage.getItem(warnKey)||'[]'); }catch(e){}
+  warns.unshift({ msg: msg.trim(), ts: Date.now(), from: 'المدير' });
+  try{ localStorage.setItem(warnKey, JSON.stringify(warns.slice(0,20))); }catch(e){}
 
-  // 1) إضافة للقائمة السوداء
-  const list = _getBannedList();
-  if(!list.some(b=>b.name===targetName)){
-    list.push({ name: targetName, bannedAt: Date.now(), bannedBy: me });
-    _saveBannedList(list);
+  // إرسال كرسالة مباشرة إذا كانت الدالة متاحة
+  if(typeof openAdminChat === 'function'){
+    // إرسال مباشر للعضو
+    const warnMsg = { id:'warn_'+Date.now(), from:'المدير', to:name, message:'⚠️ تنبيه من الإدارة:\n'+msg.trim(), timestamp:new Date().toISOString(), read:false, isWarn:true };
+    if(typeof sbSendMessage==='function') sbSendMessage(warnMsg);
+    if(typeof _saveP2PMsgs==='function'){
+      try{
+        const existMsgs = typeof _getP2PMsgs==='function' ? _getP2PMsgs('المدير',name) : [];
+        existMsgs.push(warnMsg);
+        _saveP2PMsgs('المدير', name, existMsgs);
+      }catch(e){}
+    }
   }
 
-  // 2) حذف من قاعدة المستخدمين المسجلين
+  // إرسال Firebase notification
   try{
-    const REG_KEY = 'nld_registered_users';
-    const users = JSON.parse(localStorage.getItem(REG_KEY)||'[]');
-    const filtered = users.filter(u=>{
-      const fullName = ((u.firstName||'')+' '+(u.lastName||'')).trim();
-      return fullName !== targetName;
-    });
-    localStorage.setItem(REG_KEY, JSON.stringify(filtered));
+    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/warn_notifs/'+name.replace(/\s+/g,'_')+'/'+Date.now()+'.json',{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ msg: msg.trim(), from:'المدير', ts: Date.now() })
+    }).catch(()=>{});
   }catch(e){}
 
-  // 3) حذف نقاطه وبياناته من localStorage
-  const normKey = targetName.replace(/\s+/g,'_');
-  const keysToDelete = [
-    'nld_pts_'+normKey,
-    'nld_interaction_'+normKey,
-    'nld_quiz_pts_'+normKey,
-    'nld_photo_'+normKey,
-    'nld_bio_'+normKey,
-    'nld_email_'+normKey,
-    'cdz_sheet_verified_'+normKey,
-    'nld_divisions_'+normKey,
-  ];
-  keysToDelete.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
-
-  // 4) حذف منشوراته من الفيد الاجتماعي
-  try{
-    const POSTS_KEY = 'nld_social_posts';
-    const posts = JSON.parse(localStorage.getItem(POSTS_KEY)||'[]');
-    const cleanPosts = posts.filter(p=>p.author !== targetName);
-    localStorage.setItem(POSTS_KEY, JSON.stringify(cleanPosts));
-  }catch(e){}
-
-  // 5) حذف من Firebase userStats
-  const fbBase = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-  fetch(`${fbBase}/userStats/${normKey}.json`,{ method:'DELETE' }).catch(()=>{});
-  fetch(`${fbBase}/nld_divisions/${normKey}.json`,{ method:'DELETE' }).catch(()=>{});
-  fetch(`${fbBase}/leaderboard/${normKey}.json`,{ method:'DELETE' }).catch(()=>{});
-
-  if(typeof showToast==='function') showToast(`🚫 تم حظر وحذف ${targetName} نهائياً`);
-
-  // 6) تحديث لوحات المدير
-  setTimeout(()=>{
-    if(typeof _afpLoadMembers==='function') _afpLoadMembers();
-    if(typeof renderSocialFeed==='function') renderSocialFeed();
-  }, 500);
+  showToast('✅ تم إرسال رسالة التنبيه إلى ' + name);
 };
 
-/** منع العضو المحظور من تسجيل الدخول */
-const _origLogin = window.login;
-if(typeof _origLogin === 'function'){
-  window.login = function(){
-    // سنعترض بعد تسجيل الدخول الناجح
-    return _origLogin.apply(this, arguments);
-  };
-}
-
-/* إضافة زر الحظر النهائي لقائمة أعضاء لوحة المدير */
-const _origAfpRenderMembers = window._afpRenderMembers;
-window._afpRenderMembers = function(members){
-  const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-  const listEl = document.getElementById('afpMemberList');
-  if(!listEl){ if(typeof _origAfpRenderMembers==='function') return _origAfpRenderMembers(members); return; }
-
-  const banned = _getBannedList().map(b=>b.name);
-  listEl.innerHTML = members.map(name=>{
-    const isBanned = banned.includes(name);
-    return `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgba(255,255,255,0.05);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
-      <div style="flex:1;font-size:13px;font-weight:700;color:${isBanned?'#6b7280':'white'};">${name}${isBanned?' <span style="font-size:10px;color:#f87171;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:1px 6px;">محظور</span>':''}</div>
-      ${me==='المدير'&&!isBanned?`<button onclick="permanentlyBanAndDelete('${name.replace(/'/g,"\\'")}');document.getElementById('afpMemberSearch').value='';_afpFilterMembers('');" style="padding:5px 10px;border:1px solid rgba(239,68,68,0.4);border-radius:8px;background:rgba(239,68,68,0.1);color:#f87171;font-family:Tajawal,sans-serif;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;">🚫 حظر نهائي</button>`:''}
+window._adminAddPtsMenu = function(name){
+  _closeAdminMemberMenu();
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;';
+  ov.innerHTML = `
+    <div style="background:linear-gradient(160deg,#0d1117,#001a0a);border:1px solid rgba(34,197,94,0.3);border-radius:22px;padding:26px 22px;width:90%;max-width:420px;">
+      <div style="font-size:17px;font-weight:900;color:#22c55e;text-align:center;margin-bottom:16px;">➕ إضافة نقاط</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:12px;text-align:right;">العضو: <strong style="color:white;">${name}</strong></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+        ${[50,100,200,500,1000].map(v=>`<span onclick="document.getElementById('_addPtsVal').value=${v}" style="padding:6px 14px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:20px;color:#22c55e;font-weight:800;font-size:12px;cursor:pointer;">+${v}</span>`).join('')}
+      </div>
+      <input id="_addPtsVal" type="number" placeholder="أدخل عدد النقاط" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(34,197,94,0.3);border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:14px;outline:none;text-align:right;box-sizing:border-box;margin-bottom:12px;">
+      <div style="display:flex;gap:8px;">
+        <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إلغاء</button>
+        <button onclick="_doAdminAddPts('${name.replace(/'/g,"\\'")}',parseInt(document.getElementById('_addPtsVal').value)||0);this.closest('[style*=fixed]').remove();"
+          style="flex:1;padding:12px;background:linear-gradient(135deg,#22c55e,#15803d);border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;">➕ إضافة</button>
+      </div>
     </div>`;
-  }).join('') || '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.4);">لا توجد أعضاء</div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
 };
 
-/* إضافة زر الحظر النهائي لقسم الأعضاء في لوحة المدير الكاملة */
-// Hook على openAdminFullPage لإضافة قسم الحظر
-const _origOpenAdminFullPage = window.openAdminFullPage;
-if(typeof _origOpenAdminFullPage === 'function'){
-  window.openAdminFullPage = function(){
-    _origOpenAdminFullPage.apply(this, arguments);
-    // إضافة قسم الحظر النهائي بعد 200ms
-    setTimeout(()=>{
-      const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-      if(me !== 'المدير') return;
-      const body = document.querySelector('.afp-body');
-      if(!body || document.getElementById('_permBanSection')) return;
-      const sec = document.createElement('div');
-      sec.className = 'afp-section';
-      sec.id = '_permBanSection';
-      sec.innerHTML = `
-        <div class="afp-section-title">🚫 حظر عضو نهائياً</div>
-        <div style="font-size:11px;color:rgba(255,100,100,0.8);background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:8px 10px;margin-bottom:10px;line-height:1.6;font-weight:600;">
-          ⚠️ الحظر النهائي يحذف العضو من التطبيق بشكل دائم ولا يمكن التراجع عنه.
-        </div>
-        <select id="_permBanSelect" class="afp-select" style="color:white;margin-bottom:8px;">
-          <option value="">👤 اختر عضو للحظر النهائي...</option>
-        </select>
-        <button class="afp-btn red" onclick="_doPermanentBanFromPanel()">🚫 حظر وحذف نهائياً</button>
-        <div id="_permBanMsg" style="display:none;margin-top:8px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;"></div>
-      `;
-      body.appendChild(sec);
-      // تعبئة القائمة
-      const users = typeof getRegUsers==='function' ? getRegUsers() : [];
-      const names = users.map(u=>((u.firstName||'')+' '+(u.lastName||'')).trim()).filter(Boolean);
-      const sel = document.getElementById('_permBanSelect');
-      if(sel){
-        sel.innerHTML = '<option value="">👤 اختر عضو للحظر النهائي...</option>' +
-          names.map(n=>`<option value="${n}">${n}</option>`).join('');
-      }
-    }, 250);
-  };
+window._doAdminAddPts = function(name, pts){
+  if(!pts || pts <= 0){ showToast('⚠️ أدخل عدداً صحيحاً'); return; }
+  const normKey = 'sklab_pts_' + name.replace(/\s+/g,'_');
+  try{
+    let data = JSON.parse(localStorage.getItem(normKey)||'{"total":0,"earned":0}');
+    data.total = (data.total||0) + pts;
+    data.earned = (data.earned||0) + pts;
+    localStorage.setItem(normKey, JSON.stringify(data));
+    // Firebase
+    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/userStats/'+name.replace(/\s+/g,'_')+'.json',{
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ adminAddedPts: pts, totalPts: data.total })
+    }).catch(()=>{});
+    showToast('✅ تمت إضافة '+pts+' نقطة للعضو '+name);
+  }catch(e){ showToast('❌ حدث خطأ'); }
+};
+
+window._adminDeductPtsMenu = function(name){
+  _closeAdminMemberMenu();
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;';
+  ov.innerHTML = `
+    <div style="background:linear-gradient(160deg,#0d1117,#1a0505);border:1px solid rgba(239,68,68,0.3);border-radius:22px;padding:26px 22px;width:90%;max-width:420px;">
+      <div style="font-size:17px;font-weight:900;color:#f87171;text-align:center;margin-bottom:16px;">➖ خصم نقاط</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:12px;text-align:right;">العضو: <strong style="color:white;">${name}</strong></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+        ${[10,25,50,100,200].map(v=>`<span onclick="document.getElementById('_deductPtsVal').value=${v}" style="padding:6px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:20px;color:#f87171;font-weight:800;font-size:12px;cursor:pointer;">-${v}</span>`).join('')}
+      </div>
+      <input id="_deductPtsVal" type="number" placeholder="أدخل عدد النقاط المراد خصمها" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(239,68,68,0.3);border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:14px;outline:none;text-align:right;box-sizing:border-box;margin-bottom:12px;">
+      <div style="display:flex;gap:8px;">
+        <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إلغاء</button>
+        <button onclick="_doAdminDeductPts('${name.replace(/'/g,"\\'")}',parseInt(document.getElementById('_deductPtsVal').value)||0);this.closest('[style*=fixed]').remove();"
+          style="flex:1;padding:12px;background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;">➖ خصم</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+};
+
+window._doAdminDeductPts = function(name, pts){
+  if(!pts || pts <= 0){ showToast('⚠️ أدخل عدداً صحيحاً'); return; }
+  const normKey = 'sklab_pts_' + name.replace(/\s+/g,'_');
+  try{
+    let data = JSON.parse(localStorage.getItem(normKey)||'{"total":0}');
+    data.total = Math.max(0, (data.total||0) - pts);
+    localStorage.setItem(normKey, JSON.stringify(data));
+    showToast('✅ تم خصم '+pts+' نقطة من العضو '+name);
+  }catch(e){ showToast('❌ حدث خطأ'); }
+};
+
+window._adminSetBadge = function(name, badge){
+  localStorage.setItem(_BADGE_KEY(name), badge);
+  // تحديث في Firebase
+  try{
+    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/member_badges/'+name.replace(/\s+/g,'_')+'.json',{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ badge, ts: Date.now() })
+    }).catch(()=>{});
+  }catch(e){}
+  if(badge) showToast('✅ تم وضع وسام '+badge+' للعضو '+name);
+  else showToast('🗑️ تم إزالة وسام العضو '+name);
+  _closeAdminMemberMenu();
+};
+
+/* ─── حقن قائمة الإدارة عند الضغط على أي اسم عضو ─── */
+/* نعترض viewMemberProfile و openMemberProfileView */
+const _prevViewMemberProfile_MEGA = window.viewMemberProfile;
+window.viewMemberProfile = function(name){
+  if(window._isAdmin && name && name !== 'المدير'){
+    // تحقق من الحظر قبل فتح الملف
+    if(window.isMemberBanned(name)){
+      // العضو محظور — أظهر قائمة إدارة مباشرة
+      _showAdminMemberMenu(name);
+      return;
+    }
+  }
+  if(typeof _prevViewMemberProfile_MEGA === 'function') _prevViewMemberProfile_MEGA.apply(this, arguments);
+  // للمدير: أضف زر الإدارة على ملف العضو بعد 500ms
+  if(window._isAdmin && name && name !== 'المدير'){
+    setTimeout(()=> _injectAdminBtnOnProfile(name), 500);
+  }
+};
+
+function _injectAdminBtnOnProfile(name){
+  // ابحث عن رأس الملف الشخصي وأضف زر الإدارة
+  const existing = document.getElementById('_adminProfileBtn_'+name.replace(/\s+/g,'_'));
+  if(existing) return;
+  // ابحث عن حاوية ملف العضو
+  const profileView = document.getElementById('memberProfileView') || document.getElementById('mpvContainer');
+  if(!profileView) return;
+  const adminBtn = document.createElement('button');
+  adminBtn.id = '_adminProfileBtn_'+name.replace(/\s+/g,'_');
+  adminBtn.onclick = ()=> _showAdminMemberMenu(name);
+  adminBtn.style.cssText = 'position:fixed;bottom:90px;left:16px;z-index:9999;padding:10px 18px;background:linear-gradient(135deg,#FFD700,#FFA500);border:none;border-radius:20px;color:#0d1117;font-family:Tajawal,sans-serif;font-size:12px;font-weight:900;cursor:pointer;box-shadow:0 4px 16px rgba(255,165,0,0.4);display:flex;align-items:center;gap:6px;';
+  adminBtn.innerHTML = '👑 إدارة العضو';
+  document.body.appendChild(adminBtn);
+  // إزالة الزر عند إغلاق الملف
+  setTimeout(()=> adminBtn.remove(), 30000);
 }
 
-window._doPermanentBanFromPanel = function(){
-  const sel = document.getElementById('_permBanSelect');
-  const name = sel ? sel.value : '';
-  if(!name){
-    const m=document.getElementById('_permBanMsg');
-    if(m){m.style.display='block';m.style.background='rgba(239,68,68,0.15)';m.style.color='#fca5a5';m.style.border='1px solid rgba(239,68,68,0.3)';m.innerText='⚠️ اختر عضواً أولاً';}
+/* ─── منع دخول المحظورين ─── */
+const _prevRenderApp_BAN = window.renderApp;
+window.renderApp = function(name, pts, isReg, earnedPts){
+  if(name && name !== 'المدير' && window.isMemberBanned && window.isMemberBanned(name)){
+    // إخفاء التطبيق وإظهار رسالة الحظر
+    const loginEl = document.getElementById('login');
+    const appEl = document.getElementById('app');
+    if(appEl) appEl.style.display = 'none';
+    if(loginEl){ loginEl.style.display = 'flex'; loginEl.style.flexDirection = 'column'; }
+    setTimeout(()=>{
+      const banMsg = document.createElement('div');
+      banMsg.style.cssText = 'position:fixed;inset:0;z-index:200000;background:linear-gradient(135deg,#0d1117,#1a0505);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;text-align:center;padding:30px;';
+      banMsg.innerHTML = `
+        <div style="font-size:80px;margin-bottom:20px;">🚫</div>
+        <div style="font-size:24px;font-weight:900;color:#f87171;margin-bottom:12px;">تم حظرك من التطبيق</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.5);line-height:1.8;max-width:320px;">تواصل مع إدارة Connect DZ<br>لمعرفة سبب الحظر وإمكانية رفعه.</div>`;
+      document.body.appendChild(banMsg);
+    }, 100);
     return;
   }
-  window.permanentlyBanAndDelete(name);
+  if(typeof _prevRenderApp_BAN === 'function') _prevRenderApp_BAN.apply(this, arguments);
 };
 
-/* ══════════════════════════════════════════════════════════════
-   ② تحسين عرض الصعود والنزول: أسهم خضراء/حمراء واضحة
-      + منطق الأسبوع الأول: أعلى 10 يصعدون مباشرة للهاوي
-══════════════════════════════════════════════════════════════ */
-
-/* حساب رقم الأسبوع منذ بداية التطبيق */
-function _getAppWeek(){
-  // نحسب الأسبوع منذ 2025-01-01 كبداية مرجعية
-  const APP_START = new Date('2025-01-01').getTime();
-  const now = Date.now();
-  return Math.floor((now - APP_START) / (7 * 24 * 60 * 60 * 1000));
-}
-
-function _isFirstWeek(){
-  const FIRST_WEEK_KEY = 'nld_app_first_week_num';
-  const stored = localStorage.getItem(FIRST_WEEK_KEY);
-  if(!stored){
-    // أول مرة يشغّل أحد → نحفظ رقم الأسبوع الحالي كالأسبوع الأول
-    localStorage.setItem(FIRST_WEEK_KEY, String(_getAppWeek()));
-    return true;
+/* ─── إضافة تحذيرات المدير في شريط الإشعارات ─── */
+window._checkWarnNotifs = function(){
+  const name = localStorage.getItem('sklab_user_name');
+  if(!name || name==='المدير') return;
+  const warnKey = 'cdz_warn_notifs_' + name.replace(/\s+/g,'_');
+  const seenKey = 'cdz_warn_seen_' + name.replace(/\s+/g,'_');
+  let warns = [];
+  try{ warns = JSON.parse(localStorage.getItem(warnKey)||'[]'); }catch(e){}
+  const lastSeen = parseInt(localStorage.getItem(seenKey)||'0');
+  const newWarns = warns.filter(w=>w.ts > lastSeen);
+  if(newWarns.length > 0){
+    const latest = newWarns[0];
+    const warnDiv = document.createElement('div');
+    warnDiv.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:200000;background:linear-gradient(135deg,#f59e0b,#b45309);width:100%;max-width:480px;padding:14px 18px;font-family:Tajawal,sans-serif;box-shadow:0 4px 20px rgba(0,0,0,0.5);';
+    warnDiv.innerHTML = `
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <span style="font-size:22px;flex-shrink:0;">📢</span>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:900;color:white;margin-bottom:4px;">تنبيه من الإدارة</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.9);line-height:1.6;">${latest.msg}</div>
+        </div>
+        <button onclick="this.parentElement.parentElement.remove();localStorage.setItem('${seenKey}',Date.now())" style="background:none;border:none;color:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;padding:0;flex-shrink:0;">✕</button>
+      </div>`;
+    document.body.appendChild(warnDiv);
+    localStorage.setItem(seenKey, String(Date.now()));
   }
-  return _getAppWeek() === parseInt(stored);
-}
+};
 
-/* تجاوز renderDivision الأصلية لإضافة الأسهم والمنطق الجديد */
-const _origRenderDivision = window._nldRenderDivisionWithAssignments || null;
-
-/* نحقن في renderDivisionWithAssignments لتعديل شارات الصعود/النزول */
-// نحتاج intercept على nldChampLoadAll أو renderDivision
-// لأن renderDivision داخل IIFE، سنستخدم MutationObserver على المحتوى
-
-const _nldObserver = new MutationObserver(function(mutations){
-  for(const m of mutations){
-    for(const node of m.addedNodes){
-      if(node.nodeType !== 1) continue;
-      // إذا تم تحديث nldChampContent → نعيد تلوين الأسهم وتكبيرها
-      const content = document.getElementById('nldChampContent');
-      if(!content) continue;
-      // تحسين شارات الصعود
-      content.querySelectorAll('span').forEach(span=>{
-        const t = span.innerText || span.textContent;
-        if(t.includes('↑ صعود') && !span.dataset.enhanced){
-          span.dataset.enhanced='1';
-          span.style.cssText='font-size:12px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #22c55e;display:inline-flex;align-items:center;gap:3px;';
-          span.innerHTML='<span style="font-size:14px;">⬆️</span> صعود';
-        }
-        if((t.includes('↓ هبوط') || t.includes('↓ نزول')) && !span.dataset.enhanced){
-          span.dataset.enhanced='1';
-          span.style.cssText='font-size:12px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #ef4444;display:inline-flex;align-items:center;gap:3px;';
-          span.innerHTML='<span style="font-size:14px;">⬇️</span> نزول';
-        }
-      });
-    }
-  }
+window.addEventListener('load', function(){
+  setTimeout(window._checkWarnNotifs, 2000);
 });
 
-/* تشغيل المراقب عند تحميل الصفحة */
-document.addEventListener('DOMContentLoaded',function(){
-  const content = document.getElementById('nldChampContent');
-  if(content) _nldObserver.observe(content.parentElement||document.body,{childList:true,subtree:true});
-});
-// أيضاً الآن في حالة DOM جاهز
-setTimeout(()=>{
-  const parent = document.getElementById('nldChampionshipPanel') || document.body;
-  _nldObserver.observe(parent,{childList:true,subtree:true});
-},1000);
+/* ════════════════════════════════════════════════════════════
+   ② نظام صعود/هبوط البطولة مع أسهم + ترقية تلقائية
+   ════════════════════════════════════════════════════════════ */
 
-/* Hook على nldChampLoadAll لتطبيق منطق الأسبوع الأول */
-const _origNldChampLoadAll = window.nldChampLoadAll;
-const _fbBase_fw = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-const _FW_FB_KEY = 'nld_first_week_promo_done'; // مفتاح Firebase (عالمي لكل المستخدمين)
-let _fwCheckInProgress = false; // منع التنفيذ المتوازي
+const _CHAMPIONSHIP_KEY  = 'cdz_championship_state_v2';
+const _CHAMP_WEEK_KEY    = 'cdz_championship_week_v2';
+const _CHAMP_PROMOTED_KEY= 'cdz_champ_promoted_v2';
 
-if(typeof _origNldChampLoadAll === 'function'){
-  window.nldChampLoadAll = async function(){
-    // تشغيل النسخة الأصلية أولاً
-    await _origNldChampLoadAll.apply(this, arguments);
-
-    // لا نكرر الفحص إذا كان جارياً
-    if(_fwCheckInProgress) return;
-    _fwCheckInProgress = true;
-
-    try{
-      // ① فحص Firebase أولاً: هل سبق تنفيذ ترقية الأسبوع الأول؟
-      const fwCheck = await fetch(`${_fbBase_fw}/${_FW_FB_KEY}.json?_=${Date.now()}`,{cache:'no-store'});
-      const fwDone = await fwCheck.json();
-      if(fwDone === true || fwDone === 1 || fwDone === 'done'){
-        _fwCheckInProgress = false;
-        return; // تم التنفيذ من قبل بواسطة أي مستخدم → لا نعيد
-      }
-
-      // ② هل نحن في الأسبوع الأول؟
-      if(!_isFirstWeek()){ _fwCheckInProgress = false; return; }
-
-      const allMembers = window._nldAllMembers;
-      const assignments = window._nldAssignments;
-      if(!allMembers || !assignments){ _fwCheckInProgress = false; return; }
-
-      // ③ أعضاء المبتدئين فقط — أعلى 10 نقاطاً
-      const beginners = allMembers
-        .filter(m=>{ const k=(m.name||'').replace(/\s+/g,'_'); const asgn=assignments[k]; return !asgn || asgn.divId==='beginner'; })
-        .sort((a,b)=>b.total-a.total)
-        .slice(0,10);
-
-      if(beginners.length === 0){ _fwCheckInProgress = false; return; }
-
-      // ④ كتابة قفل في Firebase أولاً (لمنع التنفيذ المزدوج من أجهزة مختلفة)
-      await fetch(`${_fbBase_fw}/${_FW_FB_KEY}.json`,{
-        method:'PUT', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ done: true, executedAt: Date.now(), count: beginners.length })
-      });
-
-      // ⑤ نقل الأعضاء للهاوي
-      const updates = {};
-      beginners.forEach(m=>{
-        const k=(m.name||'').replace(/\s+/g,'_');
-        updates[k] = { divId:'amateur', updatedAt: Date.now(), promotedFrom:'beginner', firstWeekPromo:true };
-      });
-
-      await fetch(`${_fbBase_fw}/nld_divisions.json`,{
-        method:'PATCH', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(updates)
-      });
-
-      if(typeof showToast==='function')
-        showToast(`🌱 تمت ترقية أعلى ${beginners.length} عضو من المبتدئين للهاوي (الأسبوع الأول)`);
-
-      console.log(`✅ [NLD] ترقية الأسبوع الأول: ${beginners.map(m=>m.name).join('، ')}`);
-
-      // ⑥ إعادة تحميل العرض
-      setTimeout(()=>{ _origNldChampLoadAll(); }, 1000);
-
-    }catch(e){
-      console.warn('[NLD] فشل فحص الأسبوع الأول:', e);
-    }finally{
-      _fwCheckInProgress = false;
-    }
-  };
+function _getChampState(){
+  try{ return JSON.parse(localStorage.getItem(_CHAMPIONSHIP_KEY)||'{}'); }catch(e){ return {}; }
+}
+function _saveChampState(obj){
+  try{ localStorage.setItem(_CHAMPIONSHIP_KEY, JSON.stringify(obj)); }catch(e){}
 }
 
-/* تحسين مرئي إضافي: إضافة أسهم ملونة في بطاقات الأقسام */
-(function _enhancePromoRelegBadges(){
-  // نضيف CSS إضافي
-  const style = document.createElement('style');
-  style.textContent = `
-    /* تحسين شارات الصعود والنزول في البطولة */
-    .nld-promo-badge {
-      font-size:12px!important;font-weight:900!important;
-      color:#22c55e!important;background:rgba(0,200,83,0.18)!important;
-      border-radius:8px!important;padding:3px 8px!important;
-      border:1.5px solid #22c55e!important;
-      display:inline-flex!important;align-items:center!important;gap:3px!important;
-      animation:nldPromoGlow 2s ease infinite!important;
+function _getCurrentChampWeek(){
+  return parseInt(localStorage.getItem(_CHAMP_WEEK_KEY)||'1');
+}
+
+function _advanceChampWeek(){
+  const w = _getCurrentChampWeek();
+  localStorage.setItem(_CHAMP_WEEK_KEY, String(w+1));
+}
+
+/* ─── حساب الصاعدين والنازلين بناءً على النقاط ─── */
+window._calcChampMovement = function(proLeague, amateurLeague, maxMove){
+  /* proLeague: مصفوفة {name, pts} للقسم المحترف (ترتيب تنازلي)
+     amateurLeague: مصفوفة {name, pts} للقسم الهاوي (ترتيب تنازلي)
+     maxMove: الحد الأقصى للحركة (5 افتراضياً)
+     
+     المنطق: آخر X في proLeague ينزلون فقط إذا كانت نقاطهم
+             أقل من أعلى X في amateurLeague
+     يُعيد: { up:[names], down:[names] }
+  */
+  if(!proLeague.length || !amateurLeague.length) return { up:[], down:[] };
+
+  const week = _getCurrentChampWeek();
+
+  // الأسبوع الأول: أفضل 10 ينتقلون مباشرة
+  if(week === 1){
+    const autoUp = amateurLeague.slice(0, Math.min(10, amateurLeague.length)).map(m=>m.name);
+    return { up: autoUp, down: [] };
+  }
+
+  // بعد الأسبوع الأول: منطق صعود/هبوط بناءً على المقارنة
+  const proBottom = proLeague.slice(-maxMove).reverse(); // الأضعف في المحترفين
+  const amateurTop = amateurLeague.slice(0, maxMove);    // الأقوى في الهواة
+
+  const up = [];
+  const down = [];
+  const count = Math.min(proBottom.length, amateurTop.length);
+
+  for(let i=0; i<count; i++){
+    const weakPro = proBottom[i];
+    const strongAmateur = amateurTop[i];
+    // الصعود فقط إذا كان الهاوي أكثر نقاطاً من المحترف الضعيف
+    if(strongAmateur && weakPro && strongAmateur.pts > weakPro.pts){
+      up.push(strongAmateur.name);
+      down.push(weakPro.name);
     }
-    .nld-relg-badge {
-      font-size:12px!important;font-weight:900!important;
-      color:#ef4444!important;background:rgba(239,68,68,0.18)!important;
-      border-radius:8px!important;padding:3px 8px!important;
-      border:1.5px solid #ef4444!important;
-      display:inline-flex!important;align-items:center!important;gap:3px!important;
+  }
+  return { up, down };
+};
+
+/* ─── تطبيق الأسهم على صفوف الترتيب ─── */
+window._applyChampArrows = function(containerEl, movement){
+  if(!containerEl || !movement) return;
+  const { up=[], down=[] } = movement;
+  const rows = containerEl.querySelectorAll('[data-member-name]');
+  rows.forEach(row=>{
+    const name = row.getAttribute('data-member-name');
+    // إزالة الأسهم القديمة
+    const oldArrow = row.querySelector('.champ-move-arrow');
+    if(oldArrow) oldArrow.remove();
+
+    let arrowHtml = '';
+    if(up.includes(name)){
+      arrowHtml = '<span class="champ-move-arrow" title="صاعد" style="color:#22c55e;font-size:14px;font-weight:900;margin-right:4px;animation:arrowPulse 1s ease infinite;">▲</span>';
+    } else if(down.includes(name)){
+      arrowHtml = '<span class="champ-move-arrow" title="نازل" style="color:#ef4444;font-size:14px;font-weight:900;margin-right:4px;animation:arrowPulse 1s ease infinite;">▼</span>';
     }
-    @keyframes nldPromoGlow {
-      0%,100%{ box-shadow:0 0 0 0 rgba(34,197,94,0); }
-      50%{ box-shadow:0 0 8px 2px rgba(34,197,94,0.4); }
+    if(arrowHtml){
+      const firstChild = row.querySelector('.member-rank-num, [class*="rank"], span:first-child') || row.firstElementChild;
+      if(firstChild){ firstChild.insertAdjacentHTML('afterbegin', arrowHtml); }
+      else { row.insertAdjacentHTML('afterbegin', arrowHtml); }
     }
+  });
+};
+
+/* CSS للأسهم */
+(function(){
+  if(document.getElementById('_champArrowStyle')) return;
+  const s = document.createElement('style');
+  s.id = '_champArrowStyle';
+  s.textContent = `
+    @keyframes arrowPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.3)} }
+    .champ-move-arrow { display:inline-block !important; }
   `;
-  document.head.appendChild(style);
+  document.head.appendChild(s);
 })();
 
-/* ══════════════════════════════════════════════════════════════
-   ③ حذف حساب شيماء سفيسيفي المكرر (>45000 نقطة) من البطولة
-      المنطق: عند تحميل البيانات، نستبعد الإدخال ذو النقاط العالية جداً
-      ونبقي فقط الحساب الثاني (الظاهر في جدول الترتيب بعد الاسم الأول)
-══════════════════════════════════════════════════════════════ */
+/* ─── زر لوحة التحكم للبطولة (للمدير فقط) ─── */
+window._openChampAdminPanel = function(){
+  const old = document.getElementById('_champAdminOv'); if(old) old.remove();
+  const week = _getCurrentChampWeek();
+  const ov = document.createElement('div');
+  ov.id = '_champAdminOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99997;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;';
+  ov.innerHTML = `
+    <div style="background:linear-gradient(160deg,#0d1117,#1a1a2e);border:1px solid rgba(255,215,0,0.25);border-radius:22px;padding:26px 22px;width:90%;max-width:440px;">
+      <div style="font-size:17px;font-weight:900;color:#FFD700;text-align:center;margin-bottom:18px;">🏆 إدارة البطولة المحترفة</div>
+      <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:6px;">الأسبوع الحالي</div>
+        <div style="font-size:28px;font-weight:900;color:#FFD700;">الأسبوع ${week}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;">${week===1?'الأسبوع الأول: أفضل 10 ينتقلون للقسم الهاوي تلقائياً':'نظام صعود 5 / هبوط 5 بالمقارنة بالنقاط'}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button onclick="window._advanceChampWeek();document.getElementById('_champAdminOv').remove();showToast('✅ تم الانتقال للأسبوع '+(parseInt(localStorage.getItem('cdz_championship_week_v2')||'1')))"
+          style="padding:13px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:800;cursor:pointer;">⏭️ الانتقال للأسبوع التالي</button>
+        <button onclick="localStorage.setItem('cdz_championship_week_v2','1');document.getElementById('_champAdminOv').remove();showToast('✅ تم إعادة تعيين إلى الأسبوع 1')"
+          style="padding:13px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;cursor:pointer;">🔄 إعادة تعيين البطولة</button>
+        <button onclick="document.getElementById('_champAdminOv').remove()"
+          style="padding:13px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:rgba(255,255,255,0.4);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إغلاق</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+};
 
-/* ══════════════════════════════════════════════════════════════
-   ③ حذف حساب شيماء سفيسيفي المكرر (>45000 نقطة) من البطولة
-      المنطق: الحساب غير المسجل يظهر أولاً في جدول الترتيب بنقاط >45000
-      نستبعده من _nldAllMembers بعد التحميل مباشرة
-══════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════
+   ③ توقيف النشر + نشر باسم النظام + صلاحيات النشر
+   ════════════════════════════════════════════════════════════ */
 
-/* نستخدم hook على nldChampLoadAll للفلترة بعد التحميل */
-const _origNldChampLoadAllForShaimaa = window.nldChampLoadAll;
-if(typeof _origNldChampLoadAllForShaimaa === 'function'){
-  window.nldChampLoadAll = async function(){
-    await _origNldChampLoadAllForShaimaa.apply(this, arguments);
+const _POST_DISABLED_KEY = 'cdz_posting_disabled';
+const _POST_SYSTEM_NAME  = 'النظام';
 
-    // بعد التحميل، نفلتر _nldAllMembers
-    if(!window._nldAllMembers || !Array.isArray(window._nldAllMembers)) return;
+window.isPostingDisabled = function(){
+  return localStorage.getItem(_POST_DISABLED_KEY) === '1';
+};
+window.togglePostingDisabled = function(){
+  const val = localStorage.getItem(_POST_DISABLED_KEY) === '1';
+  localStorage.setItem(_POST_DISABLED_KEY, val ? '0' : '1');
+  showToast(val ? '✅ تم تفعيل النشر للجميع' : '🔒 تم إيقاف النشر — فقط المدير يمكنه النشر');
+  const btn = document.getElementById('_togglePostingBtn');
+  if(btn) btn.innerHTML = val ? '📝 إيقاف النشر' : '✅ تفعيل النشر';
+};
 
-    const _norm = s=>(s||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+/* اعتراض دالة submitPost لمنع النشر إذا كانت مُوقفة */
+const _prevSubmitPost_PATCH = window.submitPost;
+window.submitPost = function(){
+  if(window.isPostingDisabled() && !window._isAdmin){
+    showToast('🔒 النشر موقوف مؤقتاً من قِبَل الإدارة');
+    const modal = document.getElementById('createPostModal');
+    if(modal) modal.style.display='none';
+    return;
+  }
+  if(typeof _prevSubmitPost_PATCH === 'function') _prevSubmitPost_PATCH.apply(this, arguments);
+};
 
-    // نحذف أي إدخال لشيماء بنقاط أكثر من 45000 (الحساب غير المسجل)
-    const before = window._nldAllMembers.length;
-    window._nldAllMembers = window._nldAllMembers.filter(m=>{
-      const n = _norm(m.name);
-      const isShaimaa = n.includes('شيماء') || n.includes('sefsifia') || n.includes('sfisifi');
-      if(isShaimaa && m.total > 45000){
-        console.log(`[NLD] 🗑️ تم استبعاد حساب شيماء المكرر (${m.name}: ${m.total} نقطة)`);
-        return false; // احذف
-      }
-      return true; // أبق
+/* نشر باسم النظام — للمدير فقط */
+window.publishAsSystem = function(text, imageUrl){
+  if(!window._isAdmin){ showToast('❌ هذه الميزة للمدير فقط'); return; }
+  if(!text && !imageUrl){ showToast('⚠️ اكتب نصاً أو أضف صورة'); return; }
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
+  const post = {
+    id: 'sys_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
+    author: _POST_SYSTEM_NAME,
+    text: text || '',
+    image: imageUrl || null,
+    date: dateStr, ts: Date.now(),
+    reactions:{}, comments:[], views:0,
+    privacy:'🌐 عام',
+    isSystemPost: true
+  };
+  const posts = typeof getSocialPosts === 'function' ? getSocialPosts() : [];
+  posts.unshift(post);
+  if(typeof saveSocialPosts === 'function') saveSocialPosts(posts);
+  if(typeof renderSocialFeed === 'function') renderSocialFeed();
+
+  // Firebase
+  try{
+    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts/'+post.id+'.json',{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(post)
+    }).catch(()=>{});
+  }catch(e){}
+
+  showToast('✅ تم النشر باسم النظام');
+};
+
+/* ─── زر "مشاركة معلومة" العائم — يظهر في كل صفحات التطبيق ─── */
+window._openShareInfoPanel = function(){
+  const old = document.getElementById('_shareInfoOv'); if(old) old.remove();
+  const myName = window._isAdmin ? 'المدير (النظام)' : (localStorage.getItem('sklab_user_name') || 'زائر');
+  const canPost = window._isAdmin || !window.isPostingDisabled();
+
+  const ov = document.createElement('div');
+  ov.id = '_shareInfoOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99996;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;font-family:Tajawal,sans-serif;';
+
+  if(!canPost){
+    ov.innerHTML = `
+      <div style="background:#0d1117;border-radius:22px 22px 0 0;padding:26px 20px 36px;max-width:480px;width:100%;text-align:center;">
+        <div style="font-size:48px;margin-bottom:12px;">🔒</div>
+        <div style="font-size:16px;font-weight:900;color:white;margin-bottom:8px;">النشر موقوف مؤقتاً</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);">تم إيقاف النشر من قِبَل الإدارة</div>
+        <button onclick="document.getElementById('_shareInfoOv').remove()" style="margin-top:16px;padding:12px 24px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:14px;color:rgba(255,255,255,0.6);font-family:Tajawal,sans-serif;font-size:14px;cursor:pointer;">إغلاق</button>
+      </div>`;
+    document.body.appendChild(ov);
+    ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+    return;
+  }
+
+  ov.innerHTML = `
+    <div style="background:#0d1117;border:1px solid rgba(255,255,255,0.08);border-radius:22px 22px 0 0;padding:20px 16px 36px;max-width:480px;width:100%;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 18px;"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="font-size:24px;">📤</div>
+        <div>
+          <div style="font-size:16px;font-weight:900;color:white;">مشاركة معلومة</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);">${window._isAdmin?'ستُنشر باسم النظام':('بقلم: '+myName)}</div>
+        </div>
+        ${window._isAdmin ? `<label style="margin-right:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,215,0,0.8);cursor:pointer;"><input type="checkbox" id="_postAsSystemChk" checked style="width:16px;height:16px;accent-color:#FFD700;"> باسم النظام</label>` : ''}
+      </div>
+      <textarea id="_shareInfoText" placeholder="اكتب المعلومة أو الخبر هنا..." style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.12);border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:14px;outline:none;resize:none;min-height:100px;text-align:right;line-height:1.7;box-sizing:border-box;"></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px;align-items:center;">
+        <label style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);cursor:pointer;font-size:20px;" title="أضف صورة">
+          🖼️<input type="file" accept="image/*" id="_shareInfoImg" style="display:none;" onchange="_onShareInfoImg(event)">
+        </label>
+        <div id="_shareInfoImgPreview" style="display:none;width:44px;height:44px;border-radius:10px;overflow:hidden;flex-shrink:0;"></div>
+        <button onclick="document.getElementById('_shareInfoOv').remove()" style="padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:rgba(255,255,255,0.5);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إلغاء</button>
+        <button onclick="_doShareInfo()" style="flex:1;padding:12px;background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;">نشر المعلومة ✅</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+};
+
+window._shareInfoImgData = null;
+window._onShareInfoImg = function(event){
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    window._shareInfoImgData = e.target.result;
+    const prev = document.getElementById('_shareInfoImgPreview');
+    if(prev){ prev.style.display='block'; prev.innerHTML = `<img src="${e.target.result}" style="width:44px;height:44px;object-fit:cover;">`; }
+  };
+  reader.readAsDataURL(file);
+};
+
+window._doShareInfo = function(){
+  const text = (document.getElementById('_shareInfoText')||{}).value?.trim() || '';
+  const img = window._shareInfoImgData || null;
+  if(!text && !img){ showToast('⚠️ اكتب شيئاً أو أضف صورة'); return; }
+
+  const asSystem = window._isAdmin && (document.getElementById('_postAsSystemChk')||{}).checked;
+  const name = asSystem ? _POST_SYSTEM_NAME : (localStorage.getItem('sklab_user_name')||'زائر');
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
+  const post = {
+    id: 'info_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
+    author: name,
+    text: text,
+    image: img,
+    date: dateStr, ts: Date.now(),
+    reactions:{}, comments:[], views:0,
+    privacy:'🌐 عام',
+    isSystemPost: asSystem,
+    isSharedInfo: true
+  };
+
+  const posts = typeof getSocialPosts === 'function' ? getSocialPosts() : [];
+  posts.unshift(post);
+  if(typeof saveSocialPosts === 'function') saveSocialPosts(posts);
+  if(typeof renderSocialFeed === 'function') renderSocialFeed();
+
+  // مزامنة Firebase
+  try{
+    fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts/'+post.id+'.json',{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ ...post, image: img ? '[image]' : null })
+    }).catch(()=>{});
+  }catch(e){}
+
+  window._shareInfoImgData = null;
+  document.getElementById('_shareInfoOv')?.remove();
+  showToast('✅ تم نشر المعلومة بنجاح!');
+};
+
+/* ─── إضافة زر "مشاركة معلومة" عائم في كل الصفحات ─── */
+(function _injectFloatingShareBtn(){
+  const btn = document.createElement('div');
+  btn.id = '_floatingShareBtn';
+  btn.onclick = ()=> window._openShareInfoPanel();
+  btn.style.cssText = `
+    position:fixed;bottom:85px;right:16px;z-index:9500;
+    width:52px;height:52px;border-radius:50%;
+    background:linear-gradient(135deg,#1877F2,#0d5bda);
+    box-shadow:0 4px 18px rgba(24,119,242,0.5);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;cursor:pointer;
+    transition:transform .2s,box-shadow .2s;
+    border:2px solid rgba(255,255,255,0.2);
+  `;
+  btn.innerHTML = '📤';
+  btn.title = 'مشاركة معلومة';
+  btn.addEventListener('mouseenter',()=>{ btn.style.transform='scale(1.1)'; });
+  btn.addEventListener('mouseleave',()=>{ btn.style.transform='scale(1)'; });
+  document.addEventListener('DOMContentLoaded',()=>{ document.body.appendChild(btn); });
+  if(document.readyState !== 'loading') document.body.appendChild(btn);
+})();
+
+/* ─── لوحة تحكم النشر للمدير (عند الضغط على أيقونة النشاطات) ─── */
+window._openAdminPostControl = function(){
+  if(!window._isAdmin) return;
+  const old = document.getElementById('_adminPostCtrlOv'); if(old) old.remove();
+  const isDisabled = window.isPostingDisabled();
+  const ov = document.createElement('div');
+  ov.id = '_adminPostCtrlOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99997;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;font-family:Tajawal,sans-serif;animation:fadeIn .2s ease;';
+  ov.innerHTML = `
+    <div style="background:#0d1117;border:1px solid rgba(255,255,255,0.1);border-radius:22px 22px 0 0;padding:22px 18px 36px;max-width:480px;width:100%;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 18px;"></div>
+      <div style="font-size:16px;font-weight:900;color:white;margin-bottom:18px;text-align:center;">⚙️ إدارة النشر</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.05);border-radius:14px;padding:14px 16px;">
+          <div>
+            <div style="font-size:13px;font-weight:800;color:white;">حالة النشر</div>
+            <div style="font-size:11px;color:${isDisabled?'#f87171':'#22c55e'};margin-top:3px;">${isDisabled?'🔒 موقوف':'✅ مفعّل'}</div>
+          </div>
+          <button id="_togglePostingBtn" onclick="window.togglePostingDisabled();document.getElementById('_adminPostCtrlOv').remove();"
+            style="padding:10px 20px;background:${isDisabled?'linear-gradient(135deg,#22c55e,#15803d)':'linear-gradient(135deg,#ef4444,#b91c1c)'};border:none;border-radius:12px;color:white;font-family:Tajawal,sans-serif;font-size:13px;font-weight:800;cursor:pointer;">
+            ${isDisabled?'✅ تفعيل النشر':'🔒 إيقاف النشر'}
+          </button>
+        </div>
+
+        <button onclick="document.getElementById('_adminPostCtrlOv').remove();window._openSystemPostComposer();"
+          style="width:100%;padding:14px;background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,165,0,0.1));border:1px solid rgba(255,215,0,0.3);border-radius:14px;color:#FFD700;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:20px;">📣</span> نشر رسالة باسم النظام
+        </button>
+        <button onclick="document.getElementById('_adminPostCtrlOv').remove();window._openAdminBanList();"
+          style="width:100%;padding:14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:14px;color:#f87171;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:20px;">🚫</span> قائمة الحظر
+        </button>
+        <button onclick="document.getElementById('_adminPostCtrlOv').remove();window._openChampAdminPanel();"
+          style="width:100%;padding:14px;background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:14px;color:#FFD700;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:20px;">🏆</span> إدارة البطولة
+        </button>
+        <button onclick="document.getElementById('_adminPostCtrlOv').remove()"
+          style="width:100%;padding:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;color:rgba(255,255,255,0.4);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إغلاق</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+};
+
+window._openSystemPostComposer = function(){
+  const old = document.getElementById('_sysPostOv'); if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = '_sysPostOv';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;font-family:Tajawal,sans-serif;animation:fadeIn .2s ease;';
+  ov.innerHTML = `
+    <div style="background:linear-gradient(160deg,#0d1117,#1a1a2e);border:1px solid rgba(255,215,0,0.2);border-radius:22px 22px 0 0;padding:20px 16px 36px;max-width:480px;width:100%;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 16px;"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;font-size:20px;">⚡</div>
+        <div>
+          <div style="font-size:15px;font-weight:900;color:#FFD700;">النظام</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);">منشور رسمي من الإدارة</div>
+        </div>
+      </div>
+      <textarea id="_sysPostText" placeholder="اكتب رسالة النظام..." style="width:100%;padding:13px 16px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,215,0,0.2);border-radius:14px;color:white;font-family:Tajawal,sans-serif;font-size:14px;outline:none;resize:none;min-height:110px;text-align:right;line-height:1.7;box-sizing:border-box;"></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button onclick="document.getElementById('_sysPostOv').remove()" style="padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:rgba(255,255,255,0.5);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إلغاء</button>
+        <button onclick="window.publishAsSystem(document.getElementById('_sysPostText').value);document.getElementById('_sysPostOv').remove();"
+          style="flex:1;padding:12px;background:linear-gradient(135deg,#FFD700,#FFA500);border:none;border-radius:12px;color:#0d1117;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;">📣 نشر باسم النظام</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+};
+
+/* ════════════════════════════════════════════════════════════
+   ④ منشورات وتعليقات دائمة + ترتيب ذكي
+   ════════════════════════════════════════════════════════════ */
+
+const _HALF_HOUR_MS = 30 * 60 * 1000; // نصف ساعة بالمللي ثانية
+
+/* ─── دالة الترتيب الذكي ─── */
+window._smartSortPosts = function(posts){
+  if(!posts || !posts.length) return posts;
+  const now = Date.now();
+  return posts.slice().sort(function(a, b){
+    const aAge = now - (a.ts || 0);
+    const bAge = now - (b.ts || 0);
+    const aNew = aAge < _HALF_HOUR_MS; // أقل من نصف ساعة
+    const bNew = bAge < _HALF_HOUR_MS;
+
+    // المنشورات الجديدة (أقل من 30 دقيقة): تظهر بالترتيب الزمني (الأحدث أولاً)
+    if(aNew && bNew) return (b.ts||0) - (a.ts||0);
+    if(aNew && !bNew) return -1;
+    if(!aNew && bNew) return 1;
+
+    // المنشورات القديمة: ترتيب حسب أعلى تفاعل (تعليقات + إعجابات + مشاهدات)
+    const aScore = _postEngagement(a);
+    const bScore = _postEngagement(b);
+    if(bScore !== aScore) return bScore - aScore;
+    return (b.ts||0) - (a.ts||0); // عند التساوي: الأحدث أولاً
+  });
+};
+
+function _postEngagement(p){
+  if(!p) return 0;
+  const comments = (p.comments || []).length;
+  const views    = p.views || 0;
+  const reacts   = Object.values(p.reactions || {}).flat().length;
+  // وزن: التعليقات × 3 + الإعجابات × 2 + المشاهدات × 1
+  return (comments * 3) + (reacts * 2) + views;
+}
+
+/* ─── اعتراض renderSocialFeed لتطبيق الترتيب الذكي ─── */
+const _prevRenderSocialFeed_SORT = window.renderSocialFeed;
+window.renderSocialFeed = function(){
+  if(typeof _prevRenderSocialFeed_SORT === 'function') _prevRenderSocialFeed_SORT.apply(this, arguments);
+};
+
+/* ─── حفظ التعليقات دائمياً في Firebase ─── */
+const _prevToggleComments_PERSIST = window.toggleComments;
+window.toggleComments = function(postId){
+  if(typeof _prevToggleComments_PERSIST === 'function') _prevToggleComments_PERSIST.apply(this, arguments);
+};
+
+/* ─── اعتراض saveSocialPosts لتطبيق الترتيب الذكي ─── */
+const _prevSaveSocialPosts_SORT = window.saveSocialPosts;
+window.saveSocialPosts = function(arr){
+  // الترتيب الذكي قبل الحفظ
+  const sorted = window._smartSortPosts ? window._smartSortPosts(arr) : arr;
+  if(typeof _prevSaveSocialPosts_SORT === 'function') _prevSaveSocialPosts_SORT.call(this, sorted);
+};
+
+/* ─── تحديث تلقائي لعرض المنشور الجديد ─── */
+(function _scheduleRefreshForOldPosts(){
+  setInterval(function(){
+    // بعد نصف ساعة من نشر أي منشور، أعد عرض الفيد
+    const posts = typeof getSocialPosts === 'function' ? getSocialPosts() : [];
+    const now = Date.now();
+    const hasRecentlyExpired = posts.some(p => {
+      const age = now - (p.ts||0);
+      // منشور أصبح قديماً منذ دقيقتين أو أقل
+      return age >= _HALF_HOUR_MS && age <= _HALF_HOUR_MS + 120000;
     });
-
-    if(window._nldAllMembers.length !== before)
-      window._nldAllMembers.sort((a,b)=>b.total-a.total);
-  };
-}
-
-/* ══════════════════════════════════════════════════════════════
-   ④ استمرارية قسم التعليقات + حفظ مسودة التعليق
-      المشكلة: عند الخروج والعودة، يختفي التعليق
-      الحل: حفظ حالة الأقسام المفتوحة + مسودة النص في localStorage
-══════════════════════════════════════════════════════════════ */
-
-const _OPEN_SECTIONS_KEY = 'cdz_open_comment_sections';
-const _COMMENT_DRAFTS_KEY = 'cdz_comment_drafts';
-
-function _getOpenSections(){
-  try{ return JSON.parse(localStorage.getItem(_OPEN_SECTIONS_KEY)||'[]'); }catch{ return []; }
-}
-function _saveOpenSections(ids){
-  try{ localStorage.setItem(_OPEN_SECTIONS_KEY, JSON.stringify(ids)); }catch(e){}
-}
-function _getDrafts(){
-  try{ return JSON.parse(localStorage.getItem(_COMMENT_DRAFTS_KEY)||'{}'); }catch{ return {}; }
-}
-function _saveDrafts(obj){
-  try{ localStorage.setItem(_COMMENT_DRAFTS_KEY, JSON.stringify(obj)); }catch(e){}
-}
-
-/* عند تغيير حالة القسم، نحفظها */
-const _origToggleComments = window.toggleComments;
-if(typeof _origToggleComments === 'function'){
-  window.toggleComments = function(postId){
-    _origToggleComments.apply(this, arguments);
-    // تحديث قائمة الأقسام المفتوحة
-    const section = document.getElementById('commentsSection_'+postId);
-    const isOpen = section && section.style.display !== 'none' && section.style.display !== '';
-    let openList = _getOpenSections();
-    if(isOpen){
-      if(!openList.includes(postId)) openList.push(postId);
-    } else {
-      openList = openList.filter(id=>id!==postId);
+    if(hasRecentlyExpired && typeof renderSocialFeed === 'function'){
+      renderSocialFeed();
     }
-    _saveOpenSections(openList);
-  };
-}
+  }, 60000); // فحص كل دقيقة
+})();
 
-/* حفظ مسودة التعليق أثناء الكتابة */
-function _initCommentDraftSaving(){
-  // نستخدم event delegation
-  document.addEventListener('input', function(e){
-    if(e.target && e.target.id && e.target.id.startsWith('commentInput_')){
-      const postId = e.target.id.replace('commentInput_','');
-      const drafts = _getDrafts();
-      if(e.target.value.trim()){
-        drafts[postId] = e.target.value;
-      } else {
-        delete drafts[postId];
-      }
-      _saveDrafts(drafts);
+/* ─── تثبيت التعليقات والإعجابات عبر Firebase ─── */
+const _FB_CDZ = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+window._persistCommentToFirebase = function(postId, comment){
+  if(!postId || !comment) return;
+  try{
+    const cKey = comment.id || ('c_'+Date.now());
+    fetch(`${_FB_CDZ}/post_comments/${postId}/${cKey}.json`,{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({...comment, _postId: postId })
+    }).catch(()=>{});
+  }catch(e){}
+};
+
+window._persistReactionToFirebase = function(postId, emoji, userName){
+  if(!postId || !emoji || !userName) return;
+  try{
+    const safeUser = userName.replace(/\s+/g,'_');
+    fetch(`${_FB_CDZ}/post_reactions/${postId}/${safeUser}.json`,{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ emoji, userName, ts: Date.now() })
+    }).catch(()=>{});
+  }catch(e){}
+};
+
+/* ─── اعتراض إضافة التعليقات ─── */
+const _prevAddCommentToPost = window.addCommentToPost;
+window.addCommentToPost = function(postId, commentText, authorName){
+  if(typeof _prevAddCommentToPost === 'function') _prevAddCommentToPost.apply(this, arguments);
+  // حفظ في Firebase
+  const cObj = {
+    id: 'c_'+Date.now(),
+    author: authorName || (localStorage.getItem('sklab_user_name')||'مجهول'),
+    text: commentText,
+    ts: Date.now(),
+    postId
+  };
+  window._persistCommentToFirebase(postId, cObj);
+};
+
+/* ─── استعادة التعليقات من Firebase عند بدء التطبيق ─── */
+window._restoreCommentsFromFirebase = async function(){
+  try{
+    const posts = typeof getSocialPosts === 'function' ? getSocialPosts() : [];
+    if(!posts.length) return;
+    let changed = false;
+    for(const p of posts.slice(0,30)){
+      try{
+        const res = await fetch(`${_FB_CDZ}/post_comments/${p.id}.json`);
+        if(!res.ok) continue;
+        const fbComments = await res.json();
+        if(!fbComments || typeof fbComments !== 'object') continue;
+        const fbArr = Object.values(fbComments).filter(c=>c&&c.text);
+        if(!fbArr.length) continue;
+        // دمج مع التعليقات المحلية
+        const local = p.comments || [];
+        const localIds = new Set(local.map(c=>c.id||c.ts));
+        let added = false;
+        fbArr.forEach(fc=>{
+          if(fc.id && !localIds.has(fc.id)){ local.push(fc); added=true; }
+        });
+        if(added){ p.comments = local.sort((a,b)=>(a.ts||0)-(b.ts||0)); changed=true; }
+      }catch(e){}
     }
-  }, { passive: true });
-}
-
-/* استرجاع الحالة المحفوظة بعد إعادة الرسم */
-function _restoreCommentSections(){
-  const openList = _getOpenSections();
-  const drafts = _getDrafts();
-
-  openList.forEach(postId=>{
-    const section = document.getElementById('commentsSection_'+postId);
-    if(section && (section.style.display==='none' || !section.style.display)){
-      section.style.display = 'block';
+    if(changed){
+      if(typeof saveSocialPosts === 'function') saveSocialPosts(posts);
+      if(typeof renderSocialFeed === 'function') renderSocialFeed();
     }
-  });
+  }catch(e){}
+};
 
-  Object.entries(drafts).forEach(([postId, text])=>{
-    const inp = document.getElementById('commentInput_'+postId);
-    if(inp && !inp.value) inp.value = text;
-  });
-}
+window.addEventListener('load', function(){
+  setTimeout(window._restoreCommentsFromFirebase, 5000);
+});
 
-/* عند إرسال تعليق → نمسح المسودة المحفوظة */
-const _origSubmitComment = window.submitComment;
-if(typeof _origSubmitComment === 'function'){
-  window.submitComment = function(postId){
-    _origSubmitComment.apply(this, arguments);
-    // مسح المسودة لهذا المنشور
-    const drafts = _getDrafts();
-    delete drafts[postId];
-    _saveDrafts(drafts);
-    // إبقاء القسم مفتوحاً في القائمة المحفوظة
-    const openList = _getOpenSections();
-    if(!openList.includes(postId)) openList.push(postId);
-    _saveOpenSections(openList);
+/* ════════════════════════════════════════════════════════════
+   ⚙️ لوحة تحكم المدير السريعة — تُضاف للشريط السفلي
+   ════════════════════════════════════════════════════════════ */
+
+window._openAdminQuickPanel = function(){
+  if(!window._isAdmin){ showToast('❌ هذه الميزة للمدير فقط'); return; }
+  const old = document.getElementById('_adminQuickPanel'); if(old) old.remove();
+  const isDisabled = window.isPostingDisabled();
+  const week = _getCurrentChampWeek();
+
+  const ov = document.createElement('div');
+  ov.id = '_adminQuickPanel';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:99997;background:rgba(0,0,0,0.8);backdrop-filter:blur(14px);display:flex;align-items:flex-end;justify-content:center;font-family:Tajawal,sans-serif;animation:fadeIn .2s ease;';
+  ov.innerHTML = `
+    <div style="background:linear-gradient(160deg,#0d1117,#1a1a2e);border:1px solid rgba(255,215,0,0.15);border-radius:22px 22px 0 0;padding:22px 16px 36px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 18px;"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <div style="width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 16px rgba(255,215,0,0.4);">👑</div>
+        <div>
+          <div style="font-size:17px;font-weight:900;color:#FFD700;">لوحة تحكم المدير</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);">Connect DZ • الإدارة الشاملة</div>
+        </div>
+      </div>
+
+      <!-- إحصائيات سريعة -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px;text-align:center;">
+          <div style="font-size:18px;font-weight:900;color:${isDisabled?'#f87171':'#22c55e'};">${isDisabled?'🔒':'✅'}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px;">النشر</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px;text-align:center;">
+          <div style="font-size:18px;font-weight:900;color:#FFD700;">${_getBanList().length}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px;">محظور</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px;text-align:center;">
+          <div style="font-size:18px;font-weight:900;color:#3b82f6;">أ.${week}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px;">الأسبوع</div>
+        </div>
+      </div>
+
+      <!-- أزرار الإجراءات -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button onclick="document.getElementById('_adminQuickPanel').remove();window._openSystemPostComposer();"
+          style="padding:14px;background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,165,0,0.08));border:1px solid rgba(255,215,0,0.3);border-radius:14px;color:#FFD700;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:22px;">📣</span> نشر رسالة باسم النظام
+        </button>
+        <button onclick="document.getElementById('_adminQuickPanel').remove();window.togglePostingDisabled();"
+          style="padding:14px;background:${isDisabled?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};border:1px solid ${isDisabled?'rgba(34,197,94,0.3)':'rgba(239,68,68,0.3)'};border-radius:14px;color:${isDisabled?'#22c55e':'#f87171'};font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:22px;">${isDisabled?'✅':'🔒'}</span> ${isDisabled?'تفعيل النشر للجميع':'إيقاف النشر'}
+        </button>
+        <button onclick="document.getElementById('_adminQuickPanel').remove();window._openAdminBanList();"
+          style="padding:14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:14px;color:#f87171;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:22px;">🚫</span> قائمة الحظر (${_getBanList().length} عضو)
+        </button>
+        <button onclick="document.getElementById('_adminQuickPanel').remove();window._openChampAdminPanel();"
+          style="padding:14px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:14px;color:#60a5fa;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:22px;">🏆</span> إدارة البطولة (أسبوع ${week})
+        </button>
+        <button onclick="document.getElementById('_adminQuickPanel').remove();window._openShareInfoPanel();"
+          style="padding:14px;background:rgba(24,119,242,0.1);border:1px solid rgba(24,119,242,0.25);border-radius:14px;color:#60a5fa;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:22px;">📤</span> نشر معلومة / مشاركة خبر
+        </button>
+        <button onclick="document.getElementById('_adminQuickPanel').remove()"
+          style="padding:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;color:rgba(255,255,255,0.4);font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer;">إغلاق</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+};
+
+/* ─── إضافة زر لوحة تحكم المدير في الشريط السفلي ─── */
+(function _injectAdminNavBtn(){
+  const tryInject = function(){
+    if(!window._isAdmin) return;
+    if(document.getElementById('_adminNavBtn')) return;
+    // ابحث عن الشريط السفلي
+    const navBar = document.querySelector('.nav-bar, #bottomNav, [id*="bottomNav"], [class*="nav-bar"], [class*="bottom-nav"]');
+    if(!navBar) return;
+    const btn = document.createElement('div');
+    btn.id = '_adminNavBtn';
+    btn.onclick = ()=> window._openAdminQuickPanel();
+    btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:4px 8px;flex:1;';
+    btn.innerHTML = '<span style="font-size:20px;animation:adminGoldPulse 2s ease infinite;">👑</span><span style="font-size:9px;font-weight:700;color:#FFD700;">إدارة</span>';
+    navBar.appendChild(btn);
   };
-}
+  setTimeout(tryInject, 1500);
+  setTimeout(tryInject, 3000);
+})();
 
-/* عند إرسال تعليق من المودال */
-const _origSubmitModalComment = window._submitModalComment;
-if(typeof _origSubmitModalComment === 'function'){
-  window._submitModalComment = function(postId){
-    _origSubmitModalComment.apply(this, arguments);
-    const drafts = _getDrafts();
-    delete drafts[postId];
-    _saveDrafts(drafts);
-  };
-}
+/* ─── تحقق: عرض قائمة الإدارة عند الضغط على اسم عضو في الفيد ─── */
+document.addEventListener('click', function(e){
+  if(!window._isAdmin) return;
+  const target = e.target;
+  // البحث عن عنصر onclick يحتوي viewMemberProfile
+  const clickable = target.closest('[onclick*="viewMemberProfile"]');
+  if(!clickable) return;
+  const match = (clickable.getAttribute('onclick')||'').match(/viewMemberProfile\(['"]([^'"]+)['"]\)/);
+  if(!match) return;
+  const memberName = match[1];
+  if(memberName && memberName !== 'المدير'){
+    // لا نمنع السلوك الافتراضي — فقط نضيف القائمة بعد 300ms
+    setTimeout(()=> _injectAdminBtnOnProfile(memberName), 300);
+  }
+}, true);
 
-/* Hook على renderSocialFeed لاسترجاع الحالة بعد إعادة الرسم */
-const _origRenderSocialFeed = window.renderSocialFeed;
-if(typeof _origRenderSocialFeed === 'function'){
-  window.renderSocialFeed = async function(){
-    const result = await _origRenderSocialFeed.apply(this, arguments);
-    // استرجاع الأقسام المفتوحة بعد 100ms (بعد إعادة الرسم)
-    setTimeout(_restoreCommentSections, 150);
-    return result;
-  };
-}
-
-/* عند visibilitychange → لا نمسح الأقسام المفتوحة */
-// الكود الأصلي يستدعي renderSocialFeed عند العودة
-// النسخة المعدّلة ستستعيد الأقسام المفتوحة تلقائياً
-
-/* تهيئة */
-_initCommentDraftSaving();
-// استرجاع أولي بعد 1 ثانية من تحميل الصفحة
-setTimeout(_restoreCommentSections, 1000);
-
-console.log('✅ [ConnectDZ v5] الميزات الجديدة — مفعّلة');
-console.log('   ├ حظر نهائي + حذف: مفعّل (للمدير فقط)');
-console.log('   ├ أسهم الصعود/النزول المحسّنة: مفعّلة');
-console.log('   ├ منطق الأسبوع الأول (10 صاعدين للهاوي): مفعّل');
-console.log('   ├ فلترة حساب شيماء المكرر: مفعّلة');
-console.log('   └ استمرارية التعليقات: مفعّلة');
+console.log('✅ ConnectDZ MEGA PATCH v10.0 — جميع الميزات الأربع مُفعّلة');
 
 })();
 </script>
