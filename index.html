@@ -4644,16 +4644,16 @@ function switchLoginTab(tab){
         <div><div style="font-size:14px;font-weight:800;color:#050505;">الإعدادات والخصوصية</div><div style="font-size:11px;color:#65676B;">تحكم في حسابك وبياناتك</div></div>
       </div>
 
-      <!-- المجموعات -->
-      <div onclick="openSideMenuItem('groups')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:18px;">👥</div>
-        <div><div style="font-size:14px;font-weight:800;color:#050505;">المجموعات</div><div style="font-size:11px;color:#65676B;">انضم إلى مجموعات الأعضاء</div></div>
+      <!-- المعرض -->
+      <div onclick="closeSocialSideMenu();setTimeout(()=>{ _iconEnter('gallery_open');window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3'); },200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:18px;">🖼️</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">المعرض</div><div style="font-size:11px;color:#65676B;">معرض الصور والفيديوهات</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
-      <!-- الصفحات -->
-      <div onclick="openSideMenuItem('social_pages')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:18px;">📄</div>
-        <div><div style="font-size:14px;font-weight:800;color:#050505;">الصفحات</div><div style="font-size:11px;color:#65676B;">تابع صفحاتك المفضلة</div></div>
+      <!-- اجمع النقاط -->
+      <div onclick="closeSocialSideMenu();setTimeout(()=>showModal('quizCard'),200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:18px;">⭐</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">اجمع النقاط</div><div style="font-size:11px;color:#65676B;">العب واكسب نقاط</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
       <!-- الألعاب -->
@@ -7442,8 +7442,48 @@ async function _submitJoinRegistration(){
   const city = wilaya;
   const msgEl = document.getElementById('_regMsg');
 
-  if(!name || !email || !phone){
-    if(msgEl){ msgEl.style.display='block'; msgEl.style.background='rgba(229,45,39,0.15)'; msgEl.style.border='1px solid rgba(229,45,39,0.3)'; msgEl.style.color='#f87171'; msgEl.innerText='⚠️ يرجى ملء الاسم والبريد الإلكتروني والهاتف'; }
+  /* التحقق من جميع الحقول المطلوبة */
+  const _regBloodVal    = (document.getElementById('_regBlood')?.value||'').trim();
+  const _regGenderVal   = (document.getElementById('_regGender')?.value||'').trim();
+  const _regCategoryVal = (document.getElementById('_regCategory')?.value||'').trim();
+  const _regLevelVal    = (document.getElementById('_regLevel')?.value||'').trim();
+  const _regDarChabVal  = (document.getElementById('_regDarChab')?.value||'').trim();
+  const _regRatingVal   = (document.getElementById('_regRating')?.value||'').trim();
+  const _regSKBeforeVal = (document.getElementById('_regSmartKidsBefore')?.value||'').trim();
+
+  const _missingFields = [];
+  if(!name)              _missingFields.push('الاسم واللقب');
+  if(!email)             _missingFields.push('البريد الإلكتروني');
+  if(!phone)             _missingFields.push('رقم الهاتف');
+  if(!birth)             _missingFields.push('تاريخ الميلاد');
+  if(!address)           _missingFields.push('عنوان الإقامة');
+  if(!nid)               _missingFields.push('رقم بطاقة التعريف');
+  if(!_regBloodVal)      _missingFields.push('زمرة الدم');
+  if(!_regGenderVal)     _missingFields.push('الجنس');
+  if(!_regCategoryVal)   _missingFields.push('تحديد الفئة');
+  if(!_regLevelVal)      _missingFields.push('المستوى الدراسي');
+  if(!wilaya)            _missingFields.push('الولاية');
+  if(!commune)           _missingFields.push('البلدية');
+  if(!_regDarChabVal)    _missingFields.push('هل أنت منخرط بدار الشباب؟');
+  if(!hobbies)           _missingFields.push('هواياتك');
+  if(!leadership)        _missingFields.push('مهاراتك القيادية');
+  if(!_regSKBeforeVal)   _missingFields.push('هل شاركت في الطفل الذكي؟');
+  if(!health)            _missingFields.push('حالتك الصحية');
+  if(!liked)             _missingFields.push('ماذا أعجبك في Smart Kids');
+  if(!suggest)           _missingFields.push('اقتراحاتك');
+  if(!_regRatingVal)     _missingFields.push('رأيك في مستوى Smart Kids');
+
+  if(_missingFields.length > 0){
+    if(msgEl){
+      msgEl.style.display='block';
+      msgEl.style.background='rgba(229,45,39,0.15)';
+      msgEl.style.border='1px solid rgba(229,45,39,0.3)';
+      msgEl.style.color='#f87171';
+      msgEl.innerText='⚠️ يرجى ملء جميع الحقول:\n' + _missingFields.join(' · ');
+    }
+    /* تمرير للأعلى لإظهار الخطأ */
+    const ov = document.getElementById('_joinRegOverlay');
+    if(ov){ const inner = ov.querySelector('div'); if(inner) inner.scrollTop = 0; }
     return;
   }
 
@@ -15919,8 +15959,10 @@ async function renderSocialFeed(){
 
   _startFbFeedPolling();
 
-  /* ⑤ فلترة حسب الخصوصية — المنشورات العامة تظهر للجميع دائماً */
+  /* ⑤ فلترة: إزالة منشورات المجموعات/الصفحات — إظهار جميع منشورات المستخدمين */
   const posts = allPostsRaw.filter(p => {
+    /* إزالة منشورات المجموعات والصفحات من الفيد الرئيسي */
+    if(p.groupId || p.pageId || p.isGroupPost || p.isPagePost) return false;
     /* الإعلانات والمنشورات التلقائية تظهر دائماً */
     if(p.isActivityAd || p.isAutoPost || p.isAd) return true;
     const priv = p.privacy || '🌐 عام';
@@ -19162,26 +19204,14 @@ function _refreshMyVerifiedBadge(name){
   }
 }
 
-// override renderMpvPosts to respect friendship
+// override renderMpvPosts — إظهار جميع منشورات الأعضاء للجميع
 const _origRenderMpvPosts = renderMpvPosts;
 function renderMpvPosts(memberName, canSeeAll){
   const feed = document.getElementById('mpvPostsFeed');
   if(!feed) return;
 
-  if(canSeeAll === undefined){
-    const myName = getCurrentUser();
-    canSeeAll = myName === memberName || _isFriendOf(myName, memberName);
-  }
-
-  if(!canSeeAll){
-    feed.innerHTML=`<div style="background:white;padding:28px 20px;text-align:center;">
-      <div style="font-size:40px;margin-bottom:10px;">🔒</div>
-      <div style="font-size:14px;font-weight:700;color:#65676B;">المنشورات متاحة للأصدقاء فقط</div>
-    </div>`;
-    return;
-  }
-
-  const allPosts = getSocialPosts().filter(p=>p.author===memberName);
+  /* ✅ جميع المنشورات ظاهرة للجميع */
+  const allPosts = getSocialPosts().filter(p=>p.author===memberName && !p.groupId && !p.pageId && !p.isGroupPost && !p.isPagePost);
   if(allPosts.length===0){
     feed.innerHTML=`<div style="background:white;padding:28px 20px;text-align:center;"><div style="font-size:40px;margin-bottom:10px;">✍️</div><div style="font-size:13px;color:#65676B;">لا توجد منشورات بعد</div></div>`;
     return;
