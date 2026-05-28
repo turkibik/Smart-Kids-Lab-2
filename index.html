@@ -1043,25 +1043,23 @@ window.uploadStoryMusic = async function(file) {
     }
   });
 
-  /* ══ استعادة منشورات الأعضاء من Firebase بعد التحديث ══ */
+  /* ══ استعادة منشورات الأعضاء من Firebase — دائماً وليس فقط عند النقص ══ */
   /* يعمل بعد اكتمال تحميل Firebase لضمان جاهزية الجلسة */
   window._restorePostsFromFirebase = async function(){
     try{
       const localPosts = JSON.parse(localStorage.getItem('nld_social_posts')||'[]');
       /* قائمة الحسابات المحظورة — منشوراتها لا تُعرض */
       const _BLOCKED_AUTH = ['وفاء وفاء','لؤي عماري','لؤي','حمودي عبد المومن','حمودي عبدالمومن','حمودي عبد المؤمن'];
-      const memberLocal = localPosts.filter(function(p){ return !p.isAutoPost && !p.isActivityAd && !p.isAd && !_BLOCKED_AUTH.includes((p.author||'').trim()); });
-      /* إذا كانت منشورات الأعضاء كافية لا حاجة للاستعادة */
-      if(memberLocal.length >= 3) return;
 
-      console.log('🔄 [PostSync] جاري استعادة منشورات الأعضاء من Firebase...');
-      const res = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json?orderBy="ts"&limitToLast=200');
+      /* نجلب دائماً من Firebase لضمان ظهور جميع المنشورات (القديمة والجديدة) */
+      console.log('🔄 [PostSync] جاري جلب كل منشورات الأعضاء من Firebase...');
+      const res = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json?orderBy="ts"&limitToLast=500');
       if(!res.ok) return;
       const data = await res.json();
       if(!data || typeof data !== 'object') return;
 
       const fbPosts = Object.values(data).filter(function(p){
-        /* ✅ نعيد منشورات الأصدقاء كاملة — نحذف فقط منشورات الحسابات المحظورة */
+        /* نعيد منشورات الأعضاء كاملة — نحذف فقط منشورات الحسابات المحظورة */
         return p && p.id && p.author && !p._archived && !_BLOCKED_AUTH.includes((p.author||'').trim());
       });
 
@@ -1070,12 +1068,13 @@ window.uploadStoryMusic = async function(file) {
       /* دمج مع المحلية — الحفاظ على منشورات الأصدقاء الموجودة */
       const map = new Map();
       localPosts.forEach(function(p){ if(p && p.id) map.set(p.id, p); });
-      fbPosts.forEach(function(p){ if(p && p.id && !map.has(p.id)) map.set(p.id, p); });
+      /* المنشورات القديمة من Firebase تُضاف دائماً */
+      fbPosts.forEach(function(p){ if(p && p.id) map.set(p.id, p); }); // تحديث أو إضافة
 
       const merged = Array.from(map.values()).sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
       localStorage.setItem('nld_social_posts', JSON.stringify(merged));
 
-      console.log('✅ [PostSync] تم استعادة', merged.length, 'منشور من Firebase');
+      console.log('✅ [PostSync] تم جلب', merged.length, 'منشور من Firebase (قديمة + جديدة)');
       if(typeof renderSocialFeed === 'function'){
         const feed = document.getElementById('socialFeedContainer');
         if(feed && feed.offsetParent !== null) renderSocialFeed();
@@ -4461,9 +4460,10 @@ function switchLoginTab(tab){
       <div style="font-size:22px;font-weight:900;background:linear-gradient(90deg,#00c853,#e53935);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;flex:1;font-family:'Tajawal',sans-serif;">Connect DZ</div>
       <!-- Action buttons row (Facebook-like circles) -->
       <div style="display:flex;gap:7px;align-items:center;">
-        <!-- Search -->
-        <div onclick="toggleSocialSearch()" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;" title="بحث" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c853" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <!-- بطولة Next Leaders DZ — بدل البحث -->
+        <div onclick="openNldChampionship()" style="height:36px;border-radius:18px;background:linear-gradient(135deg,#FFD700,#e52d27);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;padding:0 12px;gap:5px;box-shadow:0 2px 10px rgba(255,215,0,0.45);" title="البطولة المحترفة" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+          <span style="font-size:17px;line-height:1;">🏆</span>
+          <span style="font-size:11px;font-weight:900;color:#fff;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,0.4);">البطولة</span>
         </div>
         <!-- Hamburger Menu (3 lines) -->
         <div onclick="toggleSocialSideMenu()" id="socialMenuBtn" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:.15s;flex-shrink:0;" title="القائمة" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">
@@ -4551,12 +4551,7 @@ function switchLoginTab(tab){
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
-      <!-- لوحة البيانات والتفاعل -->
-      <div onclick="closeProfileDropdown();setTimeout(()=>openDataInteractionPanel(),200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📈</div>
-        <div><div style="font-size:14px;font-weight:900;color:#050505;">لوحة البيانات والتفاعل</div><div style="font-size:11px;color:#65676B;">إحصائياتك ونقاطك ومستواك</div></div>
-        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
-      </div>
+      <!-- لوحة البيانات والتفاعل — نُقلت إلى قائمة الثلاث شرطات -->
 
       <!-- النشاطات -->
       <div onclick="closeProfileDropdown();setTimeout(()=>{showModal('activitiesCard');},200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
@@ -4572,12 +4567,7 @@ function switchLoginTab(tab){
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
-      <!-- البطولة المحترفة Next Leaders DZ -->
-      <div onclick="closeProfileDropdown();setTimeout(()=>openNldChampionship(),200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;background:linear-gradient(135deg,rgba(255,215,0,0.06),rgba(229,45,39,0.04));border-right:3px solid #FFD700;" onmouseover="this.style.background='linear-gradient(135deg,rgba(255,215,0,0.15),rgba(229,45,39,0.1))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(255,215,0,0.06),rgba(229,45,39,0.04))'">
-        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#e52d27);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 14px rgba(255,215,0,0.45);">🏆</div>
-        <div><div style="font-size:14px;font-weight:900;background:linear-gradient(90deg,#e8870a,#e52d27);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">البطولة المحترفة</div><div style="font-size:11px;color:#65676B;">Next Leaders DZ — جدول الترتيب</div></div>
-        <div style="font-size:18px;color:#FFD700;margin-right:auto;">›</div>
-      </div>
+      <!-- البطولة المحترفة — نُقلت إلى الشريط العلوي -->
 
       <div style="height:1px;background:#E4E6EB;margin:4px 0;"></div>
 
@@ -4650,10 +4640,10 @@ function switchLoginTab(tab){
         <div><div style="font-size:14px;font-weight:800;color:#050505;">المعرض</div><div style="font-size:11px;color:#65676B;">معرض الصور والفيديوهات</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
-      <!-- اجمع النقاط -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>showModal('quizCard'),200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:18px;">⭐</div>
-        <div><div style="font-size:14px;font-weight:800;color:#050505;">اجمع النقاط</div><div style="font-size:11px;color:#65676B;">العب واكسب نقاط</div></div>
+      <!-- لوحة البيانات والتفاعل -->
+      <div onclick="closeSocialSideMenu();setTimeout(()=>openDataInteractionPanel(),200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;">📈</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">لوحة البيانات والتفاعل</div><div style="font-size:11px;color:#65676B;">إحصائياتك ونقاطك ومستواك</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
       <!-- الألعاب -->
@@ -4662,6 +4652,7 @@ function switchLoginTab(tab){
         <div><div style="font-size:14px;font-weight:800;color:#050505;">الألعاب</div><div style="font-size:11px;color:#65676B;">العب وتسلى مع الأعضاء</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
+      <!-- اجمع النقاط — موجود في لوحة التحكم فقط -->
       <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
       <!-- Smart Kids Lab -->
       <div onclick="openSideMenuItem('smart_kids')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
@@ -4677,15 +4668,7 @@ function switchLoginTab(tab){
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
-      <!-- البطولة المحترفة Next Leaders DZ -->
-      <div onclick="openSideMenuItem('nld_championship');closeSocialSideMenu();" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;background:linear-gradient(135deg,rgba(255,215,0,0.05),rgba(229,45,39,0.05));border-right:3px solid #FFD700;" onmouseover="this.style.background='linear-gradient(135deg,rgba(255,215,0,0.12),rgba(229,45,39,0.08))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(255,215,0,0.05),rgba(229,45,39,0.05))'">
-        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#e52d27);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(255,215,0,0.4);">🏆</div>
-        <div style="flex:1;">
-          <div style="font-size:14px;font-weight:900;background:linear-gradient(90deg,#e8870a,#e52d27);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">البطولة المحترفة</div>
-          <div style="font-size:11px;color:#65676B;">Next Leaders DZ — 9 أقسام</div>
-        </div>
-        <div style="font-size:18px;color:#FFD700;margin-right:auto;">›</div>
-      </div>
+      <!-- البطولة المحترفة — نُقلت إلى الشريط العلوي -->
       <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
       <!-- اللغة -->
       <div onclick="toggleSideLanguagePanel()" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
@@ -21747,12 +21730,42 @@ function shareStory(authorName, storyId){
 
 // مفتاح تتبع النشاطات المنشورة مسبقاً
 const _autoPostedKey = 'nld_auto_posted_activities';
+const _lastActivityPublishKey = 'nld_last_activity_publish_ts';
+const _ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 function _getAutoPostedIds(){
   return JSON.parse(localStorage.getItem(_autoPostedKey)||'[]');
 }
 function _saveAutoPostedIds(ids){
   localStorage.setItem(_autoPostedKey, JSON.stringify(ids));
+}
+
+// فحص إذا كان تاريخ النشاط في المستقبل (لم يمر بعد)
+function _isActivityFuture(dateStr){
+  if(!dateStr) return false;
+  try{
+    // دعم صيغ التاريخ العربية والأوروبية
+    const months = {'يناير':0,'فبراير':1,'مارس':2,'أبريل':3,'مايو':4,'ماي':4,'يونيو':5,'يوليو':6,'أغسطس':7,'سبتمبر':8,'أكتوبر':9,'نوفمبر':10,'ديسمبر':11,
+                    'janvier':0,'février':1,'mars':2,'avril':3,'mai':4,'juin':5,'juillet':6,'août':7,'septembre':8,'octobre':9,'novembre':10,'décembre':11};
+    let d = null;
+    // صيغة DD/MM/YYYY أو MM/DD/YYYY
+    const slashM = dateStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if(slashM){
+      const day=parseInt(slashM[1]),mon=parseInt(slashM[2])-1,yr=parseInt(slashM[3]);
+      d = new Date(yr < 100 ? 2000+yr : yr, mon, day);
+    }
+    // صيغة عربية: "15 مايو 2026"
+    if(!d){
+      for(const [mname,mnum] of Object.entries(months)){
+        const re = new RegExp('(\\d{1,2})\\s+'+mname+'\\s+(\\d{4})','i');
+        const m = dateStr.match(re);
+        if(m){ d = new Date(parseInt(m[2]), mnum, parseInt(m[1])); break; }
+      }
+    }
+    if(!d) return true; // إذا ما عرفنا التاريخ، نفترض مستقبلي
+    const today = new Date(); today.setHours(0,0,0,0);
+    return d >= today;
+  }catch(e){ return true; }
 }
 
 // إنشاء ID فريد لنشاط من بياناته
@@ -21772,8 +21785,10 @@ function _buildActivityPostText(title, place, date, time, coach){
   return text;
 }
 
-// نشر نشاط كمنشور إعلاني إذا لم يُنشر مسبقاً
+// نشر نشاط كمنشور إعلاني — فقط إذا لم يُنشر ومستقبلي
 function _autoPostActivity(title, place, date, time, coach){
+  // لا تنشر نشاطات ماضية
+  if(!_isActivityFuture(date)) return;
   const actId = _activityId(title, date, place);
   const posted = _getAutoPostedIds();
   if(posted.includes(actId)) return; // تم النشر مسبقاً
@@ -21802,25 +21817,61 @@ function _autoPostActivity(title, place, date, time, coach){
   // تسجيل المعرّف لمنع التكرار
   posted.push(actId);
   _saveAutoPostedIds(posted);
+  return true; // تم نشر نشاط جديد
 }
 
-// جلب النشاطات ونشرها تلقائياً
+// جلب النشاطات ونشرها — مع منطق "مرة في الأسبوع أو عند إضافة جديد"
 async function _initAutoPagePosts(){
   try{
     const res = await fetch(typeof rankingUrl !== 'undefined' ? rankingUrl : '');
     if(!res.ok) return;
     const text = await res.text();
     const rows = text.split('\n').slice(1).filter(r=>r.trim());
+
+    // استخرج كل IDs النشاطات الحالية المستقبلية
+    const currentFutureIds = [];
+    const actData = [];
     rows.forEach(r=>{
       const cols = r.match(/(".*?"|[^,]+)(?=,|$)/g) || r.split(',');
       const clean = c => (cols[c]||'').replace(/^"|"$/g,'').trim();
-      const title  = clean(1);
-      const place  = clean(2);
-      const date   = clean(3);
-      const time   = clean(4);
-      const coach  = clean(5);
-      if(title) _autoPostActivity(title, place, date, time, coach);
+      const title=clean(1), place=clean(2), date=clean(3), time=clean(4), coach=clean(5);
+      if(title && _isActivityFuture(date)){
+        currentFutureIds.push(_activityId(title,date,place));
+        actData.push({title,place,date,time,coach});
+      }
     });
+
+    const posted = _getAutoPostedIds();
+    const lastTs = parseInt(localStorage.getItem(_lastActivityPublishKey)||'0');
+    const now = Date.now();
+    const weekPassed = (now - lastTs) >= _ONE_WEEK_MS;
+    // هل هناك نشاط جديد لم يُنشر بعد؟
+    const hasNew = currentFutureIds.some(id => !posted.includes(id));
+
+    // انشر فقط إذا مر أسبوع أو هناك نشاط جديد
+    if(!weekPassed && !hasNew) return;
+
+    // إذا مر أسبوع: أعد تعيين المنشورة حتى تُعاد (تحديث دوري)
+    if(weekPassed && !hasNew){
+      // أزل IDs النشاطات القديمة من القائمة لإعادة نشرها
+      const refreshedPosted = posted.filter(id => !currentFutureIds.includes(id));
+      _saveAutoPostedIds(refreshedPosted);
+      // احذف منشورات النشاطات القديمة من الفيد لتُجدَّد
+      const allPosts = getSocialPosts();
+      const filtered = allPosts.filter(p => !(p.isActivityAd && currentFutureIds.some(id=>p.id.includes(id))));
+      saveSocialPosts(filtered);
+    }
+
+    let anyNew = false;
+    actData.forEach(a => {
+      const r = _autoPostActivity(a.title, a.place, a.date, a.time, a.coach);
+      if(r) anyNew = true;
+    });
+
+    if(anyNew || weekPassed){
+      localStorage.setItem(_lastActivityPublishKey, String(now));
+    }
+
     // تحديث الفيد إذا كان مفتوحاً
     if(typeof renderSocialFeed === 'function'){
       const feed = document.getElementById('socialFeedContainer');
@@ -33711,22 +33762,112 @@ function _openShareModal(post){
         <div style="font-size:12px;color:#65676B;font-weight:700;">${post.author}</div>
         <div style="font-size:13px;color:#050505;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(post.text||'').substring(0,90)}${(post.text||'').length>90?'…':''}</div>
       </div>
-      <div style="padding:8px 16px;flex-shrink:0;">
-        <div style="background:#F0F2F5;border-radius:20px;display:flex;align-items:center;padding:7px 12px;gap:8px;">
-          <span>🔍</span>
-          <input id="_shareSearchInp" type="text" placeholder="ابحث عن عضو…"
-            style="flex:1;border:none;background:transparent;font-family:'Tajawal',sans-serif;font-size:13px;color:#050505;outline:none;text-align:right;"
-            oninput="_filterShareMembers(this.value)">
+      <!-- اقتراحات المشاركة -->
+      <div style="padding:12px 16px;border-bottom:1px solid #F0F2F5;flex-shrink:0;">
+        <div style="font-size:11px;font-weight:800;color:#65676B;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">اختر طريقة المشاركة</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <!-- نشر في الصفحة الرئيسية -->
+          <div onclick="_shareToFeed('${post.id}')" style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:linear-gradient(135deg,rgba(24,119,242,0.06),rgba(0,200,83,0.06));border:1.5px solid rgba(24,119,242,0.2);border-radius:14px;cursor:pointer;transition:.15s;" onmouseover="this.style.borderColor='#1877F2'" onmouseout="this.style.borderColor='rgba(24,119,242,0.2)'">
+            <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🌐</div>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">نشر في الصفحة الرئيسية</div><div style="font-size:11px;color:#65676B;">يظهر المنشور لجميع الأعضاء</div></div>
+            <div style="font-size:20px;color:#BCC0C4;">›</div>
+          </div>
+          <!-- إرسال عبر المسنجر -->
+          <div onclick="_showShareMembersSection()" style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:linear-gradient(135deg,rgba(0,132,255,0.06),rgba(0,132,255,0.03));border:1.5px solid rgba(0,132,255,0.2);border-radius:14px;cursor:pointer;transition:.15s;" onmouseover="this.style.borderColor='#0084FF'" onmouseout="this.style.borderColor='rgba(0,132,255,0.2)'">
+            <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#0084FF,#0052CC);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">💬</div>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">إرسال عبر المسنجر</div><div style="font-size:11px;color:#65676B;">أرسله لعضو في المحادثات</div></div>
+            <div style="font-size:20px;color:#BCC0C4;">›</div>
+          </div>
+          <!-- إعادة النشر بإسمي -->
+          <div onclick="_repostAsMe('${post.id}')" style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:linear-gradient(135deg,rgba(168,85,247,0.06),rgba(168,85,247,0.03));border:1.5px solid rgba(168,85,247,0.2);border-radius:14px;cursor:pointer;transition:.15s;" onmouseover="this.style.borderColor='#a855f7'" onmouseout="this.style.borderColor='rgba(168,85,247,0.2)'">
+            <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🔁</div>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">إعادة النشر بإسمي</div><div style="font-size:11px;color:#65676B;">يُنشر كمنشور جديد باسمك</div></div>
+            <div style="font-size:20px;color:#BCC0C4;">›</div>
+          </div>
         </div>
       </div>
-      <div id="_shareMemList" style="flex:1;overflow-y:auto;padding:0 12px 20px;">
-        <div style="text-align:center;padding:30px;color:#65676B;font-size:13px;">⏳ جارٍ تحميل قائمة الأعضاء…</div>
+      <!-- قائمة الأعضاء للمسنجر (مخفية بداية) -->
+      <div id="_shareMessengerSection" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+        <div style="padding:8px 16px;flex-shrink:0;">
+          <div style="background:#F0F2F5;border-radius:20px;display:flex;align-items:center;padding:7px 12px;gap:8px;">
+            <span>🔍</span>
+            <input id="_shareSearchInp" type="text" placeholder="ابحث عن عضو…"
+              style="flex:1;border:none;background:transparent;font-family:'Tajawal',sans-serif;font-size:13px;color:#050505;outline:none;text-align:right;"
+              oninput="_filterShareMembers(this.value)">
+          </div>
+        </div>
+        <div id="_shareMemList" style="flex:1;overflow-y:auto;padding:0 12px 20px;">
+          <div style="text-align:center;padding:30px;color:#65676B;font-size:13px;">⏳ جارٍ تحميل قائمة الأعضاء…</div>
+        </div>
       </div>
     </div>`;
   ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
   document.body.appendChild(ov);
+  window._sharePost = post;
   _loadShareMembers(post);
 }
+
+/* إظهار قسم الأعضاء للمسنجر */
+window._showShareMembersSection = function(){
+  const sec = document.getElementById('_shareMessengerSection');
+  if(sec){ sec.style.display='flex'; sec.style.flexDirection='column'; }
+};
+
+/* نشر في الصفحة الرئيسية */
+window._shareToFeed = function(postId){
+  const me = typeof getCurrentUser==='function'?getCurrentUser():null;
+  if(!me){ if(typeof showToast==='function') showToast('🔒 سجّل دخولك أولاً'); return; }
+  const posts = typeof getSocialPosts==='function'?getSocialPosts():[];
+  const orig = posts.find(p=>p.id===postId);
+  if(!orig) return;
+  const sharedPost = {
+    id:'shared_feed_'+Date.now(),
+    author: me,
+    text: `🔁 إعادة نشر من *${orig.author}*:\n\n${orig.text||''}`,
+    image: orig.image||null,
+    feeling:'↗️ مشارِك',
+    date: new Date().toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'}),
+    ts: Date.now(),
+    reactions:{},
+    comments:[],
+    isShared: true,
+    sharedFrom: orig.author
+  };
+  posts.push(sharedPost);
+  if(typeof saveSocialPosts==='function') saveSocialPosts(posts);
+  if(typeof ebPointsShare==='function') ebPointsShare();
+  if(typeof renderSocialFeed==='function') renderSocialFeed();
+  if(typeof showToast==='function') showToast('✅ تم نشره في الصفحة الرئيسية');
+  const m=document.getElementById('_cdzShareModal'); if(m) m.remove();
+};
+
+/* إعادة النشر بإسمي */
+window._repostAsMe = function(postId){
+  const me = typeof getCurrentUser==='function'?getCurrentUser():null;
+  if(!me){ if(typeof showToast==='function') showToast('🔒 سجّل دخولك أولاً'); return; }
+  const posts = typeof getSocialPosts==='function'?getSocialPosts():[];
+  const orig = posts.find(p=>p.id===postId);
+  if(!orig) return;
+  const repost = {
+    id:'repost_'+Date.now(),
+    author: me,
+    text: orig.text||'',
+    image: orig.image||null,
+    feeling: orig.feeling||'🔁 إعادة نشر',
+    date: new Date().toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'}),
+    ts: Date.now(),
+    reactions:{},
+    comments:[],
+    isRepost: true,
+    originalAuthor: orig.author
+  };
+  posts.push(repost);
+  if(typeof saveSocialPosts==='function') saveSocialPosts(posts);
+  if(typeof ebPointsShare==='function') ebPointsShare();
+  if(typeof renderSocialFeed==='function') renderSocialFeed();
+  if(typeof showToast==='function') showToast('✅ تم إعادة النشر بإسمك');
+  const m=document.getElementById('_cdzShareModal'); if(m) m.remove();
+};
 
 async function _loadShareMembers(post){
   const myName=typeof getCurrentUser==='function'?getCurrentUser():null;
