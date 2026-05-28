@@ -36271,51 +36271,74 @@ setTimeout(()=>{
 
 /* Hook على nldChampLoadAll لتطبيق منطق الأسبوع الأول */
 const _origNldChampLoadAll = window.nldChampLoadAll;
+const _fbBase_fw = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+const _FW_FB_KEY = 'nld_first_week_promo_done'; // مفتاح Firebase (عالمي لكل المستخدمين)
+let _fwCheckInProgress = false; // منع التنفيذ المتوازي
+
 if(typeof _origNldChampLoadAll === 'function'){
   window.nldChampLoadAll = async function(){
     // تشغيل النسخة الأصلية أولاً
     await _origNldChampLoadAll.apply(this, arguments);
 
-    // بعد التحميل: إذا أسبوع أول → ننقل أعلى 10 من المبتدئين للهاوي مباشرة
-    if(!_isFirstWeek()) return;
-
-    const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-    if(me !== 'المدير') return; // فقط المدير ينفذ النقل التلقائي
-
-    const FIRST_PROMO_DONE = 'nld_first_week_promo_done';
-    if(localStorage.getItem(FIRST_PROMO_DONE) === '1') return;
-
-    const allMembers = window._nldAllMembers;
-    const assignments = window._nldAssignments;
-    if(!allMembers || !assignments) return;
-
-    // أعضاء المبتدئين فقط
-    const beginners = allMembers
-      .filter(m=>{ const k=(m.name||'').replace(/\s+/g,'_'); const asgn=assignments[k]; return !asgn || asgn.divId==='beginner'; })
-      .sort((a,b)=>b.total-a.total)
-      .slice(0,10);
-
-    if(beginners.length === 0) return;
-
-    // نقلهم للهاوي
-    const amateurDivId = 'amateur';
-    const fbBase = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-    const updates = {};
-    beginners.forEach(m=>{
-      const k=(m.name||'').replace(/\s+/g,'_');
-      updates[k] = { divId: amateurDivId, updatedAt: Date.now(), promotedFrom:'beginner', firstWeekPromo:true };
-    });
+    // لا نكرر الفحص إذا كان جارياً
+    if(_fwCheckInProgress) return;
+    _fwCheckInProgress = true;
 
     try{
-      await fetch(`${fbBase}/nld_divisions.json`,{
+      // ① فحص Firebase أولاً: هل سبق تنفيذ ترقية الأسبوع الأول؟
+      const fwCheck = await fetch(`${_fbBase_fw}/${_FW_FB_KEY}.json?_=${Date.now()}`,{cache:'no-store'});
+      const fwDone = await fwCheck.json();
+      if(fwDone === true || fwDone === 1 || fwDone === 'done'){
+        _fwCheckInProgress = false;
+        return; // تم التنفيذ من قبل بواسطة أي مستخدم → لا نعيد
+      }
+
+      // ② هل نحن في الأسبوع الأول؟
+      if(!_isFirstWeek()){ _fwCheckInProgress = false; return; }
+
+      const allMembers = window._nldAllMembers;
+      const assignments = window._nldAssignments;
+      if(!allMembers || !assignments){ _fwCheckInProgress = false; return; }
+
+      // ③ أعضاء المبتدئين فقط — أعلى 10 نقاطاً
+      const beginners = allMembers
+        .filter(m=>{ const k=(m.name||'').replace(/\s+/g,'_'); const asgn=assignments[k]; return !asgn || asgn.divId==='beginner'; })
+        .sort((a,b)=>b.total-a.total)
+        .slice(0,10);
+
+      if(beginners.length === 0){ _fwCheckInProgress = false; return; }
+
+      // ④ كتابة قفل في Firebase أولاً (لمنع التنفيذ المزدوج من أجهزة مختلفة)
+      await fetch(`${_fbBase_fw}/${_FW_FB_KEY}.json`,{
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ done: true, executedAt: Date.now(), count: beginners.length })
+      });
+
+      // ⑤ نقل الأعضاء للهاوي
+      const updates = {};
+      beginners.forEach(m=>{
+        const k=(m.name||'').replace(/\s+/g,'_');
+        updates[k] = { divId:'amateur', updatedAt: Date.now(), promotedFrom:'beginner', firstWeekPromo:true };
+      });
+
+      await fetch(`${_fbBase_fw}/nld_divisions.json`,{
         method:'PATCH', headers:{'Content-Type':'application/json'},
         body: JSON.stringify(updates)
       });
-      localStorage.setItem(FIRST_PROMO_DONE,'1');
-      if(typeof showToast==='function') showToast(`🌱 تمت ترقية أعلى ${beginners.length} عضو من المبتدئين للهاوي (الأسبوع الأول)`);
-      // إعادة تحميل
-      setTimeout(()=>{ if(typeof nldChampLoadAll==='function') _origNldChampLoadAll(); }, 1000);
-    }catch(e){}
+
+      if(typeof showToast==='function')
+        showToast(`🌱 تمت ترقية أعلى ${beginners.length} عضو من المبتدئين للهاوي (الأسبوع الأول)`);
+
+      console.log(`✅ [NLD] ترقية الأسبوع الأول: ${beginners.map(m=>m.name).join('، ')}`);
+
+      // ⑥ إعادة تحميل العرض
+      setTimeout(()=>{ _origNldChampLoadAll(); }, 1000);
+
+    }catch(e){
+      console.warn('[NLD] فشل فحص الأسبوع الأول:', e);
+    }finally{
+      _fwCheckInProgress = false;
+    }
   };
 }
 
@@ -36354,39 +36377,37 @@ if(typeof _origNldChampLoadAll === 'function'){
       ونبقي فقط الحساب الثاني (الظاهر في جدول الترتيب بعد الاسم الأول)
 ══════════════════════════════════════════════════════════════ */
 
-/* نعترض على loadAllMembersWithPts لفلترة شيماء ذات النقاط المرتفعة */
-const _origLoadAllMembersWithPts = window.loadAllMembersWithPts ||
-  (typeof loadAllMembersWithPts !== 'undefined' ? loadAllMembersWithPts : null);
+/* ══════════════════════════════════════════════════════════════
+   ③ حذف حساب شيماء سفيسيفي المكرر (>45000 نقطة) من البطولة
+      المنطق: الحساب غير المسجل يظهر أولاً في جدول الترتيب بنقاط >45000
+      نستبعده من _nldAllMembers بعد التحميل مباشرة
+══════════════════════════════════════════════════════════════ */
 
-/* نستخدم hook على نتيجة nldChampLoadAll بدلاً من ذلك */
+/* نستخدم hook على nldChampLoadAll للفلترة بعد التحميل */
 const _origNldChampLoadAllForShaimaa = window.nldChampLoadAll;
 if(typeof _origNldChampLoadAllForShaimaa === 'function'){
   window.nldChampLoadAll = async function(){
-    // سيتم استدعاء النسخة المعدّلة الأولى (من التغيير ②)
     await _origNldChampLoadAllForShaimaa.apply(this, arguments);
-    // بعد التحميل، نفلتر قائمة _nldAllMembers
-    if(window._nldAllMembers && Array.isArray(window._nldAllMembers)){
-      // نجمع كل إدخالات شيماء
-      const _norm = s=>(s||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
-      const _SHAIMAA_NORM = _norm('شيماء سفيسيفي');
-      const shaimaaEntries = window._nldAllMembers.filter(m=>_norm(m.name)===_SHAIMAA_NORM || _norm(m.name).includes('شيماء'));
-      if(shaimaaEntries.length > 1){
-        // نبقي فقط الأقل نقاطاً (الحساب الحقيقي)
-        shaimaaEntries.sort((a,b)=>a.total-b.total);
-        const keepEntry = shaimaaEntries[0]; // الأقل نقاطاً = الحساب الصحيح
-        // نحذف كل إدخالات شيماء ونضيف فقط الصحيح
-        window._nldAllMembers = window._nldAllMembers.filter(m=>
-          !(_norm(m.name)===_SHAIMAA_NORM || _norm(m.name).includes('شيماء'))
-        );
-        window._nldAllMembers.push(keepEntry);
-        window._nldAllMembers.sort((a,b)=>b.total-a.total);
-      } else if(shaimaaEntries.length === 1 && shaimaaEntries[0].total > 45000){
-        // حساب واحد لكن بنقاط مرتفعة جداً → نحذفه (هو الحساب غير المسجل)
-        window._nldAllMembers = window._nldAllMembers.filter(m=>
-          !(_norm(m.name)===_SHAIMAA_NORM || _norm(m.name).includes('شيماء'))
-        );
+
+    // بعد التحميل، نفلتر _nldAllMembers
+    if(!window._nldAllMembers || !Array.isArray(window._nldAllMembers)) return;
+
+    const _norm = s=>(s||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+
+    // نحذف أي إدخال لشيماء بنقاط أكثر من 45000 (الحساب غير المسجل)
+    const before = window._nldAllMembers.length;
+    window._nldAllMembers = window._nldAllMembers.filter(m=>{
+      const n = _norm(m.name);
+      const isShaimaa = n.includes('شيماء') || n.includes('sefsifia') || n.includes('sfisifi');
+      if(isShaimaa && m.total > 45000){
+        console.log(`[NLD] 🗑️ تم استبعاد حساب شيماء المكرر (${m.name}: ${m.total} نقطة)`);
+        return false; // احذف
       }
-    }
+      return true; // أبق
+    });
+
+    if(window._nldAllMembers.length !== before)
+      window._nldAllMembers.sort((a,b)=>b.total-a.total);
   };
 }
 
