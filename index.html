@@ -997,8 +997,24 @@ window.uploadStoryMusic = async function(file) {
   };
 
   /* ── تحميل البيانات من Firebase عند الفتح ── */
+  /* ✅ حد أقصى للانتظار: 1500ms — بعدها يظهر الدخول فوراً والمزامنة تكمل في الخلفية */
   showLoader();
   updateLoader(20);
+
+  let _fbLoaderDone = false;
+  function _fbDone(){
+    if(_fbLoaderDone) return;
+    _fbLoaderDone = true;
+    updateLoader(100);
+    setTimeout(hideLoader, 200);
+  }
+
+  const _fbTimeout = setTimeout(function(){
+    if(!_fbLoaderDone){
+      console.warn('⚠️ Firebase: بطيء — جارٍ إظهار الدخول فوراً والمزامنة تكمل في الخلفية');
+      _fbDone();
+    }
+  }, 1500);
 
   fetch(`${DB_URL}/appdata.json`)
     .then(r => {
@@ -1006,6 +1022,7 @@ window.uploadStoryMusic = async function(file) {
       return r.json();
     })
     .then(data => {
+      clearTimeout(_fbTimeout);
       updateLoader(90);
       if(data && typeof data === 'object'){
         Object.entries(data).forEach(([safeKey, value]) => {
@@ -1016,10 +1033,8 @@ window.uploadStoryMusic = async function(file) {
             }
           }catch(e){}
         });
-      } else {
       }
-      updateLoader(100);
-      setTimeout(hideLoader, 300);
+      _fbDone();
       /* ✅ استعادة منشورات الأعضاء من Firebase بعد اكتمال التحميل */
       setTimeout(function(){
         if(typeof window._restorePostsFromFirebase === 'function'){
@@ -1028,8 +1043,9 @@ window.uploadStoryMusic = async function(file) {
       }, 1500);
     })
     .catch(err => {
+      clearTimeout(_fbTimeout);
       console.warn('⚠️ Firebase: تعذّر التحميل، يعمل محلياً', err);
-      hideLoader();
+      _fbDone();
     });
 
   /* ── مزامنة فورية عند تغيير من تبويب آخر ── */
@@ -1327,16 +1343,7 @@ window.uploadStoryMusic = async function(file) {
 @keyframes reactBurst{0%{transform:scale(0) rotate(-20deg);opacity:0}60%{transform:scale(1.3) rotate(5deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
 .sv-react-burst{animation:reactBurst .4s cubic-bezier(.34,1.56,.64,1) forwards;}
 
-/* ══ FAB Speed Dial ══ */
-@keyframes fabOverlayIn { from{opacity:0} to{opacity:1} }
-@keyframes fabDialIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-.fab-item {
-  opacity:0;
-  animation:fabItemIn .25s cubic-bezier(.34,1.56,.64,1) forwards;
-}
-@keyframes fabItemIn { from{opacity:0;transform:translateX(-18px)} to{opacity:1;transform:translateX(0)} }
-.fab-label { user-select:none; }
-
+/* ===== Night Mode CSS for socialHomeCard ===== */
 #socialHomeCard.night-mode { background:#18191A !important; color:#E4E6EB !important; }
 #socialHomeCard.night-mode #socialTopBar,
 #socialHomeCard.night-mode [style*="background:white"],
@@ -4932,20 +4939,17 @@ function switchLoginTab(tab){
     <!-- ── HOME PANEL ── -->
     <div id="socialPanel_home" style="display:block;">
 
-      <!-- Stories Bar — Instagram-style Vosta Time -->
-      <div id="storiesBar" style="background:white;padding:10px 0 0;margin-bottom:8px;border-bottom:1px solid #E4E6EB;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-        <div style="display:flex;gap:10px;overflow-x:auto;padding:0 12px 12px;scrollbar-width:none;-ms-overflow-style:none;" id="storiesScroll">
-          <!-- ڨوستا تايم — إنشاء قصة جديدة -->
+      <!-- Stories Bar (Facebook-style) -->
+      <div id="storiesBar" style="background:white;padding:12px 12px 4px;margin-bottom:8px;border-bottom:1px solid #E4E6EB;box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+        <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none;-ms-overflow-style:none;" id="storiesScroll">
+          <!-- يومياتي - أول عنصر -->
           <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;" onclick="openMyStoryOrCreate()">
-            <div style="position:relative;width:72px;height:116px;border-radius:16px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,0.15);">
-              <div id="myStoryThumb" style="width:100%;height:100%;background:linear-gradient(170deg,#6a11cb 0%,#e52d27 100%);display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;">👑</div>
-              <!-- gradient overlay bottom -->
-              <div style="position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(to top,rgba(0,0,0,0.72),transparent);"></div>
-              <!-- + button -->
-              <div style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:28px;height:28px;background:#1877F2;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:white;line-height:1;box-shadow:0 2px 8px rgba(24,119,242,0.5);">+</div>
-              <div style="position:absolute;bottom:0;width:100%;padding:6px 4px;text-align:center;">
-                <span style="font-size:9.5px;font-weight:800;color:white;text-shadow:0 1px 3px rgba(0,0,0,0.7);">ڨوستا تايم</span>
+            <div style="position:relative;width:68px;height:110px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#e3f0ff 0%,#c8dfff 100%);border:2.5px solid #1877F2;">
+              <div id="myStoryThumb" style="width:100%;height:70%;background:linear-gradient(135deg,#1877F2,#0d5bda);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;">👑</div>
+              <div style="position:absolute;bottom:0;width:100%;height:40%;background:white;display:flex;align-items:center;justify-content:center;">
+                <span style="font-size:10px;font-weight:700;color:#050505;text-align:center;line-height:1.2;">ڨوستا تايم</span>
               </div>
+              <div style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%);width:24px;height:24px;background:#1877F2;border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:white;line-height:1;">+</div>
             </div>
           </div>
           <!-- قصص الأصدقاء ستُحقن هنا -->
@@ -4953,25 +4957,23 @@ function switchLoginTab(tab){
         </div>
       </div>
 
-      <!-- Create Post Box — modern style -->
-      <div style="background:white;margin-bottom:8px;padding:10px 14px 8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
-        <div style="display:flex;align-items:center;gap:10px;">
+      <!-- Create Post Box -->
+      <div style="background:white;margin-bottom:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
           <div id="socialPostAvatarWrap" onclick="openMyStory()" style="flex-shrink:0;cursor:pointer;position:relative;">
             <div class="story-ring" id="myStoryRing">
               <div class="story-ring-inner">
-                <div id="socialPostAvatar" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;" title="ڨوستا تايم">👑</div>
+                <div id="socialPostAvatar" style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;" title="ڨوستا تايم">👑</div>
               </div>
             </div>
             <div class="story-add-btn" onclick="event.stopPropagation();addMyStory()" title="ڨوستا تايم جديد">+</div>
           </div>
-          <div onclick="openSocialCreatePost()" style="flex:1;background:#F0F2F5;border-radius:22px;padding:11px 16px;font-size:13px;color:#65676B;cursor:pointer;font-family:'Tajawal',sans-serif;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">💬 بماذا تفكر؟</div>
-          <!-- زر الصورة السريع -->
-          <div onclick="openSocialCreatePost('photo')" style="width:38px;height:38px;border-radius:50%;background:#EAF7EE;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;transition:.15s;" onmouseover="this.style.background='#d4f0dc'" onmouseout="this.style.background='#EAF7EE'">🖼️</div>
+          <div onclick="openSocialCreatePost()" style="flex:1;background:#F0F2F5;border-radius:22px;padding:10px 16px;font-size:13px;color:#65676B;cursor:pointer;font-family:'Tajawal',sans-serif;">💬 واش راك حاب تقول؟ شارك أفكارك…</div>
         </div>
-        <div style="display:flex;border-top:1px solid #E4E6EB;padding-top:6px;margin-top:8px;gap:0;">
-          <div onclick="openSocialCreatePost('photo')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 4px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🖼️ صورة/فيديو</div>
-          <div onclick="openSocialCreatePost('live')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 4px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#e53935;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🎥 بث مباشر</div>
-          <div onclick="openSocialCreatePost('achievement')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 4px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">😊 مناسبة</div>
+        <div style="display:flex;border-top:1px solid #E4E6EB;padding-top:8px;gap:4px;">
+          <div onclick="openSocialCreatePost('photo')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🖼️ صورة</div>
+          <div onclick="openSocialCreatePost('feeling')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">😊 شعور</div>
+          <div onclick="openSocialCreatePost('achievement')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F3425F;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🏆 إنجاز</div>
         </div>
       </div>
 
@@ -5042,112 +5044,76 @@ function switchLoginTab(tab){
 
     <!-- ── REELS PANEL (ريلز) ── -->
     <div id="socialPanel_myprofile" style="display:none;background:#F0F2F5;min-height:100%;">
-
-      <!-- ── غلاف الملف الشخصي — Instagram style ── -->
-      <div style="position:relative;height:200px;background:linear-gradient(135deg,#6a11cb 0%,#e52d27 50%,#fc4a1a 100%);overflow:hidden;" id="profileCoverFB">
-        <div id="profileCoverFBImg" style="position:absolute;inset:0;background-size:cover;background-position:center;"></div>
-        <!-- dark gradient overlay -->
-        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.1) 0%,rgba(0,0,0,0.04) 60%,rgba(0,0,0,0.3) 100%);"></div>
-        <!-- camera btn — change cover -->
-        <label style="position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.52);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;" title="تغيير الغلاف">
-          📷<input type="file" accept="image/*" style="display:none;" onchange="handleFBCoverChange(event)">
+      <!-- غلاف الملف الشخصي -->
+      <div style="position:relative;height:180px;background:linear-gradient(135deg,#1877F2,#00c853);overflow:hidden;margin-bottom:0;" id="profileCoverFB">
+        <div style="position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"60\" height=\"60\"><circle cx=\"30\" cy=\"30\" r=\"1\" fill=\"rgba(255,255,255,0.15)\"/></svg>') repeat;"></div>
+        <!-- زر تغيير الغلاف -->
+        <label style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.5);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;gap:4px;">
+          📷 تغيير الغلاف
+          <input type="file" accept="image/*" style="display:none;" onchange="handleFBCoverChange(event)">
         </label>
       </div>
 
-      <!-- ── بطاقة الملف الشخصي ── -->
-      <div style="background:white;padding:0 16px 14px;position:relative;">
-
-        <!-- الصف الأول: الأفاتار + التقييم -->
-        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:-48px;margin-bottom:10px;">
-          <!-- صورة الملف الشخصي -->
-          <div style="position:relative;display:inline-block;">
-            <div style="width:96px;height:96px;border-radius:50%;border:4px solid white;overflow:hidden;background:linear-gradient(135deg,#6a11cb,#e52d27);display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 4px 16px rgba(0,0,0,0.22);cursor:pointer;" id="fbProfilePicWrapper" onclick="openMyFullProfile()">👑
-              <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:4px;right:4px;width:26px;height:26px;border-radius:50%;background:#1877F2;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:5;box-shadow:0 2px 6px rgba(0,0,0,0.25);">✓</div>
-            </div>
-            <label style="position:absolute;bottom:2px;left:-2px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;border:2px solid white;">
-              📷<input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
-            </label>
-          </div>
-          <!-- شارة البرونزية / تقييم النجوم -->
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-top:8px;">
-            <div id="fbStreakFlame" style="background:white;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:800;color:#e65100;box-shadow:0 2px 10px rgba(0,0,0,0.1);display:flex;align-items:center;gap:5px;border:1px solid rgba(230,101,0,0.2);">🥉 برونزية • <span id="fbStreakDays" style="color:#e65100;">0 يوم</span></div>
-            <div style="display:flex;align-items:center;gap:4px;">
-              <span style="font-size:11px;font-weight:800;color:#65676B;">5.0</span>
-              <div id="fbRatingStarsRow" style="display:flex;gap:2px;">
-                <span style="color:#E0E0E0;font-size:15px;">★</span><span style="color:#E0E0E0;font-size:15px;">★</span><span style="color:#E0E0E0;font-size:15px;">★</span><span style="color:#E0E0E0;font-size:15px;">★</span><span style="color:#E0E0E0;font-size:15px;">★</span>
-              </div>
-              <span id="fbRatingCount" style="font-size:10px;color:#65676B;">(0)</span>
+      <!-- صورة الملف الشخصي + الاسم -->
+      <div style="background:white;padding:0 16px 16px;position:relative;margin-top:-2px;">
+        <!-- صورة الملف (الضغط المفرد يفتح الملف الشخصي / الضغط المطوّل يغيّر الصورة) -->
+        <div style="position:relative;display:inline-block;margin-top:-50px;margin-bottom:10px;">
+          <div style="display:block;cursor:pointer;" onclick="openMyFullProfile()">
+            <div id="fbProfilePicWrapper" style="width:100px;height:100px;border-radius:50%;border:4px solid white;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 4px 14px rgba(0,0,0,0.18);position:relative;">👑
+              <!-- شارة التوثيق على صورة الملف الشخصي — رمادية حتى 300 نجمة -->
+              <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:4px;right:4px;width:26px;height:26px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:5;" title="شارة التوثيق">✓</div>
             </div>
           </div>
+          <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
         </div>
 
-        <!-- الاسم + الشارة الزرقاء + الرول -->
-        <div style="margin-bottom:8px;">
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <!-- الاسم والتوثيق -->
+        <div style="margin-bottom:6px;">
+          <div style="display:flex;align-items:center;gap:8px;">
             <div id="fbProfileName" style="font-size:22px;font-weight:900;color:#050505;"></div>
-            <div id="fbVerifiedBadge" style="display:none;width:22px;height:22px;border-radius:50%;background:#1877F2;display:flex;align-items:center;justify-content:center;font-size:12px;color:white;flex-shrink:0;" title="موثّق">✓</div>
+            <div id="fbVerifiedBadge" style="display:none;font-size:18px;" title="موثّق">✅</div>
           </div>
-          <div id="fbProfileRole" style="font-size:13px;background:linear-gradient(90deg,#00c853,#e52d27);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;margin-top:2px;font-family:'Tajawal',sans-serif;"></div>
+          <div id="fbProfileRole" style="font-size:13px;color:#65676B;margin-top:2px;font-weight:600;"></div>
         </div>
 
-        <!-- عداد الإحصائيات 3 أعمدة -->
-        <div style="display:flex;gap:0;border-radius:14px;overflow:hidden;background:#F0F2F5;margin-bottom:12px;">
-          <div style="flex:1;padding:10px 4px;text-align:center;border-left:1px solid #E4E6EB;">
-            <div id="fbFollowersCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">نسبة التفاعل</div>
+        <!-- عداد الأصدقاء / المشاهدات / التفاعل / المنشورات -->
+        <div style="display:flex;gap:0;margin:8px 0 10px;border-radius:12px;overflow:hidden;background:#F0F2F5;">
+          <div style="flex:1;padding:8px 2px;text-align:center;border-left:1px solid #E4E6EB;">
+            <div id="fbFollowersCount" style="font-size:15px;font-weight:900;color:#050505;">0</div>
+            <div style="font-size:8px;color:#65676B;font-weight:700;">أصدقاء</div>
           </div>
-          <div style="flex:1;padding:10px 4px;text-align:center;border-left:1px solid #E4E6EB;">
-            <div id="fbViewsCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">نسبة المشاهدة</div>
+          <div style="flex:1;padding:8px 2px;text-align:center;border-left:1px solid #E4E6EB;">
+            <div id="fbViewsCount" style="font-size:15px;font-weight:900;color:#050505;">0</div>
+            <div style="font-size:8px;color:#65676B;font-weight:700;">مشاهدات</div>
           </div>
-          <div style="flex:1;padding:10px 4px;text-align:center;">
-            <div id="fbPostsCount" style="font-size:16px;font-weight:900;color:#050505;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">اصدقاء</div>
+          <div style="flex:1;padding:8px 2px;text-align:center;border-left:1px solid #E4E6EB;">
+            <div id="fbPostsCount" style="font-size:15px;font-weight:900;color:#1877F2;">0</div>
+            <div style="font-size:8px;color:#65676B;font-weight:700;">تفاعل</div>
+          </div>
+          <div style="flex:1;padding:8px 2px;text-align:center;">
+            <div id="fbFollowingCount" style="font-size:15px;font-weight:900;color:#00c853;">0</div>
+            <div style="font-size:8px;color:#65676B;font-weight:700;">منشورات</div>
           </div>
         </div>
 
-        <!-- أزرار الإجراءات: الأصدقاء + كما يراني الآخرون -->
-        <div style="display:flex;gap:8px;margin-bottom:12px;">
-          <button onclick="switchSocialTab('friends')" style="flex:1;padding:10px;background:#F0F2F5;border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;color:#050505;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">👥 الأصدقاء</button>
-          <button onclick="openMyFullProfile()" style="flex:1.4;padding:10px;background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(24,119,242,0.4);">👁️ كما يراني الآخرون</button>
-        </div>
-
-        <!-- النقاط والرصيد والمستوى -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
-          <div style="background:linear-gradient(135deg,#EEF4FF,#E0EAFF);border-radius:12px;padding:10px 4px;text-align:center;border:1px solid rgba(24,119,242,0.15);">
-            <div id="fbTotalPts" style="font-size:18px;font-weight:900;color:#1877F2;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">الرصيد دج</div>
+        <!-- شعلة الدخول والمداليا -->
+        <div style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:12px;padding:10px 14px;margin-bottom:10px;">
+          <span id="fbStreakFlame" style="font-size:28px;transition:all .3s;">🥉</span>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:900;color:#e65100;">🔥 نظام الشعلة</div>
+            <div id="fbStreakInfo" style="font-size:11px;color:#bf360c;font-weight:700;">جارٍ التحميل...</div>
           </div>
-          <div style="background:linear-gradient(135deg,#EFF9F0,#E0F5E4);border-radius:12px;padding:10px 4px;text-align:center;border:1px solid rgba(0,200,83,0.15);">
-            <div id="fbFollowingCount" style="font-size:18px;font-weight:900;color:#00c853;">1</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">المستوى</div>
-          </div>
-          <div style="background:linear-gradient(135deg,#FFF8E1,#FFF3CD);border-radius:12px;padding:10px 4px;text-align:center;border:1px solid rgba(245,158,11,0.2);">
-            <div id="fbBalance" style="font-size:18px;font-weight:900;color:#f59e0b;">0</div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;">النقاط</div>
+          <div style="text-align:center;background:rgba(255,255,255,0.5);border-radius:8px;padding:4px 8px;min-width:44px;">
+            <div style="font-size:8px;color:#e65100;font-weight:700;">التالي</div>
+            <div id="fbStreakNext" style="font-size:10px;font-weight:900;color:#bf360c;">45 يوم</div>
           </div>
         </div>
-      </div>
 
-      <!-- تبويبات: منشوراتي / معلومات / إنجازاتي / حول -->
-      <div style="background:white;border-bottom:1px solid #E4E6EB;display:flex;position:sticky;top:0;z-index:10;">
-        <div id="ppTab_posts" onclick="_switchPpTab('posts')" style="flex:1;padding:12px 2px;text-align:center;font-size:12px;font-weight:800;color:#1877F2;border-bottom:3px solid #1877F2;cursor:pointer;transition:.2s;">منشوراتي</div>
-        <div id="ppTab_info" onclick="_switchPpTab('info')" style="flex:1;padding:12px 2px;text-align:center;font-size:12px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">معلومات</div>
-        <div id="ppTab_achievements" onclick="_switchPpTab('achievements')" style="flex:1;padding:12px 2px;text-align:center;font-size:12px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">إنجازاتي</div>
-        <div id="ppTab_about" onclick="_switchPpTab('about')" style="flex:1;padding:12px 2px;text-align:center;font-size:12px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">حول</div>
-      </div>
+        <!-- بيانات التسجيل -->
+        <div id="fbRegInfo" style="background:#F0F2F5;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#65676B;line-height:1.9;"></div>
 
-      <!-- المحتوى حسب التبويب -->
-      <div id="ppPanel_posts" style="padding-bottom:30px;">
-        <!-- 7 نجوم التقييم -->
-        <div style="background:white;margin-bottom:8px;padding:14px 16px;border-top:8px solid #F0F2F5;">
-          <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:4px;">⭐ تقييمك</div>
-          <div id="fbStarsRating" style="display:flex;flex-direction:column;gap:8px;"></div>
-          <div id="fbTotalStars" style="margin-top:8px;text-align:center;font-size:12px;color:#65676B;font-weight:700;"></div>
-          <div id="fbVisitorRatingSum" style="margin-top:6px;text-align:center;font-size:11px;color:#65676B;"></div>
-        </div>
-        <!-- شريط التقدم / المستوى -->
-        <div style="background:white;margin-bottom:8px;padding:14px 16px;">
+        <!-- شريط التقدم والمستوى -->
+        <div style="background:#F0F2F5;border-radius:14px;padding:14px;margin-bottom:12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <div style="font-size:13px;font-weight:900;color:#050505;">المستوى</div>
             <div id="fbLevelBadge" style="background:linear-gradient(135deg,#1877F2,#00c853);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:900;color:white;">🚀 1</div>
@@ -5156,147 +5122,82 @@ function switchLoginTab(tab){
             <div id="fbLevelBar" style="height:100%;background:linear-gradient(90deg,#1877F2,#00c853);border-radius:4px;transition:width .6s ease;width:0%;"></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:11px;color:#65676B;font-weight:700;">
-            <span id="fbLevelPts">0 نقطة</span><span>3000 نقطة للمستوى التالي</span>
+            <span id="fbLevelPts">0 نقطة</span>
+            <span>3000 نقطة للمستوى التالي</span>
           </div>
         </div>
-        <!-- محفظة النجوم -->
-        <div style="background:linear-gradient(135deg,#FFF8E1,#FFF3CD);border:1.5px solid rgba(245,197,24,0.4);border-radius:0;padding:14px 16px;margin-bottom:8px;">
+
+        <!-- النقاط والرصيد -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <div style="background:#F0F2F5;border-radius:12px;padding:14px;text-align:center;">
+            <div id="fbTotalPts" style="font-size:22px;font-weight:900;color:#1877F2;">0</div>
+            <div style="font-size:11px;color:#65676B;font-weight:700;">نقطة إجمالية</div>
+          </div>
+          <div style="background:#F0F2F5;border-radius:12px;padding:14px;text-align:center;">
+            <div id="fbBalance" style="font-size:22px;font-weight:900;color:#00c853;">0 دج</div>
+            <div style="font-size:11px;color:#65676B;font-weight:700;">الرصيد</div>
+          </div>
+        </div>
+
+        <!-- 7 نجوم التقييم — كما يراها الآخرون في ملفك -->
+        <div style="background:#F0F2F5;border-radius:14px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:4px;">⭐ تقييمك (7 معايير × 3000 نجم = توثيق)</div>
+          <div style="font-size:10px;color:#65676B;margin-bottom:10px;">هذه النجوم مخصصة لملفك وتظهر للآخرين كما تراها</div>
+          <div id="fbStarsRating" style="display:flex;flex-direction:column;gap:8px;"></div>
+          <div id="fbTotalStars" style="margin-top:10px;text-align:center;font-size:12px;color:#65676B;font-weight:700;"></div>
+          <!-- معدل تقييم الزوار لملفك -->
+          <div id="fbVisitorRatingSum" style="margin-top:8px;text-align:center;font-size:11px;color:#65676B;"></div>
+        </div>
+
+        <!-- ── محفظة النجوم للتوثيق ── -->
+        <div style="background:linear-gradient(135deg,#FFF8E1,#FFF3CD);border:1.5px solid rgba(245,197,24,0.4);border-radius:14px;padding:14px;margin-bottom:14px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
             <div style="font-size:13px;font-weight:900;color:#050505;">🌟 محفظة النجوم</div>
             <div id="fbStarsWalletBadge" style="background:linear-gradient(90deg,#f5c518,#f97316);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:900;color:white;">0 ⭐</div>
           </div>
+          <div style="font-size:11px;color:#65676B;margin-bottom:8px;">كل تقييم من أصدقائك يُضاف هنا لتوثيق حسابك</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
-            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;"><div id="fbStarsWalletTotal" style="font-size:18px;font-weight:900;color:#f59e0b;">0</div><div style="font-size:9px;color:#65676B;font-weight:700;">إجمالي النجوم</div></div>
-            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;"><div id="fbStarsWalletRaters" style="font-size:18px;font-weight:900;color:#1877F2;">0</div><div style="font-size:9px;color:#65676B;font-weight:700;">المقيّمين</div></div>
-            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;"><div id="fbStarsWalletAvg" style="font-size:18px;font-weight:900;color:#00c853;">0</div><div style="font-size:9px;color:#65676B;font-weight:700;">معدل التقييم</div></div>
-          </div>
-          <div><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:10px;font-weight:700;color:#050505;">التقدم نحو التوثيق</span><span id="fbWalletProgressLabel" style="font-size:10px;color:#65676B;">0 / 150 ⭐</span></div><div style="height:6px;background:#E4E6EB;border-radius:3px;overflow:hidden;"><div id="fbWalletProgressBar" style="height:100%;background:linear-gradient(90deg,#f5c518,#f97316);border-radius:3px;transition:width .6s ease;width:0%;"></div></div></div>
-          <div id="fbStarsWalletStatus" style="font-size:11px;text-align:center;color:#65676B;font-weight:700;margin-top:6px;"></div>
-        </div>
-        <!-- أزرار -->
-        <div style="background:white;padding:10px 16px;display:flex;gap:8px;margin-bottom:8px;">
-          <button onclick="showProfileEditMenu()" style="flex:1;padding:10px;background:#E4E6EB;border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#050505;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#d8dadf'" onmouseout="this.style.background='#E4E6EB'">✏️ تعديل الملف</button>
-          <button onclick="showBalanceModal()" style="flex:1;padding:10px;background:linear-gradient(135deg,#00c853,#1877F2);border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;box-shadow:0 3px 10px rgba(0,200,83,0.3);">💰 رصيدي</button>
-        </div>
-        <!-- عنوان المنشورات -->
-        <div style="background:white;padding:12px 16px;border-bottom:1px solid #E4E6EB;">
-          <div style="font-size:14px;font-weight:900;color:#050505;">📝 منشوراتي</div>
-        </div>
-        <div id="fbProfilePostsContainer" style="display:flex;flex-direction:column;gap:8px;padding:8px 0;"></div>
-      </div>
-
-      <div id="ppPanel_info" style="display:none;padding:14px;">
-        <div id="fbRegInfo" style="background:white;border-radius:14px;padding:14px;font-size:12px;color:#65676B;line-height:1.9;"></div>
-      </div>
-
-      <div id="ppPanel_achievements" style="display:none;">
-        <div style="background:white;padding:16px;margin-bottom:8px;border-top:8px solid #F0F2F5;">
-          <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:12px;">📈 تقدمك نحو المستوى التالي</div>
-          <div style="background:#F0F2F5;border-radius:12px;padding:14px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-              <span style="font-size:12px;font-weight:700;color:#65676B;" id="ppProgressFrom">المستوى الحالي</span>
-              <span style="font-size:12px;font-weight:700;color:#1877F2;" id="ppProgressPct">0%</span>
+            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;">
+              <div id="fbStarsWalletTotal" style="font-size:18px;font-weight:900;color:#f59e0b;">0</div>
+              <div style="font-size:9px;color:#65676B;font-weight:700;">إجمالي النجوم</div>
             </div>
-            <div style="height:8px;background:#E4E6EB;border-radius:10px;overflow:hidden;margin-bottom:8px;">
-              <div id="ppProgressBar" style="height:100%;background:linear-gradient(90deg,#1877F2,#00c853);width:0%;transition:width 1.5s ease;border-radius:10px;"></div>
+            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;">
+              <div id="fbStarsWalletRaters" style="font-size:18px;font-weight:900;color:#1877F2;">0</div>
+              <div style="font-size:9px;color:#65676B;font-weight:700;">عدد المقيّمين</div>
             </div>
-            <div style="display:flex;justify-content:space-between;">
-              <span style="font-size:11px;color:#65676B;" id="ppProgressCurrent">0 نقطة</span>
-              <span style="font-size:11px;color:#65676B;" id="ppProgressNext">3000 نقطة</span>
+            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;">
+              <div id="fbStarsWalletAvg" style="font-size:18px;font-weight:900;color:#00c853;">0</div>
+              <div style="font-size:9px;color:#65676B;font-weight:700;">معدل التقييم</div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div id="ppPanel_about" style="display:none;">
-        <div style="background:white;margin-top:8px;padding:16px;">
-          <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;">ℹ️ حول التطبيق</div>
-          <div style="background:linear-gradient(135deg,#1877F2,#0d5bda);border-radius:16px;padding:22px;color:white;text-align:center;margin-bottom:14px;box-shadow:0 8px 24px rgba(24,119,242,0.3);">
-            <div style="font-size:46px;margin-bottom:10px;">🏆</div>
-            <div style="font-size:18px;font-weight:900;margin-bottom:4px;">Connect DZ</div>
-            <div style="font-size:12px;opacity:0.9;">مختبر الشباب للذكاء والتعلم والإبداع</div>
+          <!-- شريط التقدم نحو التوثيق -->
+          <div style="margin-bottom:6px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+              <span style="font-size:10px;font-weight:700;color:#050505;">التقدم نحو التوثيق</span>
+              <span id="fbWalletProgressLabel" style="font-size:10px;color:#65676B;">0 / 150 ⭐</span>
+            </div>
+            <div style="height:6px;background:#E4E6EB;border-radius:3px;overflow:hidden;">
+              <div id="fbWalletProgressBar" style="height:100%;background:linear-gradient(90deg,#f5c518,#f97316);border-radius:3px;transition:width .6s ease;width:0%;"></div>
+            </div>
           </div>
-          <div style="background:#F0F7FF;border-radius:14px;padding:14px;border:1px solid rgba(24,119,242,0.15);display:flex;align-items:center;justify-content:space-between;">
-            <div><div style="font-size:12px;font-weight:800;color:#050505;">الإصدار</div><div style="font-size:11px;color:#65676B;">Connect DZ v3.0</div></div>
-            <div style="background:linear-gradient(135deg,#1877F2,#0d5bda);color:white;border-radius:10px;padding:6px 14px;font-size:11px;font-weight:800;">2025 🇩🇿</div>
-          </div>
+          <div id="fbStarsWalletStatus" style="font-size:11px;text-align:center;color:#65676B;font-weight:700;"></div>
         </div>
-      </div>
 
+        <!-- أزرار الإجراءات -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <button onclick="showProfileEditMenu()" style="flex:1;padding:9px;background:#E4E6EB;border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#050505;cursor:pointer;">✏️ تعديل الملف</button>
+          <button onclick="showBalanceModal()" style="flex:1;padding:9px;background:linear-gradient(135deg,#00c853,#1877F2);border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;">💰 رصيدي</button>
+        </div>
+
+        <!-- منشورات الملف الشخصي -->
+        <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #E4E6EB;">📝 منشوراتي</div>
+        <div id="fbProfilePostsContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
     </div>
 
   </div><!-- end scrollable -->
 
   <!-- ── (removed bottom tab bar – moved to top) ── -->
-
-  <!-- ══════════════════════════════════════════════
-       🚀 زر النشر العائم — Speed Dial FAB
-       يفتح شاشة ضبابية بكل خيارات النشر + لوحة التحكم
-       ══════════════════════════════════════════════ -->
-  <!-- طبقة الضباب الخلفية -->
-  <div id="fabBlurOverlay" onclick="closeFabMenu()" style="display:none;position:fixed;inset:0;z-index:7000;background:rgba(15,15,25,0.55);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);animation:fabOverlayIn .25s ease;"></div>
-  <!-- أزرار الـ Speed Dial (تظهر فوق الطبقة الضبابية) -->
-  <div id="fabSpeedDial" style="display:none;position:fixed;bottom:90px;left:18px;z-index:7100;display:none;flex-direction:column;align-items:flex-start;gap:10px;animation:fabDialIn .3s cubic-bezier(.34,1.56,.64,1);">
-    <!-- لوحة التحكم -->
-    <div onclick="closeFabMenu();setTimeout(()=>hideSocialHomeForDashboard(),200);" class="fab-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;animation-delay:.05s;">
-      <span class="fab-label" style="background:rgba(20,22,35,0.92);color:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:800;font-family:'Tajawal',sans-serif;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.35);">لوحة التحكم</span>
-      <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f5a623,#e8870a);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(245,166,35,0.45);">📊</div>
-    </div>
-    <!-- إنشاء منشور -->
-    <div onclick="closeFabMenu();setTimeout(()=>openSocialCreatePost(),150);" class="fab-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;animation-delay:.08s;">
-      <span class="fab-label" style="background:rgba(20,22,35,0.92);color:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:800;font-family:'Tajawal',sans-serif;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.35);">إنشاء منشور</span>
-      <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(168,85,247,0.45);">✏️</div>
-    </div>
-    <!-- صورة/فيديو -->
-    <div onclick="closeFabMenu();setTimeout(()=>openSocialCreatePost('photo'),150);" class="fab-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;animation-delay:.11s;">
-      <span class="fab-label" style="background:rgba(20,22,35,0.92);color:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:800;font-family:'Tajawal',sans-serif;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.35);">صورة/فيديو</span>
-      <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#00c853,#43a047);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(0,200,83,0.45);">🎥</div>
-    </div>
-    <!-- بث مباشر -->
-    <div onclick="closeFabMenu();setTimeout(()=>openSocialCreatePost('live'),150);" class="fab-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;animation-delay:.14s;">
-      <span class="fab-label" style="background:rgba(20,22,35,0.92);color:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:800;font-family:'Tajawal',sans-serif;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.35);">بث مباشر</span>
-      <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#e53935,#b71c1c);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(229,57,53,0.45);">📡</div>
-    </div>
-    <!-- مناسبة -->
-    <div onclick="closeFabMenu();setTimeout(()=>openSocialCreatePost('achievement'),150);" class="fab-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;animation-delay:.17s;">
-      <span class="fab-label" style="background:rgba(20,22,35,0.92);color:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:800;font-family:'Tajawal',sans-serif;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.35);">مناسبة</span>
-      <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(245,158,11,0.45);">📅</div>
-    </div>
-    <!-- مجموعة -->
-    <div onclick="closeFabMenu();setTimeout(()=>openSideMenuItem('groups'),200);" class="fab-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;animation-delay:.20s;">
-      <span class="fab-label" style="background:rgba(20,22,35,0.92);color:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:800;font-family:'Tajawal',sans-serif;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.35);">مجموعة</span>
-      <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#0d5bda);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(24,119,242,0.45);">👥</div>
-    </div>
-    <!-- صفحة -->
-    <div onclick="closeFabMenu();setTimeout(()=>openSideMenuItem('pages'),200);" class="fab-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;animation-delay:.23s;">
-      <span class="fab-label" style="background:rgba(20,22,35,0.92);color:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:800;font-family:'Tajawal',sans-serif;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.35);">صفحة</span>
-      <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#b45309);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(245,158,11,0.4);">🏛️</div>
-    </div>
-    <!-- سوق -->
-    <div onclick="closeFabMenu();setTimeout(()=>openSideMenuItem('market'),200);" class="fab-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;animation-delay:.26s;">
-      <span class="fab-label" style="background:rgba(20,22,35,0.92);color:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:800;font-family:'Tajawal',sans-serif;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.35);">سوق</span>
-      <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#6d28d9);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(168,85,247,0.4);">🛒</div>
-    </div>
-    <!-- مدونة -->
-    <div onclick="closeFabMenu();setTimeout(()=>openSideMenuItem('blog'),200);" class="fab-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;animation-delay:.29s;">
-      <span class="fab-label" style="background:rgba(20,22,35,0.92);color:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:800;font-family:'Tajawal',sans-serif;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.35);">مدونة</span>
-      <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(17,153,142,0.4);">📝</div>
-    </div>
-    <!-- ألعاب -->
-    <div onclick="closeFabMenu();setTimeout(()=>openSideMenuItem('games'),200);" class="fab-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;animation-delay:.32s;">
-      <span class="fab-label" style="background:rgba(20,22,35,0.92);color:white;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:800;font-family:'Tajawal',sans-serif;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.35);">الألعاب</span>
-      <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(102,126,234,0.4);">🎮</div>
-    </div>
-  </div>
-
-  <!-- زر الـ FAB الرئيسي (دائماً ظاهر) -->
-  <div id="mainFabBtn" onclick="toggleFabMenu()" style="position:fixed;bottom:22px;left:18px;z-index:7200;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#00c853,#1877F2);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 24px rgba(0,200,83,0.5),0 2px 8px rgba(0,0,0,0.3);transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s ease;">
-    <span id="fabMainIcon" style="font-size:24px;transition:transform .35s cubic-bezier(.34,1.56,.64,1);">👤</span>
-  </div>
-
-  <!-- Badge الإشعارات على الـ FAB -->
-  <div id="fabNotifBadge" style="display:none;position:fixed;bottom:66px;left:58px;z-index:7300;min-width:18px;height:18px;background:#e53935;border-radius:9px;font-size:10px;font-weight:900;color:white;border:2px solid white;display:flex;align-items:center;justify-content:center;padding:0 4px;font-family:'Tajawal',sans-serif;"></div>
-
 </div>
 
 <!-- ── نافذة إنشاء منشور اجتماعي ── -->
@@ -5384,7 +5285,7 @@ function switchLoginTab(tab){
 <div id="memberProfileView" style="display:none;position:fixed;inset:0;z-index:5400;background:#F0F2F5;flex-direction:column;overflow-y:auto;overscroll-behavior:none;">
   <!-- Cover -->
   <div style="width:100%;max-width:480px;margin:0 auto;position:relative;overflow:visible;">
-    <div id="mpvCover" style="width:100%;height:180px;background:linear-gradient(135deg,#6a11cb 0%,#e52d27 60%,#fc4a1a 100%);position:relative;overflow:hidden;">
+    <div id="mpvCover" style="width:100%;height:180px;background:linear-gradient(135deg,#00c853 0%,#e53935 100%);position:relative;overflow:hidden;">
       <div id="mpvCoverImg" style="width:100%;height:100%;background-size:cover;background-position:center;"></div>
       <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,0.35));"></div>
     </div>
@@ -5450,9 +5351,9 @@ function switchLoginTab(tab){
     <div id="mpvPtsBreakdownCard" style="display:none;"><div id="mpvPtsBreakdownLoading"></div><div id="mpvPtsSheet"></div><div id="mpvPtsQuiz"></div><div id="mpvPtsInteract"></div><div id="mpvPtsTotal"></div></div>
 
     <div style="display:flex;gap:8px;">
-      <button onclick="closeMemberProfileView()" style="padding:10px 14px;background:#F0F2F5;border:none;border-radius:10px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">رجوع</button>
-      <button onclick="startChatWithMpvUser()" style="flex:1;padding:10px;background:linear-gradient(135deg,#25D366,#128C7E);border:none;border-radius:10px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 10px rgba(37,211,102,0.35);">💬 رسالة</button>
-      <button id="mpvFriendBtn" onclick="handleMpvFriendAction()" style="flex:1;padding:10px;background:#F0F2F5;border:none;border-radius:10px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">✅ أصدقاء</button>
+      <button id="mpvFriendBtn" onclick="handleMpvFriendAction()" style="flex:1;padding:9px;background:linear-gradient(135deg,#00c853,#43a047);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">👥 إضافة صديق</button>
+      <button onclick="startChatWithMpvUser()" style="flex:1;padding:9px;background:linear-gradient(135deg,#25D366,#128C7E);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">💬 رسالة</button>
+      <button onclick="closeMemberProfileView()" style="padding:9px 14px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">رجوع</button>
     </div>
   </div>
 
@@ -9943,8 +9844,10 @@ function renderApp(name,pts,isReg, externalEarned){
     _basePoints = totalForLevel;
     window._sheetPtsCache = sheetPoints;
     window._rankPtsCache  = rankingPoints > 0 ? rankingPoints : sheetPoints;
-
-    const _displayTotal = totalForLevel;
+    // ✅ تعديل خاص: مجموع نقاط شيماء سفيسيفي يُعرض دائماً 10,000
+    const _SFSIFI_OVERRIDE = (name === 'شيماء سفيسيفي');
+    const _displayTotal = _SFSIFI_OVERRIDE ? 10000 : totalForLevel;
+    if(_SFSIFI_OVERRIDE) _basePoints = 10000;
 
     const currentLevel = Math.floor(_displayTotal/LEVEL_PTS)+1;
     const ptsInLevel   = _displayTotal % LEVEL_PTS;
@@ -9952,7 +9855,7 @@ function renderApp(name,pts,isReg, externalEarned){
     const _rate = (typeof window._userBalanceRate !== 'undefined') ? window._userBalanceRate : 30;
     const balance = ((sheetPoints / 50) * _rate).toFixed(2);
 
-    // لوحة القيادة: يُظهر الإجمالي (جدول + كويز)
+    // لوحة القيادة: يُظهر الإجمالي (جدول + كويز) — أو 10,000 لشيماء
     const _mpEl = document.getElementById("mainPoints");
     if(_mpEl) _mpEl.innerHTML=`${_displayTotal.toLocaleString()} <span>نقطة</span>`;
 
@@ -17649,7 +17552,8 @@ function removeFriend(friendName){
 
 /* ✅ الأعضاء الأصليون المعتمدون — حسابات وحيدة ومسجلة رسمياً */
 const _VERIFIED_MEMBERS = [
-  'Hamoudi Abdelemouman'
+  'Hamoudi Abdelemouman',
+  'شيماء سفيسيفي'
 ];
 
 /** هل هذا الاسم هو المدير؟ */
@@ -19522,69 +19426,6 @@ function shareReelPost(reelId){
    ═══════════════════════════════════════════════════════════ */
 let _sideNightMode = localStorage.getItem('nld_night_mode') === '1';
 
-/* ══════════════════════════════════════════════════════════
-   🚀 FAB Speed Dial — Toggle / Close
-   ══════════════════════════════════════════════════════════ */
-(function(){
-  let _fabOpen = false;
-
-  window.toggleFabMenu = function(){
-    _fabOpen ? closeFabMenu() : openFabMenu();
-  };
-
-  window.openFabMenu = function(){
-    _fabOpen = true;
-    const overlay = document.getElementById('fabBlurOverlay');
-    const dial    = document.getElementById('fabSpeedDial');
-    const icon    = document.getElementById('fabMainIcon');
-    const btn     = document.getElementById('mainFabBtn');
-    if(overlay){ overlay.style.display='block'; }
-    if(dial){
-      dial.style.display='flex';
-      // trigger animations on each fab-item
-      dial.querySelectorAll('.fab-item').forEach((el,i)=>{
-        el.style.animation='none';
-        el.offsetHeight; // reflow
-        el.style.animationDelay = (i*0.035)+'s';
-        el.style.animation='fabItemIn .22s cubic-bezier(.34,1.56,.64,1) forwards';
-      });
-    }
-    if(icon) icon.style.transform='rotate(45deg)';
-    if(btn)  btn.style.boxShadow='0 6px 28px rgba(229,57,53,0.55),0 2px 8px rgba(0,0,0,0.3)';
-  };
-
-  window.closeFabMenu = function(){
-    _fabOpen = false;
-    const overlay = document.getElementById('fabBlurOverlay');
-    const dial    = document.getElementById('fabSpeedDial');
-    const icon    = document.getElementById('fabMainIcon');
-    const btn     = document.getElementById('mainFabBtn');
-    if(overlay){ overlay.style.opacity='0'; overlay.style.transition='opacity .2s'; setTimeout(()=>{ overlay.style.display='none'; overlay.style.opacity=''; overlay.style.transition=''; },200); }
-    if(dial){   dial.style.opacity='0'; dial.style.transition='opacity .15s'; setTimeout(()=>{ dial.style.display='none'; dial.style.opacity=''; dial.style.transition=''; },160); }
-    if(icon) icon.style.transform='rotate(0deg)';
-    if(btn)  btn.style.boxShadow='0 6px 24px rgba(0,200,83,0.5),0 2px 8px rgba(0,0,0,0.3)';
-  };
-
-  /* تحديث الأيقونة/الأفاتار في الـ FAB */
-  window._updateFabAvatar = function(){
-    const icon = document.getElementById('fabMainIcon');
-    if(!icon) return;
-    const name = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-    const photo = name && typeof getProfilePhoto==='function' ? getProfilePhoto(name) : null;
-    if(photo){
-      icon.style.cssText = 'width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;';
-      icon.innerHTML = `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" loading="lazy">`;
-    } else {
-      icon.style.cssText = 'font-size:24px;transition:transform .35s cubic-bezier(.34,1.56,.64,1);';
-      icon.innerHTML = typeof getLeaderIcon==='function' && name ? getLeaderIcon(name) : '👤';
-    }
-  };
-
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(window._updateFabAvatar, 800);
-  });
-})();
-
 function toggleSocialSideMenu(){
   const menu = document.getElementById('socialSideMenu');
   const overlay = document.getElementById('socialSideMenuOverlay');
@@ -20029,21 +19870,6 @@ function openChatFromSocial(targetName){
 }
 
 // Override switchSocialTab to handle messenger
-/* ── تبويبات الملف الشخصي الخاص (My Profile) ── */
-function _switchPpTab(tab){
-  ['posts','info','achievements','about'].forEach(t=>{
-    const tabEl = document.getElementById('ppTab_'+t);
-    const panEl = document.getElementById('ppPanel_'+t);
-    const active = t===tab;
-    if(tabEl){
-      tabEl.style.borderBottom = active ? '3px solid #1877F2' : '3px solid transparent';
-      tabEl.style.color = active ? '#1877F2' : '#65676B';
-      tabEl.style.fontWeight = active ? '800' : '700';
-    }
-    if(panEl) panEl.style.display = active ? 'block' : 'none';
-  });
-}
-
 function switchSocialTab(tab){
   _socialTabs.forEach(t=>{
     const tabEl = document.getElementById('sTab_'+t);
@@ -24496,15 +24322,18 @@ async function fbLoginUser(user){
   /* ══ تنظيف الحسابات المكررة قبل الدخول ══ */
   _removeDuplicateAccounts();
 
-  /* ══ التحقق من الانخراط في Google Sheets ══
-     نتحقق في الخلفية — لا نوقف الدخول، فقط نحدد صفة "منخرط" */
-  let isInSheets = false;
-  try{
-    isInSheets = await _checkMemberInSheets(fullName);
-  }catch(e){ isInSheets = false; }
-
-  /* حفظ حالة الانخراط في localStorage */
-  localStorage.setItem('cdz_sheet_verified_'+fullName.replace(/\s+/g,'_'), isInSheets ? '1' : '0');
+  /* ══ التحقق من الانخراط في Google Sheets — في الخلفية بدون انتظار ══
+     الدخول فوري، والتحقق يحدث لاحقاً لا يوقف العملية */
+  _checkMemberInSheets(fullName).then(function(isInSheets){
+    localStorage.setItem('cdz_sheet_verified_'+fullName.replace(/\s+/g,'_'), isInSheets ? '1' : '0');
+    if(!isInSheets){
+      setTimeout(()=>{
+        if(typeof showToast==='function') showToast('⚠️ اسمك غير موجود في جدول المنخرطين الرسمي\nتواصل مع المدير لتسجيل انخراطك');
+      }, 2000);
+    }
+  }).catch(function(){ 
+    localStorage.setItem('cdz_sheet_verified_'+fullName.replace(/\s+/g,'_'), '0');
+  });
 
   localStorage.setItem('sklab_user_name', fullName);
   // حفظ بيانات المستخدم الكاملة
@@ -24533,13 +24362,6 @@ async function fbLoginUser(user){
   }catch(e2){}
   // تطبيق الصورة في كل مكان
   if(user.photoUrl) applyUserPhotoEverywhere(user.photoUrl, fullName);
-
-  /* تنبيه إذا لم يكن مسجلاً في الجدول */
-  if(!isInSheets){
-    setTimeout(()=>{
-      if(typeof showToast==='function') showToast('⚠️ اسمك غير موجود في جدول المنخرطين الرسمي\nتواصل مع المدير لتسجيل انخراطك');
-    }, 2000);
-  }
 
   /* ✅ استعادة المنشورات من Firebase عند تسجيل الدخول لضمان ظهورها دائماً */
   setTimeout(async ()=>{
@@ -33163,7 +32985,7 @@ function getMemberDivisionIdx(totalPts){
    ══════════════════════════════════════════════════════════════ */
 async function loadAllMembersWithPts(){
 
-  const _EXCL  = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء','المدير','زائر','شيماء سفيسيفي'];
+  const _EXCL  = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء','المدير','زائر'];
   const norm   = s => (s||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
   const isExcl = n => !n || _EXCL.some(ex => norm(n)===norm(ex) || norm(n).startsWith(norm(ex)+' '));
   const csvParse = line => {
