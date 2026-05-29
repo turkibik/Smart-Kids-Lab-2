@@ -997,8 +997,24 @@ window.uploadStoryMusic = async function(file) {
   };
 
   /* ── تحميل البيانات من Firebase عند الفتح ── */
+  /* ✅ حد أقصى للانتظار: 1500ms — بعدها يظهر الدخول فوراً والمزامنة تكمل في الخلفية */
   showLoader();
   updateLoader(20);
+
+  let _fbLoaderDone = false;
+  function _fbDone(){
+    if(_fbLoaderDone) return;
+    _fbLoaderDone = true;
+    updateLoader(100);
+    setTimeout(hideLoader, 200);
+  }
+
+  const _fbTimeout = setTimeout(function(){
+    if(!_fbLoaderDone){
+      console.warn('⚠️ Firebase: بطيء — جارٍ إظهار الدخول فوراً والمزامنة تكمل في الخلفية');
+      _fbDone();
+    }
+  }, 1500);
 
   fetch(`${DB_URL}/appdata.json`)
     .then(r => {
@@ -1006,6 +1022,7 @@ window.uploadStoryMusic = async function(file) {
       return r.json();
     })
     .then(data => {
+      clearTimeout(_fbTimeout);
       updateLoader(90);
       if(data && typeof data === 'object'){
         Object.entries(data).forEach(([safeKey, value]) => {
@@ -1016,10 +1033,8 @@ window.uploadStoryMusic = async function(file) {
             }
           }catch(e){}
         });
-      } else {
       }
-      updateLoader(100);
-      setTimeout(hideLoader, 300);
+      _fbDone();
       /* ✅ استعادة منشورات الأعضاء من Firebase بعد اكتمال التحميل */
       setTimeout(function(){
         if(typeof window._restorePostsFromFirebase === 'function'){
@@ -1028,8 +1043,9 @@ window.uploadStoryMusic = async function(file) {
       }, 1500);
     })
     .catch(err => {
+      clearTimeout(_fbTimeout);
       console.warn('⚠️ Firebase: تعذّر التحميل، يعمل محلياً', err);
-      hideLoader();
+      _fbDone();
     });
 
   /* ── مزامنة فورية عند تغيير من تبويب آخر ── */
@@ -24306,15 +24322,18 @@ async function fbLoginUser(user){
   /* ══ تنظيف الحسابات المكررة قبل الدخول ══ */
   _removeDuplicateAccounts();
 
-  /* ══ التحقق من الانخراط في Google Sheets ══
-     نتحقق في الخلفية — لا نوقف الدخول، فقط نحدد صفة "منخرط" */
-  let isInSheets = false;
-  try{
-    isInSheets = await _checkMemberInSheets(fullName);
-  }catch(e){ isInSheets = false; }
-
-  /* حفظ حالة الانخراط في localStorage */
-  localStorage.setItem('cdz_sheet_verified_'+fullName.replace(/\s+/g,'_'), isInSheets ? '1' : '0');
+  /* ══ التحقق من الانخراط في Google Sheets — في الخلفية بدون انتظار ══
+     الدخول فوري، والتحقق يحدث لاحقاً لا يوقف العملية */
+  _checkMemberInSheets(fullName).then(function(isInSheets){
+    localStorage.setItem('cdz_sheet_verified_'+fullName.replace(/\s+/g,'_'), isInSheets ? '1' : '0');
+    if(!isInSheets){
+      setTimeout(()=>{
+        if(typeof showToast==='function') showToast('⚠️ اسمك غير موجود في جدول المنخرطين الرسمي\nتواصل مع المدير لتسجيل انخراطك');
+      }, 2000);
+    }
+  }).catch(function(){ 
+    localStorage.setItem('cdz_sheet_verified_'+fullName.replace(/\s+/g,'_'), '0');
+  });
 
   localStorage.setItem('sklab_user_name', fullName);
   // حفظ بيانات المستخدم الكاملة
@@ -24343,13 +24362,6 @@ async function fbLoginUser(user){
   }catch(e2){}
   // تطبيق الصورة في كل مكان
   if(user.photoUrl) applyUserPhotoEverywhere(user.photoUrl, fullName);
-
-  /* تنبيه إذا لم يكن مسجلاً في الجدول */
-  if(!isInSheets){
-    setTimeout(()=>{
-      if(typeof showToast==='function') showToast('⚠️ اسمك غير موجود في جدول المنخرطين الرسمي\nتواصل مع المدير لتسجيل انخراطك');
-    }, 2000);
-  }
 
   /* ✅ استعادة المنشورات من Firebase عند تسجيل الدخول لضمان ظهورها دائماً */
   setTimeout(async ()=>{
