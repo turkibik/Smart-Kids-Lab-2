@@ -35666,5 +35666,1688 @@ console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات �
 })();
 </script>
 
+
+<!-- ╔══════════════════════════════════════════════════════════════════════╗
+     ║  🚀 CONNECTDZ LUXURY UPGRADE — Glass Sidebar + Admin Rating Panel  ║
+     ║  النظام المحسّن: شريط جانبي زجاجي + نظام تقييم المستخدمين          ║
+     ╚══════════════════════════════════════════════════════════════════════╝ -->
+
+<style>
+/* ══════════════════════════════════════════════════════
+   🎨 متغيرات الألوان الفاخرة
+   ══════════════════════════════════════════════════════ */
+:root {
+  --lux-red: #e52d27;
+  --lux-green: #00c853;
+  --lux-purple: #a855f7;
+  --lux-gold: #f5c518;
+  --lux-dark: #050a0e;
+  --lux-glass: rgba(10,14,20,0.85);
+  --lux-blur: blur(24px);
+  --lux-border: rgba(255,255,255,0.08);
+}
+
+/* ══════════════════════════════════════════════════════
+   ✨ تحسينات الصفحة الرئيسية — main-card فاخر
+   ══════════════════════════════════════════════════════ */
+.main-card {
+  background: linear-gradient(135deg, #0d1117 0%, #1a0a2e 50%, #0a1a0d 100%) !important;
+  border: 1.5px solid rgba(168,85,247,0.3) !important;
+  border-radius: 24px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(168,85,247,0.1), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+.main-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 20% 20%, rgba(168,85,247,0.12) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 80%, rgba(0,200,83,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+.main-card::after {
+  content: '';
+  position: absolute;
+  top: -1px; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(168,85,247,0.6), rgba(0,200,83,0.4), transparent);
+}
+.points-num {
+  font-size: 48px !important;
+  font-weight: 900 !important;
+  background: linear-gradient(135deg, #a855f7, #00c853, #e52d27) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  text-shadow: none !important;
+  filter: drop-shadow(0 2px 12px rgba(168,85,247,0.4));
+}
+.points-title {
+  color: rgba(255,255,255,0.7) !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+}
+.level-badge {
+  background: linear-gradient(135deg, rgba(168,85,247,0.25), rgba(0,200,83,0.2)) !important;
+  border: 1px solid rgba(168,85,247,0.4) !important;
+  border-radius: 20px !important;
+  padding: 5px 14px !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  color: #c084fc !important;
+  box-shadow: 0 0 12px rgba(168,85,247,0.2) !important;
+}
+.neo-progress {
+  background: rgba(255,255,255,0.06) !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  height: 8px !important;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.4) !important;
+}
+.neo-bar {
+  background: linear-gradient(90deg, #a855f7, #e52d27, #00c853) !important;
+  height: 100% !important;
+  border-radius: 10px !important;
+  box-shadow: 0 0 10px rgba(168,85,247,0.6) !important;
+  transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+
+/* ── Top Nav تحسين ── */
+.top-nav {
+  background: linear-gradient(135deg, rgba(5,10,14,0.98), rgba(13,17,23,0.95)) !important;
+  border-bottom: 1px solid rgba(168,85,247,0.2) !important;
+  backdrop-filter: blur(20px) !important;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.5), 0 0 20px rgba(168,85,247,0.05) !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   🔴🟢🟣 أزرار النشر الفاخرة
+   ══════════════════════════════════════════════════════ */
+@keyframes luxBtnPulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+@keyframes luxShine {
+  0% { transform: translateX(-200%); }
+  100% { transform: translateX(200%); }
+}
+@keyframes luxGlow {
+  0%,100% { box-shadow: 0 8px 24px var(--glow-color), 0 0 0 0 var(--glow-color); }
+  50% { box-shadow: 0 12px 32px var(--glow-color), 0 0 20px var(--glow-color); }
+}
+@keyframes borderFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── زر النشر الأحمر ── */
+.lux-btn-red {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e52d27, #b71c1c, #e52d27) !important;
+  background-size: 200% 200% !important;
+  border: none !important;
+  border-radius: 18px !important;
+  padding: 16px 20px !important;
+  color: white !important;
+  font-weight: 900 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  --glow-color: rgba(229,45,39,0.5);
+  animation: luxGlow 2.5s ease infinite, borderFlow 3s ease infinite !important;
+  box-shadow: 0 8px 24px rgba(229,45,39,0.5) !important;
+  transition: transform 0.2s !important;
+}
+.lux-btn-red::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: luxShine 3s ease infinite;
+}
+.lux-btn-red:hover { transform: translateY(-4px) scale(1.03) !important; }
+
+/* ── زر النشر الأخضر ── */
+.lux-btn-green {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #00c853, #007a33, #00c853) !important;
+  background-size: 200% 200% !important;
+  border: none !important;
+  border-radius: 18px !important;
+  padding: 16px 20px !important;
+  color: white !important;
+  font-weight: 900 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  --glow-color: rgba(0,200,83,0.5);
+  animation: luxGlow 2.5s ease infinite 0.5s, borderFlow 3s ease infinite !important;
+  box-shadow: 0 8px 24px rgba(0,200,83,0.5) !important;
+  transition: transform 0.2s !important;
+}
+.lux-btn-green::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: luxShine 3s ease infinite 1s;
+}
+.lux-btn-green:hover { transform: translateY(-4px) scale(1.03) !important; }
+
+/* ── زر النشر البنفسجي ── */
+.lux-btn-purple {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #a855f7, #6b21a8, #a855f7) !important;
+  background-size: 200% 200% !important;
+  border: none !important;
+  border-radius: 18px !important;
+  padding: 16px 20px !important;
+  color: white !important;
+  font-weight: 900 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  --glow-color: rgba(168,85,247,0.5);
+  animation: luxGlow 2.5s ease infinite 1s, borderFlow 3s ease infinite !important;
+  box-shadow: 0 8px 24px rgba(168,85,247,0.5) !important;
+  transition: transform 0.2s !important;
+}
+.lux-btn-purple::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: luxShine 3s ease infinite 2s;
+}
+.lux-btn-purple:hover { transform: translateY(-4px) scale(1.03) !important; }
+
+/* ══════════════════════════════════════════════════════
+   🪟 الشريط الجانبي الزجاجي — Full Screen Glass Sidebar
+   ══════════════════════════════════════════════════════ */
+@keyframes glassOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes glassPanelIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes glassPanelOut {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+@keyframes featureCardIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes orbFloat {
+  0%,100% { transform: translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateY(-20px) scale(1.05); opacity: 0.9; }
+}
+
+#luxGlassSidebar {
+  position: fixed;
+  inset: 0;
+  z-index: 99900;
+  display: none;
+  background: rgba(5,10,14,0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: glassOverlayIn 0.3s ease;
+}
+#luxGlassSidebar.active { display: flex; align-items: stretch; }
+
+#luxGlassPanel {
+  position: absolute;
+  inset: 0;
+  background: rgba(8,12,20,0.82);
+  backdrop-filter: blur(32px) saturate(1.8);
+  -webkit-backdrop-filter: blur(32px) saturate(1.8);
+  overflow-y: auto;
+  overflow-x: hidden;
+  animation: glassPanelIn 0.35s cubic-bezier(0.34,1.2,0.64,1);
+  display: flex;
+  flex-direction: column;
+}
+#luxGlassPanel.closing {
+  animation: glassPanelOut 0.28s ease forwards;
+}
+
+/* خلفية الأكوار المتحركة */
+.glass-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+  animation: orbFloat 6s ease infinite;
+}
+.glass-orb-1 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(168,85,247,0.25), transparent 70%);
+  top: -100px; right: -80px;
+  animation-delay: 0s;
+}
+.glass-orb-2 {
+  width: 250px; height: 250px;
+  background: radial-gradient(circle, rgba(229,45,39,0.2), transparent 70%);
+  bottom: 50px; left: -60px;
+  animation-delay: 2s;
+}
+.glass-orb-3 {
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(0,200,83,0.18), transparent 70%);
+  top: 40%; right: 30%;
+  animation-delay: 4s;
+}
+
+/* رأس الشريط الجانبي */
+.glass-sidebar-header {
+  position: relative;
+  z-index: 1;
+  padding: 60px 24px 28px;
+  background: linear-gradient(180deg, rgba(168,85,247,0.12) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.glass-close-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  color: rgba(255,255,255,0.8);
+  transition: background 0.2s, transform 0.2s;
+  backdrop-filter: blur(4px);
+}
+.glass-close-btn:hover { background: rgba(229,45,39,0.3); transform: rotate(90deg); }
+.glass-avatar {
+  width: 68px; height: 68px;
+  border-radius: 50%;
+  border: 2.5px solid transparent;
+  background: linear-gradient(#0d1117, #0d1117) padding-box,
+              linear-gradient(135deg, #a855f7, #00c853, #e52d27) border-box;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 8px 24px rgba(168,85,247,0.3);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.glass-user-name {
+  font-size: 18px;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+.glass-user-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  margin-top: 3px;
+  font-weight: 600;
+}
+
+/* تسميات الأقسام */
+.glass-section-label {
+  position: relative;
+  z-index: 1;
+  padding: 20px 24px 10px;
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* شبكة الميزات */
+.glass-features-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 0 16px;
+}
+.glass-feature-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  padding: 16px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  animation: featureCardIn 0.4s ease both;
+  backdrop-filter: blur(4px);
+}
+.glass-feature-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--card-color-1, rgba(255,255,255,0.04)), transparent);
+  border-radius: 18px;
+  transition: opacity 0.2s;
+  opacity: 0;
+}
+.glass-feature-card:hover::before { opacity: 1; }
+.glass-feature-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255,255,255,0.15);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.glass-feature-icon {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.glass-feature-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.9);
+  line-height: 1.3;
+}
+.glass-feature-sub {
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+  font-weight: 600;
+}
+.glass-feature-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+/* قائمة عمودية */
+.glass-list-item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.15s;
+}
+.glass-list-item:hover { background: rgba(255,255,255,0.04); }
+.glass-list-icon {
+  width: 42px; height: 42px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.glass-list-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.9);
+}
+.glass-list-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  margin-top: 2px;
+  font-weight: 600;
+}
+.glass-list-arrow {
+  margin-right: auto;
+  color: rgba(255,255,255,0.2);
+  font-size: 18px;
+}
+
+/* زر الإدارة في الشريط الجانبي */
+.glass-admin-btn {
+  position: relative;
+  z-index: 1;
+  margin: 10px 16px;
+  padding: 16px 20px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(229,45,39,0.15), rgba(168,85,247,0.15));
+  border: 1px solid rgba(229,45,39,0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.2s;
+  overflow: hidden;
+}
+.glass-admin-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(229,45,39,0.1), rgba(168,85,247,0.1));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.glass-admin-btn:hover::before { opacity: 1; }
+.glass-admin-btn:hover { transform: translateY(-2px); border-color: rgba(229,45,39,0.5); }
+.glass-admin-icon {
+  width: 48px; height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #e52d27, #a855f7);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 6px 16px rgba(229,45,39,0.4);
+  flex-shrink: 0;
+}
+.glass-admin-text .title {
+  font-size: 15px;
+  font-weight: 900;
+  color: white;
+}
+.glass-admin-text .sub {
+  font-size: 11px;
+  color: rgba(229,45,39,0.7);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+/* الزر التشغيلي */
+.glass-action-btn {
+  position: relative;
+  z-index: 1;
+  margin: 10px 16px;
+  padding: 14px 20px;
+  border-radius: 16px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  border: none;
+}
+
+/* التذييل */
+.glass-footer {
+  position: relative;
+  z-index: 1;
+  padding: 24px;
+  margin-top: auto;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+}
+.glass-footer-logo {
+  font-size: 20px;
+  font-weight: 900;
+  background: linear-gradient(90deg, #00c853, #e52d27);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+}
+.glass-footer-sub {
+  font-size: 10px;
+  color: rgba(255,255,255,0.25);
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════════════════════
+   ⭐ لوحة تقييم المستخدمين — Admin Rating Panel
+   ══════════════════════════════════════════════════════ */
+@keyframes ratingPanelIn {
+  from { opacity: 0; transform: scale(0.96) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes userCardIn {
+  from { transform: translateX(30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+#adminRatingPanel {
+  position: fixed;
+  inset: 0;
+  z-index: 99950;
+  display: none;
+  flex-direction: column;
+  background: rgba(5,10,14,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+#adminRatingPanel.active {
+  display: flex;
+  animation: glassOverlayIn 0.3s ease;
+}
+
+.arp-header {
+  background: linear-gradient(135deg, rgba(229,45,39,0.15), rgba(168,85,247,0.15));
+  border-bottom: 1px solid rgba(229,45,39,0.2);
+  padding: 56px 20px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+  position: relative;
+}
+.arp-back-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  color: white;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.arp-back-btn:hover { background: rgba(255,255,255,0.14); }
+.arp-title {
+  font-size: 20px;
+  font-weight: 900;
+  color: white;
+}
+.arp-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+/* شريط البحث */
+.arp-search-wrap {
+  padding: 12px 16px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.arp-search-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  color: white;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  outline: none;
+  text-align: right;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.arp-search-input:focus { border-color: rgba(168,85,247,0.5); }
+.arp-search-input::placeholder { color: rgba(255,255,255,0.3); }
+
+/* قائمة المستخدمين */
+.arp-user-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.arp-user-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  cursor: pointer;
+  transition: background 0.15s;
+  animation: userCardIn 0.35s ease both;
+}
+.arp-user-card:hover { background: rgba(255,255,255,0.04); }
+.arp-user-avatar {
+  width: 50px; height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a855f7, #e52d27);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  font-weight: 900;
+  color: white;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(168,85,247,0.3);
+}
+.arp-user-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: white;
+}
+.arp-user-info {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 2px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.arp-user-pts {
+  background: rgba(0,200,83,0.15);
+  border: 1px solid rgba(0,200,83,0.25);
+  color: #00c853;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.arp-user-action-btn {
+  margin-right: auto;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(135deg, rgba(168,85,247,0.25), rgba(229,45,39,0.2));
+  border: 1px solid rgba(168,85,247,0.3);
+  color: #c084fc;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.arp-user-action-btn:hover { background: rgba(168,85,247,0.3); transform: scale(1.05); }
+
+/* نافذة إجراءات المستخدم */
+#adminUserActionsModal {
+  position: fixed;
+  inset: 0;
+  z-index: 99960;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+}
+#adminUserActionsModal.active { display: flex; animation: glassOverlayIn 0.25s ease; }
+.aua-panel {
+  width: 100%;
+  max-width: 480px;
+  background: linear-gradient(160deg, #0d1117, #1a0a2e);
+  border: 1px solid rgba(168,85,247,0.2);
+  border-radius: 28px 28px 0 0;
+  padding: 20px 16px 40px;
+  animation: ratingPanelIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.aua-drag-bar {
+  width: 40px; height: 4px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  margin: 0 auto 16px;
+}
+.aua-user-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: rgba(168,85,247,0.08);
+  border: 1px solid rgba(168,85,247,0.15);
+  border-radius: 16px;
+  margin-bottom: 16px;
+}
+.aua-user-big-avatar {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a855f7, #e52d27);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  font-weight: 900;
+  color: white;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(168,85,247,0.4);
+}
+.aua-user-big-name { font-size: 16px; font-weight: 900; color: white; }
+.aua-user-big-pts { font-size: 12px; color: #00c853; font-weight: 700; margin-top: 3px; }
+
+/* أزرار الإجراءات */
+.aua-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.aua-action-card {
+  padding: 16px 12px;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid transparent;
+}
+.aua-action-card:hover { transform: translateY(-3px); }
+.aua-action-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+.aua-action-title {
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* بطاقات الألوان */
+.aua-card-red {
+  background: rgba(229,45,39,0.1);
+  border-color: rgba(229,45,39,0.3) !important;
+  color: #f87171;
+}
+.aua-card-red:hover { background: rgba(229,45,39,0.2); box-shadow: 0 8px 20px rgba(229,45,39,0.2); }
+.aua-card-green {
+  background: rgba(0,200,83,0.1);
+  border-color: rgba(0,200,83,0.3) !important;
+  color: #4ade80;
+}
+.aua-card-green:hover { background: rgba(0,200,83,0.2); box-shadow: 0 8px 20px rgba(0,200,83,0.2); }
+.aua-card-purple {
+  background: rgba(168,85,247,0.1);
+  border-color: rgba(168,85,247,0.3) !important;
+  color: #c084fc;
+}
+.aua-card-purple:hover { background: rgba(168,85,247,0.2); box-shadow: 0 8px 20px rgba(168,85,247,0.2); }
+.aua-card-gold {
+  background: rgba(245,197,24,0.1);
+  border-color: rgba(245,197,24,0.3) !important;
+  color: #fbbf24;
+}
+.aua-card-gold:hover { background: rgba(245,197,24,0.2); box-shadow: 0 8px 20px rgba(245,197,24,0.2); }
+.aua-card-orange {
+  background: rgba(249,115,22,0.1);
+  border-color: rgba(249,115,22,0.3) !important;
+  color: #fb923c;
+}
+.aua-card-orange:hover { background: rgba(249,115,22,0.2); box-shadow: 0 8px 20px rgba(249,115,22,0.2); }
+
+/* نوافذ الإجراءات الفرعية */
+.aua-sub-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99970;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(10px);
+}
+.aua-sub-modal.active { display: flex; animation: glassOverlayIn 0.25s ease; }
+.aua-sub-inner {
+  background: linear-gradient(160deg, #0d1117, #161b22);
+  border-radius: 24px;
+  padding: 28px 22px;
+  width: 90%; max-width: 400px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+  animation: ratingPanelIn 0.3s ease;
+}
+.aua-sub-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: white;
+  text-align: center;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.aua-sub-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.07);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  color: white;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  outline: none;
+  text-align: right;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.aua-sub-input::placeholder { color: rgba(255,255,255,0.3); }
+.aua-sub-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: transform 0.15s;
+}
+.aua-sub-btn:hover { transform: translateY(-2px); }
+.aua-sub-cancel {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.6);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.15s;
+}
+.aua-sub-cancel:hover { background: rgba(255,255,255,0.1); }
+
+/* شارات الأوسمة */
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.badge-item {
+  padding: 14px 10px;
+  border-radius: 16px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  background: rgba(255,255,255,0.04);
+}
+.badge-item:hover { transform: scale(1.05); }
+.badge-item.selected { border-color: #a855f7 !important; background: rgba(168,85,247,0.15) !important; }
+.badge-emoji { font-size: 28px; line-height: 1; margin-bottom: 6px; }
+.badge-name { font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.7); }
+
+/* ══════════════════════════════════════════════════════
+   📣 نظام النشر الفاخر في الشريط الجانبي
+   ══════════════════════════════════════════════════════ */
+.lux-publish-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+  overflow-x: auto;
+}
+.lux-publish-bar::-webkit-scrollbar { display: none; }
+.lux-pub-btn {
+  flex-shrink: 0;
+  padding: 12px 18px;
+  border-radius: 20px;
+  border: none;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.lux-pub-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: luxShine 2.5s ease infinite;
+}
+.lux-pub-red {
+  background: linear-gradient(135deg, #e52d27, #c01c17);
+  color: white;
+  box-shadow: 0 6px 20px rgba(229,45,39,0.4);
+}
+.lux-pub-red:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(229,45,39,0.6); }
+.lux-pub-green {
+  background: linear-gradient(135deg, #00c853, #00921d);
+  color: white;
+  box-shadow: 0 6px 20px rgba(0,200,83,0.4);
+}
+.lux-pub-green:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,200,83,0.6); }
+.lux-pub-purple {
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
+  color: white;
+  box-shadow: 0 6px 20px rgba(168,85,247,0.4);
+}
+.lux-pub-purple:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(168,85,247,0.6); }
+.lux-pub-gold {
+  background: linear-gradient(135deg, #f5c518, #e0a800);
+  color: #0d1117;
+  box-shadow: 0 6px 20px rgba(245,197,24,0.4);
+}
+.lux-pub-gold:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(245,197,24,0.6); }
+
+/* ══════════════════════════════════════════════════════
+   ✅ تحسينات شريط التنقل السفلي
+   ══════════════════════════════════════════════════════ */
+.bottom-nav, #socialBottomNav {
+  background: rgba(5,10,14,0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border-top: 1px solid rgba(168,85,247,0.2) !important;
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.4) !important;
+}
+</style>
+
+<!-- ══════════════════════════════════════════════════════
+     🪟 HTML: الشريط الجانبي الزجاجي
+     ══════════════════════════════════════════════════════ -->
+<div id="luxGlassSidebar">
+  <!-- أكوار الخلفية -->
+  <div class="glass-orb glass-orb-1"></div>
+  <div class="glass-orb glass-orb-2"></div>
+  <div class="glass-orb glass-orb-3"></div>
+
+  <div id="luxGlassPanel">
+    <!-- رأس الشريط -->
+    <div class="glass-sidebar-header">
+      <div class="glass-close-btn" onclick="closeLuxSidebar()">✕</div>
+      <div class="glass-avatar" id="luxSidebarAvatar">👑</div>
+      <div>
+        <div class="glass-user-name" id="luxSidebarName">مرحباً!</div>
+        <div class="glass-user-sub">Connect DZ • Next Leaders</div>
+      </div>
+    </div>
+
+    <!-- نظام النشر السريع -->
+    <div class="glass-section-label">🚀 النشر السريع</div>
+    <div class="lux-publish-bar">
+      <button class="lux-pub-btn lux-pub-red" onclick="closeLuxSidebar();setTimeout(()=>openSocialCreatePost(),300);">
+        <span>📝</span> منشور
+      </button>
+      <button class="lux-pub-btn lux-pub-green" onclick="closeLuxSidebar();setTimeout(()=>openAddStory?.(),300);">
+        <span>📸</span> قصة
+      </button>
+      <button class="lux-pub-btn lux-pub-purple" onclick="closeLuxSidebar();setTimeout(()=>openSocialCreatePost('achievement'),300);">
+        <span>🏆</span> إنجاز
+      </button>
+      <button class="lux-pub-btn lux-pub-gold" onclick="closeLuxSidebar();setTimeout(()=>openSocialCreatePost('feeling'),300);">
+        <span>😊</span> شعور
+      </button>
+    </div>
+
+    <!-- شبكة الميزات الرئيسية -->
+    <div class="glass-section-label">⚡ الميزات الرئيسية</div>
+    <div class="glass-features-grid">
+      <div class="glass-feature-card" style="--card-color-1:rgba(0,200,83,0.12);animation-delay:0.05s" onclick="closeLuxSidebar();setTimeout(()=>goBackToSocialHome(),300);">
+        <div class="glass-feature-icon" style="background:linear-gradient(135deg,rgba(0,200,83,0.25),rgba(0,146,29,0.2));">🏠</div>
+        <div class="glass-feature-title">الرئيسية</div>
+        <div class="glass-feature-sub">لوحة التحكم</div>
+      </div>
+      <div class="glass-feature-card" style="--card-color-1:rgba(229,45,39,0.12);animation-delay:0.1s" onclick="closeLuxSidebar();setTimeout(()=>openNldChampionship?.(),300);">
+        <div class="glass-feature-icon" style="background:linear-gradient(135deg,rgba(229,45,39,0.25),rgba(180,0,0,0.2));">🏆</div>
+        <div class="glass-feature-title">البطولة</div>
+        <div class="glass-feature-sub">المنافسة المحترفة</div>
+        <div class="glass-feature-badge" style="background:rgba(229,45,39,0.2);color:#f87171;">🔥 حي</div>
+      </div>
+      <div class="glass-feature-card" style="--card-color-1:rgba(168,85,247,0.12);animation-delay:0.15s" onclick="closeLuxSidebar();setTimeout(()=>switchSocialTab?.('friends'),300);">
+        <div class="glass-feature-icon" style="background:linear-gradient(135deg,rgba(168,85,247,0.25),rgba(100,20,180,0.2));">👥</div>
+        <div class="glass-feature-title">الأصدقاء</div>
+        <div class="glass-feature-sub">قائمة المتابعين</div>
+      </div>
+      <div class="glass-feature-card" style="--card-color-1:rgba(245,197,24,0.12);animation-delay:0.2s" onclick="closeLuxSidebar();setTimeout(()=>switchSocialTab?.('messages'),300);">
+        <div class="glass-feature-icon" style="background:linear-gradient(135deg,rgba(245,197,24,0.25),rgba(180,130,0,0.2));">💬</div>
+        <div class="glass-feature-title">الرسائل</div>
+        <div class="glass-feature-sub">المحادثات الخاصة</div>
+        <div class="glass-feature-badge" id="luxMsgBadge" style="display:none;background:rgba(229,45,39,0.2);color:#f87171;">جديد</div>
+      </div>
+      <div class="glass-feature-card" style="--card-color-1:rgba(0,180,255,0.12);animation-delay:0.25s" onclick="closeLuxSidebar();setTimeout(()=>showModal?.('leaderboardCard'),300);">
+        <div class="glass-feature-icon" style="background:linear-gradient(135deg,rgba(0,180,255,0.25),rgba(0,80,180,0.2));">📊</div>
+        <div class="glass-feature-title">المتصدرون</div>
+        <div class="glass-feature-sub">لوحة الترتيب</div>
+      </div>
+      <div class="glass-feature-card" style="--card-color-1:rgba(0,200,83,0.12);animation-delay:0.3s" onclick="closeLuxSidebar();setTimeout(()=>showModal?.('activitiesCard'),300);">
+        <div class="glass-feature-icon" style="background:linear-gradient(135deg,rgba(0,200,83,0.25),rgba(0,100,30,0.2));">🏅</div>
+        <div class="glass-feature-title">النشاطات</div>
+        <div class="glass-feature-sub">الإنجازات والمهام</div>
+      </div>
+    </div>
+
+    <!-- روابط سريعة -->
+    <div class="glass-section-label">🧩 مزيد من الميزات</div>
+    <div onclick="closeLuxSidebar();setTimeout(()=>openAlgeriaDZ?.(),300);" class="glass-list-item">
+      <div class="glass-list-icon" style="background:linear-gradient(135deg,rgba(0,200,83,0.2),rgba(229,45,39,0.15));">🇩🇿</div>
+      <div>
+        <div class="glass-list-title">الجمهورية DZ</div>
+        <div class="glass-list-sub">مؤسسات وأبطال الجزائر</div>
+      </div>
+      <div class="glass-list-arrow">›</div>
+    </div>
+    <div onclick="closeLuxSidebar();setTimeout(()=>showModal?.('quizCard'),300);" class="glass-list-item">
+      <div class="glass-list-icon" style="background:linear-gradient(135deg,rgba(245,197,24,0.2),rgba(229,45,39,0.15));">🧠</div>
+      <div>
+        <div class="glass-list-title">الاختبارات</div>
+        <div class="glass-list-sub">تحدى نفسك واجمع النقاط</div>
+      </div>
+      <div class="glass-list-arrow">›</div>
+    </div>
+    <div onclick="closeLuxSidebar();setTimeout(()=>openSideMenuItem?.('settings'),300);" class="glass-list-item">
+      <div class="glass-list-icon" style="background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(100,20,180,0.15));">⚙️</div>
+      <div>
+        <div class="glass-list-title">الإعدادات</div>
+        <div class="glass-list-sub">الخصوصية والحساب</div>
+      </div>
+      <div class="glass-list-arrow">›</div>
+    </div>
+
+    <!-- ميزات مقترحة (يملأها المدير لاحقاً) -->
+    <div class="glass-section-label">🔮 قادمًا قريبًا</div>
+    <div class="glass-features-grid" style="margin-bottom:16px;">
+      <div class="glass-feature-card" style="opacity:0.5;animation-delay:0.35s;cursor:not-allowed;">
+        <div class="glass-feature-icon" style="background:rgba(255,255,255,0.05);">📡</div>
+        <div class="glass-feature-title" style="color:rgba(255,255,255,0.5);">البث المباشر</div>
+        <div class="glass-feature-sub">قريبًا</div>
+        <div class="glass-feature-badge" style="background:rgba(168,85,247,0.2);color:#c084fc;">🔜</div>
+      </div>
+      <div class="glass-feature-card" style="opacity:0.5;animation-delay:0.4s;cursor:not-allowed;">
+        <div class="glass-feature-icon" style="background:rgba(255,255,255,0.05);">🛒</div>
+        <div class="glass-feature-title" style="color:rgba(255,255,255,0.5);">المتجر</div>
+        <div class="glass-feature-sub">قريبًا</div>
+        <div class="glass-feature-badge" style="background:rgba(168,85,247,0.2);color:#c084fc;">🔜</div>
+      </div>
+      <div class="glass-feature-card" style="opacity:0.5;animation-delay:0.45s;cursor:not-allowed;">
+        <div class="glass-feature-icon" style="background:rgba(255,255,255,0.05);">📰</div>
+        <div class="glass-feature-title" style="color:rgba(255,255,255,0.5);">المدونة</div>
+        <div class="glass-feature-sub">قريبًا</div>
+        <div class="glass-feature-badge" style="background:rgba(168,85,247,0.2);color:#c084fc;">🔜</div>
+      </div>
+      <div class="glass-feature-card" style="opacity:0.5;animation-delay:0.5s;cursor:not-allowed;">
+        <div class="glass-feature-icon" style="background:rgba(255,255,255,0.05);">🎮</div>
+        <div class="glass-feature-title" style="color:rgba(255,255,255,0.5);">الألعاب</div>
+        <div class="glass-feature-sub">قريبًا</div>
+        <div class="glass-feature-badge" style="background:rgba(168,85,247,0.2);color:#c084fc;">🔜</div>
+      </div>
+    </div>
+
+    <!-- قسم المدير — يظهر فقط للمدير -->
+    <div id="luxAdminSection" style="display:none;">
+      <div class="glass-section-label" style="color:rgba(229,45,39,0.7);">👑 لوحة المدير</div>
+      <div class="glass-admin-btn" onclick="closeLuxSidebar();setTimeout(()=>openAdminRatingPanel(),300);">
+        <div class="glass-admin-icon">⭐</div>
+        <div class="glass-admin-text">
+          <div class="title">تقييم المستخدمين</div>
+          <div class="sub">إدارة • نقاط • تحذيرات • أوسمة</div>
+        </div>
+        <div style="font-size:20px;color:rgba(229,45,39,0.5);margin-right:auto;">›</div>
+      </div>
+      <div class="glass-admin-btn" style="background:linear-gradient(135deg,rgba(245,197,24,0.12),rgba(168,85,247,0.12));border-color:rgba(245,197,24,0.25);" onclick="closeLuxSidebar();setTimeout(()=>openAdminCommandPanel?.(),300);">
+        <div class="glass-admin-icon" style="background:linear-gradient(135deg,#f5c518,#a855f7);">📣</div>
+        <div class="glass-admin-text">
+          <div class="title" style="font-size:14px;">نشر إعلان</div>
+          <div class="sub" style="color:rgba(245,197,24,0.7);">إرسال منشور للجميع</div>
+        </div>
+        <div style="font-size:20px;color:rgba(245,197,24,0.4);margin-right:auto;">›</div>
+      </div>
+      <div style="display:flex;gap:10px;padding:0 16px 16px;">
+        <button onclick="closeLuxSidebar();setTimeout(()=>openAdminSendPointsPanel?.(),300);" class="lux-pub-btn lux-pub-gold" style="flex:1;justify-content:center;">⭐ إرسال نقاط</button>
+        <button onclick="closeLuxSidebar();setTimeout(()=>openAdminDeductPointsPanel?.(),300);" class="lux-pub-btn lux-pub-red" style="flex:1;justify-content:center;">➖ خصم نقاط</button>
+      </div>
+    </div>
+
+    <!-- تسجيل الخروج -->
+    <div class="glass-section-label"></div>
+    <div class="glass-list-item" onclick="closeLuxSidebar();setTimeout(()=>doLogout?.(),300);" style="border-color:rgba(229,45,39,0.15);margin-bottom:20px;">
+      <div class="glass-list-icon" style="background:rgba(229,45,39,0.12);">🚪</div>
+      <div>
+        <div class="glass-list-title" style="color:#f87171;">تسجيل الخروج</div>
+        <div class="glass-list-sub">الخروج من الحساب</div>
+      </div>
+      <div class="glass-list-arrow" style="color:rgba(229,45,39,0.3);">›</div>
+    </div>
+
+    <!-- التذييل -->
+    <div class="glass-footer">
+      <div class="glass-footer-logo">Connect DZ</div>
+      <div class="glass-footer-sub">Next Leaders DZ • منصة الشباب الجزائري</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     ⭐ HTML: لوحة تقييم المستخدمين
+     ══════════════════════════════════════════════════════ -->
+<div id="adminRatingPanel">
+  <div class="arp-header">
+    <div class="arp-back-btn" onclick="closeAdminRatingPanel()">‹</div>
+    <div>
+      <div class="arp-title">⭐ تقييم المستخدمين</div>
+      <div class="arp-sub">إدارة الأعضاء • نقاط • تحذيرات • أوسمة</div>
+    </div>
+  </div>
+  <div class="arp-search-wrap">
+    <input type="text" class="arp-search-input" id="arpSearchInput"
+      placeholder="🔍 ابحث عن عضو..."
+      oninput="filterArpUsers(this.value)" />
+  </div>
+  <div class="arp-user-list" id="arpUserList">
+    <!-- يتم توليده بالجافاسكريبت -->
+  </div>
+</div>
+
+<!-- نافذة إجراءات المستخدم المحدد -->
+<div id="adminUserActionsModal">
+  <div class="aua-panel">
+    <div class="aua-drag-bar"></div>
+    <div class="aua-user-info">
+      <div class="aua-user-big-avatar" id="auaAvatar">👤</div>
+      <div>
+        <div class="aua-user-big-name" id="auaName">—</div>
+        <div class="aua-user-big-pts" id="auaPts">0 نقطة</div>
+      </div>
+    </div>
+    <div class="aua-actions-grid">
+      <div class="aua-action-card aua-card-red" onclick="openAuaSubModal('ban')">
+        <div class="aua-action-icon">🚫</div>
+        <div class="aua-action-title">حظر العضو<br>من التطبيق</div>
+      </div>
+      <div class="aua-action-card aua-card-green" onclick="openAuaSubModal('addpts')">
+        <div class="aua-action-icon">⭐</div>
+        <div class="aua-action-title">إضافة<br>النقاط</div>
+      </div>
+      <div class="aua-action-card aua-card-purple" onclick="openAuaSubModal('deductpts')">
+        <div class="aua-action-icon">➖</div>
+        <div class="aua-action-title">خصم<br>النقاط</div>
+      </div>
+      <div class="aua-action-card aua-card-orange" onclick="openAuaSubModal('warn')">
+        <div class="aua-action-icon">⚠️</div>
+        <div class="aua-action-title">إرسال<br>تحذير</div>
+      </div>
+      <div class="aua-action-card aua-card-gold" onclick="openAuaSubModal('badge')" style="grid-column:1/-1;">
+        <div class="aua-action-icon">🏅</div>
+        <div class="aua-action-title">منح وسام مميز</div>
+      </div>
+    </div>
+    <button class="aua-sub-cancel" onclick="closeAdminUserActionsModal()">إغلاق</button>
+  </div>
+</div>
+
+<!-- نافذة الحظر -->
+<div id="auaBanModal" class="aua-sub-modal">
+  <div class="aua-sub-inner" style="border:1px solid rgba(229,45,39,0.2);">
+    <div class="aua-sub-title" style="color:#f87171;">🚫 حظر العضو</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:16px;">اكتب سبب الحظر (سيظهر للعضو)</div>
+    <textarea id="auaBanReason" class="aua-sub-input" style="min-height:80px;resize:none;" placeholder="سبب الحظر..."></textarea>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button class="aua-sub-btn" style="background:linear-gradient(135deg,#e52d27,#b71c1c);color:white;flex:1;" onclick="executeBanUser()">🚫 تأكيد الحظر</button>
+      <button class="aua-sub-cancel" style="margin-top:0;flex:0.6;" onclick="closeAuaSubModal('ban')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة إضافة نقاط -->
+<div id="auaAddPtsModal" class="aua-sub-modal">
+  <div class="aua-sub-inner" style="border:1px solid rgba(0,200,83,0.2);">
+    <div class="aua-sub-title" style="color:#4ade80;">⭐ إضافة نقاط</div>
+    <input id="auaAddPtsAmount" type="number" class="aua-sub-input" placeholder="عدد النقاط..." min="1" max="10000">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <button onclick="document.getElementById('auaAddPtsAmount').value=10" style="padding:6px 14px;border-radius:20px;background:rgba(0,200,83,0.12);border:1px solid rgba(0,200,83,0.3);color:#4ade80;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">+10</button>
+      <button onclick="document.getElementById('auaAddPtsAmount').value=50" style="padding:6px 14px;border-radius:20px;background:rgba(0,200,83,0.12);border:1px solid rgba(0,200,83,0.3);color:#4ade80;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">+50</button>
+      <button onclick="document.getElementById('auaAddPtsAmount').value=100" style="padding:6px 14px;border-radius:20px;background:rgba(0,200,83,0.12);border:1px solid rgba(0,200,83,0.3);color:#4ade80;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">+100</button>
+      <button onclick="document.getElementById('auaAddPtsAmount').value=500" style="padding:6px 14px;border-radius:20px;background:rgba(0,200,83,0.12);border:1px solid rgba(0,200,83,0.3);color:#4ade80;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">+500</button>
+    </div>
+    <input id="auaAddPtsReason" class="aua-sub-input" placeholder="سبب الإضافة (اختياري)...">
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button class="aua-sub-btn" style="background:linear-gradient(135deg,#00c853,#007a33);color:white;flex:1;" onclick="executeAddPoints()">✅ تأكيد الإضافة</button>
+      <button class="aua-sub-cancel" style="margin-top:0;flex:0.6;" onclick="closeAuaSubModal('addpts')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة خصم نقاط -->
+<div id="auaDeductPtsModal" class="aua-sub-modal">
+  <div class="aua-sub-inner" style="border:1px solid rgba(168,85,247,0.2);">
+    <div class="aua-sub-title" style="color:#c084fc;">➖ خصم نقاط</div>
+    <input id="auaDeductPtsAmount" type="number" class="aua-sub-input" placeholder="عدد النقاط المخصومة..." min="1">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <button onclick="document.getElementById('auaDeductPtsAmount').value=10" style="padding:6px 14px;border-radius:20px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);color:#c084fc;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">-10</button>
+      <button onclick="document.getElementById('auaDeductPtsAmount').value=50" style="padding:6px 14px;border-radius:20px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);color:#c084fc;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">-50</button>
+      <button onclick="document.getElementById('auaDeductPtsAmount').value=100" style="padding:6px 14px;border-radius:20px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);color:#c084fc;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">-100</button>
+    </div>
+    <input id="auaDeductPtsReason" class="aua-sub-input" placeholder="سبب الخصم...">
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button class="aua-sub-btn" style="background:linear-gradient(135deg,#a855f7,#6b21a8);color:white;flex:1;" onclick="executeDeductPoints()">✅ تأكيد الخصم</button>
+      <button class="aua-sub-cancel" style="margin-top:0;flex:0.6;" onclick="closeAuaSubModal('deductpts')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة التحذير -->
+<div id="auaWarnModal" class="aua-sub-modal">
+  <div class="aua-sub-inner" style="border:1px solid rgba(249,115,22,0.2);">
+    <div class="aua-sub-title" style="color:#fb923c;">⚠️ إرسال تحذير</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:16px;">سيصل التحذير للعضو عبر الإشعارات</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <button onclick="document.getElementById('auaWarnMsg').value='تحذير: يرجى الالتزام بقواعد المنصة'" style="padding:7px 12px;border-radius:20px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.25);color:#fb923c;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;width:100%;">📋 قواعد المنصة</button>
+      <button onclick="document.getElementById('auaWarnMsg').value='تحذير: المحتوى المنشور غير لائق يرجى الحذر'" style="padding:7px 12px;border-radius:20px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.25);color:#fb923c;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;width:100%;">🚫 محتوى غير لائق</button>
+    </div>
+    <textarea id="auaWarnMsg" class="aua-sub-input" style="min-height:80px;resize:none;" placeholder="نص التحذير..."></textarea>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button class="aua-sub-btn" style="background:linear-gradient(135deg,#f97316,#c2410c);color:white;flex:1;" onclick="executeWarnUser()">📤 إرسال التحذير</button>
+      <button class="aua-sub-cancel" style="margin-top:0;flex:0.6;" onclick="closeAuaSubModal('warn')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة منح وسام -->
+<div id="auaBadgeModal" class="aua-sub-modal">
+  <div class="aua-sub-inner" style="border:1px solid rgba(245,197,24,0.2);">
+    <div class="aua-sub-title" style="color:#fbbf24;">🏅 منح وسام مميز</div>
+    <div class="badge-grid" id="badgeSelectionGrid">
+      <!-- يتم توليد الأوسمة بالجافاسكريبت -->
+    </div>
+    <div id="selectedBadgePreview" style="text-align:center;padding:10px;background:rgba(245,197,24,0.08);border-radius:14px;margin-bottom:12px;display:none;">
+      <div id="selectedBadgeEmoji" style="font-size:32px;margin-bottom:4px;"></div>
+      <div id="selectedBadgeName" style="font-size:13px;font-weight:800;color:#fbbf24;"></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="aua-sub-btn" style="background:linear-gradient(135deg,#f5c518,#e0a800);color:#0d1117;flex:1;" onclick="executeGrantBadge()">🏅 منح الوسام</button>
+      <button class="aua-sub-cancel" style="margin-top:0;flex:0.6;" onclick="closeAuaSubModal('badge')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     🧠 JavaScript: منطق الشريط الجانبي الزجاجي
+     ══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ── أوسمة النظام ── */
+const LUX_BADGES = [
+  { emoji:'🌟', name:'نجم المنصة' },
+  { emoji:'🏆', name:'بطل المنافسة' },
+  { emoji:'💎', name:'عضو ماسي' },
+  { emoji:'🦁', name:'القائد' },
+  { emoji:'🚀', name:'المتميز' },
+  { emoji:'⚡', name:'النشيط' },
+  { emoji:'🎯', name:'الدقيق' },
+  { emoji:'🔥', name:'المتحمس' },
+  { emoji:'👑', name:'الملك' },
+  { emoji:'🌈', name:'المبدع' },
+  { emoji:'🛡️', name:'الأمين' },
+  { emoji:'🧠', name:'العبقري' },
+];
+
+/* ── عضو محدد حالياً ── */
+let _currentArpUser = null;
+let _selectedBadge = null;
+
+/* ══ فتح الشريط الجانبي الزجاجي ══ */
+window.openLuxSidebar = function(){
+  const overlay = document.getElementById('luxGlassSidebar');
+  if(!overlay) return;
+  /* تحديث بيانات المستخدم */
+  const name = (typeof getCurrentUser==='function') ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
+  const avatarEl = document.getElementById('luxSidebarAvatar');
+  const nameEl   = document.getElementById('luxSidebarName');
+  if(nameEl) nameEl.textContent = name || 'مرحباً!';
+  /* صورة المستخدم */
+  if(avatarEl){
+    const photoKey = 'profile_photo_' + name;
+    const photo = localStorage.getItem(photoKey);
+    if(photo){ avatarEl.innerHTML = `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; }
+    else { avatarEl.textContent = name ? name[0].toUpperCase() : '👑'; }
+  }
+  /* إظهار قسم المدير إن كان مدير */
+  const adminSection = document.getElementById('luxAdminSection');
+  if(adminSection){
+    const isAdmin = (typeof window._isAdminUser==='function') ? window._isAdminUser() :
+      (typeof window.__cdz_isAdmin !== 'undefined' ? window.__cdz_isAdmin :
+       (name && name.includes('مدير') || name === 'المدير'));
+    adminSection.style.display = isAdmin ? 'block' : 'none';
+  }
+  const panel = document.getElementById('luxGlassPanel');
+  if(panel) panel.classList.remove('closing');
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+};
+
+/* ══ إغلاق الشريط الجانبي ══ */
+window.closeLuxSidebar = function(){
+  const overlay = document.getElementById('luxGlassSidebar');
+  const panel   = document.getElementById('luxGlassPanel');
+  if(!overlay) return;
+  if(panel){ panel.classList.add('closing'); }
+  setTimeout(function(){
+    overlay.classList.remove('active');
+    if(panel) panel.classList.remove('closing');
+    document.body.style.overflow = '';
+  }, 280);
+};
+
+/* ── إغلاق بالنقر خارج الـ Panel ── */
+document.getElementById('luxGlassSidebar')?.addEventListener('click', function(e){
+  if(e.target === this) closeLuxSidebar();
+});
+
+/* ══ اعتراض زر القائمة الأصلي (toggleSocialSideMenu) ══ */
+const _origToggle = window.toggleSocialSideMenu;
+window.toggleSocialSideMenu = function(){
+  openLuxSidebar();
+};
+
+/* ══════════════════════════════════════════════════════
+   ⭐ لوحة تقييم المستخدمين
+   ══════════════════════════════════════════════════════ */
+
+/* فتح لوحة التقييم */
+window.openAdminRatingPanel = function(){
+  const panel = document.getElementById('adminRatingPanel');
+  if(!panel) return;
+  panel.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  _loadArpUsers();
+  _buildBadgeGrid();
+};
+
+/* إغلاق لوحة التقييم */
+window.closeAdminRatingPanel = function(){
+  const panel = document.getElementById('adminRatingPanel');
+  if(panel) panel.classList.remove('active');
+  document.body.style.overflow = '';
+};
+
+/* تحميل المستخدمين */
+function _loadArpUsers(filter){
+  const listEl = document.getElementById('arpUserList');
+  if(!listEl) return;
+
+  /* جلب الأعضاء من localStorage */
+  let members = [];
+  try {
+    const raw = localStorage.getItem('sklab_members');
+    if(raw) members = JSON.parse(raw);
+  } catch(e){}
+
+  /* البحث في Firebase كذلك */
+  const DB_ROOT = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  fetch(DB_ROOT + '/userStats.json')
+    .then(r=>r.json())
+    .then(data=>{
+      if(data && typeof data==='object'){
+        Object.keys(data).forEach(k=>{
+          const name = k.replace(/_/g,' ');
+          if(!members.find(m=>(m.name||m||'')===name)){
+            members.push({ name, pts: parseInt(data[k].totalPts||0), fbData: data[k] });
+          }
+        });
+      }
+      _renderArpUsers(members, filter||'');
+    })
+    .catch(()=>_renderArpUsers(members, filter||''));
+}
+
+function _renderArpUsers(members, filter){
+  const listEl = document.getElementById('arpUserList');
+  if(!listEl) return;
+  const filtered = filter ? members.filter(m=>{
+    const name = (typeof m==='string' ? m : (m.name||''));
+    return name.includes(filter);
+  }) : members;
+
+  if(!filtered.length){
+    listEl.innerHTML = `<div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,0.3);font-size:14px;font-weight:700;">لا يوجد أعضاء</div>`;
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(function(m, i){
+    const name = typeof m==='string' ? m : (m.name||m||'');
+    const pts  = typeof m==='string' ? 0 : parseInt(m.pts||0);
+    const initial = name ? name[0] : '?';
+    const colors = ['#a855f7,#e52d27','#00c853,#0099ff','#e52d27,#f5c518','#0099ff,#a855f7'];
+    const grad = colors[i%colors.length];
+    const delay = (i*0.04)+'s';
+
+    /* شارة الحظر */
+    const bannedKey = '__cdz_banned_' + name;
+    const isBanned  = localStorage.getItem(bannedKey) === '1';
+    const banBadge  = isBanned ? `<span style="padding:2px 8px;background:rgba(229,45,39,0.2);border:1px solid rgba(229,45,39,0.4);border-radius:20px;font-size:9px;font-weight:900;color:#f87171;">محظور</span>` : '';
+
+    /* الأوسمة المكتسبة */
+    let badgesHtml = '';
+    try {
+      const ub = JSON.parse(localStorage.getItem('__cdz_badges_'+name)||'[]');
+      if(ub.length){ badgesHtml = ub.slice(0,3).map(b=>`<span title="${b.name}">${b.emoji}</span>`).join(''); }
+    } catch(e){}
+
+    return `<div class="arp-user-card" style="animation-delay:${delay}" onclick="openAdminUserActions('${name.replace(/'/g,'\\'')}',${pts})">
+      <div class="arp-user-avatar" style="background:linear-gradient(135deg,${grad});">${initial}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="arp-user-name">${name}</div>
+        <div class="arp-user-info">
+          <span class="arp-user-pts">${pts.toLocaleString()} نقطة</span>
+          ${banBadge}
+          <span>${badgesHtml}</span>
+        </div>
+      </div>
+      <button class="arp-user-action-btn">إجراء ›</button>
+    </div>`;
+  }).join('');
+}
+
+/* فلترة البحث */
+window.filterArpUsers = function(val){
+  _loadArpUsers(val);
+};
+
+/* فتح إجراءات مستخدم محدد */
+window.openAdminUserActions = function(name, pts){
+  _currentArpUser = { name, pts };
+  const modal = document.getElementById('adminUserActionsModal');
+  if(!modal) return;
+  document.getElementById('auaName').textContent = name;
+  document.getElementById('auaPts').textContent  = (pts||0).toLocaleString() + ' نقطة';
+  const avatarEl = document.getElementById('auaAvatar');
+  if(avatarEl){
+    const photo = localStorage.getItem('profile_photo_' + name);
+    if(photo){ avatarEl.innerHTML = `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; }
+    else { avatarEl.textContent = name[0]||'?'; }
+  }
+  modal.classList.add('active');
+};
+
+window.closeAdminUserActionsModal = function(){
+  const modal = document.getElementById('adminUserActionsModal');
+  if(modal) modal.classList.remove('active');
+};
+
+/* ── فتح/إغلاق نوافذ الإجراءات الفرعية ── */
+const SUB_MODALS = { ban:'auaBanModal', addpts:'auaAddPtsModal', deductpts:'auaDeductPtsModal', warn:'auaWarnModal', badge:'auaBadgeModal' };
+
+window.openAuaSubModal = function(type){
+  closeAdminUserActionsModal();
+  setTimeout(function(){
+    const id = SUB_MODALS[type];
+    if(!id) return;
+    const el = document.getElementById(id);
+    if(el) el.classList.add('active');
+  }, 200);
+};
+
+window.closeAuaSubModal = function(type){
+  const id = SUB_MODALS[type];
+  if(!id) return;
+  const el = document.getElementById(id);
+  if(el) el.classList.remove('active');
+};
+
+/* ══ تنفيذ الإجراءات ══ */
+
+/* حظر */
+window.executeBanUser = function(){
+  if(!_currentArpUser) return;
+  const reason = document.getElementById('auaBanReason').value.trim();
+  const name   = _currentArpUser.name;
+  localStorage.setItem('__cdz_banned_' + name, '1');
+  localStorage.setItem('__cdz_ban_reason_' + name, reason || 'لم يُحدد سبب');
+  /* إرسال إشعار للعضو */
+  try {
+    const DB_ROOT = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+    const notifKey = 'notif_' + Date.now();
+    fetch(DB_ROOT + '/notifications/' + name.replace(/\s+/g,'_') + '/' + notifKey + '.json', {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ type:'ban', msg:'🚫 تم حظر حسابك: ' + (reason||'—'), ts: Date.now() })
+    }).catch(()=>{});
+  } catch(e){}
+  closeAuaSubModal('ban');
+  if(typeof showToast==='function') showToast('🚫 تم حظر العضو: ' + name);
+  setTimeout(()=>_loadArpUsers(), 300);
+};
+
+/* إضافة نقاط */
+window.executeAddPoints = function(){
+  if(!_currentArpUser) return;
+  const amt    = parseInt(document.getElementById('auaAddPtsAmount').value)||0;
+  const reason = document.getElementById('auaAddPtsReason').value.trim();
+  const name   = _currentArpUser.name;
+  if(!amt){ if(typeof showToast==='function') showToast('⚠️ أدخل عدد النقاط'); return; }
+  /* استدعاء دوال النقاط الموجودة */
+  if(typeof window.adminAddPoints==='function'){
+    window.adminAddPoints(name, amt);
+  } else if(typeof window.openAdminSendPointsPanel==='function'){
+    /* fallback: تحديث Firebase مباشرة */
+    const DB_ROOT = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+    const normName = name.replace(/\s+/g,'_');
+    fetch(DB_ROOT + '/userStats/' + normName + '.json')
+      .then(r=>r.json())
+      .then(d=>{
+        const cur = parseInt((d&&d.totalPts)||0);
+        return fetch(DB_ROOT + '/userStats/' + normName + '.json', {
+          method:'PATCH', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ adminPts:(parseInt((d&&d.adminPts)||0)+amt), totalPts:(cur+amt) })
+        });
+      })
+      .then(()=>{ if(typeof showToast==='function') showToast('✅ تمت إضافة ' + amt + ' نقطة لـ ' + name); })
+      .catch(()=>{ if(typeof showToast==='function') showToast('✅ تم'); });
+  }
+  closeAuaSubModal('addpts');
+  document.getElementById('auaAddPtsAmount').value = '';
+  document.getElementById('auaAddPtsReason').value = '';
+};
+
+/* خصم نقاط */
+window.executeDeductPoints = function(){
+  if(!_currentArpUser) return;
+  const amt    = parseInt(document.getElementById('auaDeductPtsAmount').value)||0;
+  const reason = document.getElementById('auaDeductPtsReason').value.trim();
+  const name   = _currentArpUser.name;
+  if(!amt){ if(typeof showToast==='function') showToast('⚠️ أدخل عدد النقاط'); return; }
+  const DB_ROOT = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  const normName = name.replace(/\s+/g,'_');
+  fetch(DB_ROOT + '/userStats/' + normName + '.json')
+    .then(r=>r.json())
+    .then(d=>{
+      const cur = parseInt((d&&d.totalPts)||0);
+      const newPts = Math.max(0, cur - amt);
+      return fetch(DB_ROOT + '/userStats/' + normName + '.json', {
+        method:'PATCH', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ totalPts: newPts })
+      });
+    })
+    .then(()=>{ if(typeof showToast==='function') showToast('➖ تم خصم ' + amt + ' نقطة من ' + name); })
+    .catch(()=>{ if(typeof showToast==='function') showToast('✅ تم'); });
+  closeAuaSubModal('deductpts');
+  document.getElementById('auaDeductPtsAmount').value = '';
+  document.getElementById('auaDeductPtsReason').value = '';
+};
+
+/* تحذير */
+window.executeWarnUser = function(){
+  if(!_currentArpUser) return;
+  const msg  = document.getElementById('auaWarnMsg').value.trim();
+  const name = _currentArpUser.name;
+  if(!msg){ if(typeof showToast==='function') showToast('⚠️ اكتب نص التحذير'); return; }
+  const DB_ROOT = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  const notifKey = 'warn_' + Date.now();
+  fetch(DB_ROOT + '/notifications/' + name.replace(/\s+/g,'_') + '/' + notifKey + '.json', {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ type:'warning', msg:'⚠️ تحذير: ' + msg, ts: Date.now() })
+  }).then(()=>{ if(typeof showToast==='function') showToast('⚠️ تم إرسال التحذير لـ ' + name); })
+    .catch(()=>{ if(typeof showToast==='function') showToast('✅ تم'); });
+  closeAuaSubModal('warn');
+  document.getElementById('auaWarnMsg').value = '';
+};
+
+/* منح وسام */
+function _buildBadgeGrid(){
+  const grid = document.getElementById('badgeSelectionGrid');
+  if(!grid) return;
+  _selectedBadge = null;
+  document.getElementById('selectedBadgePreview').style.display = 'none';
+  grid.innerHTML = LUX_BADGES.map(function(b){
+    return `<div class="badge-item" onclick="selectBadge('${b.emoji}','${b.name.replace(/'/g,'\\'')}',this)">
+      <div class="badge-emoji">${b.emoji}</div>
+      <div class="badge-name">${b.name}</div>
+    </div>`;
+  }).join('');
+}
+
+window.selectBadge = function(emoji, name, el){
+  _selectedBadge = { emoji, name };
+  document.querySelectorAll('.badge-item').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  const preview = document.getElementById('selectedBadgePreview');
+  document.getElementById('selectedBadgeEmoji').textContent = emoji;
+  document.getElementById('selectedBadgeName').textContent  = name;
+  if(preview) preview.style.display = 'block';
+};
+
+window.executeGrantBadge = function(){
+  if(!_currentArpUser || !_selectedBadge){ if(typeof showToast==='function') showToast('⚠️ اختر وساماً أولاً'); return; }
+  const name = _currentArpUser.name;
+  /* حفظ الوسام محلياً */
+  const badgeKey = '__cdz_badges_' + name;
+  let badges = [];
+  try { badges = JSON.parse(localStorage.getItem(badgeKey)||'[]'); } catch(e){}
+  if(!badges.find(b=>b.emoji===_selectedBadge.emoji)){
+    badges.push(_selectedBadge);
+    localStorage.setItem(badgeKey, JSON.stringify(badges));
+  }
+  /* إرسال إشعار */
+  const DB_ROOT = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  const notifKey = 'badge_' + Date.now();
+  fetch(DB_ROOT + '/notifications/' + name.replace(/\s+/g,'_') + '/' + notifKey + '.json', {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ type:'badge', msg:`🏅 مبروك! حصلت على وسام ${_selectedBadge.emoji} "${_selectedBadge.name}"`, ts: Date.now() })
+  }).catch(()=>{});
+  closeAuaSubModal('badge');
+  if(typeof showToast==='function') showToast(`🏅 تم منح وسام ${_selectedBadge.emoji} لـ ${name}!`);
+  setTimeout(()=>_loadArpUsers(), 300);
+};
+
+/* ── تلقائي: تحديث الزر الجانبي ليفتح الشريط الجانبي الجديد ── */
+window.addEventListener('load', function(){
+  /* أضف class للشريط الجانبي القديم ليختفي */
+  const oldMenu = document.getElementById('socialSideMenu');
+  const oldOverlay = document.getElementById('socialSideMenuOverlay');
+  /* نُبقي عليهما ولكن نستبدل toggle بالجديد */
+
+  /* تحقق من وجود زر القائمة القديم */
+  const menuBtn = document.getElementById('socialMenuBtn');
+  if(menuBtn){
+    menuBtn.onclick = function(){ openLuxSidebar(); };
+  }
+
+  /* إضافة أوسمة موجودة من localStorage للعرض */
+  console.log('✅ [LuxUpgrade] الشريط الجانبي الزجاجي جاهز');
+});
+
+})();
+</script>
+
 </body>
 </html>
