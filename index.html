@@ -4530,6 +4530,7 @@ function switchLoginTab(tab){
           <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
         </svg>
         <span style="font-size:9px;font-weight:800;background:linear-gradient(90deg,#FFD700,#e52d27);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">البطولة</span>
+        <!-- label already correct -->
       </div>
     </div>
   </div>
@@ -4911,7 +4912,11 @@ function switchLoginTab(tab){
           <div style="font-size:11px;opacity:0.85;margin-top:2px;">Connect DZ ◆ عضو</div>
         </div>
         <!-- زر الإدارة / لوحة التحكم -->
-        <div onclick="closeSocialSideMenu();setTimeout(()=>hideSocialHomeForDashboard(),200);" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;">
+        <!-- زر لوحة تحكم المدير -->
+        <div id="adminSideControlBtn" onclick="closeSocialSideMenu();setTimeout(()=>openAdminControlPanel(),200);" style="display:none;background:linear-gradient(135deg,#FFD700,#FFA500);border:none;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:900;cursor:pointer;display:none;align-items:center;gap:5px;color:#0d1117;">
+          <span>🛡️</span> لوحة المدير
+        </div>
+        <div id="regularSideBtn" onclick="closeSocialSideMenu();setTimeout(()=>hideSocialHomeForDashboard(),200);" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;">
           <span>⚙️</span> الإدارة
         </div>
       </div>
@@ -4941,11 +4946,20 @@ function switchLoginTab(tab){
         <span style="color:#BCC0C4;font-size:16px;">›</span>
       </div>
 
-      <!-- الملف الإداري -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>showModal('adminModal'),200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#FFF8E1'" onmouseout="this.style.background='transparent'">
+      <!-- الملف الإداري — يفتح استمارة قوقل للمدير -->
+      <div onclick="closeSocialSideMenu();setTimeout(()=>window.open('https://docs.google.com/forms/d/e/1FAIpQLSdExample/viewform','_blank'),200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#FFF8E1'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;font-size:18px;">🗂️</div>
-        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">الملف الإداري</div><div style="font-size:11px;color:#65676B;">إدارة التطبيق والأعضاء</div></div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">الملف الإداري</div><div style="font-size:11px;color:#65676B;">استمارة قوقل فورم</div></div>
         <span style="color:#BCC0C4;font-size:16px;">›</span>
+      </div>
+
+      <!-- لوحة تحكم المدير — تظهر فقط للمدير -->
+      <div id="sideAdminControlItem" style="display:none;flex-direction:column;">
+        <div onclick="closeSocialSideMenu();setTimeout(()=>openAdminControlPanel(),200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;background:linear-gradient(135deg,rgba(255,215,0,0.08),rgba(255,165,0,0.05));border-right:3px solid #FFD700;" onmouseover="this.style.background='rgba(255,215,0,0.15)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(255,215,0,0.08),rgba(255,165,0,0.05))'">
+          <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#FFD700,#e52d27);display:flex;align-items:center;justify-content:center;font-size:18px;">🛡️</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#050505;">لوحة تحكم المدير</div><div style="font-size:11px;color:#e57700;">صلاحيات إدارية كاملة</div></div>
+          <span style="background:linear-gradient(135deg,#FFD700,#FFA500);color:#0d1117;border-radius:8px;padding:2px 8px;font-size:10px;font-weight:900;">ADMIN</span>
+        </div>
       </div>
 
       <!-- سمات وألوان التطبيق -->
@@ -15599,10 +15613,10 @@ function applyLang(code, skipOverlay){
   try{
     // التبويبات
     const tabLabels = {
-      ar:{ home:'الرئيسية', friends:'الأصدقاء', notifs:'الإشعارات', pages:'مسنجر', myprofile:'ريلز' },
-      en:{ home:'Home', friends:'Friends', notifs:'Notifications', pages:'Messenger', myprofile:'Reels' },
-      es:{ home:'Inicio', friends:'Amigos', notifs:'Notificaciones', pages:'Mensajes', myprofile:'Reels' },
-      zh:{ home:'主页', friends:'朋友', notifs:'通知', pages:'消息', myprofile:'视频' }
+      ar:{ home:'الرئيسية', friends:'الأصدقاء', notifs:'الإشعارات', pages:'مسنجر', myprofile:'البطولة' },
+      en:{ home:'Home', friends:'Friends', notifs:'Notifications', pages:'Messenger', myprofile:'البطولة' },
+      es:{ home:'Inicio', friends:'Amigos', notifs:'Notificaciones', pages:'Mensajes', myprofile:'البطولة' },
+      zh:{ home:'主页', friends:'朋友', notifs:'通知', pages:'消息', myprofile:'البطولة' }
     };
     const tl = tabLabels[code] || tabLabels['ar'];
     ['home','friends','notifs','pages','myprofile'].forEach(t=>{
@@ -36336,6 +36350,767 @@ console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات �
 
   window._appThemes = APP_THEMES;
   console.log('🎨 [ConnectDZ] نظام سمات التطبيق — جاهز');
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+   🛡️ لوحة تحكم المدير الكاملة — Admin Control Panel
+   ══════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ─── تعريف لوحة تحكم المدير ─── */
+window.openAdminControlPanel = function(){
+  var old = document.getElementById('_adminControlPanelOverlay');
+  if(old) old.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = '_adminControlPanelOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(5,10,14,0.92);backdrop-filter:blur(12px);display:flex;flex-direction:column;animation:fadeIn .25s ease;overflow-y:auto;';
+
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(135deg,#FFD700,#e52d27);padding:20px 18px 16px;flex-shrink:0;position:sticky;top:0;z-index:2;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;font-size:22px;">🛡️</div>
+          <div>
+            <div style="font-size:17px;font-weight:900;color:white;text-shadow:0 1px 4px rgba(0,0,0,0.3);">لوحة تحكم المدير</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.85);">صلاحيات إدارية كاملة</div>
+          </div>
+        </div>
+        <div onclick="document.getElementById('_adminControlPanelOverlay').remove();" style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:white;font-weight:900;">✕</div>
+      </div>
+    </div>
+
+    <div style="padding:16px;display:flex;flex-direction:column;gap:14px;max-width:520px;width:100%;margin:0 auto;">
+
+      <!-- ① مراقبة المحادثات -->
+      <div style="background:#0d1117;border:1px solid rgba(255,215,0,0.2);border-radius:20px;overflow:hidden;">
+        <div style="padding:16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#0084FF,#00c6ff);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">💬</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:white;">مراقبة محادثات المسنجر</div><div style="font-size:11px;color:#8b949e;margin-top:2px;">مراقبة أهلية لجميع المحادثات</div></div>
+        </div>
+        <div style="padding:14px;">
+          <div id="adminMsgMonitorList" style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+            <div style="text-align:center;padding:20px;color:#8b949e;font-size:12px;">جارٍ تحميل المحادثات...</div>
+          </div>
+          <button onclick="loadAdminMsgMonitor()" style="width:100%;padding:11px;background:linear-gradient(135deg,#0084FF,#0099ff);border:none;border-radius:12px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;cursor:pointer;">🔄 تحميل / تحديث المحادثات</button>
+        </div>
+      </div>
+
+      <!-- ② مراقبة المنشورات -->
+      <div style="background:#0d1117;border:1px solid rgba(255,215,0,0.2);border-radius:20px;overflow:hidden;">
+        <div style="padding:16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#00c853,#007a33);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📰</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:white;">مراقبة المنشورات والصفحات</div><div style="font-size:11px;color:#8b949e;margin-top:2px;">عرض وحذف منشورات المستخدمين</div></div>
+        </div>
+        <div style="padding:14px;">
+          <div id="adminPostsMonitorList" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+            <div style="text-align:center;padding:20px;color:#8b949e;font-size:12px;">جارٍ تحميل المنشورات...</div>
+          </div>
+          <button onclick="loadAdminPostsMonitor()" style="width:100%;padding:11px;background:linear-gradient(135deg,#00c853,#007a33);border:none;border-radius:12px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;cursor:pointer;">🔄 تحميل / تحديث المنشورات</button>
+        </div>
+      </div>
+
+      <!-- ③ قائمة الأعضاء + إدارة -->
+      <div style="background:#0d1117;border:1px solid rgba(255,215,0,0.2);border-radius:20px;overflow:hidden;">
+        <div style="padding:16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">👥</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:white;">قائمة جميع الأعضاء</div><div style="font-size:11px;color:#8b949e;margin-top:2px;">اضغط على أي عضو لخيارات الإدارة</div></div>
+        </div>
+        <div style="padding:14px;">
+          <input id="adminMemberSearch" oninput="filterAdminMembers(this.value)" placeholder="🔍 ابحث عن عضو..." style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;outline:none;box-sizing:border-box;margin-bottom:10px;">
+          <div id="adminMembersList" style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">
+            <div style="text-align:center;padding:20px;color:#8b949e;font-size:12px;">جارٍ تحميل الأعضاء...</div>
+          </div>
+          <button onclick="loadAdminMembersList()" style="width:100%;padding:11px;background:linear-gradient(135deg,#a855f7,#7c3aed);border:none;border-radius:12px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;cursor:pointer;margin-top:10px;">🔄 تحميل الأعضاء</button>
+        </div>
+      </div>
+
+      <!-- ④ قاعة الاجتماع -->
+      <div style="background:#0d1117;border:1px solid rgba(0,229,160,0.25);border-radius:20px;overflow:hidden;">
+        <div style="padding:16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#00e5a0,#00b894);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏛️</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#00e5a0;">قاعة الاجتماع</div><div style="font-size:11px;color:#8b949e;margin-top:2px;">المحادثة الجماعية التلقائية</div></div>
+        </div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:8px;">
+          <button onclick="openMeetingRoomAdmin()" style="width:100%;padding:12px;background:linear-gradient(135deg,#00e5a0,#00b894);border:none;border-radius:12px;color:#050a0e;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:900;cursor:pointer;">🏛️ فتح قاعة الاجتماع</button>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button onclick="toggleMeetingRoomMessages()" style="padding:10px;background:rgba(239,68,68,0.15);border:1.5px solid rgba(239,68,68,0.35);border-radius:10px;color:#f87171;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;" id="meetingMuteBtn">🔇 إيقاف الرسائل</button>
+            <button onclick="editMeetingRoomInfo()" style="padding:10px;background:rgba(255,215,0,0.12);border:1.5px solid rgba(255,215,0,0.3);border-radius:10px;color:#FFD700;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">✏️ تعديل المجموعة</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  /* تحميل تلقائي عند الفتح */
+  setTimeout(function(){ loadAdminMembersList(); loadAdminPostsMonitor(); loadAdminMsgMonitor(); }, 400);
+};
+
+/* ─── تحميل قائمة الأعضاء ─── */
+var _adminAllMembers = [];
+window.loadAdminMembersList = function(){
+  var listEl = document.getElementById('adminMembersList');
+  if(!listEl) return;
+  listEl.innerHTML = '<div style="text-align:center;padding:16px;color:#8b949e;font-size:12px;">⏳ جارٍ التحميل...</div>';
+
+  /* محاولة قراءة من Firebase */
+  var db = window.firebaseDb || (window.firebase && window.firebase.database && window.firebase.database());
+  if(db){
+    db.ref('users').once('value').then(function(snap){
+      var members = [];
+      snap.forEach(function(child){ members.push({ name: child.key, data: child.val() }); });
+      _adminAllMembers = members;
+      _renderAdminMembersList(members);
+    }).catch(function(){
+      _fallbackAdminMembers(listEl);
+    });
+  } else {
+    _fallbackAdminMembers(listEl);
+  }
+};
+
+function _fallbackAdminMembers(listEl){
+  /* fallback: من localStorage */
+  var members = [];
+  for(var i=0;i<localStorage.length;i++){
+    var k = localStorage.key(i);
+    if(k && k.startsWith('sklab_reg_')){
+      var name = k.replace('sklab_reg_','');
+      members.push({name: name, data: {}});
+    }
+  }
+  _adminAllMembers = members;
+  _renderAdminMembersList(members);
+}
+
+function _renderAdminMembersList(members){
+  var listEl = document.getElementById('adminMembersList');
+  if(!listEl) return;
+  if(!members.length){
+    listEl.innerHTML = '<div style="text-align:center;padding:16px;color:#8b949e;font-size:12px;">لا يوجد أعضاء</div>';
+    return;
+  }
+  listEl.innerHTML = members.map(function(m){
+    return '<div onclick="openAdminMemberMenu(\''+m.name+'\')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:12px;cursor:pointer;transition:.15s;border:1px solid rgba(255,255,255,0.06);" onmouseover="this.style.background=\'rgba(255,215,0,0.08)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.04)\'">'
+      + '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👤</div>'
+      + '<div style="flex:1;"><div style="font-size:13px;font-weight:800;color:white;">'+m.name+'</div><div style="font-size:10px;color:#8b949e;">اضغط لخيارات الإدارة</div></div>'
+      + '<span style="color:#FFD700;font-size:16px;">›</span>'
+      + '</div>';
+  }).join('');
+}
+
+window.filterAdminMembers = function(q){
+  if(!q) return _renderAdminMembersList(_adminAllMembers);
+  var filtered = _adminAllMembers.filter(function(m){ return m.name.includes(q); });
+  _renderAdminMembersList(filtered);
+};
+
+/* ─── قائمة إدارة عضو معين ─── */
+window.openAdminMemberMenu = function(memberName){
+  var old = document.getElementById('_adminMemberMenuOverlay');
+  if(old) old.remove();
+
+  var ov = document.createElement('div');
+  ov.id = '_adminMemberMenuOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9999999;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;';
+  ov.onclick = function(e){ if(e.target===ov) ov.remove(); };
+
+  ov.innerHTML = `
+    <div style="background:#0d1117;border:1px solid rgba(255,215,0,0.25);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:0 0 30px;max-height:90vh;overflow-y:auto;">
+      <div style="width:36px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;margin:10px auto 4px;"></div>
+      <div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:12px;">
+        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;font-size:24px;">👤</div>
+        <div><div style="font-size:16px;font-weight:900;color:white;">${memberName}</div><div style="font-size:11px;color:#8b949e;">إدارة العضو</div></div>
+        <div onclick="document.getElementById('_adminMemberMenuOverlay').remove();" style="margin-right:auto;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;font-weight:900;">✕</div>
+      </div>
+      <div style="padding:12px 16px;display:flex;flex-direction:column;gap:6px;">
+
+        <div onclick="adminBanMember('${memberName}')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:rgba(239,68,68,0.08);border-radius:14px;cursor:pointer;border:1px solid rgba(239,68,68,0.2);">
+          <span style="font-size:20px;">🚫</span><div><div style="font-size:13px;font-weight:800;color:#f87171;">حظر العضو</div><div style="font-size:11px;color:#8b949e;">منع من الوصول مؤقتاً</div></div>
+        </div>
+
+        <div onclick="adminRemoveMember('${memberName}')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:rgba(239,68,68,0.12);border-radius:14px;cursor:pointer;border:1px solid rgba(239,68,68,0.3);">
+          <span style="font-size:20px;">🗑️</span><div><div style="font-size:13px;font-weight:800;color:#ef4444;">إزالة العضو</div><div style="font-size:11px;color:#8b949e;">تحديد المكان الذي تريد إزالته منه</div></div>
+        </div>
+
+        <div onclick="adminAddPoints('${memberName}')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:rgba(0,229,160,0.08);border-radius:14px;cursor:pointer;border:1px solid rgba(0,229,160,0.2);">
+          <span style="font-size:20px;">➕</span><div><div style="font-size:13px;font-weight:800;color:#00e5a0;">إضافة النقاط</div><div style="font-size:11px;color:#8b949e;">منح نقاط للعضو</div></div>
+        </div>
+
+        <div onclick="adminDeductPoints('${memberName}')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:rgba(239,68,68,0.08);border-radius:14px;cursor:pointer;border:1px solid rgba(239,68,68,0.2);">
+          <span style="font-size:20px;">➖</span><div><div style="font-size:13px;font-weight:800;color:#f87171;">خصم النقاط</div><div style="font-size:11px;color:#8b949e;">خصم نقاط من العضو</div></div>
+        </div>
+
+        <div onclick="adminGrantPrivilege('${memberName}')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:rgba(255,215,0,0.08);border-radius:14px;cursor:pointer;border:1px solid rgba(255,215,0,0.2);">
+          <span style="font-size:20px;">⭐</span><div><div style="font-size:13px;font-weight:800;color:#FFD700;">منح امتياز</div><div style="font-size:11px;color:#8b949e;">صلاحية أو مزية خاصة</div></div>
+        </div>
+
+        <div onclick="adminGrantBadge('${memberName}')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:rgba(168,85,247,0.08);border-radius:14px;cursor:pointer;border:1px solid rgba(168,85,247,0.2);">
+          <span style="font-size:20px;">🎖️</span><div><div style="font-size:13px;font-weight:800;color:#c084fc;">منح وسام</div><div style="font-size:11px;color:#8b949e;">وسام تكريمي للعضو</div></div>
+        </div>
+
+        <div onclick="adminGrantVerification('${memberName}')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:rgba(0,153,255,0.08);border-radius:14px;cursor:pointer;border:1px solid rgba(0,153,255,0.2);">
+          <span style="font-size:20px;">✅</span><div><div style="font-size:13px;font-weight:800;color:#60a5fa;">شارة التوثيق</div><div style="font-size:11px;color:#8b949e;">توثيق حساب العضو</div></div>
+        </div>
+
+        <div onclick="adminSendNotice('${memberName}')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:rgba(249,115,22,0.08);border-radius:14px;cursor:pointer;border:1px solid rgba(249,115,22,0.2);">
+          <span style="font-size:20px;">📢</span><div><div style="font-size:13px;font-weight:800;color:#fb923c;">رسالة تنبيه / توجيه / تقدير</div><div style="font-size:11px;color:#8b949e;">إرسال رسالة رسمية من المدير</div></div>
+        </div>
+
+      </div>
+    </div>
+  `;
+  document.body.appendChild(ov);
+};
+
+/* ─── دوال إدارة الأعضاء ─── */
+window.adminBanMember = function(name){
+  if(!confirm('⚠️ هل تريد حظر العضو: '+name+'؟')) return;
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){ db.ref('banned/'+name.replace(/\s+/g,'_')).set({ banned:true, by:'admin', at: Date.now() }); }
+  localStorage.setItem('admin_banned_'+name.replace(/\s+/g,'_'),'1');
+  showToast('🚫 تم حظر العضو: '+name);
+  document.getElementById('_adminMemberMenuOverlay')?.remove();
+};
+
+window.adminRemoveMember = function(name){
+  var ov2 = document.createElement('div');
+  ov2.style.cssText='position:fixed;inset:0;z-index:99999999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;';
+  ov2.innerHTML = `<div style="background:#0d1117;border:1px solid rgba(239,68,68,0.3);border-radius:20px;padding:24px;width:92%;max-width:380px;">
+    <div style="font-size:16px;font-weight:900;color:#f87171;text-align:center;margin-bottom:16px;">🗑️ إزالة العضو: ${name}</div>
+    <div style="font-size:12px;color:#8b949e;margin-bottom:14px;text-align:center;">اختر المكان الذي تريد إزالة العضو منه:</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button onclick="_execRemoveMember('${name}','chat')" style="padding:11px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:12px;color:#f87171;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">💬 إزالة من المحادثات</button>
+      <button onclick="_execRemoveMember('${name}','meetingRoom')" style="padding:11px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:12px;color:#f87171;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">🏛️ إزالة من قاعة الاجتماع</button>
+      <button onclick="_execRemoveMember('${name}','platform')" style="padding:11px;background:rgba(239,68,68,0.25);border:1px solid rgba(239,68,68,0.5);border-radius:12px;color:#ef4444;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;cursor:pointer;">🔴 إزالة من المنصة كلياً</button>
+    </div>
+    <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;margin-top:12px;padding:10px;background:rgba(255,255,255,0.06);border:none;border-radius:12px;color:#8b949e;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">إلغاء</button>
+  </div>`;
+  document.body.appendChild(ov2);
+};
+
+window._execRemoveMember = function(name, from){
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  var labels = { chat:'المحادثات', meetingRoom:'قاعة الاجتماع', platform:'المنصة كلياً' };
+  if(db){
+    if(from==='platform'){
+      db.ref('users/'+name.replace(/\s+/g,'_')).remove();
+      db.ref('removed/'+name.replace(/\s+/g,'_')).set({ removedFrom: from, at: Date.now() });
+    } else if(from==='meetingRoom'){
+      db.ref('meetingRoom/members/'+name.replace(/\s+/g,'_')).remove();
+    }
+  }
+  localStorage.removeItem('sklab_reg_'+name.replace(/\s+/g,'_'));
+  showToast('✅ تم إزالة '+name+' من: '+labels[from]);
+  document.querySelectorAll('[style*="z-index:99999999"]').forEach(function(el){ el.remove(); });
+  document.getElementById('_adminMemberMenuOverlay')?.remove();
+  loadAdminMembersList();
+};
+
+window.adminAddPoints = function(name){
+  var pts = prompt('أدخل عدد النقاط التي تريد إضافتها للعضو: '+name);
+  if(!pts || isNaN(pts)) return;
+  pts = parseInt(pts);
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){
+    db.ref('users/'+name.replace(/\s+/g,'_')+'/adminPoints').transaction(function(cur){ return (cur||0)+pts; });
+  }
+  showToast('✅ تمت إضافة '+pts+' نقطة للعضو: '+name);
+  document.getElementById('_adminMemberMenuOverlay')?.remove();
+};
+
+window.adminDeductPoints = function(name){
+  var pts = prompt('أدخل عدد النقاط التي تريد خصمها من العضو: '+name);
+  if(!pts || isNaN(pts)) return;
+  pts = parseInt(pts);
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){
+    db.ref('users/'+name.replace(/\s+/g,'_')+'/adminPoints').transaction(function(cur){ return (cur||0)-pts; });
+  }
+  showToast('✅ تم خصم '+pts+' نقطة من العضو: '+name);
+  document.getElementById('_adminMemberMenuOverlay')?.remove();
+};
+
+window.adminGrantPrivilege = function(name){
+  var priv = prompt('أدخل اسم الامتياز الذي تريد منحه للعضو: '+name+'\n(مثال: VIP، مدرب، مشرف...)');
+  if(!priv) return;
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){ db.ref('users/'+name.replace(/\s+/g,'_')+'/privilege').set(priv); }
+  showToast('⭐ تم منح امتياز "'+priv+'" للعضو: '+name);
+  document.getElementById('_adminMemberMenuOverlay')?.remove();
+};
+
+window.adminGrantBadge = function(name){
+  var badges = ['🥇 الذهبي','🥈 الفضي','🥉 البرونزي','🏆 البطل','💎 الماسي','🦅 النسر','🌟 النجم','🔥 الأسطورة'];
+  var ov2 = document.createElement('div');
+  ov2.style.cssText='position:fixed;inset:0;z-index:99999999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;';
+  ov2.innerHTML='<div style="background:#0d1117;border:1px solid rgba(168,85,247,0.3);border-radius:20px;padding:24px;width:92%;max-width:380px;">'
+    +'<div style="font-size:15px;font-weight:900;color:#c084fc;text-align:center;margin-bottom:14px;">🎖️ اختر وساماً للعضو: '+name+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
+    +badges.map(function(b){ return '<button onclick="_execGrantBadge(\''+name+'\',\''+b+'\')" style="padding:10px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.25);border-radius:12px;color:#c084fc;font-family:\'Tajawal\',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">'+b+'</button>'; }).join('')
+    +'</div><button onclick="this.closest(\'[style*=fixed]\').remove()" style="width:100%;margin-top:12px;padding:10px;background:rgba(255,255,255,0.06);border:none;border-radius:12px;color:#8b949e;font-family:\'Tajawal\',sans-serif;font-size:13px;cursor:pointer;">إلغاء</button></div>';
+  document.body.appendChild(ov2);
+};
+
+window._execGrantBadge = function(name, badge){
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){ db.ref('users/'+name.replace(/\s+/g,'_')+'/badge').set(badge); }
+  showToast('🎖️ تم منح وسام "'+badge+'" للعضو: '+name);
+  document.querySelectorAll('[style*="z-index:99999999"]').forEach(function(el){ el.remove(); });
+  document.getElementById('_adminMemberMenuOverlay')?.remove();
+};
+
+window.adminGrantVerification = function(name){
+  if(!confirm('هل تريد منح شارة التوثيق ✅ للعضو: '+name+'؟')) return;
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){ db.ref('users/'+name.replace(/\s+/g,'_')+'/verified').set(true); }
+  localStorage.setItem('nld_verified_'+name.replace(/\s+/g,'_'),'1');
+  showToast('✅ تم منح شارة التوثيق للعضو: '+name);
+  document.getElementById('_adminMemberMenuOverlay')?.remove();
+};
+
+window.adminSendNotice = function(name){
+  var types = ['⚠️ تنبيه','📌 توجيه','🌟 تقدير'];
+  var ov2 = document.createElement('div');
+  ov2.style.cssText='position:fixed;inset:0;z-index:99999999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;';
+  ov2.innerHTML='<div style="background:#0d1117;border:1px solid rgba(249,115,22,0.3);border-radius:20px;padding:24px;width:92%;max-width:400px;">'
+    +'<div style="font-size:15px;font-weight:900;color:#fb923c;text-align:center;margin-bottom:14px;">📢 إرسال رسالة للعضو: '+name+'</div>'
+    +'<div style="display:flex;gap:6px;margin-bottom:12px;">'
+    +types.map(function(t){ return '<button onclick="document.getElementById(\'_adminNoticeType\').value=\''+t+'\';document.querySelectorAll(\'._ntype\').forEach(function(b){b.style.background=\'rgba(255,255,255,0.05)\'});this.style.background=\'rgba(249,115,22,0.3)\';" class="_ntype" style="flex:1;padding:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(249,115,22,0.2);border-radius:10px;color:#fb923c;font-family:\'Tajawal\',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">'+t+'</button>'; }).join('')
+    +'</div>'
+    +'<input id="_adminNoticeType" type="hidden" value="⚠️ تنبيه">'
+    +'<textarea id="_adminNoticeMsg" placeholder="اكتب نص الرسالة هنا..." style="width:100%;min-height:90px;padding:12px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(249,115,22,0.25);border-radius:12px;color:white;font-family:\'Tajawal\',sans-serif;font-size:13px;outline:none;box-sizing:border-box;resize:none;margin-bottom:12px;"></textarea>'
+    +'<button onclick="_execSendNotice(\''+name+'\')" style="width:100%;padding:12px;background:linear-gradient(135deg,#f97316,#ea580c);border:none;border-radius:12px;color:white;font-family:\'Tajawal\',sans-serif;font-size:14px;font-weight:900;cursor:pointer;margin-bottom:8px;">📤 إرسال الرسالة</button>'
+    +'<button onclick="this.closest(\'[style*=fixed]\').remove()" style="width:100%;padding:10px;background:rgba(255,255,255,0.06);border:none;border-radius:12px;color:#8b949e;font-family:\'Tajawal\',sans-serif;font-size:13px;cursor:pointer;">إلغاء</button></div>';
+  document.body.appendChild(ov2);
+};
+
+window._execSendNotice = function(name){
+  var type = document.getElementById('_adminNoticeType')?.value || '⚠️ تنبيه';
+  var msg = document.getElementById('_adminNoticeMsg')?.value?.trim();
+  if(!msg){ showToast('⚠️ أدخل نص الرسالة'); return; }
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  var notif = { type: type, message: msg, from: 'المدير', to: name, at: Date.now() };
+  if(db){ db.ref('adminNotices/'+name.replace(/\s+/g,'_')+'/'+Date.now()).set(notif); }
+  showToast('✅ تم إرسال '+type+' للعضو: '+name);
+  document.querySelectorAll('[style*="z-index:99999999"]').forEach(function(el){ el.remove(); });
+  document.getElementById('_adminMemberMenuOverlay')?.remove();
+};
+
+/* ─── تحميل المنشورات ─── */
+window.loadAdminPostsMonitor = function(){
+  var listEl = document.getElementById('adminPostsMonitorList');
+  if(!listEl) return;
+  listEl.innerHTML = '<div style="text-align:center;padding:16px;color:#8b949e;font-size:12px;">⏳ جارٍ التحميل...</div>';
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){
+    db.ref('social_posts').limitToLast(30).once('value').then(function(snap){
+      var posts=[];
+      snap.forEach(function(c){ var v=c.val(); if(v) posts.push({id:c.key, data:v}); });
+      posts.reverse();
+      if(!posts.length){ listEl.innerHTML='<div style="text-align:center;padding:16px;color:#8b949e;font-size:12px;">لا توجد منشورات</div>'; return; }
+      listEl.innerHTML = posts.map(function(p){
+        var text=(p.data.text||p.data.content||'').substring(0,80);
+        var author=p.data.author||p.data.name||'مجهول';
+        return '<div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:10px 12px;border:1px solid rgba(255,255,255,0.06);">'
+          +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'
+          +'<div style="font-size:12px;font-weight:800;color:#00e5a0;">'+author+'</div>'
+          +'<button onclick="adminDeletePost(\''+p.id+'\')" style="padding:4px 10px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:8px;color:#f87171;font-family:\'Tajawal\',sans-serif;font-size:11px;font-weight:800;cursor:pointer;">🗑️ حذف</button>'
+          +'</div>'
+          +'<div style="font-size:12px;color:#8b949e;line-height:1.5;">'+text+(text.length>=80?'...':'')+'</div>'
+          +'</div>';
+      }).join('');
+    }).catch(function(){ listEl.innerHTML='<div style="text-align:center;padding:16px;color:#8b949e;font-size:12px;">تعذّر التحميل</div>'; });
+  } else {
+    listEl.innerHTML='<div style="text-align:center;padding:16px;color:#8b949e;font-size:12px;">Firebase غير متصل</div>';
+  }
+};
+
+window.adminDeletePost = function(postId){
+  if(!confirm('هل تريد حذف هذا المنشور نهائياً؟')) return;
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){ db.ref('social_posts/'+postId).remove(); }
+  showToast('🗑️ تم حذف المنشور');
+  setTimeout(loadAdminPostsMonitor, 600);
+};
+
+/* ─── تحميل المحادثات ─── */
+window.loadAdminMsgMonitor = function(){
+  var listEl = document.getElementById('adminMsgMonitorList');
+  if(!listEl) return;
+  listEl.innerHTML = '<div style="text-align:center;padding:16px;color:#8b949e;font-size:12px;">⏳ جارٍ التحميل...</div>';
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){
+    db.ref('chats').once('value').then(function(snap){
+      var convos=[];
+      snap.forEach(function(c){ convos.push({ id:c.key, data:c.val() }); });
+      if(!convos.length){ listEl.innerHTML='<div style="text-align:center;padding:16px;color:#8b949e;font-size:12px;">لا توجد محادثات</div>'; return; }
+      listEl.innerHTML = convos.slice(0,15).map(function(cv){
+        var msgs = cv.data.messages ? Object.values(cv.data.messages) : [];
+        var last = msgs.length ? msgs[msgs.length-1] : null;
+        return '<div onclick="openAdminChatView(\''+cv.id+'\')" style="background:rgba(255,255,255,0.04);border-radius:12px;padding:10px 12px;border:1px solid rgba(255,255,255,0.06);cursor:pointer;" onmouseover="this.style.background=\'rgba(0,132,255,0.08)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.04)\'">'
+          +'<div style="font-size:12px;font-weight:800;color:#60a5fa;margin-bottom:4px;">💬 '+cv.id.replace(/_/g,' ')+'</div>'
+          +(last?'<div style="font-size:11px;color:#8b949e;">'+(last.sender||'؟')+': '+(last.text||'[وسائط]').substring(0,50)+'</div>':'<div style="font-size:11px;color:#8b949e;">لا رسائل</div>')
+          +'</div>';
+      }).join('');
+    }).catch(function(){ listEl.innerHTML='<div style="text-align:center;padding:16px;color:#8b949e;font-size:12px;">تعذّر التحميل</div>'; });
+  } else {
+    listEl.innerHTML='<div style="text-align:center;padding:16px;color:#8b949e;font-size:12px;">Firebase غير متصل</div>';
+  }
+};
+
+window.openAdminChatView = function(chatId){
+  showToast('👁️ فتح محادثة: '+chatId.replace(/_/g,' ')+' (قريباً)');
+};
+
+/* ─── إظهار زر لوحة المدير في القائمة ─── */
+window._showAdminSideElements = function(){
+  var adminItem = document.getElementById('sideAdminControlItem');
+  if(adminItem) adminItem.style.display = 'flex';
+  var adminBtn = document.getElementById('adminSideControlBtn');
+  var regularBtn = document.getElementById('regularSideBtn');
+  if(adminBtn){ adminBtn.style.display = 'flex'; }
+  if(regularBtn){ regularBtn.style.display = 'none'; }
+};
+
+console.log('✅ [ConnectDZ] لوحة تحكم المدير — جاهزة');
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+   🏛️ قاعة الاجتماع — محادثة جماعية تلقائية للأعضاء
+   ══════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+var MEETING_ROOM_ID = 'meetingRoom_global';
+var _meetingMuted = false;
+
+/* ─── إضافة عضو جديد تلقائياً لقاعة الاجتماع ─── */
+window.addMemberToMeetingRoom = function(memberName){
+  if(!memberName) return;
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(!db) return;
+  db.ref('meetingRoom/members/'+memberName.replace(/\s+/g,'_')).set({
+    name: memberName, joinedAt: Date.now(), active: true
+  });
+  /* إرسال رسالة ترحيب */
+  db.ref('meetingRoom/messages').push({
+    sender: '🏛️ النظام',
+    text: '🎉 مرحباً '+memberName+' في قاعة الاجتماع!',
+    type: 'system',
+    at: Date.now()
+  });
+};
+
+/* ─── فتح قاعة الاجتماع ─── */
+window.openMeetingRoomChat = function(){
+  var old = document.getElementById('_meetingRoomOverlay');
+  if(old) old.remove();
+
+  var currentUser = typeof getCurrentUser==='function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'عضو');
+
+  var ov = document.createElement('div');
+  ov.id = '_meetingRoomOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:999990;background:#0d1117;display:flex;flex-direction:column;animation:fadeIn .25s ease;';
+
+  ov.innerHTML = `
+    <div style="background:linear-gradient(135deg,#00e5a0,#00b894);padding:14px 16px;flex-shrink:0;display:flex;align-items:center;gap:12px;">
+      <div onclick="document.getElementById('_meetingRoomOverlay').remove();" style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:white;font-weight:700;">‹</div>
+      <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏛️</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:900;color:white;" id="mrRoomName">قاعة الاجتماع</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.8);" id="mrMembersCount">جارٍ التحميل...</div>
+      </div>
+      <div id="mrMuteIndicator" style="display:none;padding:4px 10px;background:rgba(239,68,68,0.3);border-radius:20px;font-size:11px;color:#fca5a5;font-weight:800;">🔇 الرسائل موقوفة</div>
+    </div>
+
+    <div id="mrMessages" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;"></div>
+
+    <div id="mrInputArea" style="padding:12px 14px;background:#161b22;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:10px;align-items:flex-end;">
+      <textarea id="mrMsgInput" placeholder="اكتب رسالة في قاعة الاجتماع..." style="flex:1;padding:11px 14px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(0,229,160,0.2);border-radius:18px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;outline:none;resize:none;min-height:44px;max-height:100px;box-sizing:border-box;line-height:1.5;" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMeetingRoomMsg();}"></textarea>
+      <button onclick="sendMeetingRoomMsg()" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#00e5a0,#00b894);border:none;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;box-shadow:0 4px 12px rgba(0,229,160,0.35);">➤</button>
+    </div>
+  `;
+
+  document.body.appendChild(ov);
+  _loadMeetingRoomMessages();
+  _listenMeetingRoomStatus();
+};
+
+/* ─── فتح قاعة الاجتماع من لوحة المدير (مع صلاحيات إضافية) ─── */
+window.openMeetingRoomAdmin = function(){
+  openMeetingRoomChat();
+  /* إضافة زر خيارات إدارية */
+  setTimeout(function(){
+    var header = document.querySelector('#_meetingRoomOverlay > div:first-child');
+    if(!header) return;
+    var adminBtn = document.createElement('div');
+    adminBtn.onclick = function(){ openMeetingRoomAdminMenu(); };
+    adminBtn.style.cssText='width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;';
+    adminBtn.innerHTML='⚙️';
+    header.appendChild(adminBtn);
+  }, 300);
+};
+
+/* ─── قائمة إدارة قاعة الاجتماع ─── */
+window.openMeetingRoomAdminMenu = function(){
+  var ov2 = document.createElement('div');
+  ov2.style.cssText='position:fixed;inset:0;z-index:9999999;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center;';
+  ov2.onclick=function(e){if(e.target===ov2)ov2.remove();};
+  ov2.innerHTML=`<div style="background:#0d1117;border:1px solid rgba(0,229,160,0.25);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:0 0 28px;">
+    <div style="width:36px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;margin:10px auto 8px;"></div>
+    <div style="padding:14px 20px;font-size:15px;font-weight:900;color:#00e5a0;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:8px;">⚙️ إدارة قاعة الاجتماع</div>
+    <div style="padding:8px 16px;display:flex;flex-direction:column;gap:6px;">
+      <div onclick="toggleMeetingRoomMessages();this.closest('[style*=fixed]').remove();" style="padding:13px 14px;background:rgba(239,68,68,0.1);border-radius:14px;cursor:pointer;font-size:13px;font-weight:800;color:#f87171;" id="mrToggleMuteBtn">🔇 إيقاف / تفعيل الرسائل</div>
+      <div onclick="addMemberToMeetingRoomPrompt();this.closest('[style*=fixed]').remove();" style="padding:13px 14px;background:rgba(0,229,160,0.08);border-radius:14px;cursor:pointer;font-size:13px;font-weight:800;color:#00e5a0;">➕ إضافة عضو يدوياً</div>
+      <div onclick="removeMemberFromMeetingRoomPrompt();this.closest('[style*=fixed]').remove();" style="padding:13px 14px;background:rgba(239,68,68,0.08);border-radius:14px;cursor:pointer;font-size:13px;font-weight:800;color:#f87171;">➖ إزالة عضو من القاعة</div>
+      <div onclick="clearMeetingRoomMessages();this.closest('[style*=fixed]').remove();" style="padding:13px 14px;background:rgba(239,68,68,0.1);border-radius:14px;cursor:pointer;font-size:13px;font-weight:800;color:#fca5a5;">🗑️ مسح جميع الرسائل</div>
+      <div onclick="editMeetingRoomInfo();this.closest('[style*=fixed]').remove();" style="padding:13px 14px;background:rgba(255,215,0,0.08);border-radius:14px;cursor:pointer;font-size:13px;font-weight:800;color:#FFD700;">✏️ تعديل اسم وصورة وسمة المجموعة</div>
+    </div>
+    <button onclick="this.closest('[style*=fixed]').remove()" style="margin:8px 16px 0;width:calc(100% - 32px);padding:11px;background:rgba(255,255,255,0.06);border:none;border-radius:14px;color:#8b949e;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;">إلغاء</button>
+  </div>`;
+  document.body.appendChild(ov2);
+};
+
+/* ─── إيقاف/تفعيل رسائل قاعة الاجتماع ─── */
+window.toggleMeetingRoomMessages = function(){
+  _meetingMuted = !_meetingMuted;
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){ db.ref('meetingRoom/muted').set(_meetingMuted); }
+  var ind = document.getElementById('mrMuteIndicator');
+  var inpArea = document.getElementById('mrInputArea');
+  if(ind) ind.style.display = _meetingMuted ? 'block' : 'none';
+  if(inpArea) inpArea.style.opacity = _meetingMuted ? '0.4' : '1';
+  showToast(_meetingMuted ? '🔇 تم إيقاف الرسائل في قاعة الاجتماع' : '🔊 تم تفعيل الرسائل في قاعة الاجتماع');
+};
+
+/* ─── إرسال رسالة لقاعة الاجتماع ─── */
+window.sendMeetingRoomMsg = function(){
+  if(_meetingMuted){ showToast('🔇 الرسائل موقوفة من المدير'); return; }
+  var input = document.getElementById('mrMsgInput');
+  if(!input || !input.value.trim()) return;
+  var msg = input.value.trim();
+  var currentUser = typeof getCurrentUser==='function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'عضو');
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){
+    db.ref('meetingRoom/messages').push({
+      sender: currentUser, text: msg, at: Date.now()
+    });
+    input.value = '';
+    input.style.height = 'auto';
+  } else {
+    showToast('⚠️ لم يتم الاتصال بقاعدة البيانات');
+  }
+};
+
+/* ─── تحميل الرسائل ─── */
+function _loadMeetingRoomMessages(){
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(!db) return;
+  /* عداد الأعضاء */
+  db.ref('meetingRoom/members').once('value').then(function(snap){
+    var count=0; snap.forEach(function(){ count++; });
+    var el=document.getElementById('mrMembersCount');
+    if(el) el.innerText = count+' عضو';
+  });
+  /* الرسائل مباشرة */
+  db.ref('meetingRoom/messages').limitToLast(50).on('value',function(snap){
+    var msgs=[];
+    snap.forEach(function(c){ msgs.push(c.val()); });
+    _renderMeetingRoomMessages(msgs);
+  });
+}
+
+function _listenMeetingRoomStatus(){
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(!db) return;
+  db.ref('meetingRoom/muted').on('value',function(snap){
+    _meetingMuted = snap.val()===true;
+    var ind = document.getElementById('mrMuteIndicator');
+    var inpArea = document.getElementById('mrInputArea');
+    if(ind) ind.style.display = _meetingMuted?'block':'none';
+    if(inpArea) inpArea.style.opacity = _meetingMuted?'0.4':'1';
+  });
+  db.ref('meetingRoom/info').on('value',function(snap){
+    var info=snap.val();
+    if(!info) return;
+    var nameEl=document.getElementById('mrRoomName');
+    if(nameEl&&info.name) nameEl.innerText=info.name;
+  });
+}
+
+function _renderMeetingRoomMessages(msgs){
+  var container=document.getElementById('mrMessages');
+  if(!container) return;
+  var currentUser = typeof getCurrentUser==='function'?getCurrentUser():(localStorage.getItem('sklab_user_name')||'عضو');
+  container.innerHTML=msgs.map(function(m){
+    if(m.type==='system'){
+      return '<div style="text-align:center;padding:6px 12px;font-size:11px;color:#00e5a0;background:rgba(0,229,160,0.08);border-radius:20px;align-self:center;">'+m.text+'</div>';
+    }
+    var isMine=m.sender===currentUser;
+    return '<div style="display:flex;flex-direction:column;align-items:'+(isMine?'flex-end':'flex-start')+';gap:2px;">'
+      +'<div style="font-size:10px;color:#8b949e;margin:'+(isMine?'0 8px 0 0':'0 0 0 8px')+';">'+m.sender+'</div>'
+      +'<div style="max-width:78%;padding:10px 14px;border-radius:'+(isMine?'18px 18px 4px 18px':'18px 18px 18px 4px')+';background:'+(isMine?'linear-gradient(135deg,#00e5a0,#00b894)':'rgba(255,255,255,0.08)')+';color:'+(isMine?'#050a0e':'white')+';font-size:13px;font-weight:700;line-height:1.5;word-break:break-word;">'+m.text+'</div>'
+      +'</div>';
+  }).join('');
+  container.scrollTop=container.scrollHeight;
+}
+
+/* ─── مسح الرسائل ─── */
+window.clearMeetingRoomMessages = function(){
+  if(!confirm('⚠️ هل تريد مسح جميع رسائل قاعة الاجتماع؟')) return;
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){ db.ref('meetingRoom/messages').remove(); }
+  showToast('🗑️ تم مسح رسائل قاعة الاجتماع');
+};
+
+/* ─── تعديل اسم وصورة وسمة المجموعة ─── */
+window.editMeetingRoomInfo = function(){
+  var ov2=document.createElement('div');
+  ov2.style.cssText='position:fixed;inset:0;z-index:9999999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;';
+  ov2.innerHTML=`<div style="background:#0d1117;border:1px solid rgba(0,229,160,0.3);border-radius:20px;padding:24px;width:92%;max-width:400px;">
+    <div style="font-size:15px;font-weight:900;color:#00e5a0;text-align:center;margin-bottom:16px;">✏️ تعديل قاعة الاجتماع</div>
+    <input id="_mrEditName" placeholder="اسم المجموعة الجديد" value="قاعة الاجتماع" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(0,229,160,0.25);border-radius:12px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;outline:none;box-sizing:border-box;margin-bottom:10px;">
+    <input id="_mrEditEmoji" placeholder="رمز تعبيري (صورة الجروب مثلاً: 🏛️ 🌐 🎯)" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(0,229,160,0.25);border-radius:12px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;outline:none;box-sizing:border-box;margin-bottom:10px;">
+    <div style="font-size:11px;color:#8b949e;margin-bottom:10px;">سمة اللون:</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      ${['#00e5a0','#FFD700','#0084FF','#a855f7','#e53935','#f97316'].map(function(c){
+        return '<div onclick="this.parentElement.querySelectorAll(\'.mrClrBtn\').forEach(function(b){b.style.border=\'2px solid transparent\'});this.style.border=\'2px solid white\';document.getElementById(\'_mrThemeColor\').value=\''+c+'\'" class="mrClrBtn" style="width:30px;height:30px;border-radius:50%;background:'+c+';cursor:pointer;border:2px solid transparent;transition:.15s;"></div>';
+      }).join('')}
+    </div>
+    <input type="hidden" id="_mrThemeColor" value="#00e5a0">
+    <button onclick="_saveMeetingRoomInfo()" style="width:100%;padding:12px;background:linear-gradient(135deg,#00e5a0,#00b894);border:none;border-radius:12px;color:#050a0e;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:900;cursor:pointer;margin-bottom:8px;">💾 حفظ التعديلات</button>
+    <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;padding:10px;background:rgba(255,255,255,0.06);border:none;border-radius:12px;color:#8b949e;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;">إلغاء</button>
+  </div>`;
+  document.body.appendChild(ov2);
+};
+
+window._saveMeetingRoomInfo = function(){
+  var name=document.getElementById('_mrEditName')?.value?.trim()||'قاعة الاجتماع';
+  var emoji=document.getElementById('_mrEditEmoji')?.value?.trim()||'🏛️';
+  var color=document.getElementById('_mrThemeColor')?.value||'#00e5a0';
+  var db=window.firebaseDb||(window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){ db.ref('meetingRoom/info').set({ name:name, emoji:emoji, color:color, updatedAt:Date.now() }); }
+  showToast('✅ تم تحديث قاعة الاجتماع: '+name);
+  document.querySelectorAll('[style*="z-index:9999999"]').forEach(function(el){el.remove();});
+};
+
+/* ─── إضافة وإزالة عضو من القاعة ─── */
+window.addMemberToMeetingRoomPrompt = function(){
+  var name=prompt('أدخل اسم العضو لإضافته لقاعة الاجتماع:');
+  if(!name) return;
+  addMemberToMeetingRoom(name);
+  showToast('✅ تمت إضافة '+name+' لقاعة الاجتماع');
+};
+
+window.removeMemberFromMeetingRoomPrompt = function(){
+  var name=prompt('أدخل اسم العضو لإزالته من قاعة الاجتماع:');
+  if(!name) return;
+  var db=window.firebaseDb||(window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){ db.ref('meetingRoom/members/'+name.replace(/\s+/g,'_')).remove(); }
+  showToast('✅ تمت إزالة '+name+' من قاعة الاجتماع');
+};
+
+/* ─── ربط تسجيل الأعضاء الجدد بقاعة الاجتماع ─── */
+var _origLogin = window.doLogin;
+window.doLogin = function(){
+  var result = _origLogin ? _origLogin.apply(this,arguments) : null;
+  setTimeout(function(){
+    var name=typeof getCurrentUser==='function'?getCurrentUser():(localStorage.getItem('sklab_user_name'));
+    if(name) addMemberToMeetingRoom(name);
+  }, 2000);
+  return result;
+};
+
+/* ─── إظهار زر قاعة الاجتماع في المسنجر ─── */
+window.addMeetingRoomToMessenger = function(){
+  var msgPanel = document.getElementById('socialPanel_pages');
+  if(!msgPanel) return;
+  var existing = document.getElementById('meetingRoomBtn');
+  if(existing) return;
+  var btn = document.createElement('div');
+  btn.id='meetingRoomBtn';
+  btn.onclick=function(){ openMeetingRoomChat(); };
+  btn.style.cssText='display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;background:linear-gradient(135deg,rgba(0,229,160,0.08),rgba(0,184,148,0.05));border-bottom:1px solid rgba(0,229,160,0.15);';
+  btn.innerHTML='<div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#00e5a0,#00b894);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,229,160,0.35);">🏛️</div><div style="flex:1;"><div style="font-size:15px;font-weight:900;color:#050505;">قاعة الاجتماع</div><div style="font-size:12px;color:#00b894;font-weight:700;">محادثة جماعية — جميع الأعضاء</div></div><div style="width:10px;height:10px;border-radius:50%;background:#00e5a0;box-shadow:0 0 6px rgba(0,229,160,0.8);"></div>';
+  var firstChild=msgPanel.querySelector('div');
+  if(firstChild && firstChild.nextSibling){
+    msgPanel.insertBefore(btn, firstChild.nextSibling);
+  } else {
+    msgPanel.appendChild(btn);
+  }
+};
+
+window.addEventListener('load',function(){
+  setTimeout(function(){
+    window.addMeetingRoomToMessenger();
+    /* ربط لوحة المدير بإظهار عناصره عند تحقق الصلاحية */
+    var checkAdmin=setInterval(function(){
+      if(typeof window._isAdmin!=='undefined'){
+        clearInterval(checkAdmin);
+        if(window._isAdmin && typeof window._showAdminSideElements==='function'){
+          window._showAdminSideElements();
+        }
+      }
+    },500);
+    /* محاولة إضافة عضو الجلسة الحالية لقاعة الاجتماع */
+    var name=typeof getCurrentUser==='function'?getCurrentUser():(localStorage.getItem('sklab_user_name'));
+    if(name) addMemberToMeetingRoom(name);
+  },1500);
+});
+
+console.log('✅ [ConnectDZ] قاعة الاجتماع الجماعية — جاهزة');
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+   🗑️ حذف عضو شيماء من قسم المبتدئ (نقاط > 45000)
+   ══════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+/* حذف العضو الثاني في ترتيب قسم المبتدئ إذا كان اسمه يحتوي شيماء ونقاطه > 45000 */
+window._removeShaimaaFromBeginner = function(){
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(!db){ console.warn('Firebase غير متصل — لا يمكن حذف العضو'); return; }
+
+  /* قراءة ترتيب قسم المبتدئ */
+  db.ref('leaderboard').orderByChild('points').once('value').then(function(snap){
+    var rows=[];
+    snap.forEach(function(c){ var v=c.val(); if(v) rows.push({key:c.key, name:v.name||c.key, points:v.points||0, section:v.section||''}); });
+    
+    /* فلترة قسم المبتدئ */
+    var beginners = rows.filter(function(r){ return r.section==='مبتدئ'||r.section==='beginner'||r.section===''; });
+    beginners.sort(function(a,b){ return b.points-a.points; });
+    
+    /* العضو الثاني */
+    var second = beginners[1];
+    if(!second){ console.log('لا يوجد عضو ثانٍ في قسم المبتدئ'); return; }
+    
+    var nameMatch = second.name.includes('شيماء')||second.name.includes('Chaimaa')||second.name.includes('Chaima');
+    var ptsMatch = second.points > 45000;
+    
+    if(nameMatch && ptsMatch){
+      db.ref('leaderboard/'+second.key).remove();
+      db.ref('users/'+second.key).remove();
+      console.log('✅ تم حذف العضو الثاني من قسم المبتدئ: '+second.name+' ('+second.points+' نقطة)');
+      if(typeof showToast==='function') showToast('✅ تم حذف العضو: '+second.name);
+    } else {
+      console.log('العضو الثاني: '+second.name+' ('+second.points+'نقطة) — لا يطابق معايير شيماء/45000');
+    }
+  }).catch(function(e){ console.error('خطأ في قراءة الترتيب:',e); });
+};
+
+/* تنفيذ عند الحاجة — يستدعيها المدير يدوياً أو تلقائياً */
+/* window._removeShaimaaFromBeginner(); */ /* أزل التعليق لتفعيل الحذف التلقائي */
+console.log('✅ [ConnectDZ] نظام حذف العضو (شيماء/المبتدئ) — جاهز. استدعِ: window._removeShaimaaFromBeginner()');
 })();
 </script>
 </body>
