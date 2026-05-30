@@ -4530,10 +4530,199 @@ function switchLoginTab(tab){
 <!-- ══════════════════════════════════════════
      🌐 صفحة الشبكة الاجتماعية (Next Leaders Social)
      ══════════════════════════════════════════ -->
-<div id="socialHomeCard" style="display:none;position:fixed;inset:0;z-index:2900;background:#F0F2F5;flex-direction:column;overflow:hidden;">
+<div id="socialHomeCard" style="display:none;position:fixed;inset:0;z-index:2900;background:transparent;flex-direction:column;overflow:hidden;">
+  <!-- ══ خلفية الطبيعة الديناميكية — داخل socialHomeCard ══ -->
+  <style>
+  #natureBg {
+    position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+  }
+  #natureBg .sky {
+    position:absolute;inset:0;
+    animation:nbSkyShift 25s ease-in-out infinite alternate;
+  }
+  @keyframes nbSkyShift {
+    0%   { background:linear-gradient(180deg,#a8edea 0%,#c8f7c5 100%); }
+    33%  { background:linear-gradient(180deg,#74b9ff 0%,#a29bfe 50%,#c8f7c5 100%); }
+    66%  { background:linear-gradient(180deg,#ffecd2 0%,#fcb69f 40%,#c8f7c5 100%); }
+    100% { background:linear-gradient(180deg,#a8edea 0%,#c8f7c5 100%); }
+  }
+  /* شمس */
+  #natureBg .nb-sun {
+    position:absolute;top:14px;left:14px;width:46px;height:46px;
+    border-radius:50%;background:radial-gradient(circle,#ffe259,#ffa751);
+    box-shadow:0 0 0 8px rgba(255,210,60,0.18);
+    animation:nbSunPulse 4s ease-in-out infinite;
+  }
+  @keyframes nbSunPulse {
+    0%,100%{box-shadow:0 0 0 8px rgba(255,210,60,0.18),0 0 0 18px rgba(255,210,60,0.07);}
+    50%    {box-shadow:0 0 0 14px rgba(255,210,60,0.3),0 0 0 28px rgba(255,210,60,0.1);}
+  }
+  /* غيوم */
+  .nb-cloud {
+    position:absolute;border-radius:50px;
+    background:rgba(255,255,255,0.78);
+    filter:blur(3px);
+    animation:nbCloudFloat linear infinite;
+  }
+  @keyframes nbCloudFloat {
+    from { transform:translateX(110vw); }
+    to   { transform:translateX(-220px); }
+  }
+  /* فراشات */
+  .nb-butterfly {
+    position:absolute;pointer-events:none;
+    animation:nbBflyMove ease-in-out infinite alternate;
+  }
+  @keyframes nbBflyMove {
+    0%   { transform:translate(0,0) rotate(-5deg); }
+    25%  { transform:translate(40px,-55px) rotate(8deg); }
+    50%  { transform:translate(15px,-30px) rotate(-3deg); }
+    75%  { transform:translate(65px,-70px) rotate(12deg); }
+    100% { transform:translate(30px,-40px) rotate(-6deg); }
+  }
+  /* عصافير */
+  .nb-bird {
+    position:absolute;pointer-events:none;
+    animation:nbBirdHop ease-in-out infinite;
+  }
+  @keyframes nbBirdHop {
+    0%   { transform:translate(0,0) scaleX(1); }
+    20%  { transform:translate(18px,-22px) scaleX(1); }
+    40%  { transform:translate(36px,-6px) scaleX(1); }
+    50%  { transform:translate(50px,-6px) scaleX(-1); }
+    70%  { transform:translate(28px,-18px) scaleX(-1); }
+    90%  { transform:translate(8px,-4px) scaleX(-1); }
+    100% { transform:translate(0,0) scaleX(1); }
+  }
+  /* أوراق */
+  .nb-leaf {
+    position:absolute;top:-40px;pointer-events:none;
+    animation:nbLeafFall linear infinite;
+  }
+  @keyframes nbLeafFall {
+    0%   { transform:translateY(-40px) rotate(0deg)   translateX(0);    opacity:1; }
+    30%  { transform:translateY(28vh)  rotate(120deg) translateX(22px);  opacity:1; }
+    60%  { transform:translateY(56vh)  rotate(240deg) translateX(-14px); opacity:.8; }
+    100% { transform:translateY(105vh) rotate(400deg) translateX(10px);  opacity:0; }
+  }
+  </style>
+
+  <div id="natureBg">
+    <div class="sky"></div>
+    <div class="nb-sun"></div>
+    <!-- غيوم -->
+    <div class="nb-cloud" style="top:8%;width:100px;height:30px;animation-duration:32s;animation-delay:0s;"></div>
+    <div class="nb-cloud" style="top:14%;width:140px;height:38px;animation-duration:44s;animation-delay:-14s;opacity:.75;"></div>
+    <div class="nb-cloud" style="top:5%;width:75px;height:22px;animation-duration:25s;animation-delay:-7s;opacity:.85;"></div>
+  </div>
+
+  <script>
+  (function(){
+    var NB = document.getElementById('natureBg');
+    if(!NB) return;
+
+    /* ── فراشات ── */
+    [
+      {e:'🦋', l:'8%',  t:'22%', d:'9s',  delay:'-1s',  fs:'22px'},
+      {e:'🦋', l:'45%', t:'30%', d:'13s', delay:'-5s',  fs:'18px'},
+      {e:'🦋', l:'72%', t:'18%', d:'10s', delay:'-8s',  fs:'24px'},
+      {e:'🦋', l:'30%', t:'40%', d:'11s', delay:'-3s',  fs:'16px'},
+    ].forEach(function(b){
+      var el = document.createElement('div');
+      el.className = 'nb-butterfly';
+      el.innerText = b.e;
+      el.style.cssText = 'left:'+b.l+';top:'+b.t+';font-size:'+b.fs
+        +';animation-duration:'+b.d+';animation-delay:'+b.delay+';';
+      NB.appendChild(el);
+    });
+
+    /* ── عصافير ── */
+    [
+      {e:'🐦', l:'15%', b:'35%', d:'7s',  delay:'-2s'},
+      {e:'🐤', l:'55%', b:'28%', d:'9s',  delay:'-5s'},
+      {e:'🐦', l:'78%', b:'42%', d:'8s',  delay:'-1s'},
+      {e:'🐤', l:'35%', b:'50%', d:'11s', delay:'-7s'},
+    ].forEach(function(b){
+      var el = document.createElement('div');
+      el.className = 'nb-bird';
+      el.innerText = b.e;
+      el.style.cssText = 'left:'+b.l+';top:'+b.b+';font-size:20px'
+        +';animation-duration:'+b.d+';animation-delay:'+b.delay+';';
+      el.addEventListener('animationiteration', function(){
+        el.style.left  = (5 + Math.random()*80) + '%';
+        el.style.top   = (15 + Math.random()*40) + '%';
+      });
+      NB.appendChild(el);
+    });
+
+    /* ── أوراق متساقطة ── */
+    ['🍃','🌿','🍀','🍃','🌱','🍃'].forEach(function(lf, i){
+      var el = document.createElement('div');
+      el.className = 'nb-leaf';
+      el.innerText = lf;
+      el.style.cssText = 'left:'+(8+i*16)+'%;font-size:14px'
+        +';animation-duration:'+(9+i*2)+'s;animation-delay:'+(-i*2.5)+'s;';
+      NB.appendChild(el);
+    });
+
+    /* ── أوراق إضافية عشوائية ── */
+    for(var x=0;x<4;x++){
+      var el2 = document.createElement('div');
+      el2.className = 'nb-leaf';
+      el2.innerText = ['🍃','🌿','🍀'][x%3];
+      el2.style.cssText = 'left:'+(Math.random()*90)+'%;font-size:12px'
+        +';animation-duration:'+(10+Math.random()*7)+'s;animation-delay:'+(-Math.random()*12)+'s;';
+      NB.appendChild(el2);
+    }
+
+    /* ═══ أصوات زقزقة كل 5 ثوانٍ ═══ */
+    var _ctx = null;
+    function _getCtx(){
+      if(_ctx) return _ctx;
+      try{ _ctx = new(window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+      return _ctx;
+    }
+    function _note(freq, dur, vol, delay){
+      var ctx = _getCtx(); if(!ctx) return;
+      try{
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'sine';
+        var t = ctx.currentTime + (delay||0);
+        o.frequency.setValueAtTime(freq, t);
+        o.frequency.exponentialRampToValueAtTime(freq*1.4, t+dur*0.35);
+        o.frequency.exponentialRampToValueAtTime(freq*0.85, t+dur);
+        g.gain.setValueAtTime(vol||0.15, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t+dur+0.04);
+        o.start(t); o.stop(t+dur+0.06);
+      }catch(e){}
+    }
+    function _song(){
+      var songs=[
+        [[800,0.1],[1100,0.1,0,0.13],[950,0.12,0,0.28]],
+        [[1200,0.09],[900,0.1,0,0.12],[1300,0.08,0,0.24],[1000,0.11,0,0.35]],
+        [[700,0.13],[1000,0.1,0,0.16],[800,0.13,0,0.32]],
+      ];
+      var s=songs[Math.floor(Math.random()*songs.length)];
+      s.forEach(function(n){ _note(n[0],n[1],n[2]||0.14,n[3]||0); });
+    }
+    var _started=false;
+    function _start(){
+      if(_started) return; _started=true;
+      _song();
+      setInterval(function(){
+        _song();
+        if(Math.random()>0.5) setTimeout(_song, 800+Math.random()*400);
+      },5000);
+    }
+    document.addEventListener('touchstart',_start,{once:true,passive:true});
+    document.addEventListener('click',_start,{once:true});
+  })();
+  </script>
+
 
   <!-- ── Top Bar (Facebook-style) ── -->
-  <div id="socialTopBar" style="background:white;border-bottom:2px solid #E4E6EB;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+  <div id="socialTopBar" style="background:white;border-bottom:2px solid #E4E6EB;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.1);position:relative;z-index:2;">
     <!-- Row 1: القائمة يمين + اسم التطبيق يسار + بحث -->
     <div style="padding:8px 12px 6px;display:flex;align-items:center;gap:8px;">
       <!-- Hamburger Menu يمين (3 شرطات) -->
@@ -5805,7 +5994,7 @@ function switchLoginTab(tab){
       <div onclick="showToast('مرحباً بكم في قاعة الشباب بودغن 🏛️')" style="background:linear-gradient(135deg,#11998e,#38ef7d);color:white;border-radius:14px;padding:14px;text-align:center;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(17,153,142,0.3);">📞 تواصل مع القاعة</div>
     </div>
   </div>
-  <div id="socialMainScroll" style="flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:70px;-webkit-overflow-scrolling:auto;overscroll-behavior:none;overscroll-behavior-y:none;">
+  <div id="socialMainScroll" style="flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:70px;-webkit-overflow-scrolling:auto;overscroll-behavior:none;overscroll-behavior-y:none;position:relative;z-index:1;">
 
     <!-- ── HOME PANEL ── -->
     <div id="socialPanel_home" style="display:block;">
