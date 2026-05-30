@@ -28,6 +28,7 @@
     overscroll-behavior: none !important;
     overscroll-behavior-y: none !important;
   }
+</style>
 
 <style id="admin-gold-styles">
 /* ══════════════════════════════════════════════════════
@@ -172,7 +173,6 @@
   background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.25);
   font-size:11px;font-weight:700;color:var(--accent,#00e5a0);
 }
-</style>
 </style>
 <script>
 /* ══════════════════════════════════════════════════════════
@@ -5333,610 +5333,157 @@ function switchLoginTab(tab){
       </div>
     </div>
 
-    <!-- ── REELS PANEL (ريلز) ── -->
-    <div id="socialPanel_myprofile" style="display:none;background:#F0F2F5;min-height:100%;">
-      <!-- ══════════════════════════════════════════════════════
-           🆕 الملف الشخصي الجديد — تصميم مطابق للصورة
-           ══════════════════════════════════════════════════════ -->
+    <!-- ── MY PROFILE PANEL (الملف الشخصي) ── -->
+    <div id="socialPanel_myprofile" style="display:none;background:#050a0e;min-height:100%;overflow-y:auto;">
 
-      <!-- ▌1▐ غلاف الملف الشخصي -->
-      <div style="position:relative;" id="profileCoverFB">
-        <div style="width:100%;height:190px;background:linear-gradient(135deg,#6a1b9a,#283593);overflow:hidden;position:relative;">
-          <div id="profileCoverImgFB" style="width:100%;height:100%;background-size:cover;background-position:center;position:absolute;inset:0;"></div>
-          <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.4));"></div>
-          <!-- زر تغيير الغلاف -->
-          <label style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;gap:5px;border:1px solid rgba(255,255,255,0.2);">
-            📷 تغيير الغلاف
-            <input type="file" accept="image/*" style="display:none;" onchange="handleFBCoverChange(event)">
-          </label>
+      <!-- ══ HERO COVER ══ -->
+      <div style="position:relative;width:100%;height:220px;overflow:hidden;" id="profileCoverFB">
+        <div id="profileCoverImg" style="position:absolute;inset:0;background:linear-gradient(135deg,#0d2137 0%,#0a3d2b 40%,#1a1a40 100%);background-size:cover;background-position:center;"></div>
+        <!-- animated mesh overlay -->
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(0,229,160,0.18) 0%,transparent 70%),radial-gradient(ellipse 60% 80% at 20% 80%,rgba(0,120,255,0.15) 0%,transparent 60%);pointer-events:none;"></div>
+        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(5,10,14,0.9) 100%);"></div>
+        <!-- Change cover label -->
+        <label style="position:absolute;top:12px;left:12px;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:800;color:rgba(255,255,255,0.85);cursor:pointer;display:flex;align-items:center;gap:5px;font-family:'Tajawal',sans-serif;">
+          📷 تغيير الغلاف
+          <input type="file" accept="image/*" style="display:none;" onchange="handleFBCoverChange(event)">
+        </label>
+        <!-- Streak flame badge -->
+        <div style="position:absolute;top:12px;right:12px;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border:1px solid rgba(255,107,0,0.4);border-radius:20px;padding:5px 12px;">
+          <span id="fbStreakFlame" style="font-size:20px;">🔥</span>
+          <div>
+            <div id="fbStreakInfo" style="font-size:10px;font-weight:900;color:#ff6b00;font-family:'Tajawal',sans-serif;">جارٍ التحميل...</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.5);font-family:'Tajawal',sans-serif;">التالي: <span id="fbStreakNext">--</span></div>
+          </div>
         </div>
+      </div>
 
-        <!-- صورة الملف الشخصي المتمركزة -->
-        <div style="display:flex;flex-direction:column;align-items:center;background:white;padding:0 16px 0;margin-top:0;position:relative;">
-          <div style="position:relative;margin-top:-52px;z-index:10;">
-            <div onclick="openMyFullProfile()" style="cursor:pointer;position:relative;">
-              <!-- حلقة التدرج حول الصورة -->
-              <div style="width:108px;height:108px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#3b82f6,#06b6d4);padding:3px;box-shadow:0 4px 20px rgba(0,0,0,0.25);">
-                <div id="fbProfilePicWrapper" style="width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,#6a1b9a,#283593);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:42px;border:3px solid white;position:relative;">👑
-                  <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:3px;right:3px;width:24px;height:24px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:11px;z-index:5;">✓</div>
-                </div>
-              </div>
-              <!-- نقطة الاتصال الخضراء -->
-              <div style="position:absolute;bottom:6px;right:6px;width:14px;height:14px;border-radius:50%;background:#22c55e;border:2px solid white;z-index:11;box-shadow:0 0 6px rgba(34,197,94,0.6);"></div>
+      <!-- ══ PROFILE HEADER ══ -->
+      <div style="background:#0d1117;padding:0 16px 16px;position:relative;margin-top:-2px;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <!-- Avatar row -->
+        <div style="display:flex;align-items:flex-end;gap:14px;margin-top:-50px;margin-bottom:12px;">
+          <div style="position:relative;flex-shrink:0;" onclick="openMyFullProfile()">
+            <div id="fbProfilePicWrapper" style="width:96px;height:96px;border-radius:50%;border:3px solid #00e5a0;overflow:hidden;background:linear-gradient(135deg,#0078ff,#00e5a0);display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 0 0 4px #0d1117,0 8px 24px rgba(0,229,160,0.3);cursor:pointer;">👑
+              <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:#B0BEC5;border:2px solid #0d1117;display:flex;align-items:center;justify-content:center;font-size:12px;z-index:5;">✓</div>
             </div>
             <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
           </div>
-
-          <!-- الاسم + التوثيق + الدور -->
-          <div style="text-align:center;margin-top:8px;margin-bottom:6px;">
-            <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
-              <div id="fbProfileName" style="font-size:22px;font-weight:900;color:#050505;font-family:'Tajawal',sans-serif;"></div>
+          <div style="flex:1;padding-bottom:4px;">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <div id="fbProfileName" style="font-size:20px;font-weight:900;color:white;font-family:'Tajawal',sans-serif;line-height:1.2;"></div>
               <div id="fbVerifiedBadge" style="display:none;font-size:16px;" title="موثّق">✅</div>
             </div>
-            <div id="fbProfileRole" style="font-size:12px;color:#65676B;font-weight:700;margin-top:2px;"></div>
-            <!-- تقييم النجوم -->
-            <div id="fbStarRatingRow" style="display:flex;align-items:center;justify-content:center;gap:3px;margin-top:6px;"></div>
-          </div>
-
-          <!-- إحصائيات بطاقة أفقية: الترتيب / المستوى / الأيام -->
-          <div style="display:flex;gap:0;width:100%;border-radius:14px;overflow:hidden;border:1px solid #E4E6EB;margin-bottom:12px;">
-            <div style="flex:1;padding:8px 4px;text-align:center;background:white;border-left:1px solid #E4E6EB;">
-              <div style="font-size:9px;color:#65676B;font-weight:700;">ترتيبي</div>
-              <div style="display:flex;align-items:center;justify-content:center;gap:3px;margin-top:2px;">
-                <span style="font-size:14px;">🏆</span>
-                <div id="fbRankBadge" style="font-size:14px;font-weight:900;color:#f59e0b;">#–</div>
-              </div>
-            </div>
-            <div style="flex:1;padding:8px 4px;text-align:center;background:white;border-left:1px solid #E4E6EB;">
-              <div style="font-size:9px;color:#65676B;font-weight:700;">مستواي</div>
-              <div style="display:flex;align-items:center;justify-content:center;gap:3px;margin-top:2px;">
-                <span style="font-size:14px;">🥈</span>
-                <div id="fbLevelLabel" style="font-size:12px;font-weight:900;color:#6366f1;">–</div>
-              </div>
-            </div>
-            <div style="flex:1;padding:8px 4px;text-align:center;background:white;">
-              <div style="font-size:9px;color:#65676B;font-weight:700;">في المستوى</div>
-              <div style="display:flex;align-items:center;justify-content:center;gap:3px;margin-top:2px;">
-                <span style="font-size:14px;">📅</span>
-                <div id="fbDaysInLevel" style="font-size:14px;font-weight:900;color:#050505;">–</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- شريط التقدم للمستوى التالي -->
-          <div style="width:100%;margin-bottom:14px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-              <div style="font-size:11px;font-weight:700;color:#65676B;">التقدم للمستوى التالي</div>
-              <div id="fbLevelPct" style="font-size:11px;font-weight:900;color:#6366f1;">0%</div>
-            </div>
-            <div style="height:7px;background:#E4E6EB;border-radius:4px;overflow:hidden;">
-              <div id="fbLevelBar" style="height:100%;background:linear-gradient(90deg,#6366f1,#a855f7);border-radius:4px;transition:width .7s ease;width:0%;"></div>
-            </div>
-            <div id="fbLevelPts" style="font-size:10px;color:#65676B;margin-top:3px;text-align:left;font-weight:700;"></div>
-          </div>
-        </div><!-- end white header -->
-      </div><!-- end cover wrapper -->
-
-      <!-- ▌2▐ بطاقات: بنكية / انخراط / نقاط / لوحة رقمية -->
-      <div style="padding:0 10px 10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
-
-        <!-- بطاقة بنكية -->
-        <div style="background:linear-gradient(135deg,#1a237e,#1565c0);border-radius:16px;padding:12px;color:white;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(21,101,192,0.35);">
-          <div style="position:absolute;top:-15px;right:-15px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.07);"></div>
-          <div style="position:absolute;bottom:-10px;left:-10px;width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
-          <div style="font-size:11px;font-weight:900;margin-bottom:8px;opacity:.9;">💳 بطاقتي البنكية</div>
-          <!-- أفاتار صغير + اسم -->
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
-            <div id="fbBankCardAvatar" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;border:1.5px solid rgba(255,255,255,0.4);">👑</div>
-            <div id="fbBankCardName" style="font-size:10px;font-weight:800;opacity:.9;line-height:1.2;"></div>
-          </div>
-          <!-- رقم البطاقة -->
-          <div id="fbBankCardNum" style="font-size:10px;letter-spacing:2px;opacity:.75;margin-bottom:8px;font-family:monospace;">•••• •••• •••• ••••</div>
-          <!-- الرصيد -->
-          <div style="font-size:9px;opacity:.7;margin-bottom:2px;">الرصيد الحالي</div>
-          <div style="display:flex;align-items:center;gap:4px;">
-            <div id="fbBankBalance" style="font-size:18px;font-weight:900;">0</div>
-            <div style="font-size:12px;opacity:.8;">دج</div>
-          </div>
-          <!-- النقاط/النجوم -->
-          <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.15);display:flex;justify-content:space-between;align-items:center;">
-            <div>
-              <div style="font-size:9px;opacity:.7;">النقاط (النجوم)</div>
-              <div style="display:flex;align-items:center;gap:3px;">
-                <span style="font-size:12px;">⭐</span>
-                <div id="fbBankStars" style="font-size:13px;font-weight:900;">0</div>
-              </div>
-            </div>
-            <div style="font-size:9px;opacity:.7;">50 نجمة = 30 دج</div>
-          </div>
-          <button onclick="showBalanceModal()" style="width:100%;margin-top:8px;padding:6px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;">إدارة البطاقات 💳</button>
-        </div>
-
-        <!-- بطاقة الانخراط -->
-        <div style="background:linear-gradient(135deg,#1b5e20,#2e7d32);border-radius:16px;padding:12px;color:white;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(46,125,50,0.35);">
-          <div style="position:absolute;top:-15px;left:-15px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.07);"></div>
-          <div style="font-size:9px;font-weight:900;color:#a5d6a7;letter-spacing:1.5px;margin-bottom:3px;">NEXT LEDARS DZ</div>
-          <div style="font-size:11px;font-weight:900;margin-bottom:8px;">🪪 بطاقة الانخراط</div>
-          <!-- صورة + اسم + عضو نشط -->
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
-            <div id="fbMemberCardAvatar" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;border:1.5px solid rgba(255,255,255,0.4);">👑</div>
-            <div>
-              <div id="fbMemberCardName" style="font-size:10px;font-weight:800;line-height:1.2;"></div>
-              <div style="display:flex;align-items:center;gap:3px;margin-top:1px;">
-                <div style="width:6px;height:6px;border-radius:50%;background:#69f0ae;box-shadow:0 0 4px rgba(105,240,174,0.8);"></div>
-                <div style="font-size:9px;color:#a5d6a7;font-weight:700;">عضو نشط</div>
-              </div>
-            </div>
-          </div>
-          <!-- رمز QR تمثيلي -->
-          <div style="width:44px;height:44px;background:white;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;overflow:hidden;">
-            <div style="font-size:28px;">▦</div>
-          </div>
-          <!-- ID -->
-          <div id="fbMemberCardID" style="font-size:9px;opacity:.75;font-family:monospace;margin-bottom:6px;">ID: NL-DZ-2024-0000</div>
-          <button onclick="showMemberCard()" style="width:100%;padding:6px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;">عرض البطاقة 🪪</button>
-        </div>
-
-        <!-- اجمع النقاط -->
-        <div style="background:linear-gradient(135deg,#4527a0,#6a1b9a);border-radius:16px;padding:12px;color:white;text-align:center;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(106,27,154,0.4);">
-          <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.06);"></div>
-          <div style="font-size:11px;font-weight:900;margin-bottom:6px;opacity:.9;">🏆 اجمع النقاط</div>
-          <div style="font-size:28px;margin:4px 0;">🏆</div>
-          <div id="fbTotalPts" style="font-size:22px;font-weight:900;color:#e0aaff;margin-bottom:2px;">0</div>
-          <div style="font-size:10px;opacity:.8;margin-bottom:4px;">نقطة</div>
-          <div id="fbWeeklyPtsGain" style="font-size:11px;color:#69f0ae;font-weight:800;">+0 هذا الأسبوع ▲</div>
-          <button onclick="openPointsRules()" style="width:100%;margin-top:8px;padding:6px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;">تحديثات جديدة 🎯</button>
-        </div>
-
-        <!-- اللوحة الرقمية -->
-        <div style="background:linear-gradient(135deg,#e65100,#f57c00);border-radius:16px;padding:12px;color:white;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(230,81,0,0.4);">
-          <div style="position:absolute;top:-20px;left:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.06);"></div>
-          <div style="font-size:11px;font-weight:900;margin-bottom:4px;opacity:.9;">📊 اللوحة الرقمية</div>
-          <div style="font-size:9px;opacity:.75;margin-bottom:3px;">المستوى</div>
-          <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px;">
-            <span style="font-size:16px;">🥈</span>
-            <div id="fbDigitalLevel" style="font-size:13px;font-weight:900;">–</div>
-          </div>
-          <!-- مقياس دائري بسيط -->
-          <div style="position:relative;width:60px;height:60px;margin:0 auto 6px;">
-            <svg viewBox="0 0 36 36" style="width:60px;height:60px;transform:rotate(-90deg);">
-              <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3"/>
-              <circle id="fbDigitalArc" cx="18" cy="18" r="15.9" fill="none" stroke="#FFD54F" stroke-width="3" stroke-dasharray="0,100" stroke-linecap="round"/>
-            </svg>
-            <div id="fbDigitalPct" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:white;">0%</div>
-          </div>
-          <div id="fbDigitalPtsInfo" style="font-size:9px;text-align:center;opacity:.8;margin-bottom:6px;">0 / 10,000 نقطة</div>
-          <button onclick="openDigitalDashboard()" style="width:100%;padding:6px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;">عرض التفاصيل 📊</button>
-        </div>
-      </div><!-- end cards grid -->
-
-      <!-- ▌3▐ النجوم -->
-      <div style="background:white;border-radius:16px;margin:0 10px 10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-        <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:12px;">⭐ النجوم</div>
-        <!-- نجوم كبيرة أفقية -->
-        <div style="display:flex;gap:8px;margin-bottom:12px;justify-content:center;">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <span id="fbStarActive" style="font-size:32px;filter:drop-shadow(0 2px 6px rgba(245,197,24,0.5));">⭐</span>
-            <div style="font-size:10px;font-weight:700;color:#65676B;">نشط</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <span id="fbStarCreative" style="font-size:32px;opacity:.35;">⭐</span>
-            <div style="font-size:10px;font-weight:700;color:#65676B;">مبدع</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <span id="fbStarCommitted" style="font-size:32px;opacity:.35;">⭐</span>
-            <div style="font-size:10px;font-weight:700;color:#65676B;">ملتزم</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <span id="fbStarAmbitious" style="font-size:32px;opacity:.25;">⭐</span>
-            <div style="font-size:10px;font-weight:700;color:#9CA3AF;">طموح 🔒</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <span id="fbStarLeader" style="font-size:32px;opacity:.25;">⭐</span>
-            <div style="font-size:10px;font-weight:700;color:#9CA3AF;">قائد 🔒</div>
+            <div id="fbProfileRole" style="font-size:12px;color:#00e5a0;margin-top:2px;font-weight:700;font-family:'Tajawal',sans-serif;"></div>
+            <!-- Stars rating row -->
+            <div id="fbVisitorRatingSum" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:3px;font-family:'Tajawal',sans-serif;"></div>
           </div>
         </div>
-        <div id="fbStarsRating" style="display:flex;flex-direction:column;gap:6px;"></div>
-        <div id="fbTotalStars" style="margin-top:8px;text-align:center;font-size:11px;color:#65676B;font-weight:700;"></div>
-        <div id="fbVisitorRatingSum" style="text-align:center;font-size:11px;color:#65676B;margin-top:4px;"></div>
-        <p style="font-size:10px;color:#9CA3AF;text-align:center;margin-top:8px;line-height:1.6;">اجمع المزيد من النقاط لفتح النجوم والحصول على مزايا حصرية</p>
-      </div>
 
-      <!-- ▌4▐ لوحة البيانات والتفاعل -->
-      <div style="background:white;border-radius:16px;margin:0 10px 10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-        <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:12px;">📈 لوحة البيانات والتفاعل</div>
-        <!-- إحصائيات أفقية -->
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px;text-align:center;">
-          <div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;margin-bottom:3px;">👁 مشاهدات</div>
-            <div id="fbStatViews" style="font-size:13px;font-weight:900;color:#050505;">0</div>
+        <!-- ── STATS ROW ── -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,0.06);border-radius:14px;overflow:hidden;margin-bottom:14px;">
+          <div style="background:#0d1117;padding:10px 4px;text-align:center;">
+            <div id="fbFollowersCount" style="font-size:16px;font-weight:900;color:#00e5a0;font-family:'Tajawal',sans-serif;">0</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.45);font-weight:700;font-family:'Tajawal',sans-serif;">أصدقاء</div>
           </div>
-          <div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;margin-bottom:3px;">💬 تعليقات</div>
-            <div id="fbStatComments" style="font-size:13px;font-weight:900;color:#050505;">0</div>
+          <div style="background:#0d1117;padding:10px 4px;text-align:center;">
+            <div id="fbViewsCount" style="font-size:16px;font-weight:900;color:#0099ff;font-family:'Tajawal',sans-serif;">0</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.45);font-weight:700;font-family:'Tajawal',sans-serif;">مشاهدات</div>
           </div>
-          <div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;margin-bottom:3px;">❤️ إعجابات</div>
-            <div id="fbStatLikes" style="font-size:13px;font-weight:900;color:#050505;">0</div>
+          <div style="background:#0d1117;padding:10px 4px;text-align:center;">
+            <div id="fbPostsCount" style="font-size:16px;font-weight:900;color:#a855f7;font-family:'Tajawal',sans-serif;">0</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.45);font-weight:700;font-family:'Tajawal',sans-serif;">تفاعل</div>
           </div>
-          <div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;margin-bottom:3px;">🔗 مشاركات</div>
-            <div id="fbStatShares" style="font-size:13px;font-weight:900;color:#050505;">0</div>
-          </div>
-          <div>
-            <div style="font-size:9px;color:#65676B;font-weight:700;margin-bottom:3px;">👥 أصدقاء</div>
-            <div id="fbFollowersCount" style="font-size:13px;font-weight:900;color:#050505;">0</div>
+          <div style="background:#0d1117;padding:10px 4px;text-align:center;">
+            <div id="fbFollowingCount" style="font-size:16px;font-weight:900;color:#f59e0b;font-family:'Tajawal',sans-serif;">0</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.45);font-weight:700;font-family:'Tajawal',sans-serif;">منشورات</div>
           </div>
         </div>
-        <!-- منحنى بسيط بـ canvas -->
-        <canvas id="fbActivityChart" height="60" style="width:100%;border-radius:8px;background:#F8F9FA;display:block;"></canvas>
-        <div style="font-size:10px;color:#9CA3AF;text-align:center;margin-top:5px;">تطور نشاطك خلال الأسابيع الماضية</div>
-      </div>
 
-      <!-- ▌5▐ شعلة المشاركة اليومية -->
-      <div style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:16px;margin:0 10px 10px;padding:14px;border:1.5px solid rgba(230,81,0,0.2);">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:900;color:#e65100;margin-bottom:3px;">🔥 نظام الشعلة</div>
-            <div id="fbStreakInfo" style="font-size:11px;color:#bf360c;font-weight:700;">جارٍ التحميل...</div>
+        <!-- ── POINTS + LEVEL + BALANCE ROW ── -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+          <div style="background:linear-gradient(135deg,rgba(0,120,255,0.15),rgba(0,120,255,0.08));border:1px solid rgba(0,120,255,0.25);border-radius:14px;padding:12px 8px;text-align:center;">
+            <div id="fbTotalPts" style="font-size:20px;font-weight:900;color:#0099ff;font-family:'Tajawal',sans-serif;">0</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;font-family:'Tajawal',sans-serif;">نقطة إجمالية</div>
           </div>
-          <span id="fbStreakFlame" style="font-size:38px;">🥉</span>
-          <div style="text-align:center;background:rgba(255,255,255,0.5);border-radius:10px;padding:6px 10px;min-width:50px;margin-right:6px;">
-            <div style="font-size:8px;color:#e65100;font-weight:700;">التالي</div>
-            <div id="fbStreakNext" style="font-size:12px;font-weight:900;color:#bf360c;">45 يوم</div>
+          <div style="background:linear-gradient(135deg,rgba(0,229,160,0.15),rgba(0,229,160,0.08));border:1px solid rgba(0,229,160,0.25);border-radius:14px;padding:12px 8px;text-align:center;">
+            <div id="fbBalance" style="font-size:18px;font-weight:900;color:#00e5a0;font-family:'Tajawal',sans-serif;">0 دج</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;font-family:'Tajawal',sans-serif;">الرصيد</div>
+          </div>
+          <div style="background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.08));border:1px solid rgba(245,158,11,0.25);border-radius:14px;padding:12px 8px;text-align:center;">
+            <div id="fbLevelBadge" style="font-size:18px;font-weight:900;color:#f59e0b;font-family:'Tajawal',sans-serif;">🚀 1</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;font-family:'Tajawal',sans-serif;">المستوى</div>
           </div>
         </div>
-      </div>
 
-      <!-- ▌6▐ البورصة وسوق العمل / كيفية الحصول على النقاط -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 10px 10px;">
-
-        <!-- البورصة -->
-        <div style="background:white;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-          <div style="font-size:12px;font-weight:900;color:#050505;margin-bottom:8px;">💼 البورصة وسوق العمل</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            <div style="width:40px;height:40px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;">💼</div>
-            <div>
-              <div style="font-size:9px;color:#65676B;font-weight:700;">فرص عمل متاحة</div>
-              <div id="fbJobsCount" style="font-size:18px;font-weight:900;color:#1877F2;">24</div>
-            </div>
+        <!-- ── LEVEL PROGRESS BAR ── -->
+        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:12px 14px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:11px;font-weight:800;color:rgba(255,255,255,0.7);font-family:'Tajawal',sans-serif;">التقدم للمستوى التالي</span>
+            <span id="fbLevelPts" style="font-size:11px;font-weight:900;color:#00e5a0;font-family:'Tajawal',sans-serif;">0 نقطة</span>
           </div>
-          <div style="background:#F0F9FF;border-radius:10px;padding:8px;margin-bottom:8px;">
-            <div style="font-size:9px;color:#65676B;font-weight:700;">مؤشر السوق</div>
-            <div style="font-size:16px;font-weight:900;color:#1877F2;">7,845.32</div>
-            <div style="font-size:10px;color:#22c55e;font-weight:800;">+2.45% ▲</div>
+          <div style="height:7px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;">
+            <div id="fbLevelBar" style="height:100%;background:linear-gradient(90deg,#0099ff,#00e5a0);border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1);width:0%;box-shadow:0 0 8px rgba(0,229,160,0.5);"></div>
           </div>
-          <button onclick="openJobsMarket()" style="width:100%;padding:7px;background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;">تصفح الفرص</button>
+          <div style="font-size:9px;color:rgba(255,255,255,0.35);margin-top:5px;text-align:left;font-family:'Tajawal',sans-serif;">10,000 نقطة = مستوى جديد</div>
         </div>
 
-        <!-- كيفية الحصول على النقاط -->
-        <div style="background:white;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-          <div style="font-size:12px;font-weight:900;color:#050505;margin-bottom:8px;">🎯 كيفية الحصول على النقاط</div>
-          <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;background:#F0F9FF;border-radius:8px;padding:5px 8px;">
-              <span style="font-size:10px;color:#050505;font-weight:700;">📢 منشور</span>
-              <span style="font-size:11px;font-weight:900;color:#1877F2;">+50</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;background:#F0FFF4;border-radius:8px;padding:5px 8px;">
-              <span style="font-size:10px;color:#050505;font-weight:700;">🖼️ صورة</span>
-              <span style="font-size:11px;font-weight:900;color:#22c55e;">+50</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;background:#FFF7ED;border-radius:8px;padding:5px 8px;">
-              <span style="font-size:10px;color:#050505;font-weight:700;">🎬 فيديو</span>
-              <span style="font-size:11px;font-weight:900;color:#f97316;">+70</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;background:#F5F3FF;border-radius:8px;padding:5px 8px;">
-              <span style="font-size:10px;color:#050505;font-weight:700;">📖 قصة</span>
-              <span style="font-size:11px;font-weight:900;color:#7c3aed;">+15</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;background:#FFF0F3;border-radius:8px;padding:5px 8px;">
-              <span style="font-size:10px;color:#050505;font-weight:700;">💬 تعليق</span>
-              <span style="font-size:11px;font-weight:900;color:#e11d48;">+3</span>
-            </div>
-          </div>
-          <button onclick="openPointsRules()" style="width:100%;padding:7px;background:#F0F2F5;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;">عرض جميع القواعد</button>
-        </div>
-      </div>
-
-      <!-- ▌7▐ بيانات التسجيل + محفظة النجوم -->
-      <div style="background:white;border-radius:16px;margin:0 10px 10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-        <div id="fbRegInfo" style="font-size:12px;color:#65676B;line-height:2;margin-bottom:10px;"></div>
-
-        <!-- محفظة النجوم -->
-        <div style="background:linear-gradient(135deg,#FFF8E1,#FFF3CD);border:1.5px solid rgba(245,197,24,0.4);border-radius:14px;padding:12px;margin-bottom:10px;">
+        <!-- ── STARS WALLET ── -->
+        <div style="background:linear-gradient(135deg,rgba(245,197,24,0.12),rgba(249,115,22,0.08));border:1px solid rgba(245,197,24,0.25);border-radius:14px;padding:12px 14px;margin-bottom:12px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="font-size:13px;font-weight:900;color:#050505;">🌟 محفظة النجوم</div>
-            <div id="fbStarsWalletBadge" style="background:linear-gradient(90deg,#f5c518,#f97316);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:900;color:white;">0 ⭐</div>
+            <span style="font-size:12px;font-weight:900;color:#f5c518;font-family:'Tajawal',sans-serif;">🌟 محفظة النجوم</span>
+            <span id="fbStarsWalletBadge" style="background:linear-gradient(90deg,#f5c518,#f97316);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:900;color:#0d1117;font-family:'Tajawal',sans-serif;">0 ⭐</span>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
-            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;">
-              <div id="fbStarsWalletTotal" style="font-size:16px;font-weight:900;color:#f59e0b;">0</div>
-              <div style="font-size:9px;color:#65676B;font-weight:700;">إجمالي</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;">
+            <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:7px 4px;text-align:center;">
+              <div id="fbStarsWalletTotal" style="font-size:16px;font-weight:900;color:#f59e0b;font-family:'Tajawal',sans-serif;">0</div>
+              <div style="font-size:8px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">النجوم</div>
             </div>
-            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;">
-              <div id="fbStarsWalletRaters" style="font-size:16px;font-weight:900;color:#1877F2;">0</div>
-              <div style="font-size:9px;color:#65676B;font-weight:700;">مقيّمين</div>
+            <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:7px 4px;text-align:center;">
+              <div id="fbStarsWalletRaters" style="font-size:16px;font-weight:900;color:#0099ff;font-family:'Tajawal',sans-serif;">0</div>
+              <div style="font-size:8px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">المقيّمون</div>
             </div>
-            <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;">
-              <div id="fbStarsWalletAvg" style="font-size:16px;font-weight:900;color:#22c55e;">0</div>
-              <div style="font-size:9px;color:#65676B;font-weight:700;">معدل</div>
-            </div>
-          </div>
-          <div style="margin-bottom:4px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-              <span style="font-size:10px;font-weight:700;color:#050505;">نحو التوثيق</span>
-              <span id="fbWalletProgressLabel" style="font-size:10px;color:#65676B;">0 / 150 ⭐</span>
-            </div>
-            <div style="height:5px;background:#E4E6EB;border-radius:3px;overflow:hidden;">
-              <div id="fbWalletProgressBar" style="height:100%;background:linear-gradient(90deg,#f5c518,#f97316);border-radius:3px;transition:width .6s;width:0%;"></div>
+            <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:7px 4px;text-align:center;">
+              <div id="fbStarsWalletAvg" style="font-size:16px;font-weight:900;color:#00e5a0;font-family:'Tajawal',sans-serif;">0</div>
+              <div style="font-size:8px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">معدل التقييم</div>
             </div>
           </div>
-          <div id="fbStarsWalletStatus" style="font-size:11px;text-align:center;color:#65676B;font-weight:700;margin-top:4px;"></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:9px;color:rgba(255,255,255,0.5);font-family:'Tajawal',sans-serif;">التقدم نحو التوثيق</span>
+            <span id="fbWalletProgressLabel" style="font-size:9px;color:#f5c518;font-weight:900;font-family:'Tajawal',sans-serif;">0 / 150 ⭐</span>
+          </div>
+          <div style="height:5px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;">
+            <div id="fbWalletProgressBar" style="height:100%;background:linear-gradient(90deg,#f5c518,#f97316);border-radius:3px;transition:width .6s ease;width:0%;"></div>
+          </div>
+          <div id="fbStarsWalletStatus" style="font-size:10px;text-align:center;color:rgba(255,255,255,0.4);margin-top:5px;font-family:'Tajawal',sans-serif;"></div>
         </div>
 
-        <!-- أزرار الإجراءات -->
-        <div style="display:flex;gap:8px;">
-          <button onclick="showProfileEditMenu()" style="flex:1;padding:9px;background:#E4E6EB;border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#050505;cursor:pointer;">✏️ تعديل الملف</button>
-          <button onclick="showBalanceModal()" style="flex:1;padding:9px;background:linear-gradient(135deg,#22c55e,#1877F2);border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;">💰 رصيدي</button>
+        <!-- ── STARS RATING (7 معايير) ── -->
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:12px 14px;margin-bottom:12px;">
+          <div style="font-size:12px;font-weight:900;color:rgba(255,255,255,0.8);margin-bottom:4px;font-family:'Tajawal',sans-serif;">⭐ تقييمك (7 معايير)</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.35);margin-bottom:10px;font-family:'Tajawal',sans-serif;">هذه النجوم تظهر للآخرين في ملفك</div>
+          <div id="fbStarsRating" style="display:flex;flex-direction:column;gap:7px;"></div>
+          <div id="fbTotalStars" style="margin-top:8px;text-align:center;font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;font-family:'Tajawal',sans-serif;"></div>
         </div>
-      </div>
 
-      <!-- ▌8▐ منشوراتي -->
-      <div style="background:white;border-radius:16px;margin:0 10px 14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-        <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #E4E6EB;">📝 منشوراتي</div>
+        <!-- ── REG INFO ── -->
+        <div id="fbRegInfo" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:11px;color:rgba(255,255,255,0.5);line-height:2;font-family:'Tajawal',sans-serif;"></div>
+
+        <!-- ── ACTION BUTTONS ── -->
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <button onclick="showProfileEditMenu()" style="flex:1;padding:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.13)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">✏️ تعديل الملف</button>
+          <button onclick="showBalanceModal()" style="flex:1;padding:10px;background:linear-gradient(135deg,#0099ff,#00e5a0);border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#050a0e;cursor:pointer;transition:.15s;box-shadow:0 4px 14px rgba(0,229,160,0.3);">💰 رصيدي</button>
+        </div>
+
+        <!-- ── MY POSTS HEADER ── -->
+        <div style="font-size:14px;font-weight:900;color:rgba(255,255,255,0.7);margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08);font-family:'Tajawal',sans-serif;">📝 منشوراتي</div>
         <div id="fbProfilePostsContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
       </div>
 
-    </div><!-- end socialPanel_myprofile -->
+    </div>
 
   </div><!-- end scrollable -->
 
   <!-- ── (removed bottom tab bar – moved to top) ── -->
 </div>
-
-<!-- 🔧 سكريبت تهيئة الملف الشخصي الجديد -->
-<script>
-(function(){
-'use strict';
-
-/* ── تحديث لوحة الملف الشخصي الجديدة ── */
-window._refreshNewProfileUI = function(){
-  try {
-    var name = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name') || '';
-    var pts  = parseInt(localStorage.getItem('sklab_points_'+name)||localStorage.getItem('sklab_total_points')||'0',10)||0;
-    var stars= parseInt(localStorage.getItem('sklab_stars_'+name)||'0',10)||0;
-    var rank = localStorage.getItem('sklab_rank_'+name)||'–';
-    var friends= parseInt(localStorage.getItem('sklab_friends_count_'+name)||'0',10)||0;
-    var regDate = localStorage.getItem('sklab_reg_date_'+name)||'';
-    var balance = parseFloat(localStorage.getItem('sklab_balance_'+name)||'0')||0;
-    var avatar  = localStorage.getItem('sklab_avatar_'+name)||'';
-    var coverUrl= localStorage.getItem('sklab_cover_'+name)||'';
-
-    /* الاسم */
-    var el;
-    el=document.getElementById('fbProfileName');  if(el) el.textContent=name||'';
-    el=document.getElementById('fbBankCardName'); if(el) el.textContent=name||'';
-    el=document.getElementById('fbMemberCardName');if(el)el.textContent=name||'';
-    el=document.getElementById('fbMemberCardID'); if(el) el.textContent='ID: NL-DZ-'+new Date().getFullYear()+'-'+(Math.floor(Math.random()*9000)+1000);
-
-    /* الرصيد / النقاط / النجوم */
-    el=document.getElementById('fbTotalPts');  if(el) el.textContent=pts.toLocaleString('ar-DZ');
-    el=document.getElementById('fbBankBalance');if(el)el.textContent=balance.toLocaleString('ar-DZ');
-    el=document.getElementById('fbBankStars'); if(el)el.textContent=stars.toLocaleString('ar-DZ');
-
-    /* الترتيب */
-    el=document.getElementById('fbRankBadge'); if(el) el.textContent='#'+rank;
-
-    /* المستوى: كل 10,000 نقطة = مستوى */
-    var levels=['مبتدئ','فضي 1','فضي 2','ذهبي 1','ذهبي 2','ماسي','أسطوري'];
-    var levelIdx = Math.min(Math.floor(pts/10000), levels.length-1);
-    var levelName= levels[levelIdx]||'مبتدئ';
-    var ptsInLevel= pts % 10000;
-    var pctInLevel= Math.min(Math.round(ptsInLevel/100), 100);
-
-    el=document.getElementById('fbLevelBadge');  if(el) el.textContent='🚀 '+levelName;
-    el=document.getElementById('fbLevelLabel');   if(el) el.textContent=levelName;
-    el=document.getElementById('fbDigitalLevel'); if(el) el.textContent=levelName;
-    el=document.getElementById('fbLevelBar');     if(el) el.style.width=pctInLevel+'%';
-    el=document.getElementById('fbLevelPct');     if(el) el.textContent=pctInLevel+'%';
-    el=document.getElementById('fbLevelPts');     if(el) el.textContent=ptsInLevel.toLocaleString('ar-DZ')+' / 10,000 نقطة';
-    el=document.getElementById('fbDigitalPct');   if(el) el.textContent=pctInLevel+'%';
-    el=document.getElementById('fbDigitalPtsInfo');if(el)el.textContent=ptsInLevel.toLocaleString('ar-DZ')+' / 10,000 نقطة';
-
-    /* قوس SVG */
-    var arc=document.getElementById('fbDigitalArc');
-    if(arc){ var da=(pctInLevel/100)*100; arc.setAttribute('stroke-dasharray',da+','+100); }
-
-    /* الأصدقاء */
-    el=document.getElementById('fbFollowersCount');if(el)el.textContent=friends.toLocaleString('ar-DZ');
-
-    /* الصورة الشخصية */
-    if(avatar){
-      var pw=document.getElementById('fbProfilePicWrapper');
-      if(pw){
-        pw.innerHTML='<img src="'+avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
-        /* شارة التوثيق */
-        var bd=document.createElement('div');
-        bd.id='fbAvatarVerifiedBadge';
-        bd.style.cssText='position:absolute;bottom:3px;right:3px;width:24px;height:24px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:11px;z-index:5;';
-        bd.textContent='✓';
-        pw.appendChild(bd);
-      }
-      var ba=document.getElementById('fbBankCardAvatar');    if(ba){ ba.innerHTML='<img src="'+avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; }
-      var ma=document.getElementById('fbMemberCardAvatar'); if(ma){ ma.innerHTML='<img src="'+avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; }
-    }
-
-    /* صورة الغلاف */
-    if(coverUrl){
-      var ci=document.getElementById('profileCoverImgFB');
-      if(ci) ci.style.backgroundImage='url('+coverUrl+')';
-    }
-
-    /* معلومات التسجيل */
-    el=document.getElementById('fbRegInfo');
-    if(el && regDate){
-      el.innerHTML='📅 تاريخ الانضمام: <strong>'+regDate+'</strong>';
-    }
-
-    /* نجوم التقييم بالصف العلوي */
-    var starRow=document.getElementById('fbStarRatingRow');
-    if(starRow){
-      var starsVal = parseInt(localStorage.getItem('sklab_visitor_rating_'+name)||'0',10)||0;
-      var filled=Math.min(Math.floor(starsVal/1000),5);
-      starRow.innerHTML='';
-      for(var s=0;s<5;s++){
-        var sp=document.createElement('span');
-        sp.style.fontSize='16px';
-        sp.textContent=s<filled?'⭐':'☆';
-        if(s>=filled) sp.style.opacity='.3';
-        starRow.appendChild(sp);
-      }
-    }
-
-    /* رسم منحنى النشاط */
-    _drawActivityChart();
-
-    /* تحديث بطاقة البنك */
-    var cardNum=document.getElementById('fbBankCardNum');
-    if(cardNum){
-      var storedCard=localStorage.getItem('sklab_card_number_'+name)||'';
-      if(storedCard.length>=12){
-        var masked=storedCard.replace(/(\d{4})(?=\d)/g,'$1 ');
-        cardNum.textContent=masked;
-      }
-    }
-
-    /* إحصائيات التفاعل */
-    var views   =parseInt(localStorage.getItem('sklab_total_views_'+name)||'0',10)||0;
-    var comments=parseInt(localStorage.getItem('sklab_total_comments_'+name)||'0',10)||0;
-    var likes   =parseInt(localStorage.getItem('sklab_total_likes_'+name)||'0',10)||0;
-    var shares  =parseInt(localStorage.getItem('sklab_total_shares_'+name)||'0',10)||0;
-    el=document.getElementById('fbStatViews');   if(el) el.textContent=_fmtNum(views);
-    el=document.getElementById('fbStatComments');if(el) el.textContent=_fmtNum(comments);
-    el=document.getElementById('fbStatLikes');   if(el) el.textContent=_fmtNum(likes);
-    el=document.getElementById('fbStatShares');  if(el) el.textContent=_fmtNum(shares);
-    el=document.getElementById('fbViewsCount');  if(el) el.textContent=_fmtNum(views);
-    el=document.getElementById('fbPostsCount');  if(el) el.textContent=_fmtNum(likes);
-    el=document.getElementById('fbFollowingCount');if(el) el.textContent=_fmtNum(parseInt(localStorage.getItem('sklab_posts_count_'+name)||'0',10)||0);
-
-    /* نقاط هذا الأسبوع */
-    var weekly=parseInt(localStorage.getItem('sklab_weekly_pts_'+name)||'0',10)||0;
-    el=document.getElementById('fbWeeklyPtsGain');if(el) el.textContent='+'+(weekly>0?weekly.toLocaleString('ar-DZ'):0)+' هذا الأسبوع ▲';
-
-    /* أيام في المستوى الحالي */
-    el=document.getElementById('fbDaysInLevel');
-    if(el){
-      var dil=parseInt(localStorage.getItem('sklab_days_in_level_'+name)||'0',10)||0;
-      el.textContent=dil||'–';
-    }
-
-  } catch(e){ console.warn('_refreshNewProfileUI error:',e); }
-};
-
-/* ── تنسيق الأرقام الكبيرة ── */
-function _fmtNum(n){
-  if(n>=1000000) return (n/1000000).toFixed(1)+'M';
-  if(n>=1000)    return (n/1000).toFixed(1)+'K';
-  return ''+n;
-}
-
-/* ── رسم منحنى النشاط ── */
-window._drawActivityChart = function(){
-  var c=document.getElementById('fbActivityChart');
-  if(!c||!c.getContext) return;
-  c.width=c.offsetWidth||300;
-  var ctx=c.getContext('2d');
-  var w=c.width, h=60;
-  ctx.clearRect(0,0,w,h);
-  /* بيانات وهمية تُستبدل لاحقاً بالبيانات الحقيقية */
-  var data=[20,35,28,55,42,60,48,70,55,65,72,80];
-  var max=Math.max.apply(null,data)||1;
-  var step=w/(data.length-1);
-  /* تدرج -->  */
-  var grad=ctx.createLinearGradient(0,0,0,h);
-  grad.addColorStop(0,'rgba(99,102,241,0.4)');
-  grad.addColorStop(1,'rgba(99,102,241,0)');
-  ctx.beginPath();
-  ctx.moveTo(0,h-(data[0]/max)*(h-8)-4);
-  for(var i=1;i<data.length;i++){
-    var x=i*step, y=h-(data[i]/max)*(h-8)-4;
-    var px=(i-1)*step, py=h-(data[i-1]/max)*(h-8)-4;
-    var cpx1=px+step/3, cpy1=py, cpx2=x-step/3, cpy2=y;
-    ctx.bezierCurveTo(cpx1,cpy1,cpx2,cpy2,x,y);
-  }
-  /* منطقة التعبئة */
-  ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath();
-  ctx.fillStyle=grad; ctx.fill();
-  /* الخط */
-  ctx.beginPath();
-  ctx.moveTo(0,h-(data[0]/max)*(h-8)-4);
-  for(var j=1;j<data.length;j++){
-    var xj=j*step, yj=h-(data[j]/max)*(h-8)-4;
-    var pxj=(j-1)*step, pyj=h-(data[j-1]/max)*(h-8)-4;
-    ctx.bezierCurveTo(pxj+step/3,pyj,xj-step/3,yj,xj,yj);
-  }
-  ctx.strokeStyle='#6366f1'; ctx.lineWidth=2; ctx.stroke();
-  /* نقاط دائرية مميزة */
-  for(var k=0;k<data.length;k++){
-    var xk=k*step, yk=h-(data[k]/max)*(h-8)-4;
-    ctx.beginPath(); ctx.arc(xk,yk,3,0,Math.PI*2);
-    ctx.fillStyle='#6366f1'; ctx.fill();
-    ctx.strokeStyle='white'; ctx.lineWidth=1.5; ctx.stroke();
-  }
-};
-
-/* ── فتح قواعد النقاط ── */
-window.openPointsRules = window.openPointsRules || function(){
-  if(typeof showToast==='function') showToast('📋 قواعد النقاط — قريباً');
-};
-
-/* ── فتح لوحة رقمية ── */
-window.openDigitalDashboard = window.openDigitalDashboard || function(){
-  if(typeof showBalanceModal==='function') showBalanceModal();
-};
-
-/* ── فتح سوق العمل ── */
-window.openJobsMarket = window.openJobsMarket || function(){
-  if(typeof showToast==='function') showToast('💼 سوق العمل — قريباً');
-};
-
-/* ── عرض بطاقة العضو ── */
-window.showMemberCard = window.showMemberCard || function(){
-  if(typeof openDigitalCard==='function') openDigitalCard();
-  else if(typeof showToast==='function') showToast('🪪 بطاقة الانخراط — قريباً');
-};
-
-/* تحديث عند فتح تبويب الملف الشخصي */
-var _origShowMyProfile = window.showMyProfile;
-window.showMyProfile = function(){
-  if(typeof _origShowMyProfile==='function') _origShowMyProfile.apply(this,arguments);
-  setTimeout(window._refreshNewProfileUI, 200);
-};
-
-/* تحديث عند تسجيل الدخول */
-window.addEventListener('load', function(){
-  setTimeout(function(){
-    window._refreshNewProfileUI();
-    /* إعادة رسم المنحنى عند تغيير الحجم */
-    window.addEventListener('resize', function(){
-      if(typeof window._drawActivityChart==='function') window._drawActivityChart();
-    });
-  }, 1800);
-});
-
-/* تحديث كلما تغيرت النقاط */
-var _origLS = Storage.prototype.setItem;
-Storage.prototype.setItem = function(k,v){
-  _origLS.call(this,k,v);
-  if(k && (k.includes('points')||k.includes('stars')||k.includes('rank')||k.includes('avatar')||k.includes('cover'))){
-    clearTimeout(window._refreshTimer);
-    window._refreshTimer = setTimeout(window._refreshNewProfileUI, 400);
-  }
-};
-
-console.log('✅ [ConnectDZ] الملف الشخصي الجديد — جاهز');
-})();
-</script>
 
 <!-- ── نافذة إنشاء منشور اجتماعي ── -->
 <div id="socialCreatePostModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:5500;align-items:flex-end;justify-content:center;">
@@ -6019,391 +5566,194 @@ console.log('✅ [ConnectDZ] الملف الشخصي الجديد — جاهز')
   </div>
 </div>
 
+
 <!-- ── نافذة ملف شخصي عضو آخر ── -->
-<div id="memberProfileView" style="display:none;position:fixed;inset:0;z-index:5400;background:#F0F2F5;flex-direction:column;overflow-y:auto;overscroll-behavior:none;">
-  <!-- Cover -->
-  <div style="width:100%;max-width:480px;margin:0 auto;position:relative;overflow:visible;">
-    <div id="mpvCover" style="width:100%;height:180px;background:linear-gradient(135deg,#00c853 0%,#e53935 100%);position:relative;overflow:hidden;">
-      <div id="mpvCoverImg" style="width:100%;height:100%;background-size:cover;background-position:center;"></div>
-      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,0.35));"></div>
-    </div>
-    <div onclick="closeMemberProfileView()" style="position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:white;font-weight:900;z-index:5;">✕</div>
-    <div onclick="closeMemberProfileView()" style="position:absolute;top:10px;left:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;color:white;font-weight:700;z-index:5;">‹</div>
-    <div style="position:absolute;bottom:-46px;right:14px;z-index:5;display:inline-block;">
-      <div id="mpvAvatar" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#00c853,#e53935);display:flex;align-items:center;justify-content:center;font-size:38px;border:4px solid white;overflow:hidden;position:relative;">👑
-      </div>
-      <!-- شارة التوثيق: رمادية <150 | زرقاء 150+ | ذهبية 300+ — خارج الدائرة -->
-      <div id="mpvAvatarBadge" style="position:absolute;bottom:-4px;right:-4px;width:28px;height:28px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:7;box-shadow:0 1px 4px rgba(0,0,0,0.2);" title="شارة التوثيق">✓</div>
-    </div>
-    <!-- شارة الشعلة والأيام — أسفل يسار الغلاف -->
-    <div id="mpvStreakBadge" style="position:absolute;bottom:-40px;left:14px;z-index:5;display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.95);border-radius:20px;padding:4px 10px;box-shadow:0 2px 8px rgba(0,0,0,0.12);">
-      <span id="mpvStreakFlame" style="font-size:18px;">🔥</span>
-      <span id="mpvStreakDays" style="font-size:12px;font-weight:900;color:#e53935;">0 يوم</span>
-    </div>
-  </div>
-  <div style="width:100%;max-width:480px;margin:0 auto;background:white;padding:56px 16px 14px;border-bottom:1px solid #E4E6EB;">
-    <!-- شعار المنصة حسب العمر -->
-    <div id="mpvBrandLogo" style="margin-bottom:8px;font-size:17px;font-weight:900;letter-spacing:1px;"></div>
+<div id="memberProfileView" style="display:none;position:fixed;inset:0;z-index:5400;background:#050a0e;flex-direction:column;overflow-y:auto;overscroll-behavior:none;">
+  <div style="width:100%;max-width:480px;margin:0 auto;position:relative;">
 
-    <div id="mpvName" style="font-size:20px;font-weight:900;color:#050505;margin-bottom:2px;"></div>
-    <!-- شريط التقييم بالنجوم الخماسي للزوار -->
-    <div id="mpvVisitorRatingBar" style="display:flex;align-items:center;gap:4px;margin:6px 0 8px;">
-      <div id="mpvRatingStars" style="display:flex;gap:2px;"></div>
-      <div id="mpvRatingLabel" style="font-size:11px;color:#65676B;font-weight:700;margin-right:4px;"></div>
-    </div>
-    <!-- عداد الأصدقاء / المشاهدة / التفاعل -->
-    <div style="display:flex;gap:0;margin:8px 0 10px;border-radius:12px;overflow:hidden;background:#F0F2F5;">
-      <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
-        <div id="mpvFollowersCount" style="font-size:15px;font-weight:900;color:#050505;">0</div>
-        <div style="font-size:9px;color:#65676B;font-weight:700;">اصدقاء</div>
+    <!-- ══ COVER ══ -->
+    <div id="mpvCover" style="width:100%;height:210px;position:relative;overflow:hidden;">
+      <div id="mpvCoverImg" style="position:absolute;inset:0;background:linear-gradient(135deg,#0d2137,#0a3d2b,#1a1a40);background-size:cover;background-position:center;"></div>
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(0,229,160,0.18) 0%,transparent 70%),radial-gradient(ellipse 60% 80% at 20% 80%,rgba(0,120,255,0.15) 0%,transparent 60%);pointer-events:none;"></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(5,10,14,0.95) 100%);"></div>
+      <!-- Nav buttons -->
+      <div onclick="closeMemberProfileView()" style="position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:white;font-weight:900;z-index:5;border:1px solid rgba(255,255,255,0.15);">✕</div>
+      <div onclick="closeMemberProfileView()" style="position:absolute;top:12px;left:12px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:white;z-index:5;border:1px solid rgba(255,255,255,0.15);">‹</div>
+      <!-- Streak badge -->
+      <div id="mpvStreakBadge" style="position:absolute;top:12px;left:56px;z-index:5;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border:1px solid rgba(255,107,0,0.4);border-radius:20px;padding:4px 10px;">
+        <span id="mpvStreakFlame" style="font-size:18px;">🔥</span>
+        <span id="mpvStreakDays" style="font-size:11px;font-weight:900;color:#ff6b00;font-family:'Tajawal',sans-serif;">0 يوم</span>
       </div>
-      <div style="flex:1;padding:8px 4px;text-align:center;border-left:1px solid #E4E6EB;">
-        <div id="mpvViewsCount" style="font-size:15px;font-weight:900;color:#050505;">0</div>
-        <div style="font-size:9px;color:#65676B;font-weight:700;">نسبة المشاهدة</div>
-      </div>
-      <div style="flex:1;padding:8px 4px;text-align:center;">
-        <div id="mpvInteractCount" style="font-size:15px;font-weight:900;color:#050505;">0</div>
-        <div style="font-size:9px;color:#65676B;font-weight:700;">نسبة التفاعل</div>
-      </div>
-    </div>
-    <div id="mpvPostsCount" style="display:none;">0</div>
-    <div id="mpvFollowingCount" style="display:none;">0</div>
-    <!-- النقاط والرصيد والمستوى -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
-      <div style="background:#EEF4FF;border-radius:10px;padding:8px 4px;text-align:center;">
-        <div id="mpvHeaderPts" style="font-size:15px;font-weight:900;color:#1877F2;">0</div>
-        <div style="font-size:9px;color:#65676B;font-weight:700;">نقطة</div>
-      </div>
-      <div style="background:#F0FFF4;border-radius:10px;padding:8px 4px;text-align:center;">
-        <div id="mpvHeaderBalance" style="font-size:14px;font-weight:900;color:#00c853;">0 دج</div>
-        <div style="font-size:9px;color:#65676B;font-weight:700;">الرصيد</div>
-      </div>
-      <div style="background:#FFF8E1;border-radius:10px;padding:8px 4px;text-align:center;">
-        <div id="mpvHeaderLevel" style="font-size:15px;font-weight:900;color:#f59e0b;">1</div>
-        <div style="font-size:9px;color:#65676B;font-weight:700;">المستوى</div>
-      </div>
-    </div>
-    <div style="font-size:11px;color:#65676B;margin-bottom:12px;">عضو القادة المستقبليين • الجزائر 🇩🇿</div>
-
-    <!-- عناصر مخفية للمتوافقية مع الكود القديم -->
-    <div id="mpvPtsBreakdownCard" style="display:none;"><div id="mpvPtsBreakdownLoading"></div><div id="mpvPtsSheet"></div><div id="mpvPtsQuiz"></div><div id="mpvPtsInteract"></div><div id="mpvPtsTotal"></div></div>
-
-    <div style="display:flex;gap:8px;">
-      <button id="mpvFriendBtn" onclick="handleMpvFriendAction()" style="flex:1;padding:9px;background:linear-gradient(135deg,#00c853,#43a047);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">👥 إضافة صديق</button>
-      <button onclick="startChatWithMpvUser()" style="flex:1;padding:9px;background:linear-gradient(135deg,#25D366,#128C7E);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">💬 رسالة</button>
-      <button onclick="closeMemberProfileView()" style="padding:9px 14px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">رجوع</button>
-    </div>
-  </div>
-
-  <!-- تبويبات الكل / الصور / ريلز -->
-  <div style="width:100%;max-width:480px;margin:0 auto;background:white;border-bottom:1px solid #E4E6EB;display:flex;position:sticky;top:0;z-index:10;">
-    <div id="mpvTab_all" onclick="_switchMpvTab('all')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:800;color:#1877F2;border-bottom:3px solid #1877F2;cursor:pointer;transition:.2s;">الكل</div>
-    <div id="mpvTab_photos" onclick="_switchMpvTab('photos')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">الصور</div>
-    <div id="mpvTab_reels" onclick="_switchMpvTab('reels')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">ريلز</div>
-  </div>
-
-  <div id="mpvPostsFeed" style="width:100%;max-width:480px;margin:0 auto 0;padding-bottom:40px;">
-
-    <!-- تبويب الكل -->
-    <div id="mpvPanel_all">
-      <div id="mpvExtendedInfo"></div>
-      <!-- المعلومات الشخصية للمنخرط -->
-      <div id="mpvPersonalInfoSection" style="background:white;margin-bottom:8px;border-top:8px solid #F0F2F5;">
-        <div style="padding:12px 14px 8px;font-size:14px;font-weight:900;color:#050505;border-bottom:1px solid #F0F2F5;">📋 المعلومات الشخصية</div>
-        <div id="mpvPersonalInfoGrid" style="padding:10px 14px;display:flex;flex-direction:column;gap:0;"></div>
-      </div>
-      <!-- منشورات العضو -->
-      <div style="background:white;padding:12px 14px;margin-bottom:8px;border-bottom:1px solid #E4E6EB;border-top:8px solid #F0F2F5;">
-        <div style="font-size:15px;font-weight:900;color:#050505;">منشورات</div>
-      </div>
-      <div id="mpvUserPosts" style="padding:0;"></div>
     </div>
 
-    <!-- تبويب الصور -->
-    <div id="mpvPanel_photos" style="display:none;">
-      <div style="background:white;padding:12px 14px 0;border-bottom:1px solid #E4E6EB;border-top:8px solid #F0F2F5;">
-        <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:10px;">📷 الصور</div>
-        <!-- تبويبات فرعية للصور -->
-        <div style="display:flex;gap:0;border-top:1px solid #E4E6EB;overflow-x:auto;">
-          <div id="mpvPhotoSub_profile" onclick="_switchPhotoSubTab('profile')" style="flex:1;min-width:fit-content;padding:10px 8px;text-align:center;font-size:11px;font-weight:800;color:#1877F2;border-bottom:2px solid #1877F2;cursor:pointer;white-space:nowrap;transition:.2s;">👤 صور الملف الشخصي</div>
-          <div id="mpvPhotoSub_cover" onclick="_switchPhotoSubTab('cover')" style="flex:1;min-width:fit-content;padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:#65676B;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:.2s;">🖼️ صور الغلاف والقصص</div>
-          <div id="mpvPhotoSub_posts" onclick="_switchPhotoSubTab('posts')" style="flex:1;min-width:fit-content;padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:#65676B;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:.2s;">📝 صور المنشورات</div>
+    <!-- ══ PROFILE INFO ══ -->
+    <div style="background:#0d1117;padding:0 16px 16px;border-bottom:1px solid rgba(255,255,255,0.06);margin-top:-2px;">
+      <!-- Avatar + name -->
+      <div style="display:flex;align-items:flex-end;gap:14px;margin-top:-48px;margin-bottom:12px;">
+        <div style="position:relative;flex-shrink:0;">
+          <div id="mpvAvatar" style="width:92px;height:92px;border-radius:50%;background:linear-gradient(135deg,#0078ff,#00e5a0);display:flex;align-items:center;justify-content:center;font-size:38px;border:3px solid #00e5a0;overflow:hidden;position:relative;box-shadow:0 0 0 4px #0d1117,0 6px 20px rgba(0,229,160,0.3);">👑</div>
+          <div id="mpvAvatarBadge" style="position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:#B0BEC5;border:2px solid #0d1117;display:flex;align-items:center;justify-content:center;font-size:12px;z-index:7;" title="شارة التوثيق">✓</div>
+        </div>
+        <div style="flex:1;padding-bottom:4px;">
+          <div id="mpvBrandLogo" style="font-size:10px;font-weight:900;color:#00e5a0;letter-spacing:2px;margin-bottom:3px;font-family:'Tajawal',sans-serif;opacity:.7;"></div>
+          <div id="mpvName" style="font-size:19px;font-weight:900;color:white;font-family:'Tajawal',sans-serif;line-height:1.2;"></div>
+          <!-- Visitor star rating -->
+          <div id="mpvVisitorRatingBar" style="display:flex;align-items:center;gap:4px;margin-top:4px;">
+            <div id="mpvRatingStars" style="display:flex;gap:2px;"></div>
+            <div id="mpvRatingLabel" style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;font-family:'Tajawal',sans-serif;"></div>
+          </div>
         </div>
       </div>
-      <div id="mpvPhotosGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;background:#F0F2F5;"></div>
-    </div>
 
-    <!-- تبويب ريلز -->
-    <div id="mpvPanel_reels" style="display:none;">
-      <div style="background:white;padding:12px 14px;border-bottom:1px solid #E4E6EB;border-top:8px solid #F0F2F5;">
-        <div style="font-size:15px;font-weight:900;color:#050505;">🎬 ريلز وقصص</div>
+      <!-- ── STATS ROW ── -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,0.06);border-radius:14px;overflow:hidden;margin-bottom:14px;">
+        <div style="background:#0d1117;padding:10px 4px;text-align:center;">
+          <div id="mpvFollowersCount" style="font-size:16px;font-weight:900;color:#00e5a0;font-family:'Tajawal',sans-serif;">0</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">أصدقاء</div>
+        </div>
+        <div style="background:#0d1117;padding:10px 4px;text-align:center;">
+          <div id="mpvViewsCount" style="font-size:16px;font-weight:900;color:#0099ff;font-family:'Tajawal',sans-serif;">0</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">مشاهدات</div>
+        </div>
+        <div style="background:#0d1117;padding:10px 4px;text-align:center;">
+          <div id="mpvInteractCount" style="font-size:16px;font-weight:900;color:#a855f7;font-family:'Tajawal',sans-serif;">0</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">تفاعل</div>
+        </div>
       </div>
-      <div id="mpvReelsGrid" style="display:flex;flex-direction:column;gap:8px;padding:8px;"></div>
+      <!-- hidden compat elements -->
+      <div id="mpvPostsCount" style="display:none;">0</div>
+      <div id="mpvFollowingCount" style="display:none;">0</div>
+
+      <!-- ── POINTS / LEVEL / BALANCE ── -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+        <div style="background:rgba(0,120,255,0.1);border:1px solid rgba(0,120,255,0.2);border-radius:12px;padding:10px 6px;text-align:center;">
+          <div id="mpvHeaderPts" style="font-size:16px;font-weight:900;color:#0099ff;font-family:'Tajawal',sans-serif;">0</div>
+          <div style="font-size:8px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">نقطة</div>
+        </div>
+        <div style="background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.2);border-radius:12px;padding:10px 6px;text-align:center;">
+          <div id="mpvHeaderBalance" style="font-size:14px;font-weight:900;color:#00e5a0;font-family:'Tajawal',sans-serif;">0 دج</div>
+          <div style="font-size:8px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">الرصيد</div>
+        </div>
+        <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:10px 6px;text-align:center;">
+          <div id="mpvHeaderLevel" style="font-size:16px;font-weight:900;color:#f59e0b;font-family:'Tajawal',sans-serif;">1</div>
+          <div style="font-size:8px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">المستوى</div>
+        </div>
+      </div>
+
+      <!-- compat hidden elements -->
+      <div id="mpvPtsBreakdownCard" style="display:none;"><div id="mpvPtsBreakdownLoading"></div><div id="mpvPtsSheet"></div><div id="mpvPtsQuiz"></div><div id="mpvPtsInteract"></div><div id="mpvPtsTotal"></div></div>
+
+      <!-- عضو القادة المستقبليين -->
+      <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:12px;font-family:'Tajawal',sans-serif;">عضو القادة المستقبليين • الجزائر 🇩🇿</div>
+
+      <!-- ── ACTION BUTTONS ── -->
+      <div style="display:flex;gap:8px;">
+        <button id="mpvFriendBtn" onclick="handleMpvFriendAction()" style="flex:1;padding:10px;background:linear-gradient(135deg,#00e5a0,#00b894);border:none;border-radius:12px;color:#050a0e;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(0,229,160,0.3);">👥 إضافة صديق</button>
+        <button onclick="startChatWithMpvUser()" style="flex:1;padding:10px;background:linear-gradient(135deg,#0099ff,#0055cc);border:none;border-radius:12px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 4px 12px rgba(0,120,255,0.3);">💬 رسالة</button>
+        <button onclick="closeMemberProfileView()" style="padding:10px 14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">رجوع</button>
+      </div>
     </div>
 
+    <!-- ══ TABS ══ -->
+    <div style="background:#0d1117;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;position:sticky;top:0;z-index:10;">
+      <div id="mpvTab_all" onclick="_switchMpvTab('all')" style="flex:1;padding:13px 4px;text-align:center;font-size:12px;font-weight:800;color:#00e5a0;border-bottom:2px solid #00e5a0;cursor:pointer;transition:.2s;font-family:'Tajawal',sans-serif;">الكل</div>
+      <div id="mpvTab_photos" onclick="_switchMpvTab('photos')" style="flex:1;padding:13px 4px;text-align:center;font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);border-bottom:2px solid transparent;cursor:pointer;transition:.2s;font-family:'Tajawal',sans-serif;">الصور</div>
+      <div id="mpvTab_reels" onclick="_switchMpvTab('reels')" style="flex:1;padding:13px 4px;text-align:center;font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);border-bottom:2px solid transparent;cursor:pointer;transition:.2s;font-family:'Tajawal',sans-serif;">ريلز</div>
+    </div>
+
+    <!-- ══ POSTS FEED ══ -->
+    <div id="mpvPostsFeed" style="padding-bottom:40px;">
+
+      <!-- TAB: الكل -->
+      <div id="mpvPanel_all">
+        <div id="mpvExtendedInfo"></div>
+
+        <!-- Personal info section -->
+        <div id="mpvPersonalInfoSection" style="background:#0d1117;margin-bottom:1px;border-top:6px solid #050a0e;">
+          <div style="padding:12px 14px 8px;font-size:13px;font-weight:900;color:rgba(255,255,255,0.7);border-bottom:1px solid rgba(255,255,255,0.06);font-family:'Tajawal',sans-serif;">📋 المعلومات الشخصية</div>
+          <div id="mpvPersonalInfoGrid" style="padding:10px 14px;display:flex;flex-direction:column;gap:0;"></div>
+        </div>
+
+        <!-- Posts section -->
+        <div style="background:#0d1117;padding:12px 14px;margin-bottom:1px;border-bottom:1px solid rgba(255,255,255,0.06);border-top:6px solid #050a0e;">
+          <div style="font-size:14px;font-weight:900;color:rgba(255,255,255,0.7);font-family:'Tajawal',sans-serif;">منشورات</div>
+        </div>
+        <div id="mpvUserPosts" style="padding:0;"></div>
+      </div>
+
+      <!-- TAB: الصور -->
+      <div id="mpvPanel_photos" style="display:none;">
+        <div style="background:#0d1117;padding:12px 14px 0;border-bottom:1px solid rgba(255,255,255,0.06);border-top:6px solid #050a0e;">
+          <div style="display:flex;gap:0;overflow-x:auto;scrollbar-width:none;">
+            <div id="mpvPhotoSub_profile" onclick="_switchPhotoSubTab('profile')" style="flex:1;min-width:fit-content;padding:10px 8px;text-align:center;font-size:11px;font-weight:800;color:#00e5a0;border-bottom:2px solid #00e5a0;cursor:pointer;white-space:nowrap;transition:.2s;font-family:'Tajawal',sans-serif;">👤 صور الملف الشخصي</div>
+            <div id="mpvPhotoSub_cover" onclick="_switchPhotoSubTab('cover')" style="flex:1;min-width:fit-content;padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:.2s;font-family:'Tajawal',sans-serif;">🖼️ صور الغلاف</div>
+            <div id="mpvPhotoSub_posts" onclick="_switchPhotoSubTab('posts')" style="flex:1;min-width:fit-content;padding:10px 8px;text-align:center;font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:.2s;font-family:'Tajawal',sans-serif;">📸 صور المنشورات</div>
+          </div>
+        </div>
+        <div id="mpvPhotoGridProfile" style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;background:#050a0e;"></div>
+        <div id="mpvPhotoGridCover" style="display:none;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;background:#050a0e;"></div>
+        <div id="mpvPhotoGridPosts" style="display:none;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;background:#050a0e;"></div>
+      </div>
+
+      <!-- TAB: ريلز -->
+      <div id="mpvPanel_reels" style="display:none;">
+        <div id="mpvReelsGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;background:#050a0e;"></div>
+      </div>
+
+    </div><!-- end mpvPostsFeed -->
+  </div><!-- end max-width wrapper -->
+
+  <!-- ══ BOTTOM SHEET: معلومات تفصيلية ══ -->
+  <div id="mpvInfoSheet" style="display:none;position:fixed;inset:0;z-index:5500;background:rgba(0,0,0,0.7);backdrop-filter:blur(12px);" onclick="this.style.display='none'">
+    <div style="position:absolute;bottom:0;left:0;right:0;background:#0d1117;border-radius:24px 24px 0 0;padding:20px 16px 36px;max-height:80vh;overflow-y:auto;" onclick="event.stopPropagation()">
+      <div style="width:40px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;margin:0 auto 16px;"></div>
+      <div style="background:#0d2137;border-radius:14px;padding:16px;margin-bottom:10px;">
+        <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:700;margin-bottom:10px;letter-spacing:.5px;font-family:'Tajawal',sans-serif;">📌 الملف الشخصي</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">📍</span>
+            <div><div style="font-size:13px;font-weight:800;color:white;font-family:'Tajawal',sans-serif;">الجزائر 🇩🇿</div><div style="font-size:11px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">الموقع</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">🗓️</span>
+            <div><div style="font-size:13px;font-weight:800;color:white;font-family:'Tajawal',sans-serif;" id="ppJoinDate">…</div><div style="font-size:11px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">تاريخ الانضمام</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">🎯</span>
+            <div><div style="font-size:13px;font-weight:800;color:white;font-family:'Tajawal',sans-serif;" id="ppMemberCode">…</div><div style="font-size:11px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">رمز العضو</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="background:#0d2137;border-radius:14px;padding:14px;">
+        <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:700;margin-bottom:10px;letter-spacing:.5px;font-family:'Tajawal',sans-serif;">📊 الإحصائيات</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:3px;">🏆</div>
+            <div id="ppInfoPoints" style="font-size:16px;font-weight:900;color:white;font-family:'Tajawal',sans-serif;">0</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">إجمالي النقاط</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:3px;">⭐</div>
+            <div id="ppInfoLevel" style="font-size:16px;font-weight:900;color:#0099ff;font-family:'Tajawal',sans-serif;">1</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">المستوى الحالي</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:3px;">💰</div>
+            <div id="ppInfoBalance" style="font-size:14px;font-weight:900;color:#00e5a0;font-family:'Tajawal',sans-serif;">0 دج</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">رصيد قابل للسحب</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:3px;">🌟</div>
+            <div id="ppInfoQuiz" style="font-size:16px;font-weight:900;color:#f59e0b;font-family:'Tajawal',sans-serif;">0</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">محفظة النجوم</div>
+          </div>
+        </div>
+      </div>
+      <button onclick="document.getElementById('mpvInfoSheet').style.display='none'" style="width:100%;margin-top:16px;padding:12px;background:rgba(255,255,255,0.08);border:none;border-radius:14px;color:white;font-family:'Tajawal',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:.2s;">إغلاق</button>
+    </div>
   </div>
+
 </div>
-
-<!-- MODAL: صفحتي – Facebook Style Profile -->
-<div id="digitalCard" style="display:none;position:fixed;inset:0;z-index:3000;background:#F0F2F5;overflow-y:auto;overscroll-behavior:none;flex-direction:column;align-items:center;">
-
-  <!-- ── Cover Photo ── -->
-  <div id="profileCoverArea" style="width:100%;max-width:480px;margin:0 auto;position:relative;">
-    <div id="profileCover" style="width:100%;height:200px;background:linear-gradient(135deg,#00c853 0%,#e53935 100%);position:relative;overflow:hidden;cursor:pointer;" onclick="document.getElementById('coverPhotoInput').click()" title="تغيير صورة الغلاف">
-      <div id="profileCoverImg" style="width:100%;height:100%;background-size:cover;background-position:center;"></div>
-      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,0.35));"></div>
-      <div style="position:absolute;bottom:10px;right:12px;background:rgba(0,0,0,0.45);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:white;">📷 تغيير الغلاف</div>
-    </div>
-    <input type="file" id="coverPhotoInput" accept="image/*" style="display:none;" onchange="handleCoverUpload(event)">
-
-    <!-- Close Button -->
-    <div onclick="hideMyProfile()" style="position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:white;font-weight:900;z-index:10;">✕</div>
-
-    <!-- ── Profile Avatar overlapping cover ── -->
-    <div style="position:absolute;bottom:-50px;right:16px;z-index:5;">
-      <div id="profilePageAvatar" onclick="document.getElementById('profilePhotoInput').click()" style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:44px;border:4px solid white;box-shadow:0 4px 16px rgba(0,0,0,0.25);cursor:pointer;overflow:hidden;position:relative;">👑
-        <div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:28px;height:28px;background:#1877F2;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid white;">📷</div>
-      </div>
-      <!-- شارة التوثيق الرسمية لصاحب الحساب -->
-      <div id="myVerifiedBadge" style="display:none;margin-top:4px;background:linear-gradient(135deg,#1877F2,#0052cc);border:2px solid white;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:900;color:white;white-space:nowrap;box-shadow:0 2px 8px rgba(24,119,242,0.5);text-align:center;">✅ حساب موثّق</div>
-    </div>
-  </div>
-
-  <!-- ── Profile Info Header ── -->
-  <div style="width:100%;max-width:480px;margin:0 auto;background:white;padding:60px 16px 16px;border-bottom:1px solid #E4E6EB;position:relative;">
-    <div style="margin-bottom:6px;">
-      <div id="profilePageName" style="font-size:22px;font-weight:900;color:#050505;">…</div>
-      <div id="profilePageRole" style="font-size:13px;color:#1877F2;font-weight:700;margin-top:2px;">عضو القادة المستقبليين</div>
-    </div>
-    <div style="font-size:12px;color:#65676B;margin-bottom:14px;">Connect DZ • الجزائر 🇩🇿</div>
-
-    <!-- Action Buttons -->
-    <div style="display:flex;gap:8px;margin-bottom:12px;">
-      <button onclick="_openMyProfileAsOthers()" style="flex:1;padding:8px;background:#1877F2;border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 8px rgba(24,119,242,0.35);">👁️ كما يراني الآخرون</button>
-      <button onclick="openFBFriendsFromProfile()" style="flex:1;padding:8px;background:#E4E6EB;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">👥 الأصدقاء</button>
-    </div>
-
-    <!-- Quick Stats Bar -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;">
-      <div style="background:#F0F2F5;border-radius:10px;padding:10px 6px;text-align:center;">
-        <div id="ppStatPoints" style="font-size:18px;font-weight:900;color:#050505;">0</div>
-        <div style="font-size:10px;color:#65676B;font-weight:700;">النقاط</div>
-      </div>
-      <div style="background:#F0F2F5;border-radius:10px;padding:10px 6px;text-align:center;">
-        <div id="ppStatLevel" style="font-size:18px;font-weight:900;color:#1877F2;">1</div>
-        <div style="font-size:10px;color:#65676B;font-weight:700;">المستوى</div>
-      </div>
-      <div style="background:#F0F2F5;border-radius:10px;padding:10px 6px;text-align:center;">
-        <div id="ppStatBalance" style="font-size:16px;font-weight:900;color:#00c853;">0 دج</div>
-        <div style="font-size:10px;color:#65676B;font-weight:700;">الرصيد</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Tab Bar ── -->
-  <div style="width:100%;max-width:480px;margin:0 auto;background:white;border-bottom:1px solid #E4E6EB;display:flex;sticky:top:0;position:sticky;top:0;z-index:10;">
-    <div id="ppTab_posts" onclick="switchProfileTab('posts')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:800;color:#1877F2;border-bottom:3px solid #1877F2;cursor:pointer;transition:.2s;">منشوراتي</div>
-    <div id="ppTab_info" onclick="switchProfileTab('info')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">معلومات</div>
-    <div id="ppTab_activity" onclick="switchProfileTab('activity')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">إنجازاتي</div>
-    <div id="ppTab_about" onclick="switchProfileTab('about')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">حول</div>
-  </div>
-
-  <!-- ── Page Content ── -->
-  <div style="width:100%;max-width:480px;margin:0 auto;padding-bottom:40px;">
-
-    <!-- ── TAB: منشوراتي ── -->
-    <div id="ppPanel_posts">
-      <!-- Create Post Box -->
-      <div style="background:white;margin-top:8px;padding:12px 16px;border-bottom:8px solid #F0F2F5;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-          <div id="postBoxAvatar" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden;">👑</div>
-          <div onclick="openCreatePost()" style="flex:1;background:#F0F2F5;border-radius:22px;padding:10px 16px;font-size:13px;color:#65676B;cursor:pointer;font-family:'Tajawal',sans-serif;">بماذا تفكر؟</div>
-        </div>
-        <div style="display:flex;border-top:1px solid #E4E6EB;padding-top:8px;gap:4px;">
-          <div onclick="openCreatePost('photo')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🖼️ صورة</div>
-          <div onclick="openCreatePost('feeling')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">😊 شعور</div>
-          <div onclick="openCreatePost('achievement')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F3425F;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🏆 إنجاز</div>
-        </div>
-      </div>
-
-      <!-- Posts Feed -->
-      <div id="profilePostsFeed" style="display:flex;flex-direction:column;gap:8px;padding-top:8px;"></div>
-    </div>
-
-    <!-- ── TAB: معلومات ── -->
-    <div id="ppPanel_info" style="display:none;">
-      <div style="background:white;margin-top:8px;padding:16px;">
-        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;">معلومات عنك</div>
-
-        <div style="background:#F7F8FA;border-radius:12px;padding:14px;margin-bottom:10px;">
-          <div style="font-size:12px;color:#65676B;font-weight:700;margin-bottom:8px;letter-spacing:.5px;">📌 الملف الشخصي</div>
-          <div style="display:flex;flex-direction:column;gap:10px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span style="font-size:18px;">🏢</span>
-              <div><div style="font-size:13px;font-weight:800;color:#050505;">Connect DZ</div><div style="font-size:11px;color:#65676B;">المنظمة</div></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span style="font-size:18px;">📍</span>
-              <div><div style="font-size:13px;font-weight:800;color:#050505;">الجزائر 🇩🇿</div><div style="font-size:11px;color:#65676B;">الموقع</div></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span style="font-size:18px;">🗓️</span>
-              <div><div style="font-size:13px;font-weight:800;color:#050505;" id="ppJoinDate">…</div><div style="font-size:11px;color:#65676B;">تاريخ الانضمام</div></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span style="font-size:18px;">🎯</span>
-              <div><div style="font-size:13px;font-weight:800;color:#050505;" id="ppMemberCode">…</div><div style="font-size:11px;color:#65676B;">رمز العضو</div></div>
-            </div>
-          </div>
-        </div>
-
-        <div style="background:#F7F8FA;border-radius:12px;padding:14px;">
-          <div style="font-size:12px;color:#65676B;font-weight:700;margin-bottom:10px;letter-spacing:.5px;">📊 الإحصائيات</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
-              <div style="font-size:20px;margin-bottom:3px;">🏆</div>
-              <div id="ppInfoPoints" style="font-size:16px;font-weight:900;color:#050505;">0</div>
-              <div style="font-size:10px;color:#65676B;">إجمالي النقاط</div>
-            </div>
-            <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
-              <div style="font-size:20px;margin-bottom:3px;">⭐</div>
-              <div id="ppInfoLevel" style="font-size:16px;font-weight:900;color:#1877F2;">1</div>
-              <div style="font-size:10px;color:#65676B;">المستوى الحالي</div>
-            </div>
-            <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
-              <div style="font-size:20px;margin-bottom:3px;">💰</div>
-              <div id="ppInfoBalance" style="font-size:14px;font-weight:900;color:#00c853;">0 دج</div>
-              <div style="font-size:10px;color:#65676B;">رصيد قابل للسحب</div>
-            </div>
-            <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
-              <div style="font-size:20px;margin-bottom:3px;">🌟</div>
-              <div id="ppInfoQuiz" style="font-size:16px;font-weight:900;color:#f59e0b;">0</div>
-              <div style="font-size:10px;color:#65676B;">محفظة النجوم</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── TAB: إنجازاتي ── -->
-    <div id="ppPanel_activity" style="display:none;">
-      <div style="background:white;margin-top:8px;padding:16px;">
-        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;">🏅 إنجازاتي وشاراتي</div>
-        <div id="profileBadgesGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
-      </div>
-      <!-- شارة التوثيق الرسمية -->
-      <div style="background:white;margin-top:8px;padding:16px;">
-        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:12px;">⭐ هدف التوثيق الرسمي</div>
-        <div id="verifiedBadgeGoalBox" style="background:linear-gradient(135deg,#EEF4FF,#F0F7FF);border:1.5px solid rgba(24,119,242,0.2);border-radius:16px;padding:16px;">
-          <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
-            <div id="verifiedBadgeIcon" style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#E0E0E0,#BDBDBD);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,0.15);">🔒</div>
-            <div style="flex:1;">
-              <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:3px;">شارة التوثيق الرسمية ✅</div>
-              <div style="font-size:12px;color:#65676B;line-height:1.6;">
-                احصل على <strong>150 نجمة ⭐</strong> للشارة الزرقاء<br>
-                احصل على <strong>300 نجمة 🌟</strong> للشارة الذهبية
-              </div>
-            </div>
-          </div>
-          <div style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:12px;font-weight:700;color:#65676B;">التقدم نحو التوثيق</span>
-            <span id="verifiedStarsCount" style="font-size:13px;font-weight:900;color:#1877F2;">0 / 150 ⭐</span>
-          </div>
-          <div style="height:10px;background:#E4E6EB;border-radius:10px;overflow:hidden;">
-            <div id="verifiedStarsBar" style="height:100%;background:linear-gradient(90deg,#f5c518,#ff9800);width:0%;transition:width 1s ease;border-radius:10px;"></div>
-          </div>
-        </div>
-      </div>
-      <!-- Progress Section -->
-      <div style="background:white;margin-top:8px;padding:16px;">
-        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:12px;">📈 تقدمك نحو المستوى التالي</div>
-        <div style="background:#F0F2F5;border-radius:12px;padding:14px;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="font-size:12px;font-weight:700;color:#65676B;" id="ppProgressFrom">المستوى الحالي</span>
-            <span style="font-size:12px;font-weight:700;color:#1877F2;" id="ppProgressPct">0%</span>
-          </div>
-          <div style="height:8px;background:#E4E6EB;border-radius:10px;overflow:hidden;margin-bottom:8px;">
-            <div id="ppProgressBar" style="height:100%;background:linear-gradient(90deg,#1877F2,#00c853);width:0%;transition:width 1.5s ease;border-radius:10px;"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;">
-            <span style="font-size:11px;color:#65676B;" id="ppProgressCurrent">0 نقطة</span>
-            <span style="font-size:11px;color:#65676B;" id="ppProgressNext">3000 نقطة</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- ── TAB: حول ── -->
-    <div id="ppPanel_about" style="display:none;">
-      <div style="background:white;margin-top:8px;padding:16px;">
-        <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;">ℹ️ حول التطبيق</div>
-        <div style="background:linear-gradient(135deg,#1877F2,#0d5bda);border-radius:16px;padding:22px;color:white;text-align:center;margin-bottom:14px;box-shadow:0 8px 24px rgba(24,119,242,0.3);">
-          <div style="font-size:46px;margin-bottom:10px;">🏆</div>
-          <div style="font-size:18px;font-weight:900;margin-bottom:4px;">Connect DZ</div>
-          <div style="font-size:12px;opacity:0.9;">مختبر الشباب للذكاء والتعلم والإبداع</div>
-        </div>
-        <div style="background:#F0F7FF;border-radius:14px;padding:16px;margin-bottom:10px;border:1px solid rgba(24,119,242,0.15);">
-          <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:8px;">🎯 رسالتنا</div>
-          <div style="font-size:12px;color:#65676B;line-height:1.8;">نسعى إلى تطوير مهارات الشباب الجزائري وتمكينهم من المنافسة على المستوى الوطني والدولي من خلال برامج تعليمية مبتكرة وتكنولوجيا متقدمة.</div>
-        </div>
-        <div style="background:#F0F7FF;border-radius:14px;padding:16px;margin-bottom:10px;border:1px solid rgba(24,119,242,0.15);">
-          <div style="font-size:13px;font-weight:800;color:#050505;margin-bottom:10px;">✨ ما نقدمه</div>
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🧠</span><span style="font-size:12px;color:#65676B;">برامج تعليمية وكويزات تفاعلية</span></div>
-            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🏅</span><span style="font-size:12px;color:#65676B;">نقاط ومستويات ومكافآت</span></div>
-            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">👥</span><span style="font-size:12px;color:#65676B;">شبكة اجتماعية للأعضاء</span></div>
-            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">💬</span><span style="font-size:12px;color:#65676B;">محادثات ورسائل مباشرة</span></div>
-            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🎬</span><span style="font-size:12px;color:#65676B;">قصص وريلز تفاعلية</span></div>
-          </div>
-        </div>
-        <div style="background:#F0F7FF;border-radius:14px;padding:14px;border:1px solid rgba(24,119,242,0.15);display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <div style="font-size:12px;font-weight:800;color:#050505;">الإصدار</div>
-            <div style="font-size:11px;color:#65676B;">Connect DZ v3.0</div>
-          </div>
-          <div style="background:linear-gradient(135deg,#1877F2,#0d5bda);color:white;border-radius:10px;padding:6px 14px;font-size:11px;font-weight:800;">2025 🇩🇿</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<div id="balanceModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:4000;align-items:flex-end;justify-content:center;flex-direction:column;">
-  <div style="background:var(--surface);width:100%;max-width:480px;margin:0 auto;border-radius:28px 28px 0 0;padding:24px 20px 32px;border:1px solid var(--border);border-bottom:none;animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;box-shadow:0 -20px 60px rgba(0,0,0,0.5);">
-    <div style="width:38px;height:4px;background:rgba(255,255,255,0.12);border-radius:10px;margin:0 auto 16px;"></div>
-    <div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:16px;text-align:center;">💳 رصيدك</div>
-    <div class="bank-card">
-      <div class="coin-container" id="coinContainer"></div>
-      <div class="card-shine"></div>
-      <div class="card-chip"></div>
-      <div class="card-logo">🏦</div>
-      <div class="card-code" id="cardCode">NLD-0000000</div>
-      <div class="card-number">NEXT ★ LEADERS ★ DZ</div>
-      <div class="card-bottom">
-        <div class="card-holder" id="cardName"></div>
-        <div class="card-pts-badge"><span id="cardPoints"></span></div>
-      </div>
-    </div>
-
-    <!-- صف الرصيد الرئيسي -->
-    <div class="account-row" style="margin-top:16px;">
-      <span class="account-key">💎 الرصيد القابل للسحب</span>
-      <span class="account-val green" id="cardBalance" style="font-size:20px;font-weight:900;">0 دج</span>
-    </div>
-
-    <!-- شارة نوع السعر -->
-    <div id="_balanceRateBadge" style="text-align:center;margin-top:10px;"></div>
-
-    <!-- شرح التحويل -->
-    <div id="_balanceExplainBox" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:13px 16px;margin-top:12px;">
-      <div style="font-size:12px;font-weight:800;color:var(--accent);margin-bottom:8px;">📊 نظام تحويل النقاط</div>
-      <div id="_balanceExplainText" style="font-size:12px;color:var(--muted);line-height:1.8;">
-        جارٍ تحميل بيانات الرصيد…
-      </div>
-    </div>
-
-    <button onclick="hideBalanceModal()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:13px;width:100%;border-radius:14px;font-family:'Tajawal',sans-serif;font-weight:700;font-size:14px;margin-top:16px;cursor:pointer;transition:.2s;">إغلاق</button>
-  </div>
-</div>
-
 <!-- ── نافذة إنشاء منشور (محاكاة فيسبوك) ── -->
 <div id="createPostModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:4500;align-items:flex-end;justify-content:center;">
   <div style="background:white;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:0 0 env(safe-area-inset-bottom,12px);animation:slideUp .3s cubic-bezier(.32,.72,0,1) both;overflow:hidden;max-height:92vh;display:flex;flex-direction:column;">
@@ -29786,7 +29136,6 @@ window.addEventListener('load', function(){
 
 console.log('✅ ConnectDZ PATCH v7.1 محمّل — إصلاح Sheets + Messenger + بن قدور ايمان');
 })();
-</script>
 </script>
 
 <script>
