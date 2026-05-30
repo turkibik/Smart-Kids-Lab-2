@@ -9931,20 +9931,16 @@ function renderApp(name,pts,isReg, externalEarned){
     _basePoints = totalForLevel;
     window._sheetPtsCache = sheetPoints;
     window._rankPtsCache  = rankingPoints > 0 ? rankingPoints : sheetPoints;
-    // ✅ تعديل خاص: مجموع نقاط شيماء سفيسيفي يُعرض دائماً 10,000
-    const _SFSIFI_OVERRIDE = (name === 'شيماء سفيسيفي');
-    const _displayTotal = _SFSIFI_OVERRIDE ? 10000 : totalForLevel;
-    if(_SFSIFI_OVERRIDE) _basePoints = 10000;
-
-    const currentLevel = Math.floor(_displayTotal/LEVEL_PTS)+1;
-    const ptsInLevel   = _displayTotal % LEVEL_PTS;
+    const currentLevel = Math.floor(totalForLevel/LEVEL_PTS)+1;
+    const ptsInLevel   = totalForLevel % LEVEL_PTS;
+    // ✅ حفظ مجموع النقاط الإجمالي
     // ✅ الرصيد يُحسب فقط من نقاط جدول البيانات (sheetPoints) — المصدر الوحيد
     const _rate = (typeof window._userBalanceRate !== 'undefined') ? window._userBalanceRate : 30;
     const balance = ((sheetPoints / 50) * _rate).toFixed(2);
 
-    // لوحة القيادة: يُظهر الإجمالي (جدول + كويز) — أو 10,000 لشيماء
+    // لوحة القيادة: يُظهر الإجمالي (جدول + كويز)
     const _mpEl = document.getElementById("mainPoints");
-    if(_mpEl) _mpEl.innerHTML=`${_displayTotal.toLocaleString()} <span>نقطة</span>`;
+    if(_mpEl) _mpEl.innerHTML=`${totalForLevel.toLocaleString()} <span>نقطة</span>`;
 
     // بطاقة الرصيد
     const code=getMemberCode(name);
@@ -17639,8 +17635,7 @@ function removeFriend(friendName){
 
 /* ✅ الأعضاء الأصليون المعتمدون — حسابات وحيدة ومسجلة رسمياً */
 const _VERIFIED_MEMBERS = [
-  'Hamoudi Abdelemouman',
-  'شيماء سفيسيفي'
+  'Hamoudi Abdelemouman'
 ];
 
 /** هل هذا الاسم هو المدير؟ */
@@ -33328,7 +33323,7 @@ function getMemberDivisionIdx(totalPts){
    ══════════════════════════════════════════════════════════════ */
 async function loadAllMembersWithPts(){
 
-  const _EXCL  = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء','المدير','زائر'];
+  const _EXCL  = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء','المدير','زائر','شيماء سفيسيفي','شيماء سفيسفي','Chaimaa Sfisfi','Chaima Sfisfi'];
   const norm   = s => (s||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
   const isExcl = n => !n || _EXCL.some(ex => norm(n)===norm(ex) || norm(n).startsWith(norm(ex)+' '));
   const csvParse = line => {
@@ -33522,10 +33517,11 @@ function renderDivision(divIdx, allMembers){
 
   const rows = members.map((m,i)=>{
     const isMe = (m.name||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase()===normCurr;
-    // صعود: حتى 5 أوائل يصعدون (أخضر)
+    const isBeginnerDiv = divIdx === NLD_DIVISIONS.length - 1; // قسم المبتدئ = آخر قسم
+    // ↑ أسهم خضراء: أعلى 5 صاعدون (ليس للمبتدئين — هم بالفعل الأدنى)
     const isPromo = i < NLD_PROMO_COUNT && divIdx > 0;
-    // هبوط: حتى 5 أواخر ينزلون (أحمر)
-    const isRelg = i >= members.length - NLD_PROMO_COUNT && members.length > NLD_PROMO_COUNT && divIdx < NLD_DIVISIONS.length - 1;
+    // ↓ أسهم حمراء: آخر 5 نازلون — لا يوجد نزول في قسم المبتدئ
+    const isRelg = !isBeginnerDiv && i >= members.length - NLD_PROMO_COUNT && members.length > NLD_PROMO_COUNT && divIdx < NLD_DIVISIONS.length - 1;
 
     const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
@@ -33582,8 +33578,9 @@ function renderDivision(divIdx, allMembers){
       <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px;">النقاط المطلوبة: ${div.rangeLabel}</div>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);">${members.length} عضو</div>
-        ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون</div>`:''}
-        ${divIdx<NLD_DIVISIONS.length-1?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ 2 أخيرين ينزلون</div>`:''}
+        ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ حتى 5 صاعدين</div>`:''}
+        ${(divIdx<NLD_DIVISIONS.length-1 && divIdx!==NLD_DIVISIONS.length-1)?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ حتى 5 نازلين</div>`:''}
+        ${divIdx===NLD_DIVISIONS.length-1?`<div style="background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:#94a3b8;">🌟 صعود فقط — لا نزول</div>`:''}
         ${myRankBadge}
       </div>
     </div>
@@ -33839,50 +33836,10 @@ function renderDivision(divIdx, allMembers, assignments){
 
   const rows = members.map((m,i)=>{
     const isMe = (m.name||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase()===normCurr;
-    // صعود: أعلى 3 (فقط إذا القسم ممتلئ وأعلى 3 هنا أعلى من أدنى 3 في القسم الأعلى)
-    const isPromo = i < NLD_PROMO_COUNT && divIdx > 0 && isFull && (()=>{
-      if(!assignments || divIdx === 0) return false;
-      const upperDiv = NLD_DIVISIONS[divIdx - 1];
-      const upperMembers = allMembers.filter(m => {
-        const k = (m.name||'').replace(/\s+/g,'_');
-        return assignments[k] && assignments[k].divId === upperDiv.id;
-      }).sort((a,b) => b.total - a.total);
-      if(upperMembers.length < NLD_MAX_MEMBERS) return false;
-      // فحص مرن: هل هذا العضو (i+1) ضمن العدد الذي يحقق الشرط؟
-      let validCount = 0;
-      for(let c = 1; c <= NLD_PROMO_COUNT; c++){
-        const topC    = members.slice(0, c);
-        const bottomC = upperMembers.slice(-c);
-        if(topC.length < c || bottomC.length < c) break;
-        const minP = Math.min(...topC.map(m=>m.total));
-        const maxR = Math.max(...bottomC.map(m=>m.total));
-        if(minP > maxR) validCount = c; else break;
-      }
-      return i < validCount;
-    })();
-    // هبوط: آخر N (فقط إذا القسم ممتلئ وشرط التبادل تحقق من القسم الأدنى)
-    const isRelg = !isBeginners && isFull && divIdx < NLD_DIVISIONS.length - 1 && (()=>{
-      const lowerDiv = NLD_DIVISIONS[divIdx + 1];
-      const lowerMembers = allMembers.filter(m => {
-        const k = (m.name||'').replace(/\s+/g,'_');
-        const divId = (assignments[k] && assignments[k].divId) || 'beginner';
-        return divId === lowerDiv.id;
-      }).sort((a,b) => b.total - a.total);
-      if(lowerMembers.length < NLD_MAX_MEMBERS) return false;
-      // فحص مرن: عدد التبادل الصحيح
-      let validCount = 0;
-      for(let c = 1; c <= NLD_PROMO_COUNT; c++){
-        const topC    = lowerMembers.slice(0, c);
-        const bottomC = members.slice(-c);
-        if(topC.length < c || bottomC.length < c) break;
-        const minP = Math.min(...topC.map(m=>m.total));
-        const maxR = Math.max(...bottomC.map(m=>m.total));
-        if(minP > maxR) validCount = c; else break;
-      }
-      if(validCount === 0) return false;
-      // هل هذا العضو ضمن آخر validCount؟
-      return i >= members.length - validCount;
-    })();
+    // ↑ أسهم خضراء للصاعدين: أعلى 5 دائماً (بغض النظر عن امتلاء القسم)
+    const isPromo = i < NLD_PROMO_COUNT && divIdx > 0;
+    // ↓ أسهم حمراء للنازلين: آخر 5 — لا يوجد نزول في قسم المبتدئ أبداً
+    const isRelg = !isBeginners && i >= members.length - NLD_PROMO_COUNT && members.length > NLD_PROMO_COUNT && divIdx < NLD_DIVISIONS.length - 1;
 
     const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
@@ -36958,48 +36915,59 @@ console.log('✅ [ConnectDZ] قاعة الاجتماع الجماعية — جا
 </script>
 
 <!-- ══════════════════════════════════════════════════════════
-   🗑️ حذف عضو شيماء من قسم المبتدئ (نقاط > 45000)
+   🗑️ حذف شيماء سفيسيفي نهائياً من كل المسارات
    ══════════════════════════════════════════════════════════ -->
 <script>
 (function(){
 'use strict';
-/* حذف العضو الثاني في ترتيب قسم المبتدئ إذا كان اسمه يحتوي شيماء ونقاطه > 45000 */
-window._removeShaimaaFromBeginner = function(){
-  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
-  if(!db){ console.warn('Firebase غير متصل — لا يمكن حذف العضو'); return; }
 
-  /* قراءة ترتيب قسم المبتدئ */
-  db.ref('leaderboard').orderByChild('points').once('value').then(function(snap){
-    var rows=[];
-    snap.forEach(function(c){ var v=c.val(); if(v) rows.push({key:c.key, name:v.name||c.key, points:v.points||0, section:v.section||''}); });
-    
-    /* فلترة قسم المبتدئ */
-    var beginners = rows.filter(function(r){ return r.section==='مبتدئ'||r.section==='beginner'||r.section===''; });
-    beginners.sort(function(a,b){ return b.points-a.points; });
-    
-    /* العضو الثاني */
-    var second = beginners[1];
-    if(!second){ console.log('لا يوجد عضو ثانٍ في قسم المبتدئ'); return; }
-    
-    var nameMatch = second.name.includes('شيماء')||second.name.includes('Chaimaa')||second.name.includes('Chaima');
-    var ptsMatch = second.points > 45000;
-    
-    if(nameMatch && ptsMatch){
-      db.ref('leaderboard/'+second.key).remove();
-      db.ref('users/'+second.key).remove();
-      console.log('✅ تم حذف العضو الثاني من قسم المبتدئ: '+second.name+' ('+second.points+' نقطة)');
-      if(typeof showToast==='function') showToast('✅ تم حذف العضو: '+second.name);
-    } else {
-      console.log('العضو الثاني: '+second.name+' ('+second.points+'نقطة) — لا يطابق معايير شيماء/45000');
+const _SHAIMAA_NAMES = ['شيماء_سفيسيفي','شيماء_سفيسفي','Chaimaa_Sfisfi','Chaima_Sfisfi','شيماء سفيسيفي','شيماء سفيسفي'];
+const _FB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+
+window._removeShaimaaCompletely = async function(){
+  const db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+
+  /* ─── 1. حذف من Firebase عبر REST API (كل المسارات) ─── */
+  const paths = ['leaderboard','users','userStats','nld_divisions'];
+  const variants = ['شيماء_سفيسيفي','شيماء_سفيسفي','Chaimaa_Sfisfi','Chaima_Sfisfi'];
+
+  for(const path of paths){
+    for(const key of variants){
+      try {
+        await fetch(`${_FB}/${path}/${encodeURIComponent(key)}.json`, { method:'DELETE' });
+      } catch(e){}
     }
-  }).catch(function(e){ console.error('خطأ في قراءة الترتيب:',e); });
+  }
+
+  /* ─── 2. حذف عبر SDK إذا متاح ─── */
+  if(db){
+    try {
+      const snap = await db.ref('leaderboard').once('value');
+      snap.forEach(function(c){
+        const v = c.val();
+        const n = (v&&v.name)||c.key||'';
+        if(n.includes('شيماء')||n.includes('Chaimaa')||n.includes('Chaima')||n.includes('سفيسيف')||n.includes('Sfisfi')){
+          db.ref('leaderboard/'+c.key).remove();
+          db.ref('users/'+c.key).remove();
+          db.ref('userStats/'+c.key).remove();
+          db.ref('nld_divisions/'+c.key).remove();
+          console.log('🗑️ حُذف من Firebase:', n, c.key);
+        }
+      });
+    } catch(e){}
+  }
+
+  if(typeof showToast==='function') showToast('✅ تم حذف شيماء سفيسيفي نهائياً');
+  console.log('✅ [NLD] حذف شيماء سفيسيفي — تم تنفيذ الحذف الكامل');
 };
 
-/* تنفيذ تلقائي عند تحميل الصفحة — حذف شيماء سفيسيفي (المرتبة الثانية / 45,000 نقطة) */
+/* تنفيذ تلقائي عند تحميل الصفحة */
 window.addEventListener('load', function(){
-  setTimeout(function(){ window._removeShaimaaFromBeginner(); }, 3000);
+  setTimeout(function(){ window._removeShaimaaCompletely(); }, 2000);
+  setTimeout(function(){ window._removeShaimaaCompletely(); }, 8000); // تكرار للتأكد
 });
-console.log('✅ [ConnectDZ] نظام حذف العضو (شيماء/المبتدئ) — سيعمل تلقائياً عند التحميل');
+
+console.log('✅ [NLD] حذف شيماء سفيسيفي — جاهز للتنفيذ التلقائي');
 })();
 </script>
 </body>
