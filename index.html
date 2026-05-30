@@ -176,41 +176,105 @@
 </style>
 <script>
 /* ══════════════════════════════════════════════════════════
-   🔒 منع Pull-to-Refresh — نسخة مُصلَحة بمنطق صحيح
-   المنطق الصحيح:
-   - dy > 0  = المستخدم يسحب إلى الأسفل (إصبع ينزل) = pull-to-refresh
-   - dy < 0  = المستخدم يسحب إلى الأعلى (إصبع يصعد) = تمرير عادي للأعلى
-   - نمنع فقط: dy>0 (سحب أسفل) عندما لا يوجد عنصر يمكنه التمرير للأعلى
+   🔄 Pull-to-Refresh الذكي — سحب للأعلى يجلب بيانات جديدة
+   - إذا كان العنصر في القمة + سحب > 60px: تفعيل التحديث
+   - إذا كان هناك محتوى للتمرير: تمرير عادي
    ══════════════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var _sy = 0; /* startY */
+var _sy = 0;
+var _pulling = false;
+var _ptrIndicator = null;
+var _PTR_THRESHOLD = 65;
+
+function _getPtrIndicator(){
+  if(_ptrIndicator) return _ptrIndicator;
+  _ptrIndicator = document.createElement('div');
+  _ptrIndicator.id = '_ptrIndicator';
+  _ptrIndicator.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;display:flex;align-items:center;justify-content:center;height:0px;overflow:hidden;background:linear-gradient(135deg,#00c853,#e53935);transition:height .2s ease;font-family:Tajawal,sans-serif;font-size:13px;font-weight:800;color:white;gap:8px;';
+  _ptrIndicator.innerHTML = '<span id="_ptrSpinner" style="display:inline-block;font-size:18px;">↓</span><span id="_ptrText">اسحب للتحديث</span>';
+  document.body.appendChild(_ptrIndicator);
+  return _ptrIndicator;
+}
 
 document.addEventListener('touchstart', function(e){
   _sy = e.touches[0] ? e.touches[0].clientY : 0;
+  _pulling = false;
 }, {passive:true, capture:true});
 
 document.addEventListener('touchmove', function(e){
   if(!e.touches[0]) return;
-  var dy = e.touches[0].clientY - _sy; /*양수 = سحب للأسفل */
-
-  /* فقط نهتم بالسحب للأسفل (pull-to-refresh) */
+  var dy = e.touches[0].clientY - _sy;
   if(dy <= 0) return;
 
-  /* ابحث عن أقرب عنصر يمكنه التمرير للأعلى (scrollTop > 0) */
   var el = e.target;
   while(el && el !== document.documentElement){
     var ov = window.getComputedStyle(el).overflowY;
-    if((ov === 'auto' || ov === 'scroll') && el.scrollTop > 0){
-      /* هذا العنصر لم يصل للأعلى بعد — السحب تمرير عادي، لا نمنع */
-      return;
-    }
+    if((ov === 'auto' || ov === 'scroll') && el.scrollTop > 0){ return; }
     el = el.parentElement;
   }
-  /* وصلنا للأعلى أو لا يوجد عنصر scroll — هذا pull-to-refresh، نمنعه */
-  e.preventDefault();
 
+  /* منع السلوك الافتراضي وإظهار مؤشر السحب */
+  e.preventDefault();
+  _pulling = true;
+  var progress = Math.min(dy, _PTR_THRESHOLD * 1.5);
+  var ind = _getPtrIndicator();
+  ind.style.height = Math.min(progress * 0.6, 56) + 'px';
+  var spinner = document.getElementById('_ptrSpinner');
+  var txt = document.getElementById('_ptrText');
+  if(dy >= _PTR_THRESHOLD){
+    if(spinner) spinner.style.transform = 'rotate(180deg)';
+    if(txt) txt.innerText = 'أفلت للتحديث ✓';
+  } else {
+    if(spinner) spinner.style.transform = 'rotate(0deg)';
+    if(txt) txt.innerText = 'اسحب للتحديث ↓';
+  }
 }, {passive:false, capture:true});
+
+document.addEventListener('touchend', function(e){
+  if(!_pulling) return;
+  var endY = e.changedTouches[0] ? e.changedTouches[0].clientY : _sy;
+  var dy = endY - _sy;
+  var ind = _getPtrIndicator();
+
+  if(dy >= _PTR_THRESHOLD){
+    /* تفعيل التحديث */
+    var spinner = document.getElementById('_ptrSpinner');
+    var txt = document.getElementById('_ptrText');
+    if(spinner) spinner.innerHTML = '<span style="display:inline-block;animation:_ptrSpin .6s linear infinite;">↻</span>';
+    if(txt) txt.innerText = 'جارٍ التحديث…';
+    ind.style.height = '52px';
+
+    /* إضافة animation لـ spinner */
+    if(!document.getElementById('_ptrStyle')){
+      var st = document.createElement('style');
+      st.id = '_ptrStyle';
+      st.textContent = '@keyframes _ptrSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}';
+      document.head.appendChild(st);
+    }
+
+    /* تنفيذ التحديث الفعلي */
+    setTimeout(function(){
+      try{
+        /* تحديث Feed الرئيسي */
+        if(typeof loadSocialFeed==='function') loadSocialFeed();
+        else if(typeof renderFeed==='function') renderFeed();
+        else if(typeof loadPosts==='function') loadPosts();
+        /* تحديث إشعارات */
+        if(typeof loadNotifications==='function') loadNotifications();
+        /* تحديث بيانات المستخدم */
+        if(typeof refreshUserData==='function') refreshUserData();
+        if(typeof showToast==='function') showToast('✅ تم تحديث البيانات');
+      }catch(ex){}
+      /* إخفاء المؤشر */
+      ind.style.height = '0px';
+      setTimeout(function(){ ind.style.height='0px'; },300);
+    }, 900);
+  } else {
+    ind.style.height = '0px';
+  }
+  _pulling = false;
+}, {passive:true, capture:true});
 })();
 </script>
 <meta name="description" content="Connect DZ - منصة الشباب الجزائري للتعلم والإبداع">
@@ -4480,9 +4544,10 @@ function switchLoginTab(tab){
       </div>
       <!-- اسم التطبيق يسار -->
       <div style="font-size:20px;font-weight:900;background:linear-gradient(90deg,#00c853,#e53935);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;flex:1;font-family:'Tajawal',sans-serif;">Connect DZ</div>
-      <!-- زر البحث -->
-      <div onclick="toggleSocialSearch()" style="width:38px;height:38px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'" title="بحث">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <!-- زر تبديل الحسابات — ثابت في الأعلى مع صورة الحساب النشط -->
+      <div id="topSwitchAccountBtn" onclick="window.openMultiAccPanel ? window.openMultiAccPanel() : null" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2e7d32,#00c853);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;overflow:hidden;border:2.5px solid rgba(46,125,50,0.4);box-shadow:0 2px 10px rgba(46,125,50,0.35);position:relative;" title="تبديل الحساب">
+        <div id="topSwitchAvatarInner" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px;">👤</div>
+        <span id="topSwitchBadge" style="display:none;position:absolute;top:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:#e53935;color:white;font-size:9px;font-weight:900;align-items:center;justify-content:center;border:2px solid white;">0</span>
       </div>
     </div>
     <!-- Search bar (hidden by default) -->
@@ -5128,6 +5193,22 @@ function switchLoginTab(tab){
         <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">من نحن</div><div style="font-size:11px;color:#65676B;">تعرف على Connect DZ</div></div>
         <span style="color:#BCC0C4;font-size:16px;">›</span>
       </div>
+
+      <!-- مولودية أكادير -->
+      <div onclick="closeSocialSideMenu();setTimeout(()=>openWheelPanel('mouloudiya'),200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#e52d27,#f5c518);display:flex;align-items:center;justify-content:center;font-size:18px;">⚽</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">مولودية أكادير</div><div style="font-size:11px;color:#65676B;">نادي MCA — الفخر والأصالة</div></div>
+        <span style="color:#BCC0C4;font-size:16px;">›</span>
+      </div>
+
+      <!-- قاعة بودغن -->
+      <div onclick="closeSocialSideMenu();setTimeout(()=>openSideMenuItem('youth_hall'),200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0FFF8'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:18px;">🏛️</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">قاعة الشباب بودغن</div><div style="font-size:11px;color:#65676B;">فضاء شبابي متكامل</div></div>
+        <span style="color:#BCC0C4;font-size:16px;">›</span>
+      </div>
+
+      <div style="height:1px;background:#E4E6EB;margin:4px 16px;"></div>
 
       <!-- المنخرطون -->
       <div onclick="closeSocialSideMenu();setTimeout(()=>showModal('membersCard'),200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
@@ -20149,10 +20230,8 @@ var _WHEEL_ITEMS = [
   { id:'city',      emoji:'🏙️',  label:'عالم\nالمدينة',     color:'linear-gradient(135deg,#f093fb,#f5576c)',  action: function(){ if(typeof showCityWorldModal==='function') showCityWorldModal(); } },
   { id:'sport',     emoji:'🏆',  label:'الرياضة\nالجزائرية', color:'linear-gradient(135deg,#00c853,#007a33)',  action: function(){ if(typeof openSportsSection==='function') openSportsSection(); } },
   { id:'gallery',   emoji:'🖼️', label:'معرض\nالصور',        color:'linear-gradient(135deg,#a855f7,#6d28d9)',  action: function(){ openWheelPanel('gallery'); } },
-  { id:'youth',     emoji:'🏛️', label:'قاعة\nبودغن',        color:'linear-gradient(135deg,#11998e,#38ef7d)',  action: function(){ if(typeof openSideMenuItem==='function') openSideMenuItem('youth_hall'); } },
   { id:'smart',     emoji:'🧠',  label:'Smart\nKids Lab',    color:'linear-gradient(135deg,#00c6ff,#0072ff)',  action: function(){ if(typeof openSideMenuItem==='function') openSideMenuItem('smart_kids'); } },
   { id:'nld',       emoji:'🥇',  label:'Next\nLeaders DZ',   color:'linear-gradient(135deg,#FFD700,#e52d27)',  action: function(){ if(typeof openNldChampionship==='function') openNldChampionship(); } },
-  { id:'mouloudiya',emoji:'🔴',  label:'مولودية\nأكادير',    color:'linear-gradient(135deg,#e52d27,#f5c518)',  action: function(){ openWheelPanel('mouloudiya'); } },
   { id:'shabab',    emoji:'🟢',  label:'شباب\nآمال',         color:'linear-gradient(135deg,#00c853,#004d1a)',  action: function(){ openWheelPanel('shabab'); } },
   { id:'analytics', emoji:'📊',  label:'لوحة\nالبيانات',     color:'linear-gradient(135deg,#0099ff,#00c6ff)',  action: function(){ closeWheelMenu(); setTimeout(function(){ openWheelPanel('analytics'); },200); } },
   { id:'market',    emoji:'💹',  label:'البورصة\nوالنقاط',   color:'linear-gradient(135deg,#FFD700,#f97316)',  action: function(){ closeWheelMenu(); setTimeout(function(){ openWheelPanel('market'); },200); } },
@@ -37727,5 +37806,54 @@ window.addEventListener('load', function(){
 console.log('✅ [NLD] حذف شيماء سفيسيفي — جاهز للتنفيذ التلقائي');
 })();
 </script>
+
+<script>
+/* ══ تحديث زر تبديل الحسابات في شريط الأعلى ══ */
+(function(){
+  function _updateTopSwitchBtn(){
+    var btn = document.getElementById('topSwitchAccountBtn');
+    var inner = document.getElementById('topSwitchAvatarInner');
+    var badge = document.getElementById('topSwitchBadge');
+    if(!btn || !inner) return;
+
+    // الحساب النشط الحالي
+    var name = typeof getCurrentUser==='function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
+    var photo = name && typeof getProfilePhoto==='function' ? getProfilePhoto(name) : null;
+    if(!photo && name) photo = localStorage.getItem('nld_photo_'+name.replace(/\s+/g,'_'));
+
+    if(photo){
+      inner.innerHTML = '<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    } else if(name && typeof getLeaderIcon==='function'){
+      inner.innerHTML = getLeaderIcon(name);
+    } else {
+      inner.innerHTML = '👤';
+    }
+
+    // عدد الحسابات المحفوظة
+    var count = 0;
+    try{
+      var list = window._cdzMultiAccounts ? window._cdzMultiAccounts.getList() : [];
+      count = list.length;
+    }catch(e){}
+    if(count > 1){
+      badge.style.display = 'flex';
+      badge.innerText = count;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  // تشغيل عند التحميل وبعد كل تسجيل دخول
+  window.addEventListener('load', function(){ setTimeout(_updateTopSwitchBtn, 1500); });
+  var _origRenderAppSwitch = window.renderApp;
+  window.renderApp = function(){
+    var r = _origRenderAppSwitch ? _origRenderAppSwitch.apply(this,arguments) : null;
+    setTimeout(_updateTopSwitchBtn, 800);
+    return r;
+  };
+  window._updateTopSwitchBtn = _updateTopSwitchBtn;
+})();
+</script>
+
 </body>
 </html>
