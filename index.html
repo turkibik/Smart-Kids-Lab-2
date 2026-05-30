@@ -4568,14 +4568,14 @@ function switchLoginTab(tab){
         <svg width="22" height="22" viewBox="0 0 24 24"><defs><linearGradient id="frGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#00c853"/><stop offset="100%" style="stop-color:#e53935"/></linearGradient></defs><path fill="url(#frGrad)" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
         <span style="font-size:9px;font-weight:700;background:linear-gradient(90deg,#00c853,#e53935);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">الأصدقاء</span>
       </div>
-      <div id="sTab_notifs" onclick="switchSocialTab('notifs')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
+      <div id="sTab_notifs" onclick="switchSocialTab('notifs')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;background:linear-gradient(180deg,rgba(255,193,7,0.18),rgba(255,152,0,0.10));border-radius:10px 10px 0 0;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="#F7B928"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-        <span style="font-size:9px;font-weight:700;color:#F7B928;">الإشعارات</span>
+        <span style="font-size:9px;font-weight:800;color:#F7B928;">الإشعارات</span>
         <span id="socialNotifBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;">0</span>
       </div>
-      <div id="sTab_pages" onclick="switchSocialTab('pages')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
-        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='22' height='22' fill='#0084FF'><path d='M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z'/></svg>
-        <span style="font-size:9px;font-weight:700;color:#0084FF;">مسنجر</span>
+      <div id="sTab_pages" onclick="switchSocialTab('pages')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;background:linear-gradient(180deg,rgba(0,200,83,0.18),rgba(0,160,64,0.10));border-radius:10px 10px 0 0;">
+        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='22' height='22' fill='#00c853'><path d='M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z'/></svg>
+        <span style="font-size:9px;font-weight:800;color:#00c853;">مسنجر</span>
         <span id="socialMsgBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;"></span>
       </div>
       <div id="sTab_myprofile" onclick="if(typeof openNLDChampionship==='function'){openNLDChampionship();}else if(typeof openNldChampionship==='function'){openNldChampionship();}" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;" title="البطولة المحترفة">
@@ -4898,31 +4898,14 @@ function switchLoginTab(tab){
     --purple-glow: rgba(139,92,246,0.35);
   }
 
-  /* خلفية التطبيق الداخلية — تدرج بنفسجي داكن */
-  .app {
-    background: linear-gradient(160deg,
-      #0a0518 0%,
-      #0d0b1a 30%,
-      #080d14 65%,
-      #0a0518 100%
-    ) !important;
-  }
-
-  /* بطاقة النقاط الرئيسية — تدرج بنفسجي جذاب */
+  /* بطاقة النقاط الرئيسية — تدرج بنفسجي أخضر */
   .main-card {
-    background: linear-gradient(145deg,
-      rgba(76,29,149,0.55) 0%,
-      rgba(15,10,30,0.9) 50%,
-      rgba(109,40,217,0.25) 100%
-    ) !important;
-    border: 1px solid rgba(139,92,246,0.4) !important;
-    box-shadow:
-      0 20px 50px rgba(0,0,0,0.5),
-      0 0 40px rgba(139,92,246,0.15),
-      0 1px 0 rgba(167,139,250,0.2) inset !important;
+    background: linear-gradient(145deg,#0d1117 0%,#0f0a1e 50%,#0a1117 100%) !important;
+    border: 1px solid rgba(139,92,246,0.25) !important;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(139,92,246,0.08) !important;
   }
   .main-card::before {
-    background: radial-gradient(circle at 80% 20%, rgba(139,92,246,0.18) 0%, transparent 60%) !important;
+    background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 65%) !important;
   }
 
   /* النقاط الرئيسية — بنفسجي متدرج */
@@ -4949,13 +4932,9 @@ function switchLoginTab(tab){
 
   /* رأس بطاقة الأعضاء */
   .member-greeting-card {
-    background: linear-gradient(145deg,
-      rgba(76,29,149,0.5) 0%,
-      rgba(13,17,23,0.92) 50%,
-      rgba(91,33,182,0.3) 100%
-    ) !important;
-    border: 1px solid rgba(139,92,246,0.35) !important;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.45), 0 0 30px rgba(139,92,246,0.12) !important;
+    background: linear-gradient(145deg,rgba(13,17,23,0.95),rgba(15,10,30,0.9),rgba(10,17,23,0.95)) !important;
+    border: 1px solid rgba(139,92,246,0.22) !important;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.45), 0 0 30px rgba(139,92,246,0.07) !important;
   }
 
   /* إحصائيات الأعضاء */
@@ -4978,21 +4957,10 @@ function switchLoginTab(tab){
     color: #a78bfa !important;
   }
 
-  /* أيقونات الشبكة (glass items) — خلفية بنفسجية خفيفة + تأثير hover */
-  .glass-item {
-    background: linear-gradient(145deg,
-      rgba(76,29,149,0.18) 0%,
-      rgba(15,12,28,0.85) 100%
-    ) !important;
-    border-color: rgba(139,92,246,0.18) !important;
-  }
+  /* أيقونات الشبكة (glass items) — تأثير بنفسجي عند الـ hover */
   .glass-item:hover {
-    border-color: rgba(139,92,246,0.45) !important;
-    box-shadow: 0 12px 28px rgba(0,0,0,0.4), 0 0 20px rgba(139,92,246,0.28) !important;
-    background: linear-gradient(145deg,
-      rgba(109,40,217,0.28) 0%,
-      rgba(20,15,35,0.9) 100%
-    ) !important;
+    border-color: rgba(139,92,246,0.3) !important;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.4), 0 0 16px rgba(139,92,246,0.2) !important;
   }
 
   /* زر الاستفسار */
@@ -5007,23 +4975,14 @@ function switchLoginTab(tab){
     border-color: rgba(34,197,94,0.2) !important;
   }
 
-  /* شريط علوي للتطبيق — بنفسجي غني */
+  /* شريط علوي للتطبيق — بنفسجي داكن */
   .top-nav {
-    background: linear-gradient(135deg,
-      rgba(76,29,149,0.82) 0%,
-      rgba(109,40,217,0.75) 40%,
-      rgba(91,33,182,0.80) 70%,
-      rgba(67,20,130,0.85) 100%
-    );
-    border-radius: 22px;
-    padding: 10px 14px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(167,139,250,0.35);
-    box-shadow:
-      0 4px 24px rgba(91,33,182,0.4),
-      0 1px 0 rgba(167,139,250,0.3) inset,
-      0 8px 32px rgba(0,0,0,0.25);
+    background: linear-gradient(135deg,rgba(15,10,30,0.85),rgba(13,17,23,0.75));
+    border-radius: 20px;
+    padding: 8px 12px;
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(139,92,246,0.15);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   }
 
   /* تحسين الأفاتار */
@@ -20513,46 +20472,30 @@ function _buildWheel(){
       from { transform: rotate(0deg); }
       to   { transform: rotate(360deg); }
     }
+    #wheelOrbitRing.orbiting {
+      animation: wheelRingOrbit 18s linear infinite;
+    }
+    #wheelOrbitRing.orbiting .wheel-item {
+      animation: none !important;
+      opacity: 1 !important;
+      pointer-events: all !important;
+    }
+    #wheelOrbitRing.orbiting .wheel-item-emoji {
+      display: inline-block;
+    }
+    /* الأيقونة تبقى مستقيمة رغم دوران الحلقة */
+    #wheelOrbitRing.orbiting .wheel-item-emoji,
+    #wheelOrbitRing.orbiting .wheel-item-label {
+      animation: wheelCounterRot 18s linear infinite;
+    }
     @keyframes wheelCounterRot {
       from { transform: rotate(0deg); }
       to   { transform: rotate(-360deg); }
     }
-    /* الحلقة تدور ببطء */
-    #wheelOrbitRing.orbiting {
-      animation: wheelRingOrbit 22s linear infinite;
-    }
-    /* الأيقونات تبقى ظاهرة وكاملة أثناء الدوران */
-    #wheelOrbitRing.orbiting .wheel-item {
-      animation: none !important;
+    /* الأيقونات تبقى ظاهرة حتى بعد إيقاف الدوران */
+    #wheelOrbitRing .wheel-item.show {
       opacity: 1 !important;
-      transform: none !important;
       pointer-events: all !important;
-    }
-    /* الإيموجي والتسمية تدوران عكسياً لتبقيا مستقيمين */
-    #wheelOrbitRing.orbiting .wheel-item-emoji {
-      display: inline-block;
-      animation: wheelCounterRot 22s linear infinite;
-      transform-origin: center center;
-    }
-    #wheelOrbitRing.orbiting .wheel-item-label {
-      animation: wheelCounterRot 22s linear infinite;
-      transform-origin: center center;
-    }
-    /* توقف عند اللمس/hover */
-    #wheelOrbitRing.orbiting:hover,
-    #wheelOrbitRing.orbiting:has(.wheel-item:hover) {
-      animation-play-state: paused;
-    }
-    #wheelOrbitRing.orbiting:hover .wheel-item-emoji,
-    #wheelOrbitRing.orbiting:has(.wheel-item:hover) .wheel-item-emoji,
-    #wheelOrbitRing.orbiting:hover .wheel-item-label,
-    #wheelOrbitRing.orbiting:has(.wheel-item:hover) .wheel-item-label {
-      animation-play-state: paused;
-    }
-    /* توهج بنفسجي عند اللمس */
-    #wheelOrbitRing.orbiting .wheel-item:active {
-      box-shadow: 0 0 20px rgba(139,92,246,0.7), 0 4px 18px rgba(0,0,0,0.35) !important;
-      transform: scale(1.12) !important;
     }
   `;
   document.head.appendChild(st);
@@ -20598,6 +20541,8 @@ function openWheelMenu(){
     setTimeout(function(){
       el.classList.add('show');
       el.style.animation = 'wheelItemIn .35s cubic-bezier(.34,1.56,.64,1) both';
+      el.style.opacity = '1';
+      el.style.pointerEvents = 'all';
     }, 60 + i * 55);
   });
 
@@ -20605,7 +20550,13 @@ function openWheelMenu(){
   setTimeout(function(){
     var ring = document.getElementById('wheelOrbitRing');
     if(ring) ring.classList.add('orbiting');
-  }, 60 + _WHEEL_ITEMS.length * 55 + 200);
+    // تأكيد بقاء الأيقونات ظاهرة بعد الدوران
+    var items = document.querySelectorAll('.wheel-item');
+    items.forEach(function(el){
+      el.style.opacity = '1';
+      el.style.pointerEvents = 'all';
+    });
+  }, 60 + _WHEEL_ITEMS.length * 55 + 150);
 
   // تحديث أيقونة الزر العائم
   var icon = document.getElementById('wheelFloatIcon');
@@ -20614,23 +20565,24 @@ function openWheelMenu(){
 
 function closeWheelMenu(){
   _wheelOpen = false;
-  // إيقاف الدوران
+  // إيقاف الدوران مع الإبقاء على ظهور الأيقونات
   var ring = document.getElementById('wheelOrbitRing');
   if(ring) ring.classList.remove('orbiting');
 
+  // إخفاء الأيقونات بعد توقف الحاوية الكاملة
   var items = document.querySelectorAll('.wheel-item');
-  items.forEach(function(el, i){
-    setTimeout(function(){
-      el.classList.remove('show');
-      el.style.animation = '';
-    }, i * 25);
+  items.forEach(function(el){
+    el.style.transition = 'opacity .2s';
+    el.style.opacity = '0';
+    el.style.pointerEvents = 'none';
   });
   setTimeout(function(){
+    items.forEach(function(el){ el.classList.remove('show'); el.style.animation = ''; });
     var bg = document.getElementById('wheelBgOverlay');
     var wc = document.getElementById('wheelContainer');
     if(bg) bg.style.display = 'none';
     if(wc){ wc.style.display = 'none'; wc.classList.remove('open'); }
-  }, 250);
+  }, 220);
   var icon = document.getElementById('wheelFloatIcon');
   if(icon) icon.innerHTML = '🌀';
 }
