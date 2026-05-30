@@ -4898,14 +4898,31 @@ function switchLoginTab(tab){
     --purple-glow: rgba(139,92,246,0.35);
   }
 
-  /* بطاقة النقاط الرئيسية — تدرج بنفسجي أخضر */
+  /* خلفية التطبيق الداخلية — تدرج بنفسجي داكن */
+  .app {
+    background: linear-gradient(160deg,
+      #0a0518 0%,
+      #0d0b1a 30%,
+      #080d14 65%,
+      #0a0518 100%
+    ) !important;
+  }
+
+  /* بطاقة النقاط الرئيسية — تدرج بنفسجي جذاب */
   .main-card {
-    background: linear-gradient(145deg,#0d1117 0%,#0f0a1e 50%,#0a1117 100%) !important;
-    border: 1px solid rgba(139,92,246,0.25) !important;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(139,92,246,0.08) !important;
+    background: linear-gradient(145deg,
+      rgba(76,29,149,0.55) 0%,
+      rgba(15,10,30,0.9) 50%,
+      rgba(109,40,217,0.25) 100%
+    ) !important;
+    border: 1px solid rgba(139,92,246,0.4) !important;
+    box-shadow:
+      0 20px 50px rgba(0,0,0,0.5),
+      0 0 40px rgba(139,92,246,0.15),
+      0 1px 0 rgba(167,139,250,0.2) inset !important;
   }
   .main-card::before {
-    background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 65%) !important;
+    background: radial-gradient(circle at 80% 20%, rgba(139,92,246,0.18) 0%, transparent 60%) !important;
   }
 
   /* النقاط الرئيسية — بنفسجي متدرج */
@@ -4932,9 +4949,13 @@ function switchLoginTab(tab){
 
   /* رأس بطاقة الأعضاء */
   .member-greeting-card {
-    background: linear-gradient(145deg,rgba(13,17,23,0.95),rgba(15,10,30,0.9),rgba(10,17,23,0.95)) !important;
-    border: 1px solid rgba(139,92,246,0.22) !important;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.45), 0 0 30px rgba(139,92,246,0.07) !important;
+    background: linear-gradient(145deg,
+      rgba(76,29,149,0.5) 0%,
+      rgba(13,17,23,0.92) 50%,
+      rgba(91,33,182,0.3) 100%
+    ) !important;
+    border: 1px solid rgba(139,92,246,0.35) !important;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.45), 0 0 30px rgba(139,92,246,0.12) !important;
   }
 
   /* إحصائيات الأعضاء */
@@ -4957,10 +4978,21 @@ function switchLoginTab(tab){
     color: #a78bfa !important;
   }
 
-  /* أيقونات الشبكة (glass items) — تأثير بنفسجي عند الـ hover */
+  /* أيقونات الشبكة (glass items) — خلفية بنفسجية خفيفة + تأثير hover */
+  .glass-item {
+    background: linear-gradient(145deg,
+      rgba(76,29,149,0.18) 0%,
+      rgba(15,12,28,0.85) 100%
+    ) !important;
+    border-color: rgba(139,92,246,0.18) !important;
+  }
   .glass-item:hover {
-    border-color: rgba(139,92,246,0.3) !important;
-    box-shadow: 0 12px 28px rgba(0,0,0,0.4), 0 0 16px rgba(139,92,246,0.2) !important;
+    border-color: rgba(139,92,246,0.45) !important;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.4), 0 0 20px rgba(139,92,246,0.28) !important;
+    background: linear-gradient(145deg,
+      rgba(109,40,217,0.28) 0%,
+      rgba(20,15,35,0.9) 100%
+    ) !important;
   }
 
   /* زر الاستفسار */
@@ -4975,14 +5007,23 @@ function switchLoginTab(tab){
     border-color: rgba(34,197,94,0.2) !important;
   }
 
-  /* شريط علوي للتطبيق — بنفسجي داكن */
+  /* شريط علوي للتطبيق — بنفسجي غني */
   .top-nav {
-    background: linear-gradient(135deg,rgba(15,10,30,0.85),rgba(13,17,23,0.75));
-    border-radius: 20px;
-    padding: 8px 12px;
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(139,92,246,0.15);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg,
+      rgba(76,29,149,0.82) 0%,
+      rgba(109,40,217,0.75) 40%,
+      rgba(91,33,182,0.80) 70%,
+      rgba(67,20,130,0.85) 100%
+    );
+    border-radius: 22px;
+    padding: 10px 14px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(167,139,250,0.35);
+    box-shadow:
+      0 4px 24px rgba(91,33,182,0.4),
+      0 1px 0 rgba(167,139,250,0.3) inset,
+      0 8px 32px rgba(0,0,0,0.25);
   }
 
   /* تحسين الأفاتار */
@@ -20472,23 +20513,46 @@ function _buildWheel(){
       from { transform: rotate(0deg); }
       to   { transform: rotate(360deg); }
     }
-    #wheelOrbitRing.orbiting {
-      animation: wheelRingOrbit 20s linear infinite;
-    }
-    #wheelOrbitRing.orbiting .wheel-item {
-      animation: none !important;
-    }
-    #wheelOrbitRing.orbiting .wheel-item-emoji {
-      display:inline-block;
-    }
-    /* الأيقونة تبقى مستقيمة رغم دوران الحلقة */
-    #wheelOrbitRing.orbiting .wheel-item-emoji,
-    #wheelOrbitRing.orbiting .wheel-item-label {
-      animation: wheelCounterRot 20s linear infinite;
-    }
     @keyframes wheelCounterRot {
       from { transform: rotate(0deg); }
       to   { transform: rotate(-360deg); }
+    }
+    /* الحلقة تدور ببطء */
+    #wheelOrbitRing.orbiting {
+      animation: wheelRingOrbit 22s linear infinite;
+    }
+    /* الأيقونات تبقى ظاهرة وكاملة أثناء الدوران */
+    #wheelOrbitRing.orbiting .wheel-item {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      pointer-events: all !important;
+    }
+    /* الإيموجي والتسمية تدوران عكسياً لتبقيا مستقيمين */
+    #wheelOrbitRing.orbiting .wheel-item-emoji {
+      display: inline-block;
+      animation: wheelCounterRot 22s linear infinite;
+      transform-origin: center center;
+    }
+    #wheelOrbitRing.orbiting .wheel-item-label {
+      animation: wheelCounterRot 22s linear infinite;
+      transform-origin: center center;
+    }
+    /* توقف عند اللمس/hover */
+    #wheelOrbitRing.orbiting:hover,
+    #wheelOrbitRing.orbiting:has(.wheel-item:hover) {
+      animation-play-state: paused;
+    }
+    #wheelOrbitRing.orbiting:hover .wheel-item-emoji,
+    #wheelOrbitRing.orbiting:has(.wheel-item:hover) .wheel-item-emoji,
+    #wheelOrbitRing.orbiting:hover .wheel-item-label,
+    #wheelOrbitRing.orbiting:has(.wheel-item:hover) .wheel-item-label {
+      animation-play-state: paused;
+    }
+    /* توهج بنفسجي عند اللمس */
+    #wheelOrbitRing.orbiting .wheel-item:active {
+      box-shadow: 0 0 20px rgba(139,92,246,0.7), 0 4px 18px rgba(0,0,0,0.35) !important;
+      transform: scale(1.12) !important;
     }
   `;
   document.head.appendChild(st);
