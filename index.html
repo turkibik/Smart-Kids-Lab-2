@@ -4530,10 +4530,199 @@ function switchLoginTab(tab){
 <!-- ══════════════════════════════════════════
      🌐 صفحة الشبكة الاجتماعية (Next Leaders Social)
      ══════════════════════════════════════════ -->
-<div id="socialHomeCard" style="display:none;position:fixed;inset:0;z-index:2900;background:#F0F2F5;flex-direction:column;overflow:hidden;">
+<div id="socialHomeCard" style="display:none;position:fixed;inset:0;z-index:2900;background:transparent;flex-direction:column;overflow:hidden;">
+  <!-- ══ خلفية الطبيعة الديناميكية — داخل socialHomeCard ══ -->
+  <style>
+  #natureBg {
+    position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+  }
+  #natureBg .sky {
+    position:absolute;inset:0;
+    animation:nbSkyShift 25s ease-in-out infinite alternate;
+  }
+  @keyframes nbSkyShift {
+    0%   { background:linear-gradient(180deg,#a8edea 0%,#c8f7c5 100%); }
+    33%  { background:linear-gradient(180deg,#74b9ff 0%,#a29bfe 50%,#c8f7c5 100%); }
+    66%  { background:linear-gradient(180deg,#ffecd2 0%,#fcb69f 40%,#c8f7c5 100%); }
+    100% { background:linear-gradient(180deg,#a8edea 0%,#c8f7c5 100%); }
+  }
+  /* شمس */
+  #natureBg .nb-sun {
+    position:absolute;top:14px;left:14px;width:46px;height:46px;
+    border-radius:50%;background:radial-gradient(circle,#ffe259,#ffa751);
+    box-shadow:0 0 0 8px rgba(255,210,60,0.18);
+    animation:nbSunPulse 4s ease-in-out infinite;
+  }
+  @keyframes nbSunPulse {
+    0%,100%{box-shadow:0 0 0 8px rgba(255,210,60,0.18),0 0 0 18px rgba(255,210,60,0.07);}
+    50%    {box-shadow:0 0 0 14px rgba(255,210,60,0.3),0 0 0 28px rgba(255,210,60,0.1);}
+  }
+  /* غيوم */
+  .nb-cloud {
+    position:absolute;border-radius:50px;
+    background:rgba(255,255,255,0.78);
+    filter:blur(3px);
+    animation:nbCloudFloat linear infinite;
+  }
+  @keyframes nbCloudFloat {
+    from { transform:translateX(110vw); }
+    to   { transform:translateX(-220px); }
+  }
+  /* فراشات */
+  .nb-butterfly {
+    position:absolute;pointer-events:none;
+    animation:nbBflyMove ease-in-out infinite alternate;
+  }
+  @keyframes nbBflyMove {
+    0%   { transform:translate(0,0) rotate(-5deg); }
+    25%  { transform:translate(40px,-55px) rotate(8deg); }
+    50%  { transform:translate(15px,-30px) rotate(-3deg); }
+    75%  { transform:translate(65px,-70px) rotate(12deg); }
+    100% { transform:translate(30px,-40px) rotate(-6deg); }
+  }
+  /* عصافير */
+  .nb-bird {
+    position:absolute;pointer-events:none;
+    animation:nbBirdHop ease-in-out infinite;
+  }
+  @keyframes nbBirdHop {
+    0%   { transform:translate(0,0) scaleX(1); }
+    20%  { transform:translate(18px,-22px) scaleX(1); }
+    40%  { transform:translate(36px,-6px) scaleX(1); }
+    50%  { transform:translate(50px,-6px) scaleX(-1); }
+    70%  { transform:translate(28px,-18px) scaleX(-1); }
+    90%  { transform:translate(8px,-4px) scaleX(-1); }
+    100% { transform:translate(0,0) scaleX(1); }
+  }
+  /* أوراق */
+  .nb-leaf {
+    position:absolute;top:-40px;pointer-events:none;
+    animation:nbLeafFall linear infinite;
+  }
+  @keyframes nbLeafFall {
+    0%   { transform:translateY(-40px) rotate(0deg)   translateX(0);    opacity:1; }
+    30%  { transform:translateY(28vh)  rotate(120deg) translateX(22px);  opacity:1; }
+    60%  { transform:translateY(56vh)  rotate(240deg) translateX(-14px); opacity:.8; }
+    100% { transform:translateY(105vh) rotate(400deg) translateX(10px);  opacity:0; }
+  }
+  </style>
+
+  <div id="natureBg">
+    <div class="sky"></div>
+    <div class="nb-sun"></div>
+    <!-- غيوم -->
+    <div class="nb-cloud" style="top:8%;width:100px;height:30px;animation-duration:32s;animation-delay:0s;"></div>
+    <div class="nb-cloud" style="top:14%;width:140px;height:38px;animation-duration:44s;animation-delay:-14s;opacity:.75;"></div>
+    <div class="nb-cloud" style="top:5%;width:75px;height:22px;animation-duration:25s;animation-delay:-7s;opacity:.85;"></div>
+  </div>
+
+  <script>
+  (function(){
+    var NB = document.getElementById('natureBg');
+    if(!NB) return;
+
+    /* ── فراشات ── */
+    [
+      {e:'🦋', l:'8%',  t:'22%', d:'9s',  delay:'-1s',  fs:'22px'},
+      {e:'🦋', l:'45%', t:'30%', d:'13s', delay:'-5s',  fs:'18px'},
+      {e:'🦋', l:'72%', t:'18%', d:'10s', delay:'-8s',  fs:'24px'},
+      {e:'🦋', l:'30%', t:'40%', d:'11s', delay:'-3s',  fs:'16px'},
+    ].forEach(function(b){
+      var el = document.createElement('div');
+      el.className = 'nb-butterfly';
+      el.innerText = b.e;
+      el.style.cssText = 'left:'+b.l+';top:'+b.t+';font-size:'+b.fs
+        +';animation-duration:'+b.d+';animation-delay:'+b.delay+';';
+      NB.appendChild(el);
+    });
+
+    /* ── عصافير ── */
+    [
+      {e:'🐦', l:'15%', b:'35%', d:'7s',  delay:'-2s'},
+      {e:'🐤', l:'55%', b:'28%', d:'9s',  delay:'-5s'},
+      {e:'🐦', l:'78%', b:'42%', d:'8s',  delay:'-1s'},
+      {e:'🐤', l:'35%', b:'50%', d:'11s', delay:'-7s'},
+    ].forEach(function(b){
+      var el = document.createElement('div');
+      el.className = 'nb-bird';
+      el.innerText = b.e;
+      el.style.cssText = 'left:'+b.l+';top:'+b.b+';font-size:20px'
+        +';animation-duration:'+b.d+';animation-delay:'+b.delay+';';
+      el.addEventListener('animationiteration', function(){
+        el.style.left  = (5 + Math.random()*80) + '%';
+        el.style.top   = (15 + Math.random()*40) + '%';
+      });
+      NB.appendChild(el);
+    });
+
+    /* ── أوراق متساقطة ── */
+    ['🍃','🌿','🍀','🍃','🌱','🍃'].forEach(function(lf, i){
+      var el = document.createElement('div');
+      el.className = 'nb-leaf';
+      el.innerText = lf;
+      el.style.cssText = 'left:'+(8+i*16)+'%;font-size:14px'
+        +';animation-duration:'+(9+i*2)+'s;animation-delay:'+(-i*2.5)+'s;';
+      NB.appendChild(el);
+    });
+
+    /* ── أوراق إضافية عشوائية ── */
+    for(var x=0;x<4;x++){
+      var el2 = document.createElement('div');
+      el2.className = 'nb-leaf';
+      el2.innerText = ['🍃','🌿','🍀'][x%3];
+      el2.style.cssText = 'left:'+(Math.random()*90)+'%;font-size:12px'
+        +';animation-duration:'+(10+Math.random()*7)+'s;animation-delay:'+(-Math.random()*12)+'s;';
+      NB.appendChild(el2);
+    }
+
+    /* ═══ أصوات زقزقة كل 5 ثوانٍ ═══ */
+    var _ctx = null;
+    function _getCtx(){
+      if(_ctx) return _ctx;
+      try{ _ctx = new(window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+      return _ctx;
+    }
+    function _note(freq, dur, vol, delay){
+      var ctx = _getCtx(); if(!ctx) return;
+      try{
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'sine';
+        var t = ctx.currentTime + (delay||0);
+        o.frequency.setValueAtTime(freq, t);
+        o.frequency.exponentialRampToValueAtTime(freq*1.4, t+dur*0.35);
+        o.frequency.exponentialRampToValueAtTime(freq*0.85, t+dur);
+        g.gain.setValueAtTime(vol||0.15, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t+dur+0.04);
+        o.start(t); o.stop(t+dur+0.06);
+      }catch(e){}
+    }
+    function _song(){
+      var songs=[
+        [[800,0.1],[1100,0.1,0,0.13],[950,0.12,0,0.28]],
+        [[1200,0.09],[900,0.1,0,0.12],[1300,0.08,0,0.24],[1000,0.11,0,0.35]],
+        [[700,0.13],[1000,0.1,0,0.16],[800,0.13,0,0.32]],
+      ];
+      var s=songs[Math.floor(Math.random()*songs.length)];
+      s.forEach(function(n){ _note(n[0],n[1],n[2]||0.14,n[3]||0); });
+    }
+    var _started=false;
+    function _start(){
+      if(_started) return; _started=true;
+      _song();
+      setInterval(function(){
+        _song();
+        if(Math.random()>0.5) setTimeout(_song, 800+Math.random()*400);
+      },5000);
+    }
+    document.addEventListener('touchstart',_start,{once:true,passive:true});
+    document.addEventListener('click',_start,{once:true});
+  })();
+  </script>
+
 
   <!-- ── Top Bar (Facebook-style) ── -->
-  <div id="socialTopBar" style="background:white;border-bottom:2px solid #E4E6EB;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+  <div id="socialTopBar" style="background:white;border-bottom:2px solid #E4E6EB;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.1);position:relative;z-index:2;">
     <!-- Row 1: القائمة يمين + اسم التطبيق يسار + بحث -->
     <div style="padding:8px 12px 6px;display:flex;align-items:center;gap:8px;">
       <!-- Hamburger Menu يمين (3 شرطات) -->
@@ -4545,9 +4734,9 @@ function switchLoginTab(tab){
       <!-- اسم التطبيق يسار -->
       <div style="font-size:20px;font-weight:900;background:linear-gradient(90deg,#00c853,#e53935);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;flex:1;font-family:'Tajawal',sans-serif;">Connect DZ</div>
       <!-- زر تبديل الحسابات — ثابت في الأعلى مع صورة الحساب النشط -->
-      <div id="topSwitchAccountBtn" onclick="window.openMultiAccPanel ? window.openMultiAccPanel() : null" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2e7d32,#00c853);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;overflow:visible;position:relative;" title="تبديل الحساب">
-        <div id="topSwitchAvatarInner" style="width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;background:linear-gradient(135deg,#2e7d32,#00c853);">👤</div>
-        <span id="topSwitchBadge" style="display:none;position:absolute;top:-6px;left:-6px;min-width:18px;height:18px;border-radius:9px;background:#e53935;color:white;font-size:10px;font-weight:900;align-items:center;justify-content:center;border:2.5px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;z-index:5;box-shadow:0 2px 6px rgba(229,57,53,0.5);">0</span>
+      <div id="topSwitchAccountBtn" onclick="window.openMultiAccPanel ? window.openMultiAccPanel() : null" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2e7d32,#00c853);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;overflow:hidden;border:2.5px solid rgba(46,125,50,0.4);box-shadow:0 2px 10px rgba(46,125,50,0.35);position:relative;" title="تبديل الحساب">
+        <div id="topSwitchAvatarInner" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px;">👤</div>
+        <span id="topSwitchBadge" style="display:none;position:absolute;top:-3px;right:-3px;width:16px;height:16px;border-radius:50%;background:#e53935;color:white;font-size:9px;font-weight:900;align-items:center;justify-content:center;border:2px solid white;">0</span>
       </div>
     </div>
     <!-- Search bar (hidden by default) -->
@@ -4882,219 +5071,6 @@ function switchLoginTab(tab){
     0% { opacity:0; transform: scale(0); }
     60% { transform: scale(1.15); }
     100% { opacity:1; transform: scale(1); }
-  }
-
-  /* ══ دوران بطيء للعجلة — يُطبَّق عبر JS عند فتح القائمة ══ */
-  </style>
-
-  <!-- ══ تحسينات الألوان — البنفسجي والتصميم الاحترافي ══ -->
-  <style id="cdz-purple-theme">
-  /* ── تحسين الصفحة الرئيسية بألوان بنفسجية وجذابة ── */
-  :root {
-    --purple: #8b5cf6;
-    --purple2: #7c3aed;
-    --purple-light: #a78bfa;
-    --purple-dark: #5b21b6;
-    --purple-glow: rgba(139,92,246,0.35);
-  }
-
-  /* خلفية التطبيق الداخلية — تدرج بنفسجي داكن */
-  .app {
-    background: linear-gradient(160deg,
-      #0a0518 0%,
-      #0d0b1a 30%,
-      #080d14 65%,
-      #0a0518 100%
-    ) !important;
-  }
-
-  /* بطاقة النقاط الرئيسية — تدرج بنفسجي جذاب */
-  .main-card {
-    background: linear-gradient(145deg,
-      rgba(76,29,149,0.55) 0%,
-      rgba(15,10,30,0.9) 50%,
-      rgba(109,40,217,0.25) 100%
-    ) !important;
-    border: 1px solid rgba(139,92,246,0.4) !important;
-    box-shadow:
-      0 20px 50px rgba(0,0,0,0.5),
-      0 0 40px rgba(139,92,246,0.15),
-      0 1px 0 rgba(167,139,250,0.2) inset !important;
-  }
-  .main-card::before {
-    background: radial-gradient(circle at 80% 20%, rgba(139,92,246,0.18) 0%, transparent 60%) !important;
-  }
-
-  /* النقاط الرئيسية — بنفسجي متدرج */
-  .points-num {
-    background: linear-gradient(135deg,#c4b5fd,#ffffff,#a78bfa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* شريط التقدم — بنفسجي إلى أخضر */
-  .neo-bar {
-    background: linear-gradient(90deg,#8b5cf6,#00e5a0) !important;
-    box-shadow: 0 0 14px rgba(139,92,246,0.5) !important;
-  }
-
-  /* الشارة المستوى */
-  .level-badge {
-    background: linear-gradient(135deg,rgba(139,92,246,0.18),rgba(124,58,237,0.12)) !important;
-    border: 1px solid rgba(139,92,246,0.35) !important;
-    color: #c4b5fd !important;
-    box-shadow: 0 0 12px rgba(139,92,246,0.15);
-  }
-
-  /* رأس بطاقة الأعضاء */
-  .member-greeting-card {
-    background: linear-gradient(145deg,
-      rgba(76,29,149,0.5) 0%,
-      rgba(13,17,23,0.92) 50%,
-      rgba(91,33,182,0.3) 100%
-    ) !important;
-    border: 1px solid rgba(139,92,246,0.35) !important;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.45), 0 0 30px rgba(139,92,246,0.12) !important;
-  }
-
-  /* إحصائيات الأعضاء */
-  .member-greeting-stat {
-    background: linear-gradient(135deg,rgba(139,92,246,0.1),rgba(15,10,30,0.6)) !important;
-    border: 1px solid rgba(139,92,246,0.2) !important;
-  }
-  .member-greeting-stat .gs-icon { filter: drop-shadow(0 0 4px rgba(139,92,246,0.5)); }
-
-  /* عنوان القسم */
-  .section-title {
-    background: linear-gradient(90deg,#ffffff,#c4b5fd);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .section-year {
-    background: rgba(139,92,246,0.1) !important;
-    border-color: rgba(139,92,246,0.2) !important;
-    color: #a78bfa !important;
-  }
-
-  /* أيقونات الشبكة (glass items) — خلفية بنفسجية خفيفة + تأثير hover */
-  .glass-item {
-    background: linear-gradient(145deg,
-      rgba(76,29,149,0.18) 0%,
-      rgba(15,12,28,0.85) 100%
-    ) !important;
-    border-color: rgba(139,92,246,0.18) !important;
-  }
-  .glass-item:hover {
-    border-color: rgba(139,92,246,0.45) !important;
-    box-shadow: 0 12px 28px rgba(0,0,0,0.4), 0 0 20px rgba(139,92,246,0.28) !important;
-    background: linear-gradient(145deg,
-      rgba(109,40,217,0.28) 0%,
-      rgba(20,15,35,0.9) 100%
-    ) !important;
-  }
-
-  /* زر الاستفسار */
-  #app .app-inner > div[onclick*="openAskQuestionDialog"] {
-    border-color: rgba(139,92,246,0.3) !important;
-    background: linear-gradient(135deg,rgba(139,92,246,0.1),rgba(76,29,149,0.08)) !important;
-  }
-
-  /* شريط المتصلين */
-  #onlineBar {
-    background: linear-gradient(135deg,rgba(34,197,94,0.08),rgba(139,92,246,0.06)) !important;
-    border-color: rgba(34,197,94,0.2) !important;
-  }
-
-  /* شريط علوي للتطبيق — بنفسجي غني */
-  .top-nav {
-    background: linear-gradient(135deg,
-      rgba(76,29,149,0.82) 0%,
-      rgba(109,40,217,0.75) 40%,
-      rgba(91,33,182,0.80) 70%,
-      rgba(67,20,130,0.85) 100%
-    );
-    border-radius: 22px;
-    padding: 10px 14px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(167,139,250,0.35);
-    box-shadow:
-      0 4px 24px rgba(91,33,182,0.4),
-      0 1px 0 rgba(167,139,250,0.3) inset,
-      0 8px 32px rgba(0,0,0,0.25);
-  }
-
-  /* تحسين الأفاتار */
-  .avatar {
-    background: linear-gradient(145deg,#7c3aed,#5b21b6,#00c853) !important;
-    box-shadow: 0 6px 22px rgba(124,58,237,0.45) !important;
-    border: 1.5px solid rgba(167,139,250,0.3) !important;
-  }
-
-  /* تحسين زر الإشعارات */
-  .notif-btn {
-    background: rgba(15,10,30,0.6) !important;
-    border-color: rgba(139,92,246,0.2) !important;
-  }
-  .notif-btn:hover {
-    background: rgba(139,92,246,0.12) !important;
-    border-color: rgba(139,92,246,0.4) !important;
-  }
-
-  /* تدرج خلفية الهيرو — إضافة البنفسجي */
-  #hero-overlay {
-    background:
-      linear-gradient(to bottom, rgba(5,10,14,0.85) 0%, rgba(5,10,14,0.6) 40%, rgba(5,10,14,0.9) 100%),
-      linear-gradient(135deg, rgba(139,92,246,0.12) 0%, transparent 50%),
-      radial-gradient(ellipse 70% 50% at 80% 100%, rgba(229,45,39,0.1) 0%, transparent 60%) !important;
-  }
-
-  /* شريط التقدم الرئيسي */
-  #loadingBar { background: linear-gradient(90deg,#7c3aed,#8b5cf6,#00e5a0) !important; }
-
-  /* تحسين بطاقة العجلة العائمة */
-  #wheelFloatBtnInner {
-    background: linear-gradient(180deg,#7c3aed,#5b21b6,#00c853) !important;
-    box-shadow: 4px 0 28px rgba(124,58,237,0.5), 2px 0 14px rgba(0,200,83,0.25) !important;
-  }
-  #wheelCenterAvatar {
-    background: linear-gradient(135deg,#7c3aed,#5b21b6,#00c853) !important;
-    box-shadow: 0 0 0 8px rgba(139,92,246,0.2), 0 6px 28px rgba(0,0,0,0.45) !important;
-  }
-
-  /* زر تبديل الحسابات العلوي */
-  #topSwitchAccountBtn > div {
-    background: linear-gradient(135deg,#7c3aed,#5b21b6) !important;
-  }
-
-  /* ── تحسين شريط Connect DZ العلوي ── */
-  #socialTopBar {
-    background: linear-gradient(135deg,#0d0520,#150d2e) !important;
-    border-bottom: 1px solid rgba(139,92,246,0.3) !important;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.4) !important;
-  }
-  #socialTopBar * { color: rgba(255,255,255,0.9); }
-
-  /* اسم Connect DZ */
-  #socialTopBar > div > div:nth-child(2) {
-    background: linear-gradient(90deg,#00c853,#8b5cf6,#e53935) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
-  }
-
-  /* أيقونات تبويبات الشبكة */
-  #sTab_home, #sTab_friends, #sTab_notifs, #sTab_pages, #sTab_myprofile {
-    background: rgba(15,5,32,0.6) !important;
-  }
-  #sTab_home { border-bottom-color: #8b5cf6 !important; }
-
-  /* زر الهامبرغر */
-  #socialMenuBtn {
-    background: linear-gradient(135deg,#7c3aed,#5b21b6,#e53935) !important;
-    box-shadow: 0 2px 12px rgba(124,58,237,0.4) !important;
   }
   </style>
 
@@ -6018,7 +5994,7 @@ function switchLoginTab(tab){
       <div onclick="showToast('مرحباً بكم في قاعة الشباب بودغن 🏛️')" style="background:linear-gradient(135deg,#11998e,#38ef7d);color:white;border-radius:14px;padding:14px;text-align:center;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(17,153,142,0.3);">📞 تواصل مع القاعة</div>
     </div>
   </div>
-  <div id="socialMainScroll" style="flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:70px;-webkit-overflow-scrolling:auto;overscroll-behavior:none;overscroll-behavior-y:none;">
+  <div id="socialMainScroll" style="flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:70px;-webkit-overflow-scrolling:auto;overscroll-behavior:none;overscroll-behavior-y:none;position:relative;z-index:1;">
 
     <!-- ── HOME PANEL ── -->
     <div id="socialPanel_home" style="display:block;">
@@ -20472,14 +20448,9 @@ function _getWheelPositions(n){
 function _buildWheel(){
   var container = document.getElementById('wheelContainer');
   if(!container) return;
-  // احذف الأيقونات القديمة والـ wrapper
-  var old = container.querySelectorAll('.wheel-item, #wheelOrbitRing');
+  // احذف الأيقونات القديمة
+  var old = container.querySelectorAll('.wheel-item');
   old.forEach(function(el){ el.remove(); });
-
-  // إنشاء حلقة دوارة للأيقونات
-  var orbitRing = document.createElement('div');
-  orbitRing.id = 'wheelOrbitRing';
-  orbitRing.style.cssText = 'position:absolute;inset:0;border-radius:50%;transform-origin:center center;';
 
   var positions = _getWheelPositions(_WHEEL_ITEMS.length);
   _WHEEL_ITEMS.forEach(function(item, i){
@@ -20498,65 +20469,9 @@ function _buildWheel(){
       closeWheelMenu();
       setTimeout(function(){ item.action(); }, 180);
     });
-    orbitRing.appendChild(el);
+    container.appendChild(el);
   });
-  container.appendChild(orbitRing);
 }
-
-/* ── إضافة CSS دوران الحلقة ── */
-(function(){
-  if(document.getElementById('_wheelOrbitStyle')) return;
-  var st = document.createElement('style');
-  st.id = '_wheelOrbitStyle';
-  st.textContent = `
-    @keyframes wheelRingOrbit {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-    @keyframes wheelCounterRot {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(-360deg); }
-    }
-    /* الحلقة تدور ببطء */
-    #wheelOrbitRing.orbiting {
-      animation: wheelRingOrbit 22s linear infinite;
-    }
-    /* الأيقونات تبقى ظاهرة وكاملة أثناء الدوران */
-    #wheelOrbitRing.orbiting .wheel-item {
-      animation: none !important;
-      opacity: 1 !important;
-      transform: none !important;
-      pointer-events: all !important;
-    }
-    /* الإيموجي والتسمية تدوران عكسياً لتبقيا مستقيمين */
-    #wheelOrbitRing.orbiting .wheel-item-emoji {
-      display: inline-block;
-      animation: wheelCounterRot 22s linear infinite;
-      transform-origin: center center;
-    }
-    #wheelOrbitRing.orbiting .wheel-item-label {
-      animation: wheelCounterRot 22s linear infinite;
-      transform-origin: center center;
-    }
-    /* توقف عند اللمس/hover */
-    #wheelOrbitRing.orbiting:hover,
-    #wheelOrbitRing.orbiting:has(.wheel-item:hover) {
-      animation-play-state: paused;
-    }
-    #wheelOrbitRing.orbiting:hover .wheel-item-emoji,
-    #wheelOrbitRing.orbiting:has(.wheel-item:hover) .wheel-item-emoji,
-    #wheelOrbitRing.orbiting:hover .wheel-item-label,
-    #wheelOrbitRing.orbiting:has(.wheel-item:hover) .wheel-item-label {
-      animation-play-state: paused;
-    }
-    /* توهج بنفسجي عند اللمس */
-    #wheelOrbitRing.orbiting .wheel-item:active {
-      box-shadow: 0 0 20px rgba(139,92,246,0.7), 0 4px 18px rgba(0,0,0,0.35) !important;
-      transform: scale(1.12) !important;
-    }
-  `;
-  document.head.appendChild(st);
-})();
 
 function _updateWheelAvatar(){
   var av = document.getElementById('wheelCenterAvatar');
@@ -20591,7 +20506,7 @@ function openWheelMenu(){
     wc.classList.add('open');
   }
 
-  // تحريك الأيقونات واحدة تلو الأخرى ثم تفعيل الدوران
+  // تحريك الأيقونات واحدة تلو الأخرى
   _WHEEL_ITEMS.forEach(function(item, i){
     var el = document.getElementById('wi_' + item.id);
     if(!el) return;
@@ -20601,12 +20516,6 @@ function openWheelMenu(){
     }, 60 + i * 55);
   });
 
-  // تفعيل الدوران البطيء بعد انتهاء أنيميشن الظهور
-  setTimeout(function(){
-    var ring = document.getElementById('wheelOrbitRing');
-    if(ring) ring.classList.add('orbiting');
-  }, 60 + _WHEEL_ITEMS.length * 55 + 200);
-
   // تحديث أيقونة الزر العائم
   var icon = document.getElementById('wheelFloatIcon');
   if(icon) icon.innerHTML = '✕';
@@ -20614,10 +20523,6 @@ function openWheelMenu(){
 
 function closeWheelMenu(){
   _wheelOpen = false;
-  // إيقاف الدوران
-  var ring = document.getElementById('wheelOrbitRing');
-  if(ring) ring.classList.remove('orbiting');
-
   var items = document.querySelectorAll('.wheel-item');
   items.forEach(function(el, i){
     setTimeout(function(){
@@ -36616,9 +36521,23 @@ console.log('✅ [ConnectDZ v4.0] حفظ الحساب المتكامل — مق�
   font-size:14px;font-weight:800;cursor:pointer;transition:.15s;
 }
 .cdz-mac-add-btn:hover { border-color:#1877F2;color:#1877F2;background:#EBF5FB; }
-/* زر التبديل السريع — مخفي (تم نقله للأعلى) */
+/* زر التبديل السريع — يظهر في الـ header */
 #_cdzSwitchFab {
-  display:none !important;
+  position:fixed;bottom:80px;left:16px;z-index:9999;
+  width:50px;height:50px;border-radius:50%;
+  background:linear-gradient(135deg,#2e7d32,#00c853);
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;box-shadow:0 4px 18px rgba(46,125,50,0.45);
+  transition:.2s;animation:_cdzSlideUp .5s 1s both;
+}
+#_cdzSwitchFab:hover { transform:scale(1.08);filter:brightness(1.1); }
+#_cdzSwitchFab .cdz-switch-badge {
+  position:absolute;top:-4px;right:-4px;
+  width:18px;height:18px;border-radius:50%;
+  background:#ef4444;color:white;font-size:10px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid white;
 }
 </style>
 
