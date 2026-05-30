@@ -5050,84 +5050,134 @@ function switchLoginTab(tab){
       <div style="font-size:16px;font-weight:900;color:#e8eaed;">📊 لوحة البيانات والتفاعل</div>
     </div>
     <div style="padding:16px;" id="analyticsContent">
-      <!-- نسبة المشاهدات الإجمالية -->
+
+      <!-- ══ نسبة المشاهدات الإجمالية ══ -->
       <div style="background:linear-gradient(135deg,rgba(0,153,255,0.12),rgba(0,198,255,0.08));border:1px solid rgba(0,153,255,0.25);border-radius:16px;padding:16px;margin-bottom:12px;">
-        <div style="font-size:13px;font-weight:900;color:#0099ff;margin-bottom:12px;">👁️ إجمالي المشاهدات</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-          <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:10px;text-align:center;">
-            <div style="font-size:22px;font-weight:900;color:#00c6ff;" id="analyticsStoryViews">0</div>
-            <div style="font-size:10px;color:#8b949e;margin-top:2px;">القصص</div>
+        <div style="font-size:13px;font-weight:900;color:#0099ff;margin-bottom:4px;">👁️ نسبة المشاهدات الإجمالية</div>
+        <div style="font-size:10px;color:#8b949e;margin-bottom:12px;">القصص · المنشورات · الملف الشخصي</div>
+
+        <!-- 3 بطاقات المشاهدات -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div style="background:rgba(0,0,0,0.35);border-radius:12px;padding:10px 6px;text-align:center;border:1px solid rgba(0,198,255,0.15);">
+            <div style="font-size:10px;color:#8b949e;margin-bottom:4px;">📖 القصص</div>
+            <div style="font-size:20px;font-weight:900;color:#00c6ff;" id="analyticsStoryViews">0</div>
+            <div style="font-size:9px;color:#8b949e;margin-top:2px;">مشاهدة</div>
           </div>
-          <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:10px;text-align:center;">
-            <div style="font-size:22px;font-weight:900;color:#0099ff;" id="analyticsPostViews">0</div>
-            <div style="font-size:10px;color:#8b949e;margin-top:2px;">المنشورات</div>
+          <div style="background:rgba(0,0,0,0.35);border-radius:12px;padding:10px 6px;text-align:center;border:1px solid rgba(0,153,255,0.15);">
+            <div style="font-size:10px;color:#8b949e;margin-bottom:4px;">📄 المنشورات</div>
+            <div style="font-size:20px;font-weight:900;color:#0099ff;" id="analyticsPostViews">0</div>
+            <div style="font-size:9px;color:#8b949e;margin-top:2px;">مشاهدة</div>
           </div>
-          <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:10px;text-align:center;">
-            <div style="font-size:22px;font-weight:900;color:#00e5ff;" id="analyticsProfileViews">0</div>
-            <div style="font-size:10px;color:#8b949e;margin-top:2px;">الملف الشخصي</div>
+          <div style="background:rgba(0,0,0,0.35);border-radius:12px;padding:10px 6px;text-align:center;border:1px solid rgba(0,229,255,0.15);">
+            <div style="font-size:10px;color:#8b949e;margin-bottom:4px;">👤 الملف</div>
+            <div style="font-size:20px;font-weight:900;color:#00e5ff;" id="analyticsProfileViews">0</div>
+            <div style="font-size:9px;color:#8b949e;margin-top:2px;">زيارة</div>
           </div>
         </div>
-        <!-- شريط تقدم إجمالي -->
-        <div style="margin-top:12px;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:11px;color:#8b949e;">إجمالي المشاهدات</span>
-            <span style="font-size:11px;color:#0099ff;font-weight:800;" id="analyticsTotalViews">0</span>
+
+        <!-- شريط إجمالي المشاهدات -->
+        <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:10px 12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:11px;color:#8b949e;">📊 الإجمالي الكلي للمشاهدات</span>
+            <span style="font-size:13px;color:#00c6ff;font-weight:900;" id="analyticsTotalViews">0</span>
           </div>
-          <div style="background:rgba(255,255,255,0.08);border-radius:6px;height:6px;overflow:hidden;">
-            <div id="analyticsTotalViewsBar" style="background:linear-gradient(90deg,#0099ff,#00c6ff);height:100%;width:0%;transition:width .6s ease;border-radius:6px;"></div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:6px;height:7px;overflow:hidden;">
+            <div id="analyticsTotalViewsBar" style="background:linear-gradient(90deg,#0099ff,#00e5ff);height:100%;width:0%;transition:width .8s ease;border-radius:6px;"></div>
+          </div>
+          <!-- نسب مئوية -->
+          <div style="display:flex;justify-content:space-between;margin-top:6px;">
+            <span style="font-size:9px;color:rgba(0,198,255,0.7);" id="analyticsStoryPct">قصص 0%</span>
+            <span style="font-size:9px;color:rgba(0,153,255,0.7);" id="analyticsPostPct">منشورات 0%</span>
+            <span style="font-size:9px;color:rgba(0,229,255,0.7);" id="analyticsProfilePct">ملف 0%</span>
           </div>
         </div>
       </div>
 
-      <!-- إحصائيات المنشورات -->
+      <!-- ══ إحصائيات النشاط ══ -->
       <div style="background:linear-gradient(135deg,rgba(0,200,83,0.1),rgba(0,160,64,0.06));border:1px solid rgba(0,200,83,0.2);border-radius:16px;padding:16px;margin-bottom:12px;">
-        <div style="font-size:13px;font-weight:900;color:#00c853;margin-bottom:12px;">📝 إحصائيات النشاط</div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:13px;font-weight:900;color:#00c853;margin-bottom:12px;">📊 إحصائيات النشاط</div>
+        <div style="display:flex;flex-direction:column;gap:0;">
+
+          <!-- عدد المنشورات -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 10px;background:rgba(0,0,0,0.2);border-radius:10px;margin-bottom:6px;">
             <div style="display:flex;align-items:center;gap:8px;">
-              <span style="font-size:16px;">📄</span>
-              <span style="font-size:13px;color:#c9d1d9;">عدد المنشورات</span>
+              <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#00c853,#007a33);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">📄</div>
+              <div>
+                <div style="font-size:12px;font-weight:800;color:#c9d1d9;">عدد المنشورات</div>
+                <div style="font-size:10px;color:#8b949e;">كل المنشورات التي نشرتها</div>
+              </div>
             </div>
-            <span style="font-size:18px;font-weight:900;color:#00c853;" id="analyticsPostCount">0</span>
+            <div style="text-align:center;">
+              <div style="font-size:22px;font-weight:900;color:#00c853;" id="analyticsPostCount">0</div>
+              <div style="font-size:9px;color:#8b949e;">منشور</div>
+            </div>
           </div>
-          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
-          <div style="display:flex;align-items:center;justify-content:space-between;">
+
+          <!-- عدد التعليقات -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 10px;background:rgba(0,0,0,0.2);border-radius:10px;margin-bottom:6px;">
             <div style="display:flex;align-items:center;gap:8px;">
-              <span style="font-size:16px;">💬</span>
-              <span style="font-size:13px;color:#c9d1d9;">عدد التعليقات</span>
+              <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#00bcd4,#006978);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">💬</div>
+              <div>
+                <div style="font-size:12px;font-weight:800;color:#c9d1d9;">عدد التعليقات</div>
+                <div style="font-size:10px;color:#8b949e;">تعليقاتك على منشورات الآخرين</div>
+              </div>
             </div>
-            <span style="font-size:18px;font-weight:900;color:#00bcd4;" id="analyticsCommentCount">0</span>
+            <div style="text-align:center;">
+              <div style="font-size:22px;font-weight:900;color:#00bcd4;" id="analyticsCommentCount">0</div>
+              <div style="font-size:9px;color:#8b949e;">تعليق</div>
+            </div>
           </div>
-          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
-          <div style="display:flex;align-items:center;justify-content:space-between;">
+
+          <!-- عدد الإعجابات -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 10px;background:rgba(0,0,0,0.2);border-radius:10px;margin-bottom:6px;">
             <div style="display:flex;align-items:center;gap:8px;">
-              <span style="font-size:16px;">❤️</span>
-              <span style="font-size:13px;color:#c9d1d9;">عدد الإعجابات</span>
+              <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#e53935,#7f0000);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">❤️</div>
+              <div>
+                <div style="font-size:12px;font-weight:800;color:#c9d1d9;">عدد الإعجابات</div>
+                <div style="font-size:10px;color:#8b949e;">الإعجابات التي منحتها للآخرين</div>
+              </div>
             </div>
-            <span style="font-size:18px;font-weight:900;color:#e53935;" id="analyticsLikeCount">0</span>
+            <div style="text-align:center;">
+              <div style="font-size:22px;font-weight:900;color:#ef5350;" id="analyticsLikeCount">0</div>
+              <div style="font-size:9px;color:#8b949e;">إعجاب</div>
+            </div>
           </div>
-          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
-          <div style="display:flex;align-items:center;justify-content:space-between;">
+
+          <!-- نسبة زيارة الملف الشخصي -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 10px;background:rgba(0,0,0,0.2);border-radius:10px;">
             <div style="display:flex;align-items:center;gap:8px;">
-              <span style="font-size:16px;">👤</span>
-              <span style="font-size:13px;color:#c9d1d9;">زيارات الملف الشخصي</span>
+              <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#FFD700,#e65100);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">👤</div>
+              <div>
+                <div style="font-size:12px;font-weight:800;color:#c9d1d9;">نسبة زيارة ملفي الشخصي</div>
+                <div style="font-size:10px;color:#8b949e;">عدد من زاروا ملفك الشخصي</div>
+              </div>
             </div>
-            <span style="font-size:18px;font-weight:900;color:#FFD700;" id="analyticsProfileVisits">0</span>
+            <div style="text-align:center;">
+              <div style="font-size:22px;font-weight:900;color:#FFD700;" id="analyticsProfileVisits">0</div>
+              <div style="font-size:9px;color:#8b949e;">زيارة</div>
+            </div>
           </div>
+
         </div>
       </div>
 
-      <!-- نسبة التفاعل -->
+      <!-- ══ نسبة التفاعل الإجمالية ══ -->
       <div style="background:linear-gradient(135deg,rgba(240,147,251,0.1),rgba(168,85,247,0.06));border:1px solid rgba(168,85,247,0.2);border-radius:16px;padding:16px;">
-        <div style="font-size:13px;font-weight:900;color:#a855f7;margin-bottom:12px;">📈 نسبة التفاعل</div>
+        <div style="font-size:13px;font-weight:900;color:#a855f7;margin-bottom:12px;">📈 معدل التفاعل الإجمالي</div>
         <div style="display:flex;gap:8px;">
-          <div style="flex:1;background:rgba(0,0,0,0.3);border-radius:12px;padding:12px;text-align:center;">
-            <div style="font-size:24px;font-weight:900;color:#a855f7;" id="analyticsEngagementRate">0%</div>
+          <div style="flex:1;background:rgba(0,0,0,0.3);border-radius:12px;padding:12px;text-align:center;border:1px solid rgba(168,85,247,0.2);">
+            <div style="font-size:28px;font-weight:900;color:#a855f7;" id="analyticsEngagementRate">0%</div>
             <div style="font-size:10px;color:#8b949e;margin-top:3px;">معدل التفاعل</div>
           </div>
-          <div style="flex:1;background:rgba(0,0,0,0.3);border-radius:12px;padding:12px;text-align:center;">
-            <div style="font-size:24px;font-weight:900;color:#f5c518;" id="analyticsRankScore">0</div>
+          <div style="flex:1;background:rgba(0,0,0,0.3);border-radius:12px;padding:12px;text-align:center;border:1px solid rgba(245,197,24,0.2);">
+            <div style="font-size:28px;font-weight:900;color:#f5c518;" id="analyticsRankScore">0</div>
             <div style="font-size:10px;color:#8b949e;margin-top:3px;">مجموع نقاطي</div>
+          </div>
+        </div>
+        <!-- شريط تقدم معدل التفاعل -->
+        <div style="margin-top:10px;">
+          <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:5px;overflow:hidden;">
+            <div id="analyticsEngagementBar" style="background:linear-gradient(90deg,#a855f7,#f5c518);height:100%;width:0%;transition:width .8s ease;border-radius:6px;"></div>
           </div>
         </div>
       </div>
@@ -5143,94 +5193,135 @@ function switchLoginTab(tab){
     <div style="padding:16px;">
 
       <!-- رصيد النقاط الحالي -->
-      <div style="background:linear-gradient(135deg,#FFD700,#f97316);border-radius:16px;padding:18px;margin-bottom:16px;text-align:center;">
-        <div style="font-size:12px;color:rgba(0,0,0,0.7);font-weight:700;margin-bottom:4px;">💰 رصيدك الحالي</div>
-        <div style="font-size:32px;font-weight:900;color:#0d1117;" id="marketCurrentPoints">0</div>
-        <div style="font-size:12px;color:rgba(0,0,0,0.6);margin-top:2px;">نقطة</div>
+      <div style="background:linear-gradient(135deg,#FFD700,#f97316);border-radius:16px;padding:18px;margin-bottom:14px;text-align:center;box-shadow:0 6px 20px rgba(255,215,0,0.25);">
+        <div style="font-size:11px;color:rgba(0,0,0,0.65);font-weight:700;margin-bottom:4px;">💰 رصيدك الحالي من النقاط</div>
+        <div style="font-size:40px;font-weight:900;color:#0d1117;line-height:1;" id="marketCurrentPoints">0</div>
+        <div style="font-size:11px;color:rgba(0,0,0,0.55);margin-top:4px;">نقطة</div>
       </div>
 
-      <!-- نسبة تحويل النقاط -->
-      <div style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:14px;padding:14px;margin-bottom:14px;">
-        <div style="font-size:13px;font-weight:900;color:#FFD700;margin-bottom:10px;">💱 نسبة تحويل النقاط إلى مكافأة</div>
-        <div style="font-size:12px;color:#8b949e;line-height:1.8;">
-          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-            <span style="color:#c9d1d9;">كل 50 نقطة تساوي</span>
-            <span style="color:#FFD700;font-weight:800;">30 دج</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-            <span style="color:#c9d1d9;">أعلى 15 عضو</span>
-            <span style="color:#f5c518;font-weight:800;">35 دج / 50 نقطة</span>
-          </div>
-          <div id="marketMyConversion" style="display:flex;justify-content:space-between;padding:8px 0;margin-top:4px;background:rgba(255,215,0,0.08);border-radius:8px;padding:8px 10px;margin-top:6px;">
-            <span style="color:#FFD700;font-weight:800;">قيمة نقاطك الآن</span>
-            <span style="color:#00c853;font-weight:900;" id="marketMyPtsValue">0 دج</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- جدول كسب النقاط — النشر -->
-      <div style="background:rgba(0,200,83,0.08);border:1px solid rgba(0,200,83,0.2);border-radius:14px;padding:14px;margin-bottom:10px;">
-        <div style="font-size:13px;font-weight:900;color:#00c853;margin-bottom:10px;">📤 كسب النقاط — النشر</div>
+      <!-- ══ نسبة تحويل النقاط ══ -->
+      <div style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.25);border-radius:14px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:900;color:#FFD700;margin-bottom:10px;">💱 كيفية تحويل النقاط إلى مكافأة</div>
         <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
-            <span style="color:#c9d1d9;">📄 نشر منشور</span><span style="color:#00c853;font-weight:800;">+50 نقطة</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(255,215,0,0.1);border-radius:8px;border:1px solid rgba(255,215,0,0.15);">
+            <div style="display:flex;align-items:center;gap:6px;"><span>💵</span><span style="color:#c9d1d9;">كل 50 نقطة تساوي</span></div>
+            <span style="color:#FFD700;font-weight:900;">30 دج</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
-            <span style="color:#c9d1d9;">📖 نشر قصة</span><span style="color:#00c853;font-weight:800;">+15 نقطة</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(255,200,0,0.12);border-radius:8px;border:1px solid rgba(255,200,0,0.2);">
+            <div style="display:flex;align-items:center;gap:6px;"><span>🥇</span><span style="color:#c9d1d9;">أعلى 15 عضو</span></div>
+            <span style="color:#f5c518;font-weight:900;">35 دج / 50 نقطة</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
-            <span style="color:#c9d1d9;">🎬 نشر فيديو</span><span style="color:#00c853;font-weight:800;">+70 نقطة</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
-            <span style="color:#c9d1d9;">🖼️ نشر صورة</span><span style="color:#00c853;font-weight:800;">+50 نقطة</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(255,215,0,0.1);border-radius:8px;border:1px solid rgba(255,215,0,0.2);">
-            <span style="color:#FFD700;">📱 نشر من أيقونات التطبيق</span><span style="color:#FFD700;font-weight:800;">+100 نقطة</span>
+          <div id="marketMyConversion" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(0,200,83,0.1);border-radius:8px;border:1px solid rgba(0,200,83,0.2);">
+            <div style="display:flex;align-items:center;gap:6px;"><span>🏦</span><span style="color:#FFD700;font-weight:800;">قيمة نقاطك الآن</span></div>
+            <span style="color:#00c853;font-weight:900;font-size:13px;" id="marketMyPtsValue">0 دج</span>
           </div>
         </div>
       </div>
 
-      <!-- جدول كسب النقاط — التفاعل -->
-      <div style="background:rgba(0,153,255,0.08);border:1px solid rgba(0,153,255,0.2);border-radius:14px;padding:14px;margin-bottom:10px;">
-        <div style="font-size:13px;font-weight:900;color:#0099ff;margin-bottom:10px;">💬 كسب النقاط — التفاعل</div>
-        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
-            <span style="color:#c9d1d9;">💬 تعليقي على منشور</span><span style="color:#0099ff;font-weight:800;">+3 نقطة</span>
+      <!-- ══ جدول كسب النقاط — النشر ══ -->
+      <div style="background:rgba(0,200,83,0.07);border:1px solid rgba(0,200,83,0.2);border-radius:14px;padding:14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#00c853,#007a33);display:flex;align-items:center;justify-content:center;font-size:14px;">📤</div>
+          <div style="font-size:13px;font-weight:900;color:#00c853;">كسب النقاط — النشر</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;">
+            <span style="color:#c9d1d9;">📄 نشر منشور</span>
+            <span style="color:#00c853;font-weight:900;background:rgba(0,200,83,0.15);padding:2px 8px;border-radius:20px;">+50 نقطة</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
-            <span style="color:#c9d1d9;">💬 تعليق آخر على منشوري</span><span style="color:#00c6ff;font-weight:800;">+7 نقاط</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;">
+            <span style="color:#c9d1d9;">📖 نشر قصة</span>
+            <span style="color:#00c853;font-weight:900;background:rgba(0,200,83,0.15);padding:2px 8px;border-radius:20px;">+15 نقطة</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
-            <span style="color:#c9d1d9;">❤️ إعجابي بمنشور</span><span style="color:#0099ff;font-weight:800;">+2 نقطة</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;">
+            <span style="color:#c9d1d9;">🎬 نشر فيديو</span>
+            <span style="color:#00c853;font-weight:900;background:rgba(0,200,83,0.15);padding:2px 8px;border-radius:20px;">+70 نقطة</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
-            <span style="color:#c9d1d9;">❤️ إعجاب آخر بمنشوري</span><span style="color:#00c853;font-weight:800;">+4 نقاط</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;">
+            <span style="color:#c9d1d9;">🖼️ نشر صورة</span>
+            <span style="color:#00c853;font-weight:900;background:rgba(0,200,83,0.15);padding:2px 8px;border-radius:20px;">+50 نقطة</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
-            <span style="color:#c9d1d9;">👍 إعجاب على تعليق</span><span style="color:#0099ff;font-weight:800;">+1 نقطة</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
-            <span style="color:#c9d1d9;">👁️ مشاهدتي لمنشور</span><span style="color:#8b949e;font-weight:800;">+1 نقطة</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
-            <span style="color:#c9d1d9;">👁️ مشاهدة الغير لي</span><span style="color:#00c853;font-weight:800;">+5 نقاط</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
-            <span style="color:#c9d1d9;">💌 رسالة عبر المسنجر</span><span style="color:#a855f7;font-weight:800;">+7 نقاط</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
-            <span style="color:#c9d1d9;">🔓 فتح ميزة / خاصية</span><span style="color:#0099ff;font-weight:800;">+3 نقاط</span>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(255,215,0,0.1);border-radius:8px;border:1px solid rgba(255,215,0,0.25);">
+            <span style="color:#FFD700;">📱 نشر من أيقونات التطبيق</span>
+            <span style="color:#FFD700;font-weight:900;background:rgba(255,215,0,0.15);padding:2px 8px;border-radius:20px;">+100 نقطة</span>
           </div>
         </div>
       </div>
 
-      <!-- مكافأة المركز الأول -->
-      <div style="background:linear-gradient(135deg,rgba(255,215,0,0.1),rgba(249,115,22,0.08));border:1px solid rgba(255,215,0,0.3);border-radius:14px;padding:14px;">
-        <div style="font-size:13px;font-weight:900;color:#FFD700;margin-bottom:8px;">🏆 مكافأة المركز الأول</div>
-        <div style="font-size:12px;color:#c9d1d9;line-height:1.7;">
-          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,215,0,0.08);border-radius:8px;">
-            <span style="font-size:18px;">👑</span>
-            <span>المركز الأول في أي قسم من البطولة يمنحك <strong style="color:#FFD700;">+100 نقطة إضافية</strong> لكل يوم تبقى في المستوى الأول</span>
+      <!-- ══ جدول كسب النقاط — التفاعل ══ -->
+      <div style="background:rgba(0,153,255,0.07);border:1px solid rgba(0,153,255,0.2);border-radius:14px;padding:14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#0099ff,#0057b8);display:flex;align-items:center;justify-content:center;font-size:14px;">💬</div>
+          <div style="font-size:13px;font-weight:900;color:#0099ff;">كسب النقاط — التفاعل</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;">
+
+          <!-- تعليقات -->
+          <div style="font-size:10px;color:#8b949e;padding:4px 4px 2px;font-weight:700;">— التعليقات —</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;">
+            <span style="color:#c9d1d9;">💬 تعليقي على منشور الغير</span>
+            <span style="color:#0099ff;font-weight:900;background:rgba(0,153,255,0.15);padding:2px 8px;border-radius:20px;">+3 نقاط</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;">
+            <span style="color:#c9d1d9;">💬 تعليق الغير على منشوري</span>
+            <span style="color:#00c6ff;font-weight:900;background:rgba(0,198,255,0.15);padding:2px 8px;border-radius:20px;">+7 نقاط</span>
+          </div>
+
+          <!-- إعجابات -->
+          <div style="font-size:10px;color:#8b949e;padding:6px 4px 2px;font-weight:700;">— الإعجابات —</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;">
+            <span style="color:#c9d1d9;">❤️ إعجابي بمنشور الغير</span>
+            <span style="color:#0099ff;font-weight:900;background:rgba(0,153,255,0.15);padding:2px 8px;border-radius:20px;">+2 نقطة</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;">
+            <span style="color:#c9d1d9;">❤️ إعجاب الغير بمنشوري</span>
+            <span style="color:#00c853;font-weight:900;background:rgba(0,200,83,0.15);padding:2px 8px;border-radius:20px;">+4 نقاط</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;">
+            <span style="color:#c9d1d9;">👍 إعجاب على أي تعليق</span>
+            <span style="color:#0099ff;font-weight:900;background:rgba(0,153,255,0.15);padding:2px 8px;border-radius:20px;">+1 نقطة</span>
+          </div>
+
+          <!-- مشاهدات -->
+          <div style="font-size:10px;color:#8b949e;padding:6px 4px 2px;font-weight:700;">— المشاهدات —</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;">
+            <span style="color:#c9d1d9;">👁️ مشاهدتي لمنشور الغير</span>
+            <span style="color:#8b949e;font-weight:900;background:rgba(255,255,255,0.08);padding:2px 8px;border-radius:20px;">+1 نقطة</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;">
+            <span style="color:#c9d1d9;">👁️ كل مشاهدة الغير لي</span>
+            <span style="color:#00c853;font-weight:900;background:rgba(0,200,83,0.15);padding:2px 8px;border-radius:20px;">+5 نقاط</span>
+          </div>
+
+          <!-- مسنجر -->
+          <div style="font-size:10px;color:#8b949e;padding:6px 4px 2px;font-weight:700;">— المراسلة —</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(168,85,247,0.1);border-radius:8px;border:1px solid rgba(168,85,247,0.2);">
+            <span style="color:#d4a9fc;">💌 رسالة عبر المسنجر</span>
+            <span style="color:#a855f7;font-weight:900;background:rgba(168,85,247,0.15);padding:2px 8px;border-radius:20px;">+7 نقاط</span>
+          </div>
+
+          <!-- فتح ميزات -->
+          <div style="font-size:10px;color:#8b949e;padding:6px 4px 2px;font-weight:700;">— الميزات والخصائص —</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;">
+            <span style="color:#c9d1d9;">🔓 فتح ميزة / خاصية</span>
+            <span style="color:#0099ff;font-weight:900;background:rgba(0,153,255,0.15);padding:2px 8px;border-radius:20px;">+3 نقاط</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══ مكافأة المركز الأول ══ -->
+      <div style="background:linear-gradient(135deg,rgba(255,215,0,0.12),rgba(249,115,22,0.08));border:1px solid rgba(255,215,0,0.35);border-radius:14px;padding:14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#FFD700,#f97316);display:flex;align-items:center;justify-content:center;font-size:14px;">🏆</div>
+          <div style="font-size:13px;font-weight:900;color:#FFD700;">مكافأة المركز الأول</div>
+        </div>
+        <div style="background:rgba(255,215,0,0.1);border-radius:10px;padding:12px;display:flex;align-items:flex-start;gap:10px;">
+          <span style="font-size:22px;flex-shrink:0;">👑</span>
+          <div>
+            <div style="font-size:12px;color:#c9d1d9;line-height:1.7;">المرتبة الأولى في <strong style="color:#FFD700;">أي قسم من أقسام البطولة</strong> تمنحك:</div>
+            <div style="font-size:16px;font-weight:900;color:#FFD700;margin-top:4px;">+100 نقطة إضافية</div>
+            <div style="font-size:11px;color:#8b949e;margin-top:2px;">لكل يوم تبقى في المستوى الأول 🔥</div>
           </div>
         </div>
       </div>
@@ -20175,9 +20266,26 @@ function _loadAnalyticsData(){
     const totalPts = sheetPts + quizPts + interactPts;
     set('analyticsRankScore', totalPts.toLocaleString());
 
-    // شريط التقدم
+    // شريط التقدم الإجمالي
     const bar = document.getElementById('analyticsTotalViewsBar');
-    if(bar){ const pct = Math.min(totalViews/100*100,100); bar.style.width=pct+'%'; }
+    if(bar){ const pct = Math.min(totalViews > 0 ? Math.round((totalViews/Math.max(totalViews,200))*100) : 0, 100); bar.style.width=pct+'%'; }
+
+    // نسب مئوية لكل نوع مشاهدات
+    if(totalViews > 0){
+      const storyPct = Math.round((storyViews/totalViews)*100);
+      const postPct = Math.round((totalPostViews/totalViews)*100);
+      const profilePct = Math.round((profileVisits/totalViews)*100);
+      const storyEl = document.getElementById('analyticsStoryPct');
+      const postEl  = document.getElementById('analyticsPostPct');
+      const profEl  = document.getElementById('analyticsProfilePct');
+      if(storyEl) storyEl.innerText = 'قصص ' + storyPct + '%';
+      if(postEl)  postEl.innerText  = 'منشورات ' + postPct + '%';
+      if(profEl)  profEl.innerText  = 'ملف ' + profilePct + '%';
+    }
+
+    // شريط معدل التفاعل
+    const engBar = document.getElementById('analyticsEngagementBar');
+    if(engBar){ engBar.style.width = Math.min(engagementRate, 100) + '%'; }
   }catch(e){}
 }
 
