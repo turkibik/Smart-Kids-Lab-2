@@ -5636,6 +5636,17 @@ function switchLoginTab(tab){
         <div style="font-size:9px;color:#65676B;font-weight:700;">المستوى</div>
       </div>
     </div>
+    <!-- النجوم والترتيب في البطولة — مرئي للزوار -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+      <div style="background:linear-gradient(135deg,#FFF8E1,#FFFDE7);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:8px;text-align:center;">
+        <div id="mpvStarsCount" style="font-size:17px;font-weight:900;color:#f59e0b;">⭐ 0</div>
+        <div style="font-size:9px;color:#65676B;font-weight:700;">رصيد النجوم</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#F0FFF4,#E8FFF0);border:1px solid rgba(0,200,83,0.25);border-radius:10px;padding:8px;text-align:center;">
+        <div id="mpvRankDisplay" style="font-size:15px;font-weight:900;color:#00c853;">#--</div>
+        <div style="font-size:9px;color:#65676B;font-weight:700;">ترتيبي في البطولة</div>
+      </div>
+    </div>
     <div style="font-size:11px;color:#65676B;margin-bottom:12px;">عضو القادة المستقبليين • الجزائر 🇩🇿</div>
 
     <!-- عناصر مخفية للمتوافقية مع الكود القديم -->
@@ -5759,6 +5770,9 @@ function switchLoginTab(tab){
     <div id="ppTab_info" onclick="switchProfileTab('info')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">معلومات</div>
     <div id="ppTab_activity" onclick="switchProfileTab('activity')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">إنجازاتي</div>
     <div id="ppTab_about" onclick="switchProfileTab('about')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">حول</div>
+    <div id="ppTab_mycards" onclick="switchProfileTab('mycards')" style="flex:1;padding:14px 4px;text-align:center;font-size:11px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">💳 بطاقاتي</div>
+    <div id="ppTab_dashboard" onclick="switchProfileTab('dashboard')" style="flex:1;padding:14px 4px;text-align:center;font-size:11px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">📊 لوحتي</div>
+    <div id="ppTab_bourse" onclick="switchProfileTab('bourse')" style="flex:1;padding:14px 4px;text-align:center;font-size:11px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">💹 البورصة</div>
   </div>
 
   <!-- ── Page Content ── -->
@@ -5885,6 +5899,301 @@ function switchLoginTab(tab){
         </div>
       </div>
     </div>
+    <!-- ══════════════════════════════════════════════════════
+         💳 TAB: بطاقاتي — البطاقة البنكية + بطاقة الانخراط
+         ══════════════════════════════════════════════════════ -->
+    <div id="ppPanel_mycards" style="display:none;padding:16px 12px;background:#0d1117;min-height:60vh;">
+
+      <!-- ─── العنوان ─── -->
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:22px;font-weight:900;color:#00e5a0;letter-spacing:1px;">💳 بطاقاتي الرسمية</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:4px;">Next Leaders DZ</div>
+      </div>
+
+      <!-- ─── البطاقة البنكية العصرية ─── -->
+      <div style="margin-bottom:28px;">
+        <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.6);margin-bottom:12px;display:flex;align-items:center;gap:6px;">🏦 البطاقة البنكية الرقمية</div>
+        <div id="nldBankCard" style="
+          position:relative;
+          width:100%;max-width:360px;margin:0 auto;
+          height:200px;
+          border-radius:22px;
+          background:linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%);
+          box-shadow:0 20px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.06),inset 0 1px 0 rgba(255,255,255,0.1);
+          overflow:hidden;
+          cursor:pointer;
+          transition:transform .3s;
+        " onclick="this.style.transform=this.style.transform?'':'rotateY(180deg)'">
+          <!-- تأثير الضوء -->
+          <div style="position:absolute;top:-40%;left:-20%;width:80%;height:200%;background:linear-gradient(105deg,transparent 40%,rgba(0,229,160,0.08) 50%,transparent 60%);pointer-events:none;"></div>
+          <!-- شريط ذهبي علوي -->
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#00e5a0,#FFD700,transparent);"></div>
+          <!-- شعار المنظمة -->
+          <div style="position:absolute;top:18px;right:20px;font-size:11px;font-weight:900;color:rgba(255,255,255,0.9);letter-spacing:2px;">NEXT LEADERS DZ</div>
+          <!-- صورة المنخرط -->
+          <div id="nldCardAvatar" style="position:absolute;top:14px;left:18px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#00e5a0,#0052cc);border:2px solid rgba(255,255,255,0.3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 12px rgba(0,0,0,0.4);">👑</div>
+          <!-- شريحة بلاستيكية -->
+          <div style="position:absolute;top:70px;left:18px;width:42px;height:32px;background:linear-gradient(135deg,#FFD700,#FFA500,#FFD700);border-radius:6px;box-shadow:0 2px 8px rgba(255,165,0,0.4);"></div>
+          <!-- الاسم -->
+          <div id="nldCardName" style="position:absolute;bottom:54px;right:20px;left:80px;font-size:14px;font-weight:900;color:white;letter-spacing:1px;text-align:right;text-shadow:0 1px 4px rgba(0,0,0,0.6);"></div>
+          <!-- رقم العضو -->
+          <div id="nldCardNumber" style="position:absolute;bottom:34px;right:20px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);letter-spacing:3px;"></div>
+          <!-- الرصيد من النجوم -->
+          <div style="position:absolute;bottom:14px;right:20px;display:flex;align-items:center;gap:6px;">
+            <div style="background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.35);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:900;color:#00e5a0;">⭐ <span id="nldCardStars">0</span> نجمة</div>
+            <div style="background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:900;color:#FFD700;"><span id="nldCardDzd">0</span> دج</div>
+          </div>
+          <!-- رمز الاتصال اللاسلكي -->
+          <div style="position:absolute;bottom:14px;left:18px;font-size:20px;color:rgba(255,255,255,0.25);">⠿</div>
+        </div>
+        <div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(255,255,255,0.3);">50 نجمة = 30 دج • اضغط للتقليب</div>
+      </div>
+
+      <!-- ─── بطاقة الانخراط ─── -->
+      <div>
+        <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.6);margin-bottom:12px;display:flex;align-items:center;gap:6px;">🪪 بطاقة الانخراط الرسمية</div>
+        <div id="nldMemberCard" style="
+          position:relative;
+          width:100%;max-width:360px;margin:0 auto;
+          border-radius:20px;
+          background:linear-gradient(160deg,#050a0e 0%,#0d2137 50%,#071522 100%);
+          border:1px solid rgba(0,229,160,0.2);
+          box-shadow:0 20px 50px rgba(0,0,0,0.7),0 0 30px rgba(0,229,160,0.06);
+          overflow:hidden;
+          padding:20px;
+        ">
+          <!-- خطوط زخرفية -->
+          <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(45deg,transparent,transparent 30px,rgba(0,229,160,0.02) 30px,rgba(0,229,160,0.02) 31px);pointer-events:none;"></div>
+          <!-- شريط علوي ملون -->
+          <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#00e5a0,#0052cc,#FFD700,#00e5a0);"></div>
+
+          <!-- رأس البطاقة -->
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;position:relative;">
+            <div id="nldMemberCardAvatar" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#00e5a0,#0052cc);border:2px solid rgba(0,229,160,0.5);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 4px 14px rgba(0,229,160,0.3);flex-shrink:0;">👑</div>
+            <div style="flex:1;">
+              <div style="font-size:9px;font-weight:800;color:#00e5a0;letter-spacing:2px;margin-bottom:2px;">NEXT LEADERS DZ</div>
+              <div id="nldMemberCardName" style="font-size:16px;font-weight:900;color:white;"></div>
+              <div id="nldMemberCardRole" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;"></div>
+            </div>
+            <!-- شارة التوثيق -->
+            <div id="nldMemberVerifiedBadge" style="background:linear-gradient(135deg,#1877F2,#0052cc);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(24,119,242,0.5);">✅</div>
+          </div>
+
+          <!-- معلومات العضوية -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+            <div style="background:rgba(0,229,160,0.07);border:1px solid rgba(0,229,160,0.15);border-radius:10px;padding:8px 10px;">
+              <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-bottom:2px;">رقم العضو</div>
+              <div id="nldMemberCardCode" style="font-size:12px;font-weight:900;color:#00e5a0;letter-spacing:1px;"></div>
+            </div>
+            <div style="background:rgba(255,215,0,0.07);border:1px solid rgba(255,215,0,0.15);border-radius:10px;padding:8px 10px;">
+              <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-bottom:2px;">تاريخ الانضمام</div>
+              <div id="nldMemberCardDate" style="font-size:11px;font-weight:800;color:#FFD700;"></div>
+            </div>
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:8px 10px;">
+              <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-bottom:2px;">النجوم</div>
+              <div id="nldMemberCardStars" style="font-size:14px;font-weight:900;color:white;">⭐ 0</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:8px 10px;">
+              <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-bottom:2px;">الرصيد</div>
+              <div id="nldMemberCardBalance" style="font-size:13px;font-weight:900;color:#00e5a0;">0 دج</div>
+            </div>
+          </div>
+
+          <!-- شريط الرمز السري والباركود -->
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;display:flex;align-items:center;gap:12px;">
+            <!-- باركود -->
+            <div id="nldBarcode" style="flex:1;">
+              <svg width="100%" height="40" viewBox="0 0 200 40" id="nldBarcodeSVG">
+                <rect width="200" height="40" fill="white" rx="4"/>
+              </svg>
+            </div>
+            <!-- رمز سري -->
+            <div style="text-align:center;flex-shrink:0;">
+              <div style="font-size:8px;color:rgba(255,255,255,0.4);margin-bottom:4px;">الرمز السري</div>
+              <div id="nldSecretPin" style="font-size:18px;font-weight:900;color:white;letter-spacing:4px;background:rgba(0,0,0,0.4);border-radius:8px;padding:4px 10px;cursor:pointer;" onclick="_toggleCardPin(this)">****</div>
+              <div style="font-size:8px;color:rgba(255,255,255,0.3);margin-top:3px;">اضغط للكشف</div>
+            </div>
+          </div>
+
+          <!-- شعار المنظمة في القاع -->
+          <div style="margin-top:12px;text-align:center;">
+            <div style="font-size:10px;font-weight:900;color:rgba(0,229,160,0.4);letter-spacing:3px;">NEXT ★ LEADERS ★ DZ • الجزائر 🇩🇿</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         📊 TAB: لوحتي — النقاط + التحليلات + البيانات
+         ══════════════════════════════════════════════════════ -->
+    <div id="ppPanel_dashboard" style="display:none;background:#0d1117;min-height:60vh;padding:16px 12px;">
+
+      <!-- عنوان -->
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:20px;font-weight:900;color:#00e5a0;">📊 لوحة التحكم الشخصية</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px;">بياناتك الكاملة في مكان واحد</div>
+      </div>
+
+      <!-- ─── 1. لوحة النقاط الرقمية ─── -->
+      <div style="background:linear-gradient(135deg,rgba(0,229,160,0.08),rgba(0,82,204,0.08));border:1px solid rgba(0,229,160,0.2);border-radius:18px;padding:18px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div style="font-size:14px;font-weight:900;color:white;">🏆 إجمالي النقاط</div>
+          <div id="dashTotalPts" style="font-size:28px;font-weight:900;color:#00e5a0;text-shadow:0 0 20px rgba(0,229,160,0.5);">0</div>
+        </div>
+        <!-- شريط التقدم نحو المستوى -->
+        <div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:11px;color:rgba(255,255,255,0.5);">المستوى الحالي</span>
+            <span id="dashLevelLabel" style="font-size:12px;font-weight:900;color:#FFD700;background:rgba(255,215,0,0.1);border-radius:20px;padding:2px 10px;">🚀 المستوى 1</span>
+          </div>
+          <div style="height:10px;background:rgba(255,255,255,0.07);border-radius:10px;overflow:hidden;position:relative;">
+            <div id="dashLevelBar" style="height:100%;background:linear-gradient(90deg,#00e5a0,#0052cc);border-radius:10px;transition:width 1s ease;width:0%;box-shadow:0 0 10px rgba(0,229,160,0.5);"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:5px;">
+            <span id="dashPtsFrom" style="font-size:10px;color:rgba(255,255,255,0.4);">0 نقطة</span>
+            <span id="dashPtsTo" style="font-size:10px;color:rgba(255,255,255,0.4);">10,000 نقطة</span>
+          </div>
+        </div>
+        <!-- النجوم -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;">
+          <div style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:10px;padding:8px;text-align:center;">
+            <div id="dashStars" style="font-size:18px;font-weight:900;color:#FFD700;">⭐ 0</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.4);">النجوم</div>
+          </div>
+          <div style="background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.2);border-radius:10px;padding:8px;text-align:center;">
+            <div id="dashRank" style="font-size:16px;font-weight:900;color:#00e5a0;">#--</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.4);">ترتيبي</div>
+          </div>
+          <div style="background:rgba(24,119,242,0.08);border:1px solid rgba(24,119,242,0.2);border-radius:10px;padding:8px;text-align:center;">
+            <div id="dashBalance" style="font-size:14px;font-weight:900;color:#1877F2;">0 دج</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.4);">الرصيد</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── 2. لوحة التفاعل والمشاهدات ─── -->
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:900;color:white;margin-bottom:14px;">👁️ إحصائيات التفاعل</div>
+        <!-- نسبة المشاهدات الإجمالية -->
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+            <span style="font-size:12px;color:rgba(255,255,255,0.6);">📈 نسبة المشاهدات الإجمالية</span>
+            <span id="dashViewRate" style="font-size:12px;font-weight:900;color:#00e5a0;">0%</span>
+          </div>
+          <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:6px;overflow:hidden;">
+            <div id="dashViewRateBar" style="height:100%;background:linear-gradient(90deg,#00e5a0,#00b894);border-radius:6px;width:0%;transition:width 1s;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:5px;">
+            <span style="font-size:10px;color:rgba(255,255,255,0.35);">القصص • المنشورات • الملف الشخصي</span>
+          </div>
+        </div>
+        <!-- شبكة الإحصائيات -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;">📝</span>
+            <div>
+              <div id="dashPostsCount" style="font-size:16px;font-weight:900;color:white;">0</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.4);">منشوراتي</div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;">💬</span>
+            <div>
+              <div id="dashCommentsCount" style="font-size:16px;font-weight:900;color:white;">0</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.4);">التعليقات</div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;">❤️</span>
+            <div>
+              <div id="dashLikesCount" style="font-size:16px;font-weight:900;color:white;">0</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.4);">الإعجابات</div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;">👁️</span>
+            <div>
+              <div id="dashProfileVisits" style="font-size:16px;font-weight:900;color:white;">0</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.4);">زيارة الملف</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── 3. شريط التقدم اليومي (الشعلة) ─── -->
+      <div style="background:linear-gradient(135deg,rgba(255,87,34,0.1),rgba(255,152,0,0.08));border:1px solid rgba(255,87,34,0.2);border-radius:16px;padding:16px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="dashStreakFlame" style="font-size:36px;">🔥</span>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:900;color:white;">المشاركة اليومية</div>
+            <div id="dashStreakInfo" style="font-size:12px;color:rgba(255,152,0,0.8);margin-top:2px;">جارٍ التحميل...</div>
+            <div style="height:6px;background:rgba(255,255,255,0.07);border-radius:6px;overflow:hidden;margin-top:8px;">
+              <div id="dashStreakBar" style="height:100%;background:linear-gradient(90deg,#FF5722,#FF9800);border-radius:6px;width:0%;transition:width 1s;"></div>
+            </div>
+          </div>
+          <div style="text-align:center;background:rgba(255,255,255,0.06);border-radius:10px;padding:6px 10px;">
+            <div id="dashStreakDays" style="font-size:20px;font-weight:900;color:#FF9800;">0</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.4);">يوم</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         💹 TAB: البورصة — نظام النقاط وسوق العمل
+         ══════════════════════════════════════════════════════ -->
+    <div id="ppPanel_bourse" style="display:none;background:#0d1117;min-height:60vh;padding:16px 12px;">
+
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:20px;font-weight:900;color:#FFD700;">💹 بورصة النقاط</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px;">كيف تكسب نقاطك وتحوّلها</div>
+      </div>
+
+      <!-- نسبة التحويل -->
+      <div style="background:linear-gradient(135deg,rgba(255,215,0,0.1),rgba(255,165,0,0.06));border:1px solid rgba(255,215,0,0.2);border-radius:16px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:900;color:#FFD700;margin-bottom:10px;">💰 نسبة التحويل</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:#FFD700;">50</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.5);">نجمة ⭐</div>
+          </div>
+          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:10px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <div style="font-size:18px;color:rgba(255,255,255,0.3);">═</div>
+            <div>
+              <div style="font-size:22px;font-weight:900;color:#00e5a0;">30</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.5);">دينار جزائري</div>
+            </div>
+          </div>
+        </div>
+        <!-- رصيدي المحوّل -->
+        <div style="margin-top:12px;background:rgba(0,0,0,0.3);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;color:rgba(255,255,255,0.6);">💎 رصيدي القابل للسحب</span>
+          <span id="bourseMyBalance" style="font-size:16px;font-weight:900;color:#00e5a0;">0 دج</span>
+        </div>
+      </div>
+
+      <!-- جدول الكسب -->
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden;margin-bottom:16px;">
+        <div style="background:rgba(0,229,160,0.08);padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <div style="font-size:13px;font-weight:900;color:#00e5a0;">📋 جدول كسب النقاط</div>
+        </div>
+        <div id="bourseTable" style="padding:6px 0;">
+          <!-- يملأ بالجافاسكريبت -->
+        </div>
+      </div>
+
+      <!-- فئات خاصة -->
+      <div style="background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.1);border-radius:16px;overflow:hidden;">
+        <div style="background:rgba(255,215,0,0.08);padding:12px 16px;border-bottom:1px solid rgba(255,215,0,0.1);">
+          <div style="font-size:13px;font-weight:900;color:#FFD700;">⚡ مكافآت خاصة</div>
+        </div>
+        <div id="bourseBonus" style="padding:6px 0;">
+          <!-- يملأ بالجافاسكريبت -->
+        </div>
+      </div>
+    </div>
+
     <!-- ── TAB: حول ── -->
     <div id="ppPanel_about" style="display:none;">
       <div style="background:white;margin-top:8px;padding:16px;">
@@ -37110,8 +37419,299 @@ window._removeShaimaaFromBeginner = function(){
 
 /* تنفيذ عند الحاجة — يستدعيها المدير يدوياً أو تلقائياً */
 /* window._removeShaimaaFromBeginner(); */ /* أزل التعليق لتفعيل الحذف التلقائي */
-console.log('✅ [ConnectDZ] نظام حذف العضو (شيماء/المبتدئ) — جاهز. استدعِ: window._removeShaimaaFromBeginner()');
+<!-- ══════════════════════════════════════════════════════════════
+   🆕 Next Leaders DZ — بطاقاتي + لوحتي + البورصة
+   ══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════════════════════════════════
+   تمديد switchProfileTab لدعم التبويبات الجديدة
+   ═══════════════════════════════════════════ */
+var _origSwitchTab = window.switchProfileTab;
+window.switchProfileTab = function(tab){
+  var newTabs = ['mycards','dashboard','bourse'];
+  var allTabs = ['posts','info','activity','about','mycards','dashboard','bourse'];
+
+  if(!newTabs.includes(tab)){
+    /* تبويب قديم — نحجب التبويبات الجديدة */
+    newTabs.forEach(function(t){
+      var panel = document.getElementById('ppPanel_'+t);
+      var tabEl = document.getElementById('ppTab_'+t);
+      if(panel) panel.style.display='none';
+      if(tabEl){ tabEl.style.color='#65676B'; tabEl.style.borderBottom='3px solid transparent'; }
+    });
+    if(_origSwitchTab) _origSwitchTab(tab);
+    return;
+  }
+
+  /* إخفاء كل التبويبات */
+  allTabs.forEach(function(t){
+    var panel = document.getElementById('ppPanel_'+t);
+    var tabEl = document.getElementById('ppTab_'+t);
+    if(panel) panel.style.display='none';
+    if(tabEl){ tabEl.style.color='#65676B'; tabEl.style.borderBottomColor='transparent'; }
+  });
+
+  /* إظهار التبويب المختار */
+  var activePanel = document.getElementById('ppPanel_'+tab);
+  var activeTab   = document.getElementById('ppTab_'+tab);
+  if(activePanel) activePanel.style.display='block';
+  if(activeTab){ activeTab.style.color='#00e5a0'; activeTab.style.borderBottomColor='#00e5a0'; }
+
+  /* تهيئة محتوى التبويب */
+  if(tab==='mycards')   _initMyCards();
+  if(tab==='dashboard') _initDashboard();
+  if(tab==='bourse')    _initBourse();
+};
+
+/* ══════════════════════════════════
+   🎨 توليد الباركود SVG
+   ══════════════════════════════════ */
+function _generateBarcode(code, svgId){
+  var svg = document.getElementById(svgId);
+  if(!svg) return;
+  var str = (code||'NLD000000').replace(/[^A-Z0-9]/gi,'');
+  var bars = '';
+  var x = 10;
+  for(var i=0;i<str.length;i++){
+    var c = str.charCodeAt(i);
+    for(var b=7;b>=0;b--){
+      var bit = (c>>b)&1;
+      if(bit){ bars += '<rect x="'+x+'" y="4" width="1.5" height="32" fill="#050505"/>'; }
+      x += 2;
+    }
+  }
+  svg.innerHTML = '<rect width="200" height="40" fill="white" rx="4"/>'+bars+'<rect x="0" y="36" width="200" height="4" fill="white" rx="4"/>';
+}
+
+/* ══════════════════════════════════
+   🔐 كشف الرمز السري
+   ══════════════════════════════════ */
+var _pinVisible = false;
+window._toggleCardPin = function(el){
+  _pinVisible = !_pinVisible;
+  var name = localStorage.getItem('sklab_user_name')||'';
+  /* رمز مشتق من الاسم — 4 أرقام ثابتة */
+  var pin = '';
+  for(var i=0;i<4;i++){ pin += ((name.charCodeAt(i%name.length)||5)%10); }
+  el.textContent = _pinVisible ? pin : '****';
+};
+
+/* ══════════════════════════════════
+   💳 تهيئة بطاقاتي
+   ══════════════════════════════════ */
+function _initMyCards(){
+  var name    = localStorage.getItem('sklab_user_name') || '---';
+  var code    = localStorage.getItem('sklab_user_code') || ('NLD-'+Math.floor(1000000+Math.random()*9000000));
+  var stars   = parseInt(localStorage.getItem('sklab_user_stars')||'0')||0;
+  var balance = parseInt(localStorage.getItem('sklab_user_balance')||'0')||0;
+  var joined  = localStorage.getItem('sklab_join_date')||new Date().toLocaleDateString('ar-DZ');
+  var role    = localStorage.getItem('sklab_user_role')||'عضو';
+  var dzdVal  = Math.floor(stars/50)*30;
+
+  /* البطاقة البنكية */
+  _setText('nldCardName',   name.toUpperCase());
+  _setText('nldCardNumber', code);
+  _setText('nldCardStars',  stars);
+  _setText('nldCardDzd',    dzdVal+' دج');
+
+  /* بطاقة الانخراط */
+  _setText('nldMemberCardName',    name);
+  _setText('nldMemberCardRole',    role);
+  _setText('nldMemberCardCode',    code);
+  _setText('nldMemberCardDate',    joined);
+  _setText('nldMemberCardStars',   '⭐ '+stars);
+  _setText('nldMemberCardBalance', balance+' دج');
+
+  /* صورة الملف */
+  var avatarSrc = localStorage.getItem('sklab_profile_pic')||'';
+  ['nldCardAvatar','nldMemberCardAvatar'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    if(avatarSrc){
+      el.innerHTML='<img src="'+avatarSrc+'" style="width:100%;height:100%;object-fit:cover;">';
+    }
+  });
+
+  /* الباركود */
+  _generateBarcode(code.replace(/\W/g,''), 'nldBarcodeSVG');
+
+  /* جلب من Firebase */
+  var db = window.firebaseDb||(window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db && name && name!=='---'){
+    db.ref('users/'+name.replace(/\s+/g,'_')).once('value').then(function(snap){
+      var v=snap.val()||{};
+      var s=parseInt(v.stars||stars);
+      var b=parseInt(v.balance||balance);
+      var d=Math.floor(s/50)*30;
+      _setText('nldCardStars',s); _setText('nldCardDzd',d+' دج');
+      _setText('nldMemberCardStars','⭐ '+s);
+      _setText('nldMemberCardBalance',b+' دج');
+    }).catch(function(){});
+  }
+}
+
+/* ══════════════════════════════════
+   📊 تهيئة لوحتي
+   ══════════════════════════════════ */
+function _initDashboard(){
+  var name    = localStorage.getItem('sklab_user_name')||'';
+  var pts     = parseInt(localStorage.getItem('sklab_user_points')||'0')||0;
+  var stars   = parseInt(localStorage.getItem('sklab_user_stars')||'0')||0;
+  var balance = parseInt(localStorage.getItem('sklab_user_balance')||'0')||0;
+  var streak  = parseInt(localStorage.getItem('sklab_streak')||'0')||0;
+
+  /* النقاط والمستوى */
+  _setText('dashTotalPts', pts.toLocaleString('ar-DZ'));
+  var level = Math.floor(pts/10000)+1;
+  var ptsInLevel = pts%10000;
+  _setText('dashLevelLabel','🚀 المستوى '+level);
+  _setText('dashPtsFrom', ptsInLevel.toLocaleString()+' نقطة');
+  _setText('dashPtsTo', '10,000 نقطة');
+  _setWidth('dashLevelBar', Math.min((ptsInLevel/10000)*100,100));
+
+  /* النجوم والرصيد */
+  _setText('dashStars','⭐ '+stars);
+  _setText('dashBalance', balance+' دج');
+
+  /* الشعلة */
+  _setText('dashStreakDays', streak);
+  _setText('dashStreakInfo', streak>0 ? '🔥 '+streak+' يوم متتالي' : 'ابدأ مشاركتك اليوم!');
+  _setWidth('dashStreakBar', Math.min((streak/100)*100,100));
+
+  /* جلب من Firebase */
+  var db = window.firebaseDb||(window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db && name){
+    var key = name.replace(/\s+/g,'_');
+    db.ref('leaderboard').orderByChild('points').once('value').then(function(snap){
+      var rows=[];
+      snap.forEach(function(c){ rows.push({k:c.key,pts:c.val().points||0}); });
+      rows.sort(function(a,b){return b.pts-a.pts;});
+      var rank = rows.findIndex(function(r){return r.k===key;})+1;
+      _setText('dashRank', rank>0?'#'+rank:'#--');
+    }).catch(function(){});
+
+    db.ref('users/'+key).once('value').then(function(snap){
+      var v=snap.val()||{};
+      var p=parseInt(v.points||pts); var s=parseInt(v.stars||stars); var b=parseInt(v.balance||balance);
+      _setText('dashTotalPts', p.toLocaleString('ar-DZ'));
+      var lv=Math.floor(p/10000)+1; var pin=p%10000;
+      _setText('dashLevelLabel','🚀 المستوى '+lv);
+      _setText('dashPtsFrom', pin.toLocaleString()+' نقطة');
+      _setWidth('dashLevelBar', Math.min((pin/10000)*100,100));
+      _setText('dashStars','⭐ '+s);
+      _setText('dashBalance', b+' دج');
+    }).catch(function(){});
+
+    /* إحصائيات التفاعل */
+    db.ref('socialPosts').orderByChild('author').equalTo(name).once('value').then(function(snap){
+      _setText('dashPostsCount', snap.numChildren());
+    }).catch(function(){});
+
+    db.ref('users/'+key+'/profileVisits').once('value').then(function(snap){
+      _setText('dashProfileVisits', snap.val()||0);
+    }).catch(function(){});
+  }
+
+  /* نسبة المشاهدة الإجمالية */
+  var viewRate = Math.min(Math.round((pts/100000)*100),100);
+  _setText('dashViewRate', viewRate+'%');
+  _setWidth('dashViewRateBar', viewRate);
+}
+
+/* ══════════════════════════════════
+   💹 تهيئة البورصة
+   ══════════════════════════════════ */
+function _initBourse(){
+  var balance = parseInt(localStorage.getItem('sklab_user_balance')||'0')||0;
+  _setText('bourseMyBalance', balance+' دج');
+
+  var tableData = [
+    {icon:'📝', label:'نشر منشور',                pts:50},
+    {icon:'📖', label:'نشر قصة',                  pts:15},
+    {icon:'🎬', label:'نشر فيديو',                pts:70},
+    {icon:'🖼️', label:'نشر صورة',                 pts:50},
+    {icon:'💬', label:'تعليقي للغير (كل تعليق)',  pts:3},
+    {icon:'💬', label:'تعليق الغير لي',            pts:7},
+    {icon:'❤️', label:'إعجابي للغير',             pts:2},
+    {icon:'❤️', label:'إعجاب الغير لي',           pts:4},
+    {icon:'👍', label:'إعجاب على تعليق',          pts:1},
+    {icon:'👁️', label:'مشاهدتي للغير',            pts:1},
+    {icon:'👁️', label:'مشاهدة الغير لي',          pts:5},
+    {icon:'📲', label:'النشر من أيقونات التطبيق', pts:100},
+    {icon:'🔧', label:'فتح ميزات وخاصيات',        pts:3},
+    {icon:'✉️', label:'رسالة عبر المسنجر',        pts:7},
+  ];
+
+  var bonusData = [
+    {icon:'🥇', label:'المرتبة الأولى في قسم البطولة (يوميًا)', pts:100},
+    {icon:'🔥', label:'المشاركة اليومية المستمرة (شعلة)',       pts:'متغير'},
+  ];
+
+  var tableEl = document.getElementById('bourseTable');
+  var bonusEl = document.getElementById('bourseBonus');
+  if(tableEl){
+    tableEl.innerHTML = tableData.map(function(r,i){
+      var color = r.pts>=50 ? '#00e5a0' : r.pts>=10 ? '#FFD700' : 'rgba(255,255,255,0.7)';
+      var bg = i%2===0 ? 'rgba(255,255,255,0.02)' : 'transparent';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:'+bg+';border-bottom:1px solid rgba(255,255,255,0.04);">'
+        +'<div style="display:flex;align-items:center;gap:10px;">'
+        +'<span style="font-size:18px;width:24px;text-align:center;">'+r.icon+'</span>'
+        +'<span style="font-size:12px;color:rgba(255,255,255,0.8);font-weight:700;">'+r.label+'</span>'
+        +'</div>'
+        +'<div style="background:rgba(0,0,0,0.3);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:900;color:'+color+';min-width:40px;text-align:center;">+'+r.pts+'</div>'
+        +'</div>';
+    }).join('');
+  }
+  if(bonusEl){
+    bonusEl.innerHTML = bonusData.map(function(r){
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,215,0,0.06);">'
+        +'<div style="display:flex;align-items:center;gap:10px;">'
+        +'<span style="font-size:20px;">'+r.icon+'</span>'
+        +'<span style="font-size:12px;color:rgba(255,255,255,0.8);font-weight:700;">'+r.label+'</span>'
+        +'</div>'
+        +'<div style="background:rgba(255,215,0,0.12);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:900;color:#FFD700;">+'+r.pts+'</div>'
+        +'</div>';
+    }).join('');
+  }
+}
+
+/* ── دوال مساعدة ── */
+function _setText(id,val){var el=document.getElementById(id);if(el)el.textContent=val;}
+function _setWidth(id,pct){var el=document.getElementById(id);if(el)el.style.width=pct+'%';}
+
+/* ══════════════════════════════════════════════════════════
+   ملف الشخصي للغير — تحديث النجوم والترتيب عند الفتح
+   ══════════════════════════════════════════════════════════ */
+var _origOpenMPV = window.openMemberProfileView;
+window.openMemberProfileView = function(name){
+  if(_origOpenMPV) _origOpenMPV.apply(this,arguments);
+  if(!name) return;
+  var db = window.firebaseDb||(window.firebase&&window.firebase.database&&window.firebase.database());
+  if(!db) return;
+  var key = name.replace(/\s+/g,'_');
+  /* النجوم */
+  db.ref('users/'+key+'/stars').once('value').then(function(s){
+    _setText('mpvStarsCount','⭐ '+(s.val()||0));
+  }).catch(function(){});
+  /* الترتيب */
+  db.ref('leaderboard').orderByChild('points').once('value').then(function(snap){
+    var rows=[];
+    snap.forEach(function(c){ rows.push({k:c.key,pts:c.val().points||0}); });
+    rows.sort(function(a,b){return b.pts-a.pts;});
+    var rank = rows.findIndex(function(r){return r.k===key;})+1;
+    _setText('mpvRankDisplay', rank>0?'#'+rank:'#--');
+  }).catch(function(){});
+  /* تسجيل زيارة الملف */
+  var myName = localStorage.getItem('sklab_user_name')||'';
+  if(myName && myName !== name){
+    db.ref('users/'+key+'/profileVisits').transaction(function(v){ return (v||0)+1; });
+  }
+};
+
+console.log('✅ [NLD] بطاقاتي + لوحتي + البورصة — جاهزة');
 })();
 </script>
-</body>
 </html>
