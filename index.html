@@ -5018,6 +5018,22 @@ function switchLoginTab(tab){
 
       <div style="height:1px;background:#E4E6EB;margin:4px 16px;"></div>
 
+      <!-- لوحة البيانات والتفاعل -->
+      <div onclick="closeSocialSideMenu();setTimeout(()=>openSideMenuItem('analytics'),200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F8FF'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#0099ff,#00c6ff);display:flex;align-items:center;justify-content:center;font-size:18px;">📊</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">لوحة البيانات والتفاعل</div><div style="font-size:11px;color:#65676B;">إحصائياتك ونشاطك</div></div>
+        <span style="color:#BCC0C4;font-size:16px;">›</span>
+      </div>
+
+      <!-- البورصة وسوق العمل -->
+      <div onclick="closeSocialSideMenu();setTimeout(()=>openSideMenuItem('market'),200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#FFFBF0'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#FFD700,#f97316);display:flex;align-items:center;justify-content:center;font-size:18px;">💹</div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">البورصة وسوق العمل</div><div style="font-size:11px;color:#65676B;">كيفية كسب النقاط والمكافآت</div></div>
+        <span style="color:#BCC0C4;font-size:16px;">›</span>
+      </div>
+
+      <div style="height:1px;background:#E4E6EB;margin:4px 16px;"></div>
+
       <!-- تسجيل الخروج -->
       <div onclick="closeSocialSideMenu();doLogout();" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;margin-bottom:16px;" onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#e53935,#b71c1c);display:flex;align-items:center;justify-content:center;font-size:18px;">🚪</div>
@@ -5027,6 +5043,201 @@ function switchLoginTab(tab){
   </div>
 
   <!-- ── Side Menu Sub-Panels ── -->
+  <!-- Analytics Panel — لوحة البيانات والتفاعل -->
+  <div id="sideAnalyticsPanel" style="display:none;position:absolute;inset:0;background:#0d1117;z-index:60;flex-direction:column;animation:slideInLeft .25s ease;overflow-y:auto;">
+    <div style="padding:14px 16px;border-bottom:1px solid rgba(0,153,255,0.2);display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#0d1117,#0a1628);position:sticky;top:0;z-index:2;">
+      <div onclick="closeSideSubPanel('sideAnalyticsPanel')" style="width:34px;height:34px;border-radius:50%;background:rgba(0,153,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:#0099ff;font-weight:700;">‹</div>
+      <div style="font-size:16px;font-weight:900;color:#e8eaed;">📊 لوحة البيانات والتفاعل</div>
+    </div>
+    <div style="padding:16px;" id="analyticsContent">
+      <!-- نسبة المشاهدات الإجمالية -->
+      <div style="background:linear-gradient(135deg,rgba(0,153,255,0.12),rgba(0,198,255,0.08));border:1px solid rgba(0,153,255,0.25);border-radius:16px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:900;color:#0099ff;margin-bottom:12px;">👁️ إجمالي المشاهدات</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:10px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:#00c6ff;" id="analyticsStoryViews">0</div>
+            <div style="font-size:10px;color:#8b949e;margin-top:2px;">القصص</div>
+          </div>
+          <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:10px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:#0099ff;" id="analyticsPostViews">0</div>
+            <div style="font-size:10px;color:#8b949e;margin-top:2px;">المنشورات</div>
+          </div>
+          <div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:10px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:#00e5ff;" id="analyticsProfileViews">0</div>
+            <div style="font-size:10px;color:#8b949e;margin-top:2px;">الملف الشخصي</div>
+          </div>
+        </div>
+        <!-- شريط تقدم إجمالي -->
+        <div style="margin-top:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:#8b949e;">إجمالي المشاهدات</span>
+            <span style="font-size:11px;color:#0099ff;font-weight:800;" id="analyticsTotalViews">0</span>
+          </div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:6px;height:6px;overflow:hidden;">
+            <div id="analyticsTotalViewsBar" style="background:linear-gradient(90deg,#0099ff,#00c6ff);height:100%;width:0%;transition:width .6s ease;border-radius:6px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- إحصائيات المنشورات -->
+      <div style="background:linear-gradient(135deg,rgba(0,200,83,0.1),rgba(0,160,64,0.06));border:1px solid rgba(0,200,83,0.2);border-radius:16px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:900;color:#00c853;margin-bottom:12px;">📝 إحصائيات النشاط</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:16px;">📄</span>
+              <span style="font-size:13px;color:#c9d1d9;">عدد المنشورات</span>
+            </div>
+            <span style="font-size:18px;font-weight:900;color:#00c853;" id="analyticsPostCount">0</span>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:16px;">💬</span>
+              <span style="font-size:13px;color:#c9d1d9;">عدد التعليقات</span>
+            </div>
+            <span style="font-size:18px;font-weight:900;color:#00bcd4;" id="analyticsCommentCount">0</span>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:16px;">❤️</span>
+              <span style="font-size:13px;color:#c9d1d9;">عدد الإعجابات</span>
+            </div>
+            <span style="font-size:18px;font-weight:900;color:#e53935;" id="analyticsLikeCount">0</span>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.06);"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:16px;">👤</span>
+              <span style="font-size:13px;color:#c9d1d9;">زيارات الملف الشخصي</span>
+            </div>
+            <span style="font-size:18px;font-weight:900;color:#FFD700;" id="analyticsProfileVisits">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- نسبة التفاعل -->
+      <div style="background:linear-gradient(135deg,rgba(240,147,251,0.1),rgba(168,85,247,0.06));border:1px solid rgba(168,85,247,0.2);border-radius:16px;padding:16px;">
+        <div style="font-size:13px;font-weight:900;color:#a855f7;margin-bottom:12px;">📈 نسبة التفاعل</div>
+        <div style="display:flex;gap:8px;">
+          <div style="flex:1;background:rgba(0,0,0,0.3);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:24px;font-weight:900;color:#a855f7;" id="analyticsEngagementRate">0%</div>
+            <div style="font-size:10px;color:#8b949e;margin-top:3px;">معدل التفاعل</div>
+          </div>
+          <div style="flex:1;background:rgba(0,0,0,0.3);border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:24px;font-weight:900;color:#f5c518;" id="analyticsRankScore">0</div>
+            <div style="font-size:10px;color:#8b949e;margin-top:3px;">مجموع نقاطي</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Market Panel — البورصة وسوق العمل -->
+  <div id="sideMarketPanel" style="display:none;position:absolute;inset:0;background:#0d1117;z-index:60;flex-direction:column;animation:slideInLeft .25s ease;overflow-y:auto;">
+    <div style="padding:14px 16px;border-bottom:1px solid rgba(255,215,0,0.2);display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#0d1117,#1a1200);position:sticky;top:0;z-index:2;">
+      <div onclick="closeSideSubPanel('sideMarketPanel')" style="width:34px;height:34px;border-radius:50%;background:rgba(255,215,0,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:#FFD700;font-weight:700;">‹</div>
+      <div style="font-size:16px;font-weight:900;color:#e8eaed;">💹 البورصة وسوق العمل</div>
+    </div>
+    <div style="padding:16px;">
+
+      <!-- رصيد النقاط الحالي -->
+      <div style="background:linear-gradient(135deg,#FFD700,#f97316);border-radius:16px;padding:18px;margin-bottom:16px;text-align:center;">
+        <div style="font-size:12px;color:rgba(0,0,0,0.7);font-weight:700;margin-bottom:4px;">💰 رصيدك الحالي</div>
+        <div style="font-size:32px;font-weight:900;color:#0d1117;" id="marketCurrentPoints">0</div>
+        <div style="font-size:12px;color:rgba(0,0,0,0.6);margin-top:2px;">نقطة</div>
+      </div>
+
+      <!-- نسبة تحويل النقاط -->
+      <div style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:14px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:900;color:#FFD700;margin-bottom:10px;">💱 نسبة تحويل النقاط إلى مكافأة</div>
+        <div style="font-size:12px;color:#8b949e;line-height:1.8;">
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="color:#c9d1d9;">كل 50 نقطة تساوي</span>
+            <span style="color:#FFD700;font-weight:800;">30 دج</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="color:#c9d1d9;">أعلى 15 عضو</span>
+            <span style="color:#f5c518;font-weight:800;">35 دج / 50 نقطة</span>
+          </div>
+          <div id="marketMyConversion" style="display:flex;justify-content:space-between;padding:8px 0;margin-top:4px;background:rgba(255,215,0,0.08);border-radius:8px;padding:8px 10px;margin-top:6px;">
+            <span style="color:#FFD700;font-weight:800;">قيمة نقاطك الآن</span>
+            <span style="color:#00c853;font-weight:900;" id="marketMyPtsValue">0 دج</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- جدول كسب النقاط — النشر -->
+      <div style="background:rgba(0,200,83,0.08);border:1px solid rgba(0,200,83,0.2);border-radius:14px;padding:14px;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:900;color:#00c853;margin-bottom:10px;">📤 كسب النقاط — النشر</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <span style="color:#c9d1d9;">📄 نشر منشور</span><span style="color:#00c853;font-weight:800;">+50 نقطة</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <span style="color:#c9d1d9;">📖 نشر قصة</span><span style="color:#00c853;font-weight:800;">+15 نقطة</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <span style="color:#c9d1d9;">🎬 نشر فيديو</span><span style="color:#00c853;font-weight:800;">+70 نقطة</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <span style="color:#c9d1d9;">🖼️ نشر صورة</span><span style="color:#00c853;font-weight:800;">+50 نقطة</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(255,215,0,0.1);border-radius:8px;border:1px solid rgba(255,215,0,0.2);">
+            <span style="color:#FFD700;">📱 نشر من أيقونات التطبيق</span><span style="color:#FFD700;font-weight:800;">+100 نقطة</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- جدول كسب النقاط — التفاعل -->
+      <div style="background:rgba(0,153,255,0.08);border:1px solid rgba(0,153,255,0.2);border-radius:14px;padding:14px;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:900;color:#0099ff;margin-bottom:10px;">💬 كسب النقاط — التفاعل</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <span style="color:#c9d1d9;">💬 تعليقي على منشور</span><span style="color:#0099ff;font-weight:800;">+3 نقطة</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <span style="color:#c9d1d9;">💬 تعليق آخر على منشوري</span><span style="color:#00c6ff;font-weight:800;">+7 نقاط</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <span style="color:#c9d1d9;">❤️ إعجابي بمنشور</span><span style="color:#0099ff;font-weight:800;">+2 نقطة</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <span style="color:#c9d1d9;">❤️ إعجاب آخر بمنشوري</span><span style="color:#00c853;font-weight:800;">+4 نقاط</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <span style="color:#c9d1d9;">👍 إعجاب على تعليق</span><span style="color:#0099ff;font-weight:800;">+1 نقطة</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <span style="color:#c9d1d9;">👁️ مشاهدتي لمنشور</span><span style="color:#8b949e;font-weight:800;">+1 نقطة</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <span style="color:#c9d1d9;">👁️ مشاهدة الغير لي</span><span style="color:#00c853;font-weight:800;">+5 نقاط</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <span style="color:#c9d1d9;">💌 رسالة عبر المسنجر</span><span style="color:#a855f7;font-weight:800;">+7 نقاط</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <span style="color:#c9d1d9;">🔓 فتح ميزة / خاصية</span><span style="color:#0099ff;font-weight:800;">+3 نقاط</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- مكافأة المركز الأول -->
+      <div style="background:linear-gradient(135deg,rgba(255,215,0,0.1),rgba(249,115,22,0.08));border:1px solid rgba(255,215,0,0.3);border-radius:14px;padding:14px;">
+        <div style="font-size:13px;font-weight:900;color:#FFD700;margin-bottom:8px;">🏆 مكافأة المركز الأول</div>
+        <div style="font-size:12px;color:#c9d1d9;line-height:1.7;">
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,215,0,0.08);border-radius:8px;">
+            <span style="font-size:18px;">👑</span>
+            <span>المركز الأول في أي قسم من البطولة يمنحك <strong style="color:#FFD700;">+100 نقطة إضافية</strong> لكل يوم تبقى في المستوى الأول</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Settings Panel -->
   <div id="sideSettingsPanel" style="display:none;position:absolute;inset:0;background:white;z-index:60;flex-direction:column;animation:slideInLeft .25s ease;">
     <div style="padding:14px 16px;border-bottom:1px solid #E4E6EB;display:flex;align-items:center;gap:12px;">
@@ -10596,17 +10807,17 @@ function ebPointsComment(){
   const name = getCurrentUser(); if(!name||name==='زائر') return;
   const count = _incCommentCount(name);
   if(count > COMMENT_DAILY_LIMIT){ return; }
-  addPointsInstant(3);
+  addPointsInstant(3); // تعليقي على منشور الغير = 3 نقاط
 }
 
 function ebPointsLike(){
   const name = getCurrentUser(); if(!name||name==='زائر') return;
-  addPointsInstant(1);
+  addPointsInstant(2); // إعجابي بمنشور الغير = 2 نقطة
 }
 
 function ebPointsPost(){
   const name = getCurrentUser(); if(!name||name==='زائر') return;
-  addPointsInstant(5);
+  addPointsInstant(50); // نشر منشور = 50 نقطة
 }
 
 function ebPointsShare(){
@@ -10614,9 +10825,66 @@ function ebPointsShare(){
   addPointsInstant(5);
 }
 
-function ebPointsStory(){ grantEarlyBirdPoints('story_'+Date.now(), 1, false, 'ڨوستا تايم'); }
+function ebPointsStory(){ grantEarlyBirdPoints('story_'+Date.now(), 15, false, 'نشر قصة 📖'); }
 function ebPointsVisit(){ grantEarlyBirdPoints('daily_visit', 5, true, 'زيارة يومية'); }
 function ebPointsFacebook(){ grantEarlyBirdPoints('facebook_open', 10, true, 'فتح فيسبوك'); }
+
+/* نشر فيديو = 70 نقطة */
+function ebPointsPostVideo(){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  addPointsInstant(70);
+  showToast('⭐ +70 نقطة — نشر فيديو 🎬');
+}
+
+/* نشر صورة = 50 نقطة */
+function ebPointsPostImage(){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  addPointsInstant(50);
+  showToast('⭐ +50 نقطة — نشر صورة 🖼️');
+}
+
+/* نشر من أيقونات التطبيق = 100 نقطة */
+function ebPointsPostFromIcons(){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  addPointsInstant(100);
+  showToast('⭐ +100 نقطة — نشر من التطبيق 📱');
+}
+
+/* تعليق الغير على منشوري = 7 نقاط */
+function ebPointsReceiveComment(postAuthor){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  if(postAuthor && postAuthor === name) addPointsInstant(7);
+}
+
+/* إعجاب الغير بمنشوري = 4 نقاط */
+function ebPointsReceiveLike(postAuthor){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  if(postAuthor && postAuthor === name) addPointsInstant(4);
+}
+
+/* إعجاب على تعليق = 1 نقطة */
+function ebPointsLikeComment(){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  addPointsInstant(1);
+}
+
+/* مشاهدة منشور الغير = 1 نقطة */
+function ebPointsViewPost(postAuthor){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  if(postAuthor && postAuthor !== name) addPointsInstant(1);
+}
+
+/* مشاهدة الغير لمنشوري = 5 نقاط لكل مشاهدة */
+function ebPointsReceiveView(postAuthor){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  if(postAuthor && postAuthor === name) addPointsInstant(5);
+}
+
+/* فتح ميزة أو خاصية = 3 نقاط */
+function ebPointsOpenFeature(){
+  const name = getCurrentUser(); if(!name||name==='زائر') return;
+  addPointsInstant(3);
+}
 
 /* ══════════════════════════════════════════════════════════════════
    💬 نقاط المحادثات — 10 رسائل = 5 نقاط، صورة=2، فيديو=5
@@ -10632,11 +10900,8 @@ function _setChatMsgCount(me, other, v){
 
 function ebPointsChatText(me, other){
   if(!me||me==='زائر') return;
-  let cnt = _getChatMsgCount(me, other) + 1;
-  _setChatMsgCount(me, other, cnt);
-  if(cnt % 10 === 0){
-    addPointsInstant(5);
-  }
+  // كل رسالة مسنجر = 7 نقاط
+  addPointsInstant(7);
 }
 function ebPointsChatImage(){
   const name = getCurrentUser(); if(!name||name==='زائر') return;
@@ -16041,12 +16306,13 @@ async function renderSocialFeed(){
 
   _startFbFeedPolling();
 
-  /* ⑤ فلترة: إزالة منشورات المجموعات/الصفحات — إظهار جميع منشورات المستخدمين */
+  /* ⑤ فلترة: إظهار منشورات الأعضاء فقط — إخفاء الورشات والإعلانات التلقائية */
+  const now = Date.now();
   const posts = allPostsRaw.filter(p => {
     /* إزالة منشورات المجموعات والصفحات من الفيد الرئيسي */
     if(p.groupId || p.pageId || p.isGroupPost || p.isPagePost) return false;
-    /* الإعلانات والمنشورات التلقائية تظهر دائماً */
-    if(p.isActivityAd || p.isAutoPost || p.isAd) return true;
+    /* إخفاء الإعلانات والمنشورات التلقائية للورشات والصفحات */
+    if(p.isActivityAd || p.isAutoPost || p.isAd || p.isWorkshop || p.isPageAd) return false;
     const priv = p.privacy || '🌐 عام';
     /* منشورات "أنت فقط" — تظهر لصاحبها فقط */
     if(priv.includes('أنت فقط')) return myName && p.author === myName;
@@ -16067,19 +16333,26 @@ async function renderSocialFeed(){
     return;
   }
 
-  /* ⑥ الترتيب: الأحدث أولاً للأعضاء، الإعلانات في آخر */
-  const memberPosts = posts
-    .filter(p => !p.isActivityAd && !p.isAd)
-    .slice()
-    .sort((a,b) => (b.ts||0) - (a.ts||0)); /* ✅ الأحدث أولاً دائماً */
+  /* ⑥ الترتيب الذكي:
+     - الجديد (أقل من 30 دقيقة) يظهر أولاً دائماً
+     - بعد 30 دقيقة: الأعلى مشاهدة ثم تعليقاً ثم إعجاباً
+  */
+  const THIRTY_MIN = 30 * 60 * 1000;
+  function _postScore(p){
+    const age = now - (p.ts||0);
+    if(age < THIRTY_MIN) return Number.MAX_SAFE_INTEGER - (p.ts||0); // الجديد جداً أولاً
+    const views = p.views || 0;
+    const comments = (p.comments||[]).length;
+    const likes = Object.values(p.reactions||{}).reduce((s,arr)=>s+(arr.length||0),0);
+    return views * 3 + comments * 2 + likes;
+  }
 
-  const adPosts = posts
-    .filter(p => p.isActivityAd || p.isAd)
-    .slice()
-    .sort((a,b) => (b.ts||0) - (a.ts||0));
+  const sortedPosts = posts.slice().sort((a,b) => _postScore(b) - _postScore(a));
 
-  /* ⑦ الدمج النهائي: منشورات الأعضاء أولاً ثم الإعلانات */
-  container.innerHTML = [...memberPosts, ...adPosts].map(p => renderSocialPostCard(p)).join('');
+  /* ⑦ عرض المنشورات المرتبة */
+  container.innerHTML = sortedPosts.map(p => renderSocialPostCard(p)).join('');
+  // استعادة التعليقات المفتوحة
+  setTimeout(_restoreOpenComments, 50);
 }
 
 function renderSocialPostCard(p){
@@ -16329,7 +16602,8 @@ function addReaction(postId, emoji){
   // إشعار لصاحب المنشور
   if(post.author !== name) addSocialNotif(post.author, `${name} تفاعل مع منشورك بـ ${emoji}`, emoji);
   saveSocialPosts(posts);
-  ebPointsLike();
+  ebPointsLike(); // 2 نقطة للمُعجِب
+  ebPointsReceiveLike(post.author); // 4 نقاط لصاحب المنشور
   // إخفاء picker وتحديث الكارت
   document.querySelectorAll('[id^="reactPicker_"]').forEach(el=>{ el.style.display='none'; });
   refreshPostCard(postId);
@@ -16339,7 +16613,15 @@ function toggleComments(postId){
   const section = document.getElementById('commentsSection_'+postId);
   if(!section) return;
   const isOpen = section.style.display !== 'none';
-  section.style.display = isOpen ? 'none' : 'block';
+  const newState = isOpen ? 'none' : 'block';
+  section.style.display = newState;
+  // حفظ حالة التعليقات في localStorage لتبقى مفتوحة عند الرجوع
+  try{
+    const key = 'openComments';
+    const saved = JSON.parse(localStorage.getItem(key)||'{}');
+    if(!isOpen) saved[postId] = true; else delete saved[postId];
+    localStorage.setItem(key, JSON.stringify(saved));
+  }catch(e){}
   if(!isOpen){
     const inp = document.getElementById('commentInput_'+postId);
     if(inp) inp.focus();
@@ -16351,6 +16633,17 @@ function toggleComments(postId){
       if(avatarEl && photo){ avatarEl.innerHTML=`<img loading="lazy" src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`; }
     }
   }
+}
+
+/* استعادة حالة التعليقات المفتوحة بعد إعادة رسم الفيد */
+function _restoreOpenComments(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('openComments')||'{}');
+    Object.keys(saved).forEach(postId=>{
+      const section = document.getElementById('commentsSection_'+postId);
+      if(section) section.style.display = 'block';
+    });
+  }catch(e){}
 }
 
 function submitComment(postId){
@@ -16369,7 +16662,8 @@ function submitComment(postId){
   if(inp) inp.value='';
   // إشعار لصاحب المنشور
   if(post.author !== name) addSocialNotif(post.author, `${name} علّق على منشورك: "${text.substring(0,30)}…"`, '💬');
-  ebPointsComment();
+  ebPointsComment(); // 3 نقاط للمعلِّق
+  ebPointsReceiveComment(post.author); // 7 نقاط لصاحب المنشور
   refreshPostCard(postId);
   // إبقاء قسم التعليقات مفتوحاً
   const section = document.getElementById('commentsSection_'+postId);
@@ -16487,7 +16781,17 @@ function refreshPostCard(postId){
   const post = posts.find(p=>p.id===postId);
   if(!post) return;
   const cardEl = document.getElementById('spost_'+postId);
-  if(cardEl){ cardEl.outerHTML = renderSocialPostCard(post); }
+  if(cardEl){
+    cardEl.outerHTML = renderSocialPostCard(post);
+    // استعادة حالة التعليقات المفتوحة
+    try{
+      const saved = JSON.parse(localStorage.getItem('openComments')||'{}');
+      if(saved[postId]){
+        const section = document.getElementById('commentsSection_'+postId);
+        if(section) section.style.display = 'block';
+      }
+    }catch(e){}
+  }
 }
 
 function deleteSocialPost(postId){
@@ -19811,11 +20115,95 @@ function openSideMenuItem(type){
   else if(type==='smart_kids'){ const el=document.getElementById('sideSmartKidsPanel'); if(el){ el.style.display='flex'; } }
   else if(type==='mca'){ const el=document.getElementById('sideMcaPanel'); if(el){ el.style.display='flex'; } }
   else if(type==='youth_hall'){ const el=document.getElementById('sideYouthHallPanel'); if(el){ el.style.display='flex'; } }
+  else if(type==='analytics'){ const el=document.getElementById('sideAnalyticsPanel'); if(el){ el.style.display='flex'; _loadAnalyticsData(); } }
+  else if(type==='market'){ const el=document.getElementById('sideMarketPanel'); if(el){ el.style.display='flex'; _loadMarketData(); } }
 }
 
 function closeSideSubPanel(panelId){
   const el = document.getElementById(panelId);
   if(el) el.style.display = 'none';
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   📊 لوحة البيانات والتفاعل — تحميل الإحصائيات
+   ══════════════════════════════════════════════════════════════════ */
+function _loadAnalyticsData(){
+  try{
+    const name = getCurrentUser();
+    if(!name || name==='زائر') return;
+
+    // منشورات الملف الشخصي
+    const myPosts = JSON.parse(localStorage.getItem(getProfilePostsKey ? getProfilePostsKey(name) : 'profilePosts_'+name) || '[]');
+    // منشورات الفيد
+    const allPosts = getSocialPosts ? getSocialPosts() : [];
+    const myFeedPosts = allPosts.filter(p => p.author === name);
+
+    // إحصائيات
+    let totalPostViews = 0, totalStoryViews = 0, totalLikes = 0, totalComments = 0;
+    myFeedPosts.forEach(p=>{
+      totalPostViews += (p.views||0);
+      totalLikes += Object.values(p.reactions||{}).reduce((s,arr)=>s+(arr.length||0),0);
+      totalComments += (p.comments||[]).length;
+    });
+
+    // زيارات الملف الشخصي من localStorage
+    const profileVisits = parseInt(localStorage.getItem('profileVisits_'+name.replace(/\s+/g,'_'))||'0');
+    // مشاهدات القصص
+    const storyViews = parseInt(localStorage.getItem('storyViews_'+name.replace(/\s+/g,'_'))||'0');
+
+    const totalViews = totalPostViews + storyViews + profileVisits;
+
+    // تحديث العناصر
+    const set = (id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
+    set('analyticsStoryViews', storyViews.toLocaleString());
+    set('analyticsPostViews', totalPostViews.toLocaleString());
+    set('analyticsProfileViews', profileVisits.toLocaleString());
+    set('analyticsTotalViews', totalViews.toLocaleString());
+    set('analyticsPostCount', myFeedPosts.length.toLocaleString());
+    set('analyticsCommentCount', totalComments.toLocaleString());
+    set('analyticsLikeCount', totalLikes.toLocaleString());
+    set('analyticsProfileVisits', profileVisits.toLocaleString());
+
+    // معدل التفاعل
+    const engagementRate = totalPostViews > 0 ? Math.round(((totalLikes+totalComments)/Math.max(totalPostViews,1))*100) : 0;
+    set('analyticsEngagementRate', engagementRate+'%');
+
+    // النقاط الكلية
+    const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+    const quizPts = parseInt(localStorage.getItem('pts_earned_'+name.replace(/\s+/g,'_'))||'0');
+    const interactPts = parseInt(localStorage.getItem('pts_interact_'+name.replace(/\s+/g,'_'))||'0');
+    const totalPts = sheetPts + quizPts + interactPts;
+    set('analyticsRankScore', totalPts.toLocaleString());
+
+    // شريط التقدم
+    const bar = document.getElementById('analyticsTotalViewsBar');
+    if(bar){ const pct = Math.min(totalViews/100*100,100); bar.style.width=pct+'%'; }
+  }catch(e){}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   💹 البورصة وسوق العمل — تحميل بيانات النقاط
+   ══════════════════════════════════════════════════════════════════ */
+function _loadMarketData(){
+  try{
+    const name = getCurrentUser();
+    if(!name || name==='زائر') return;
+
+    const sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+    const quizPts = parseInt(localStorage.getItem('pts_earned_'+name.replace(/\s+/g,'_'))||'0');
+    const interactPts = parseInt(localStorage.getItem('pts_interact_'+name.replace(/\s+/g,'_'))||'0');
+    const totalPts = sheetPts + quizPts + interactPts;
+
+    const set = (id,v)=>{ const el=document.getElementById(id); if(el) el.innerText=v; };
+    set('marketCurrentPoints', totalPts.toLocaleString());
+
+    // تحديد معدل التحويل (30 دج لكل 50 نقطة، 35 للأفضل 15)
+    const isTop15 = window._sheetPtsCache >= 0; // تقدير بسيط
+    const rate = isTop15 ? 35 : 30;
+    const units = Math.floor(totalPts / 50);
+    const dzValue = units * rate;
+    set('marketMyPtsValue', dzValue.toLocaleString() + ' دج');
+  }catch(e){}
 }
 
 function toggleSideLanguagePanel(){
