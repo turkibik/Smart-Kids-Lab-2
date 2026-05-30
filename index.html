@@ -4530,7 +4530,7 @@ function switchLoginTab(tab){
 <!-- ══════════════════════════════════════════
      🌐 صفحة الشبكة الاجتماعية (Next Leaders Social)
      ══════════════════════════════════════════ -->
-<div id="socialHomeCard" style="display:none;position:fixed;inset:0;z-index:2900;background:linear-gradient(160deg,#0a1628 0%,#0d2137 30%,#0f1e2e 60%,#0a1a14 100%);flex-direction:column;overflow:hidden;">
+<div id="socialHomeCard" style="display:none;position:fixed;inset:0;z-index:2900;background:#F0F2F5;flex-direction:column;overflow:hidden;">
 
   <!-- ── Top Bar (Facebook-style) ── -->
   <div id="socialTopBar" style="background:white;border-bottom:2px solid #E4E6EB;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
@@ -4545,9 +4545,9 @@ function switchLoginTab(tab){
       <!-- اسم التطبيق يسار -->
       <div style="font-size:20px;font-weight:900;background:linear-gradient(90deg,#00c853,#e53935);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;flex:1;font-family:'Tajawal',sans-serif;">Connect DZ</div>
       <!-- زر تبديل الحسابات — ثابت في الأعلى مع صورة الحساب النشط -->
-      <div id="topSwitchAccountBtn" onclick="window.openMultiAccPanel ? window.openMultiAccPanel() : null" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2e7d32,#00c853);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;overflow:hidden;border:2.5px solid rgba(46,125,50,0.4);box-shadow:0 2px 10px rgba(46,125,50,0.35);position:relative;" title="تبديل الحساب">
-        <div id="topSwitchAvatarInner" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px;">👤</div>
-        <span id="topSwitchBadge" style="display:none;position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;border-radius:9px;background:linear-gradient(135deg,#e53935,#b71c1c);color:white;font-size:10px;font-weight:900;align-items:center;justify-content:center;border:2.5px solid white;padding:0 3px;box-shadow:0 2px 8px rgba(229,57,53,0.7);z-index:10;animation:badgePulse 2s ease infinite;">0</span>
+      <div id="topSwitchAccountBtn" onclick="window.openMultiAccPanel ? window.openMultiAccPanel() : null" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2e7d32,#00c853);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;overflow:visible;position:relative;" title="تبديل الحساب">
+        <div id="topSwitchAvatarInner" style="width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;background:linear-gradient(135deg,#2e7d32,#00c853);">👤</div>
+        <span id="topSwitchBadge" style="display:none;position:absolute;top:-6px;left:-6px;min-width:18px;height:18px;border-radius:9px;background:#e53935;color:white;font-size:10px;font-weight:900;align-items:center;justify-content:center;border:2.5px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;z-index:5;box-shadow:0 2px 6px rgba(229,57,53,0.5);">0</span>
       </div>
     </div>
     <!-- Search bar (hidden by default) -->
@@ -4884,26 +4884,178 @@ function switchLoginTab(tab){
     100% { opacity:1; transform: scale(1); }
   }
 
-  /* نبض البادج الأحمر */
-  @keyframes badgePulse {
-    0%,100% { box-shadow:0 2px 8px rgba(229,57,53,0.7); transform:scale(1); }
-    50% { box-shadow:0 2px 14px rgba(229,57,53,1); transform:scale(1.15); }
+  /* ══ دوران بطيء للعجلة — يُطبَّق عبر JS عند فتح القائمة ══ */
+  </style>
+
+  <!-- ══ تحسينات الألوان — البنفسجي والتصميم الاحترافي ══ -->
+  <style id="cdz-purple-theme">
+  /* ── تحسين الصفحة الرئيسية بألوان بنفسجية وجذابة ── */
+  :root {
+    --purple: #8b5cf6;
+    --purple2: #7c3aed;
+    --purple-light: #a78bfa;
+    --purple-dark: #5b21b6;
+    --purple-glow: rgba(139,92,246,0.35);
   }
 
-  /* دوران العجلة البطيء من اليسار لليمين عند فتح القائمة */
-  @keyframes slowSpinCW {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
+  /* بطاقة النقاط الرئيسية — تدرج بنفسجي أخضر */
+  .main-card {
+    background: linear-gradient(145deg,#0d1117 0%,#0f0a1e 50%,#0a1117 100%) !important;
+    border: 1px solid rgba(139,92,246,0.25) !important;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(139,92,246,0.08) !important;
   }
-  #wheelContainer.open #wheelRing {
-    animation: slowSpinCW 8s linear infinite;
+  .main-card::before {
+    background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 65%) !important;
   }
-  #wheelContainer.open {
-    /* الأيقونة المركزية تدور ببطء أيضاً */
+
+  /* النقاط الرئيسية — بنفسجي متدرج */
+  .points-num {
+    background: linear-gradient(135deg,#c4b5fd,#ffffff,#a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
-  #wheelContainer.open #wheelCenterAvatar {
-    animation: slowSpinCW 12s linear infinite;
-  }</style>
+
+  /* شريط التقدم — بنفسجي إلى أخضر */
+  .neo-bar {
+    background: linear-gradient(90deg,#8b5cf6,#00e5a0) !important;
+    box-shadow: 0 0 14px rgba(139,92,246,0.5) !important;
+  }
+
+  /* الشارة المستوى */
+  .level-badge {
+    background: linear-gradient(135deg,rgba(139,92,246,0.18),rgba(124,58,237,0.12)) !important;
+    border: 1px solid rgba(139,92,246,0.35) !important;
+    color: #c4b5fd !important;
+    box-shadow: 0 0 12px rgba(139,92,246,0.15);
+  }
+
+  /* رأس بطاقة الأعضاء */
+  .member-greeting-card {
+    background: linear-gradient(145deg,rgba(13,17,23,0.95),rgba(15,10,30,0.9),rgba(10,17,23,0.95)) !important;
+    border: 1px solid rgba(139,92,246,0.22) !important;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.45), 0 0 30px rgba(139,92,246,0.07) !important;
+  }
+
+  /* إحصائيات الأعضاء */
+  .member-greeting-stat {
+    background: linear-gradient(135deg,rgba(139,92,246,0.1),rgba(15,10,30,0.6)) !important;
+    border: 1px solid rgba(139,92,246,0.2) !important;
+  }
+  .member-greeting-stat .gs-icon { filter: drop-shadow(0 0 4px rgba(139,92,246,0.5)); }
+
+  /* عنوان القسم */
+  .section-title {
+    background: linear-gradient(90deg,#ffffff,#c4b5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .section-year {
+    background: rgba(139,92,246,0.1) !important;
+    border-color: rgba(139,92,246,0.2) !important;
+    color: #a78bfa !important;
+  }
+
+  /* أيقونات الشبكة (glass items) — تأثير بنفسجي عند الـ hover */
+  .glass-item:hover {
+    border-color: rgba(139,92,246,0.3) !important;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.4), 0 0 16px rgba(139,92,246,0.2) !important;
+  }
+
+  /* زر الاستفسار */
+  #app .app-inner > div[onclick*="openAskQuestionDialog"] {
+    border-color: rgba(139,92,246,0.3) !important;
+    background: linear-gradient(135deg,rgba(139,92,246,0.1),rgba(76,29,149,0.08)) !important;
+  }
+
+  /* شريط المتصلين */
+  #onlineBar {
+    background: linear-gradient(135deg,rgba(34,197,94,0.08),rgba(139,92,246,0.06)) !important;
+    border-color: rgba(34,197,94,0.2) !important;
+  }
+
+  /* شريط علوي للتطبيق — بنفسجي داكن */
+  .top-nav {
+    background: linear-gradient(135deg,rgba(15,10,30,0.85),rgba(13,17,23,0.75));
+    border-radius: 20px;
+    padding: 8px 12px;
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(139,92,246,0.15);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  /* تحسين الأفاتار */
+  .avatar {
+    background: linear-gradient(145deg,#7c3aed,#5b21b6,#00c853) !important;
+    box-shadow: 0 6px 22px rgba(124,58,237,0.45) !important;
+    border: 1.5px solid rgba(167,139,250,0.3) !important;
+  }
+
+  /* تحسين زر الإشعارات */
+  .notif-btn {
+    background: rgba(15,10,30,0.6) !important;
+    border-color: rgba(139,92,246,0.2) !important;
+  }
+  .notif-btn:hover {
+    background: rgba(139,92,246,0.12) !important;
+    border-color: rgba(139,92,246,0.4) !important;
+  }
+
+  /* تدرج خلفية الهيرو — إضافة البنفسجي */
+  #hero-overlay {
+    background:
+      linear-gradient(to bottom, rgba(5,10,14,0.85) 0%, rgba(5,10,14,0.6) 40%, rgba(5,10,14,0.9) 100%),
+      linear-gradient(135deg, rgba(139,92,246,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse 70% 50% at 80% 100%, rgba(229,45,39,0.1) 0%, transparent 60%) !important;
+  }
+
+  /* شريط التقدم الرئيسي */
+  #loadingBar { background: linear-gradient(90deg,#7c3aed,#8b5cf6,#00e5a0) !important; }
+
+  /* تحسين بطاقة العجلة العائمة */
+  #wheelFloatBtnInner {
+    background: linear-gradient(180deg,#7c3aed,#5b21b6,#00c853) !important;
+    box-shadow: 4px 0 28px rgba(124,58,237,0.5), 2px 0 14px rgba(0,200,83,0.25) !important;
+  }
+  #wheelCenterAvatar {
+    background: linear-gradient(135deg,#7c3aed,#5b21b6,#00c853) !important;
+    box-shadow: 0 0 0 8px rgba(139,92,246,0.2), 0 6px 28px rgba(0,0,0,0.45) !important;
+  }
+
+  /* زر تبديل الحسابات العلوي */
+  #topSwitchAccountBtn > div {
+    background: linear-gradient(135deg,#7c3aed,#5b21b6) !important;
+  }
+
+  /* ── تحسين شريط Connect DZ العلوي ── */
+  #socialTopBar {
+    background: linear-gradient(135deg,#0d0520,#150d2e) !important;
+    border-bottom: 1px solid rgba(139,92,246,0.3) !important;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.4) !important;
+  }
+  #socialTopBar * { color: rgba(255,255,255,0.9); }
+
+  /* اسم Connect DZ */
+  #socialTopBar > div > div:nth-child(2) {
+    background: linear-gradient(90deg,#00c853,#8b5cf6,#e53935) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+  }
+
+  /* أيقونات تبويبات الشبكة */
+  #sTab_home, #sTab_friends, #sTab_notifs, #sTab_pages, #sTab_myprofile {
+    background: rgba(15,5,32,0.6) !important;
+  }
+  #sTab_home { border-bottom-color: #8b5cf6 !important; }
+
+  /* زر الهامبرغر */
+  #socialMenuBtn {
+    background: linear-gradient(135deg,#7c3aed,#5b21b6,#e53935) !important;
+    box-shadow: 0 2px 12px rgba(124,58,237,0.4) !important;
+  }
+  </style>
 
   <!-- زر العجلة العائم — نصف دائرة يسار -->
   <div id="wheelFloatBtn" onclick="toggleWheelMenu()">
@@ -20279,9 +20431,14 @@ function _getWheelPositions(n){
 function _buildWheel(){
   var container = document.getElementById('wheelContainer');
   if(!container) return;
-  // احذف الأيقونات القديمة
-  var old = container.querySelectorAll('.wheel-item');
+  // احذف الأيقونات القديمة والـ wrapper
+  var old = container.querySelectorAll('.wheel-item, #wheelOrbitRing');
   old.forEach(function(el){ el.remove(); });
+
+  // إنشاء حلقة دوارة للأيقونات
+  var orbitRing = document.createElement('div');
+  orbitRing.id = 'wheelOrbitRing';
+  orbitRing.style.cssText = 'position:absolute;inset:0;border-radius:50%;transform-origin:center center;';
 
   var positions = _getWheelPositions(_WHEEL_ITEMS.length);
   _WHEEL_ITEMS.forEach(function(item, i){
@@ -20300,9 +20457,42 @@ function _buildWheel(){
       closeWheelMenu();
       setTimeout(function(){ item.action(); }, 180);
     });
-    container.appendChild(el);
+    orbitRing.appendChild(el);
   });
+  container.appendChild(orbitRing);
 }
+
+/* ── إضافة CSS دوران الحلقة ── */
+(function(){
+  if(document.getElementById('_wheelOrbitStyle')) return;
+  var st = document.createElement('style');
+  st.id = '_wheelOrbitStyle';
+  st.textContent = `
+    @keyframes wheelRingOrbit {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    #wheelOrbitRing.orbiting {
+      animation: wheelRingOrbit 20s linear infinite;
+    }
+    #wheelOrbitRing.orbiting .wheel-item {
+      animation: none !important;
+    }
+    #wheelOrbitRing.orbiting .wheel-item-emoji {
+      display:inline-block;
+    }
+    /* الأيقونة تبقى مستقيمة رغم دوران الحلقة */
+    #wheelOrbitRing.orbiting .wheel-item-emoji,
+    #wheelOrbitRing.orbiting .wheel-item-label {
+      animation: wheelCounterRot 20s linear infinite;
+    }
+    @keyframes wheelCounterRot {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(-360deg); }
+    }
+  `;
+  document.head.appendChild(st);
+})();
 
 function _updateWheelAvatar(){
   var av = document.getElementById('wheelCenterAvatar');
@@ -20337,7 +20527,7 @@ function openWheelMenu(){
     wc.classList.add('open');
   }
 
-  // تحريك الأيقونات واحدة تلو الأخرى
+  // تحريك الأيقونات واحدة تلو الأخرى ثم تفعيل الدوران
   _WHEEL_ITEMS.forEach(function(item, i){
     var el = document.getElementById('wi_' + item.id);
     if(!el) return;
@@ -20347,6 +20537,12 @@ function openWheelMenu(){
     }, 60 + i * 55);
   });
 
+  // تفعيل الدوران البطيء بعد انتهاء أنيميشن الظهور
+  setTimeout(function(){
+    var ring = document.getElementById('wheelOrbitRing');
+    if(ring) ring.classList.add('orbiting');
+  }, 60 + _WHEEL_ITEMS.length * 55 + 200);
+
   // تحديث أيقونة الزر العائم
   var icon = document.getElementById('wheelFloatIcon');
   if(icon) icon.innerHTML = '✕';
@@ -20354,6 +20550,10 @@ function openWheelMenu(){
 
 function closeWheelMenu(){
   _wheelOpen = false;
+  // إيقاف الدوران
+  var ring = document.getElementById('wheelOrbitRing');
+  if(ring) ring.classList.remove('orbiting');
+
   var items = document.querySelectorAll('.wheel-item');
   items.forEach(function(el, i){
     setTimeout(function(){
@@ -36352,16 +36552,9 @@ console.log('✅ [ConnectDZ v4.0] حفظ الحساب المتكامل — مق�
   font-size:14px;font-weight:800;cursor:pointer;transition:.15s;
 }
 .cdz-mac-add-btn:hover { border-color:#1877F2;color:#1877F2;background:#EBF5FB; }
-/* زر التبديل السريع — مخفي (يُستخدم زر الأعلى فقط) */
+/* زر التبديل السريع — مخفي (تم نقله للأعلى) */
 #_cdzSwitchFab {
   display:none !important;
-}
-#_cdzSwitchFab .cdz-switch-badge {
-  position:absolute;top:-4px;right:-4px;
-  width:18px;height:18px;border-radius:50%;
-  background:#ef4444;color:white;font-size:10px;font-weight:900;
-  display:flex;align-items:center;justify-content:center;
-  border:2px solid white;
 }
 </style>
 
