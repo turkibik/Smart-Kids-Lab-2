@@ -5360,21 +5360,21 @@ function switchLoginTab(tab){
       <!-- ══ PROFILE HEADER ══ -->
       <div style="background:#0d1117;padding:0 16px 16px;position:relative;margin-top:-2px;border-bottom:1px solid rgba(255,255,255,0.06);">
         <!-- Avatar row -->
-        <div style="display:flex;align-items:flex-end;gap:14px;margin-top:-50px;margin-bottom:12px;">
-          <div style="position:relative;flex-shrink:0;" onclick="openMyFullProfile()">
-            <div id="fbProfilePicWrapper" style="width:96px;height:96px;border-radius:50%;border:3px solid #00e5a0;overflow:hidden;background:linear-gradient(135deg,#0078ff,#00e5a0);display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 0 0 4px #0d1117,0 8px 24px rgba(0,229,160,0.3);cursor:pointer;">👑
+        <div style="display:flex;align-items:flex-start;gap:14px;margin-top:-50px;margin-bottom:12px;">
+          <div style="position:relative;flex-shrink:0;">
+            <div id="fbProfilePicWrapper" style="width:96px;height:96px;border-radius:50%;border:3px solid #00e5a0;overflow:hidden;background:linear-gradient(135deg,#0078ff,#00e5a0);display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 0 0 4px #0d1117,0 8px 24px rgba(0,229,160,0.3);cursor:pointer;" onclick="document.getElementById('fbProfilePicInput').click()">👑
               <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:#B0BEC5;border:2px solid #0d1117;display:flex;align-items:center;justify-content:center;font-size:12px;z-index:5;">✓</div>
             </div>
             <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
           </div>
-          <div style="flex:1;padding-bottom:4px;">
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <div style="flex:1;padding-top:52px;">
+            <div id="fbBrandLogoOwn" style="font-size:10px;font-weight:900;color:#00e5a0;letter-spacing:2px;margin-bottom:4px;font-family:'Tajawal',sans-serif;">NEXT LEDARS DZ</div>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;">
               <div id="fbProfileName" style="font-size:20px;font-weight:900;color:white;font-family:'Tajawal',sans-serif;line-height:1.2;"></div>
               <div id="fbVerifiedBadge" style="display:none;font-size:16px;" title="موثّق">✅</div>
             </div>
-            <div id="fbProfileRole" style="font-size:12px;color:#00e5a0;margin-top:2px;font-weight:700;font-family:'Tajawal',sans-serif;"></div>
-            <!-- Stars rating row -->
-            <div id="fbVisitorRatingSum" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:3px;font-family:'Tajawal',sans-serif;"></div>
+            <div id="fbProfileRole" style="font-size:12px;color:#00e5a0;font-weight:700;font-family:'Tajawal',sans-serif;"></div>
+            <div id="fbVisitorRatingSum" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;font-family:'Tajawal',sans-serif;"></div>
           </div>
         </div>
 
@@ -5589,16 +5589,16 @@ function switchLoginTab(tab){
     <!-- ══ PROFILE INFO ══ -->
     <div style="background:#0d1117;padding:0 16px 16px;border-bottom:1px solid rgba(255,255,255,0.06);margin-top:-2px;">
       <!-- Avatar + name -->
-      <div style="display:flex;align-items:flex-end;gap:14px;margin-top:-48px;margin-bottom:12px;">
+      <div style="display:flex;align-items:flex-start;gap:14px;margin-top:-48px;margin-bottom:12px;">
         <div style="position:relative;flex-shrink:0;">
           <div id="mpvAvatar" style="width:92px;height:92px;border-radius:50%;background:linear-gradient(135deg,#0078ff,#00e5a0);display:flex;align-items:center;justify-content:center;font-size:38px;border:3px solid #00e5a0;overflow:hidden;position:relative;box-shadow:0 0 0 4px #0d1117,0 6px 20px rgba(0,229,160,0.3);">👑</div>
           <div id="mpvAvatarBadge" style="position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:#B0BEC5;border:2px solid #0d1117;display:flex;align-items:center;justify-content:center;font-size:12px;z-index:7;" title="شارة التوثيق">✓</div>
         </div>
-        <div style="flex:1;padding-bottom:4px;">
-          <div id="mpvBrandLogo" style="font-size:10px;font-weight:900;color:#00e5a0;letter-spacing:2px;margin-bottom:3px;font-family:'Tajawal',sans-serif;opacity:.7;"></div>
-          <div id="mpvName" style="font-size:19px;font-weight:900;color:white;font-family:'Tajawal',sans-serif;line-height:1.2;"></div>
+        <div style="flex:1;padding-top:52px;">
+          <div id="mpvBrandLogo" style="font-size:10px;font-weight:900;color:#00e5a0;letter-spacing:2px;margin-bottom:4px;font-family:'Tajawal',sans-serif;"></div>
+          <div id="mpvName" style="font-size:20px;font-weight:900;color:white;font-family:'Tajawal',sans-serif;line-height:1.2;margin-bottom:5px;"></div>
           <!-- Visitor star rating -->
-          <div id="mpvVisitorRatingBar" style="display:flex;align-items:center;gap:4px;margin-top:4px;">
+          <div id="mpvVisitorRatingBar" style="display:flex;align-items:center;gap:4px;">
             <div id="mpvRatingStars" style="display:flex;gap:2px;"></div>
             <div id="mpvRatingLabel" style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;font-family:'Tajawal',sans-serif;"></div>
           </div>
@@ -7967,12 +7967,12 @@ function showMyProfile(){
 function openMyFullProfile(){
   const name = getCurrentUser();
   if(!name) return;
-  const el = document.getElementById('digitalCard');
-  if(el){ el.style.display='flex'; el.style.flexDirection='column'; }
+  // ── فتح socialPanel_myprofile بدلاً من digitalCard ──
+  showSocialHome();
+  setTimeout(()=>switchSocialTab('myprofile'), 50);
   updateProfilePageData(name);
   renderProfilePosts(name);
   renderProfileBadges(name);
-  switchProfileTab('posts');
   const cover = localStorage.getItem('nld_cover_'+name.replace(/\s+/g,'_'));
   const coverDiv = document.getElementById('profileCoverImg');
   if(coverDiv && cover){ coverDiv.style.backgroundImage = 'url('+cover+')'; }
@@ -7985,13 +7985,12 @@ function openMyFullProfile(){
   }
   const codeEl = document.getElementById('ppMemberCode');
   if(codeEl) codeEl.innerText = 'NLD-' + getMemberCode(name);
-  // تحديث شارة التوثيق
   _refreshMyVerifiedBadge(name);
 }
 
 function hideMyProfile(){
-  const el = document.getElementById('digitalCard');
-  if(el) el.style.display='none';
+  // إخفاء تبويب الملف الشخصي - العودة للرئيسية
+  if(typeof switchSocialTab === 'function') switchSocialTab('feed');
 }
 
 function syncProfilePageAvatar(name){
@@ -28761,9 +28760,8 @@ window.openMyFullProfile = function(){
   const myName = (typeof getCurrentUser === 'function') ? getCurrentUser() : localStorage.getItem('sklab_user_name')||'';
   if(!myName) return;
 
-  // فتح نافذة الملف الشخصي
-  const el = document.getElementById('digitalCard');
-  if(el){ el.style.display='flex'; el.style.flexDirection='column'; }
+  // فتح socialPanel_myprofile
+  if(typeof switchSocialTab === 'function') switchSocialTab('myprofile');
 
   // جلب وتحديث الشعلة
   _refreshMyStreakDisplay(myName);
