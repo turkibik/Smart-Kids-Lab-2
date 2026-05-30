@@ -3088,10 +3088,9 @@ body.member-mode #onlineBar{
 .admin-office-bg{
   position:absolute;inset:0;
   background:
-    radial-gradient(ellipse 120% 80% at 20% -10%, rgba(255,230,200,0.55) 0%, transparent 55%),
-    radial-gradient(ellipse 80% 60% at 90% 110%, rgba(200,220,255,0.45) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(255,255,255,0.35) 0%, transparent 70%),
-    linear-gradient(160deg, rgba(255,252,248,0.97) 0%, rgba(245,248,255,0.96) 50%, rgba(250,245,255,0.97) 100%);
+    radial-gradient(ellipse 120% 80% at 20% -10%, rgba(255,230,200,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at 90% 110%, rgba(220,235,255,0.35) 0%, transparent 50%),
+    linear-gradient(160deg, rgba(255,252,248,0.98) 0%, rgba(248,250,255,0.97) 50%, rgba(255,252,255,0.98) 100%);
   backdrop-filter:blur(40px) saturate(1.6);
   -webkit-backdrop-filter:blur(40px) saturate(1.6);
 }
@@ -4569,13 +4568,13 @@ function switchLoginTab(tab){
         <span style="font-size:9px;font-weight:700;background:linear-gradient(90deg,#00c853,#e53935);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">الأصدقاء</span>
       </div>
       <div id="sTab_notifs" onclick="switchSocialTab('notifs')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="#F7B928"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-        <span style="font-size:9px;font-weight:700;color:#F7B928;">الإشعارات</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFD700"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span style="font-size:9px;font-weight:700;color:#FFD700;">الإشعارات</span>
         <span id="socialNotifBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;">0</span>
       </div>
       <div id="sTab_pages" onclick="switchSocialTab('pages')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
-        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='22' height='22' fill='#0084FF'><path d='M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z'/></svg>
-        <span style="font-size:9px;font-weight:700;color:#0084FF;">مسنجر</span>
+        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='22' height='22' fill='#00c853'><path d='M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z'/></svg>
+        <span style="font-size:9px;font-weight:700;color:#00c853;">مسنجر</span>
         <span id="socialMsgBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;"></span>
       </div>
       <div id="sTab_myprofile" onclick="if(typeof openNLDChampionship==='function'){openNLDChampionship();}else if(typeof openNldChampionship==='function'){openNldChampionship();}" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;" title="البطولة المحترفة">
@@ -7011,9 +7010,8 @@ function switchLoginTab(tab){
     <!-- Frosted white background -->
     <div class="admin-office-bg">
       <!-- Decorative orbs -->
-      <div class="admin-orb" style="width:220px;height:220px;top:-60px;right:-60px;background:radial-gradient(circle,rgba(255,180,80,0.22),transparent 70%);animation-duration:7s;"></div>
-      <div class="admin-orb" style="width:180px;height:180px;bottom:80px;left:-50px;background:radial-gradient(circle,rgba(100,160,255,0.18),transparent 70%);animation-duration:9s;animation-delay:-3s;"></div>
-      <div class="admin-orb" style="width:140px;height:140px;top:40%;right:10%;background:radial-gradient(circle,rgba(200,100,255,0.12),transparent 70%);animation-duration:11s;animation-delay:-5s;"></div>
+      <div class="admin-orb" style="width:220px;height:220px;top:-60px;right:-60px;background:radial-gradient(circle,rgba(255,180,80,0.18),transparent 70%);animation-duration:7s;"></div>
+      <div class="admin-orb" style="width:180px;height:180px;bottom:80px;left:-50px;background:radial-gradient(circle,rgba(200,220,255,0.15),transparent 70%);animation-duration:9s;animation-delay:-3s;"></div>
     </div>
 
     <!-- Scrollable content -->
@@ -7243,7 +7241,7 @@ function switchLoginTab(tab){
         <div class="admin-msg" id="adminDeductMsg"></div>
       </div>
       <div class="admin-section-head">
-        <div class="admin-icon-tile" style="background:linear-gradient(145deg,#c4b5fd,#8b5cf6,#5b21b6);">🔗</div>
+        <div class="admin-icon-tile" style="background:linear-gradient(145deg,#94a3b8,#3b82f6,#1e40af);">🔗</div>
         <div class="admin-section-head-text">
           <div class="admin-section-head-title">إدارة الجداول مباشرة</div>
           <div class="admin-section-head-sub">DATA TABLES</div>
@@ -7361,7 +7359,7 @@ function switchLoginTab(tab){
 
       <!-- ── Section: إدارة الريلز ── -->
       <div class="admin-section-head">
-        <div class="admin-icon-tile" style="background:linear-gradient(145deg,#f0abfc,#a855f7,#7e22ce);">🎬</div>
+        <div class="admin-icon-tile" style="background:linear-gradient(145deg,#67e8f9,#0891b2,#155e75);">🎬</div>
         <div class="admin-section-head-text">
           <div class="admin-section-head-title">إضافة ريلز للأعضاء</div>
           <div class="admin-section-head-sub">REELS MANAGER</div>
