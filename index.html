@@ -33937,7 +33937,13 @@ function renderDivision(divIdx, allMembers, assignments){
     ? `<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ حتى 5 صاعدين إن تفوّقوا على أسفل القسم الأعلى</div>` : '';
   const relegNote = isFull && !isBeginners && divIdx < NLD_DIVISIONS.length-1
     ? `<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ حتى 5 نازلين إن تفوّق عليهم أعلى نقاط من القسم الأدنى</div>` : '';
-  const evalNote = `<div style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:10px;padding:5px 12px;font-size:10px;font-weight:700;color:#FFA500;">📅 التقييم: كل سبت 21:00 — يشترط 10 منخرطين</div>`;
+  const evalNote = `<div id="nldEvalCountdown" style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:10px;padding:5px 12px;font-size:10px;font-weight:700;color:#FFA500;">📅 التقييم الليلة السبت 21:00 — <span id="_nldCDspan">...</span></div>`;
+  // عداد تنازلي يتحدث كل ثانية
+  setTimeout(function _cdTick(){
+    const el = document.getElementById('_nldCDspan');
+    if(el && typeof window._nldGetCountdown==='function') el.textContent = window._nldGetCountdown();
+    if(el) setTimeout(_cdTick, 1000);
+  }, 100);
 
   const hexRgb = h=>{ const m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return m?`${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)}`:'150,150,150'; };
   const drgb = hexRgb(div.color);
@@ -33972,6 +33978,58 @@ setInterval(()=>{
     }).catch(()=>{});
   }
 },60000);
+
+/* ══════════════════════════════════════════════════════════════
+   ⚡ ضبط بدء التقييم: اليوم السبت 30/05/2026 الساعة 21:00
+   — يُعاد ضبط التقييم الأسبوعي ليُنفَّذ الليلة كأسبوع أول
+   — إذا لم يُنفَّذ الأسبوع الأول بعد، يمسح السجل القديم
+   ══════════════════════════════════════════════════════════════ */
+(function _resetForFirstEval(){
+  try {
+    const EVAL_KEY  = 'nld_last_eval_week';
+    const FIRST_KEY = 'nld_first_week_done';
+    const firstDone = localStorage.getItem(FIRST_KEY) === '1';
+
+    if(!firstDone){
+      // الأسبوع الأول لم يُنفَّذ بعد → امسح أي سجل سابق لضمان التشغيل الليلة
+      localStorage.removeItem(EVAL_KEY);
+      console.log('✅ [NLD] الأسبوع الأول لم يبدأ — التقييم سيعمل الليلة السبت 30/05/2026 عند 21:00');
+    } else {
+      // الأسبوع الأول انتهى — تأكد أن الأسبوع المحفوظ لا يمنع الأسبوع القادم
+      const now = new Date();
+      const start = new Date(now.getFullYear(),0,1);
+      const currentWeek = Math.floor(((now - start)/86400000 + start.getDay())/7);
+      const stored = parseInt(localStorage.getItem(EVAL_KEY)||'-1');
+      if(stored > currentWeek){
+        localStorage.setItem(EVAL_KEY, String(currentWeek - 1));
+        console.log('✅ [NLD] تم تصحيح رقم الأسبوع المحفوظ');
+      }
+    }
+  } catch(e){}
+})();
+
+/* ── عداد تنازلي للتقييم القادم — يُعرض في شارة evalNote ── */
+window._nldGetCountdown = function(){
+  const now = new Date();
+  const day = now.getDay(); // 0=أحد … 6=سبت
+  const h   = now.getHours();
+  const min = now.getMinutes();
+  const sec = now.getSeconds();
+
+  // ثواني حتى السبت 21:00
+  const daysUntilSat = ((6 - day) + 7) % 7;
+  let secsLeft = daysUntilSat * 86400 + (21 - h - 1) * 3600 + (60 - min - 1) * 60 + (60 - sec);
+  if(day === 6 && h >= 21) secsLeft = 7 * 86400; // السبت بعد 21:00 → الأسبوع القادم
+
+  const d = Math.floor(secsLeft / 86400);
+  const hh = Math.floor((secsLeft % 86400) / 3600);
+  const mm = Math.floor((secsLeft % 3600) / 60);
+  const ss = secsLeft % 60;
+  if(d > 0) return `${d}ي ${hh}س ${mm}د`;
+  return `${hh}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+};
+
+console.log('✅ [NLDChampionship v5] البطولة المحترفة — صعود/نزول 5 — أسبوع أول الليلة 21:00');
 })();
 </script>
 
