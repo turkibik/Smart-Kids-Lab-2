@@ -5335,161 +5335,608 @@ function switchLoginTab(tab){
 
     <!-- ── REELS PANEL (ريلز) ── -->
     <div id="socialPanel_myprofile" style="display:none;background:#F0F2F5;min-height:100%;">
-      <!-- غلاف الملف الشخصي -->
-      <div style="position:relative;height:180px;background:linear-gradient(135deg,#1877F2,#00c853);overflow:hidden;margin-bottom:0;" id="profileCoverFB">
-        <div style="position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"60\" height=\"60\"><circle cx=\"30\" cy=\"30\" r=\"1\" fill=\"rgba(255,255,255,0.15)\"/></svg>') repeat;"></div>
-        <!-- زر تغيير الغلاف -->
-        <label style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.5);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;gap:4px;">
-          📷 تغيير الغلاف
-          <input type="file" accept="image/*" style="display:none;" onchange="handleFBCoverChange(event)">
-        </label>
+      <!-- ══════════════════════════════════════════════════════
+           🆕 الملف الشخصي الجديد — تصميم مطابق للصورة
+           ══════════════════════════════════════════════════════ -->
+
+      <!-- ▌1▐ غلاف الملف الشخصي -->
+      <div style="position:relative;" id="profileCoverFB">
+        <div style="width:100%;height:190px;background:linear-gradient(135deg,#6a1b9a,#283593);overflow:hidden;position:relative;">
+          <div id="profileCoverImgFB" style="width:100%;height:100%;background-size:cover;background-position:center;position:absolute;inset:0;"></div>
+          <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.4));"></div>
+          <!-- زر تغيير الغلاف -->
+          <label style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:700;color:white;cursor:pointer;display:flex;align-items:center;gap:5px;border:1px solid rgba(255,255,255,0.2);">
+            📷 تغيير الغلاف
+            <input type="file" accept="image/*" style="display:none;" onchange="handleFBCoverChange(event)">
+          </label>
+        </div>
+
+        <!-- صورة الملف الشخصي المتمركزة -->
+        <div style="display:flex;flex-direction:column;align-items:center;background:white;padding:0 16px 0;margin-top:0;position:relative;">
+          <div style="position:relative;margin-top:-52px;z-index:10;">
+            <div onclick="openMyFullProfile()" style="cursor:pointer;position:relative;">
+              <!-- حلقة التدرج حول الصورة -->
+              <div style="width:108px;height:108px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#3b82f6,#06b6d4);padding:3px;box-shadow:0 4px 20px rgba(0,0,0,0.25);">
+                <div id="fbProfilePicWrapper" style="width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,#6a1b9a,#283593);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:42px;border:3px solid white;position:relative;">👑
+                  <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:3px;right:3px;width:24px;height:24px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:11px;z-index:5;">✓</div>
+                </div>
+              </div>
+              <!-- نقطة الاتصال الخضراء -->
+              <div style="position:absolute;bottom:6px;right:6px;width:14px;height:14px;border-radius:50%;background:#22c55e;border:2px solid white;z-index:11;box-shadow:0 0 6px rgba(34,197,94,0.6);"></div>
+            </div>
+            <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
+          </div>
+
+          <!-- الاسم + التوثيق + الدور -->
+          <div style="text-align:center;margin-top:8px;margin-bottom:6px;">
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+              <div id="fbProfileName" style="font-size:22px;font-weight:900;color:#050505;font-family:'Tajawal',sans-serif;"></div>
+              <div id="fbVerifiedBadge" style="display:none;font-size:16px;" title="موثّق">✅</div>
+            </div>
+            <div id="fbProfileRole" style="font-size:12px;color:#65676B;font-weight:700;margin-top:2px;"></div>
+            <!-- تقييم النجوم -->
+            <div id="fbStarRatingRow" style="display:flex;align-items:center;justify-content:center;gap:3px;margin-top:6px;"></div>
+          </div>
+
+          <!-- إحصائيات بطاقة أفقية: الترتيب / المستوى / الأيام -->
+          <div style="display:flex;gap:0;width:100%;border-radius:14px;overflow:hidden;border:1px solid #E4E6EB;margin-bottom:12px;">
+            <div style="flex:1;padding:8px 4px;text-align:center;background:white;border-left:1px solid #E4E6EB;">
+              <div style="font-size:9px;color:#65676B;font-weight:700;">ترتيبي</div>
+              <div style="display:flex;align-items:center;justify-content:center;gap:3px;margin-top:2px;">
+                <span style="font-size:14px;">🏆</span>
+                <div id="fbRankBadge" style="font-size:14px;font-weight:900;color:#f59e0b;">#–</div>
+              </div>
+            </div>
+            <div style="flex:1;padding:8px 4px;text-align:center;background:white;border-left:1px solid #E4E6EB;">
+              <div style="font-size:9px;color:#65676B;font-weight:700;">مستواي</div>
+              <div style="display:flex;align-items:center;justify-content:center;gap:3px;margin-top:2px;">
+                <span style="font-size:14px;">🥈</span>
+                <div id="fbLevelLabel" style="font-size:12px;font-weight:900;color:#6366f1;">–</div>
+              </div>
+            </div>
+            <div style="flex:1;padding:8px 4px;text-align:center;background:white;">
+              <div style="font-size:9px;color:#65676B;font-weight:700;">في المستوى</div>
+              <div style="display:flex;align-items:center;justify-content:center;gap:3px;margin-top:2px;">
+                <span style="font-size:14px;">📅</span>
+                <div id="fbDaysInLevel" style="font-size:14px;font-weight:900;color:#050505;">–</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- شريط التقدم للمستوى التالي -->
+          <div style="width:100%;margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+              <div style="font-size:11px;font-weight:700;color:#65676B;">التقدم للمستوى التالي</div>
+              <div id="fbLevelPct" style="font-size:11px;font-weight:900;color:#6366f1;">0%</div>
+            </div>
+            <div style="height:7px;background:#E4E6EB;border-radius:4px;overflow:hidden;">
+              <div id="fbLevelBar" style="height:100%;background:linear-gradient(90deg,#6366f1,#a855f7);border-radius:4px;transition:width .7s ease;width:0%;"></div>
+            </div>
+            <div id="fbLevelPts" style="font-size:10px;color:#65676B;margin-top:3px;text-align:left;font-weight:700;"></div>
+          </div>
+        </div><!-- end white header -->
+      </div><!-- end cover wrapper -->
+
+      <!-- ▌2▐ بطاقات: بنكية / انخراط / نقاط / لوحة رقمية -->
+      <div style="padding:0 10px 10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+
+        <!-- بطاقة بنكية -->
+        <div style="background:linear-gradient(135deg,#1a237e,#1565c0);border-radius:16px;padding:12px;color:white;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(21,101,192,0.35);">
+          <div style="position:absolute;top:-15px;right:-15px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.07);"></div>
+          <div style="position:absolute;bottom:-10px;left:-10px;width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+          <div style="font-size:11px;font-weight:900;margin-bottom:8px;opacity:.9;">💳 بطاقتي البنكية</div>
+          <!-- أفاتار صغير + اسم -->
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
+            <div id="fbBankCardAvatar" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;border:1.5px solid rgba(255,255,255,0.4);">👑</div>
+            <div id="fbBankCardName" style="font-size:10px;font-weight:800;opacity:.9;line-height:1.2;"></div>
+          </div>
+          <!-- رقم البطاقة -->
+          <div id="fbBankCardNum" style="font-size:10px;letter-spacing:2px;opacity:.75;margin-bottom:8px;font-family:monospace;">•••• •••• •••• ••••</div>
+          <!-- الرصيد -->
+          <div style="font-size:9px;opacity:.7;margin-bottom:2px;">الرصيد الحالي</div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <div id="fbBankBalance" style="font-size:18px;font-weight:900;">0</div>
+            <div style="font-size:12px;opacity:.8;">دج</div>
+          </div>
+          <!-- النقاط/النجوم -->
+          <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.15);display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:9px;opacity:.7;">النقاط (النجوم)</div>
+              <div style="display:flex;align-items:center;gap:3px;">
+                <span style="font-size:12px;">⭐</span>
+                <div id="fbBankStars" style="font-size:13px;font-weight:900;">0</div>
+              </div>
+            </div>
+            <div style="font-size:9px;opacity:.7;">50 نجمة = 30 دج</div>
+          </div>
+          <button onclick="showBalanceModal()" style="width:100%;margin-top:8px;padding:6px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;">إدارة البطاقات 💳</button>
+        </div>
+
+        <!-- بطاقة الانخراط -->
+        <div style="background:linear-gradient(135deg,#1b5e20,#2e7d32);border-radius:16px;padding:12px;color:white;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(46,125,50,0.35);">
+          <div style="position:absolute;top:-15px;left:-15px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.07);"></div>
+          <div style="font-size:9px;font-weight:900;color:#a5d6a7;letter-spacing:1.5px;margin-bottom:3px;">NEXT LEDARS DZ</div>
+          <div style="font-size:11px;font-weight:900;margin-bottom:8px;">🪪 بطاقة الانخراط</div>
+          <!-- صورة + اسم + عضو نشط -->
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
+            <div id="fbMemberCardAvatar" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;border:1.5px solid rgba(255,255,255,0.4);">👑</div>
+            <div>
+              <div id="fbMemberCardName" style="font-size:10px;font-weight:800;line-height:1.2;"></div>
+              <div style="display:flex;align-items:center;gap:3px;margin-top:1px;">
+                <div style="width:6px;height:6px;border-radius:50%;background:#69f0ae;box-shadow:0 0 4px rgba(105,240,174,0.8);"></div>
+                <div style="font-size:9px;color:#a5d6a7;font-weight:700;">عضو نشط</div>
+              </div>
+            </div>
+          </div>
+          <!-- رمز QR تمثيلي -->
+          <div style="width:44px;height:44px;background:white;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;overflow:hidden;">
+            <div style="font-size:28px;">▦</div>
+          </div>
+          <!-- ID -->
+          <div id="fbMemberCardID" style="font-size:9px;opacity:.75;font-family:monospace;margin-bottom:6px;">ID: NL-DZ-2024-0000</div>
+          <button onclick="showMemberCard()" style="width:100%;padding:6px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;">عرض البطاقة 🪪</button>
+        </div>
+
+        <!-- اجمع النقاط -->
+        <div style="background:linear-gradient(135deg,#4527a0,#6a1b9a);border-radius:16px;padding:12px;color:white;text-align:center;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(106,27,154,0.4);">
+          <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.06);"></div>
+          <div style="font-size:11px;font-weight:900;margin-bottom:6px;opacity:.9;">🏆 اجمع النقاط</div>
+          <div style="font-size:28px;margin:4px 0;">🏆</div>
+          <div id="fbTotalPts" style="font-size:22px;font-weight:900;color:#e0aaff;margin-bottom:2px;">0</div>
+          <div style="font-size:10px;opacity:.8;margin-bottom:4px;">نقطة</div>
+          <div id="fbWeeklyPtsGain" style="font-size:11px;color:#69f0ae;font-weight:800;">+0 هذا الأسبوع ▲</div>
+          <button onclick="openPointsRules()" style="width:100%;margin-top:8px;padding:6px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;">تحديثات جديدة 🎯</button>
+        </div>
+
+        <!-- اللوحة الرقمية -->
+        <div style="background:linear-gradient(135deg,#e65100,#f57c00);border-radius:16px;padding:12px;color:white;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(230,81,0,0.4);">
+          <div style="position:absolute;top:-20px;left:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.06);"></div>
+          <div style="font-size:11px;font-weight:900;margin-bottom:4px;opacity:.9;">📊 اللوحة الرقمية</div>
+          <div style="font-size:9px;opacity:.75;margin-bottom:3px;">المستوى</div>
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+            <span style="font-size:16px;">🥈</span>
+            <div id="fbDigitalLevel" style="font-size:13px;font-weight:900;">–</div>
+          </div>
+          <!-- مقياس دائري بسيط -->
+          <div style="position:relative;width:60px;height:60px;margin:0 auto 6px;">
+            <svg viewBox="0 0 36 36" style="width:60px;height:60px;transform:rotate(-90deg);">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3"/>
+              <circle id="fbDigitalArc" cx="18" cy="18" r="15.9" fill="none" stroke="#FFD54F" stroke-width="3" stroke-dasharray="0,100" stroke-linecap="round"/>
+            </svg>
+            <div id="fbDigitalPct" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:white;">0%</div>
+          </div>
+          <div id="fbDigitalPtsInfo" style="font-size:9px;text-align:center;opacity:.8;margin-bottom:6px;">0 / 10,000 نقطة</div>
+          <button onclick="openDigitalDashboard()" style="width:100%;padding:6px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;">عرض التفاصيل 📊</button>
+        </div>
+      </div><!-- end cards grid -->
+
+      <!-- ▌3▐ النجوم -->
+      <div style="background:white;border-radius:16px;margin:0 10px 10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:12px;">⭐ النجوم</div>
+        <!-- نجوم كبيرة أفقية -->
+        <div style="display:flex;gap:8px;margin-bottom:12px;justify-content:center;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <span id="fbStarActive" style="font-size:32px;filter:drop-shadow(0 2px 6px rgba(245,197,24,0.5));">⭐</span>
+            <div style="font-size:10px;font-weight:700;color:#65676B;">نشط</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <span id="fbStarCreative" style="font-size:32px;opacity:.35;">⭐</span>
+            <div style="font-size:10px;font-weight:700;color:#65676B;">مبدع</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <span id="fbStarCommitted" style="font-size:32px;opacity:.35;">⭐</span>
+            <div style="font-size:10px;font-weight:700;color:#65676B;">ملتزم</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <span id="fbStarAmbitious" style="font-size:32px;opacity:.25;">⭐</span>
+            <div style="font-size:10px;font-weight:700;color:#9CA3AF;">طموح 🔒</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <span id="fbStarLeader" style="font-size:32px;opacity:.25;">⭐</span>
+            <div style="font-size:10px;font-weight:700;color:#9CA3AF;">قائد 🔒</div>
+          </div>
+        </div>
+        <div id="fbStarsRating" style="display:flex;flex-direction:column;gap:6px;"></div>
+        <div id="fbTotalStars" style="margin-top:8px;text-align:center;font-size:11px;color:#65676B;font-weight:700;"></div>
+        <div id="fbVisitorRatingSum" style="text-align:center;font-size:11px;color:#65676B;margin-top:4px;"></div>
+        <p style="font-size:10px;color:#9CA3AF;text-align:center;margin-top:8px;line-height:1.6;">اجمع المزيد من النقاط لفتح النجوم والحصول على مزايا حصرية</p>
       </div>
 
-      <!-- صورة الملف الشخصي + الاسم -->
-      <div style="background:white;padding:0 16px 16px;position:relative;margin-top:-2px;">
-        <!-- صورة الملف (الضغط المفرد يفتح الملف الشخصي / الضغط المطوّل يغيّر الصورة) -->
-        <div style="position:relative;display:inline-block;margin-top:-50px;margin-bottom:10px;">
-          <div style="display:block;cursor:pointer;" onclick="openMyFullProfile()">
-            <div id="fbProfilePicWrapper" style="width:100px;height:100px;border-radius:50%;border:4px solid white;overflow:hidden;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 4px 14px rgba(0,0,0,0.18);position:relative;">👑
-              <!-- شارة التوثيق على صورة الملف الشخصي — رمادية حتى 300 نجمة -->
-              <div id="fbAvatarVerifiedBadge" style="position:absolute;bottom:4px;right:4px;width:26px;height:26px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:5;" title="شارة التوثيق">✓</div>
-            </div>
+      <!-- ▌4▐ لوحة البيانات والتفاعل -->
+      <div style="background:white;border-radius:16px;margin:0 10px 10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:12px;">📈 لوحة البيانات والتفاعل</div>
+        <!-- إحصائيات أفقية -->
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px;text-align:center;">
+          <div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;margin-bottom:3px;">👁 مشاهدات</div>
+            <div id="fbStatViews" style="font-size:13px;font-weight:900;color:#050505;">0</div>
           </div>
-          <input type="file" accept="image/*" id="fbProfilePicInput" style="display:none;" onchange="handleFBProfilePicChange(event)">
-        </div>
-
-        <!-- الاسم والتوثيق -->
-        <div style="margin-bottom:6px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div id="fbProfileName" style="font-size:22px;font-weight:900;color:#050505;"></div>
-            <div id="fbVerifiedBadge" style="display:none;font-size:18px;" title="موثّق">✅</div>
+          <div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;margin-bottom:3px;">💬 تعليقات</div>
+            <div id="fbStatComments" style="font-size:13px;font-weight:900;color:#050505;">0</div>
           </div>
-          <div id="fbProfileRole" style="font-size:13px;color:#65676B;margin-top:2px;font-weight:600;"></div>
-        </div>
-
-        <!-- عداد الأصدقاء / المشاهدات / التفاعل / المنشورات -->
-        <div style="display:flex;gap:0;margin:8px 0 10px;border-radius:12px;overflow:hidden;background:#F0F2F5;">
-          <div style="flex:1;padding:8px 2px;text-align:center;border-left:1px solid #E4E6EB;">
-            <div id="fbFollowersCount" style="font-size:15px;font-weight:900;color:#050505;">0</div>
-            <div style="font-size:8px;color:#65676B;font-weight:700;">أصدقاء</div>
+          <div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;margin-bottom:3px;">❤️ إعجابات</div>
+            <div id="fbStatLikes" style="font-size:13px;font-weight:900;color:#050505;">0</div>
           </div>
-          <div style="flex:1;padding:8px 2px;text-align:center;border-left:1px solid #E4E6EB;">
-            <div id="fbViewsCount" style="font-size:15px;font-weight:900;color:#050505;">0</div>
-            <div style="font-size:8px;color:#65676B;font-weight:700;">مشاهدات</div>
+          <div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;margin-bottom:3px;">🔗 مشاركات</div>
+            <div id="fbStatShares" style="font-size:13px;font-weight:900;color:#050505;">0</div>
           </div>
-          <div style="flex:1;padding:8px 2px;text-align:center;border-left:1px solid #E4E6EB;">
-            <div id="fbPostsCount" style="font-size:15px;font-weight:900;color:#1877F2;">0</div>
-            <div style="font-size:8px;color:#65676B;font-weight:700;">تفاعل</div>
-          </div>
-          <div style="flex:1;padding:8px 2px;text-align:center;">
-            <div id="fbFollowingCount" style="font-size:15px;font-weight:900;color:#00c853;">0</div>
-            <div style="font-size:8px;color:#65676B;font-weight:700;">منشورات</div>
+          <div>
+            <div style="font-size:9px;color:#65676B;font-weight:700;margin-bottom:3px;">👥 أصدقاء</div>
+            <div id="fbFollowersCount" style="font-size:13px;font-weight:900;color:#050505;">0</div>
           </div>
         </div>
+        <!-- منحنى بسيط بـ canvas -->
+        <canvas id="fbActivityChart" height="60" style="width:100%;border-radius:8px;background:#F8F9FA;display:block;"></canvas>
+        <div style="font-size:10px;color:#9CA3AF;text-align:center;margin-top:5px;">تطور نشاطك خلال الأسابيع الماضية</div>
+      </div>
 
-        <!-- شعلة الدخول والمداليا -->
-        <div style="display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:12px;padding:10px 14px;margin-bottom:10px;">
-          <span id="fbStreakFlame" style="font-size:28px;transition:all .3s;">🥉</span>
+      <!-- ▌5▐ شعلة المشاركة اليومية -->
+      <div style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:16px;margin:0 10px 10px;padding:14px;border:1.5px solid rgba(230,81,0,0.2);">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
           <div style="flex:1;">
-            <div style="font-size:13px;font-weight:900;color:#e65100;">🔥 نظام الشعلة</div>
+            <div style="font-size:13px;font-weight:900;color:#e65100;margin-bottom:3px;">🔥 نظام الشعلة</div>
             <div id="fbStreakInfo" style="font-size:11px;color:#bf360c;font-weight:700;">جارٍ التحميل...</div>
           </div>
-          <div style="text-align:center;background:rgba(255,255,255,0.5);border-radius:8px;padding:4px 8px;min-width:44px;">
+          <span id="fbStreakFlame" style="font-size:38px;">🥉</span>
+          <div style="text-align:center;background:rgba(255,255,255,0.5);border-radius:10px;padding:6px 10px;min-width:50px;margin-right:6px;">
             <div style="font-size:8px;color:#e65100;font-weight:700;">التالي</div>
-            <div id="fbStreakNext" style="font-size:10px;font-weight:900;color:#bf360c;">45 يوم</div>
+            <div id="fbStreakNext" style="font-size:12px;font-weight:900;color:#bf360c;">45 يوم</div>
           </div>
         </div>
+      </div>
 
-        <!-- بيانات التسجيل -->
-        <div id="fbRegInfo" style="background:#F0F2F5;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#65676B;line-height:1.9;"></div>
+      <!-- ▌6▐ البورصة وسوق العمل / كيفية الحصول على النقاط -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 10px 10px;">
 
-        <!-- شريط التقدم والمستوى -->
-        <div style="background:#F0F2F5;border-radius:14px;padding:14px;margin-bottom:12px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div style="font-size:13px;font-weight:900;color:#050505;">المستوى</div>
-            <div id="fbLevelBadge" style="background:linear-gradient(135deg,#1877F2,#00c853);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:900;color:white;">🚀 1</div>
+        <!-- البورصة -->
+        <div style="background:white;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+          <div style="font-size:12px;font-weight:900;color:#050505;margin-bottom:8px;">💼 البورصة وسوق العمل</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;">💼</div>
+            <div>
+              <div style="font-size:9px;color:#65676B;font-weight:700;">فرص عمل متاحة</div>
+              <div id="fbJobsCount" style="font-size:18px;font-weight:900;color:#1877F2;">24</div>
+            </div>
           </div>
-          <div style="height:8px;background:#E4E6EB;border-radius:4px;overflow:hidden;margin-bottom:6px;">
-            <div id="fbLevelBar" style="height:100%;background:linear-gradient(90deg,#1877F2,#00c853);border-radius:4px;transition:width .6s ease;width:0%;"></div>
+          <div style="background:#F0F9FF;border-radius:10px;padding:8px;margin-bottom:8px;">
+            <div style="font-size:9px;color:#65676B;font-weight:700;">مؤشر السوق</div>
+            <div style="font-size:16px;font-weight:900;color:#1877F2;">7,845.32</div>
+            <div style="font-size:10px;color:#22c55e;font-weight:800;">+2.45% ▲</div>
           </div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:#65676B;font-weight:700;">
-            <span id="fbLevelPts">0 نقطة</span>
-            <span>3000 نقطة للمستوى التالي</span>
-          </div>
+          <button onclick="openJobsMarket()" style="width:100%;padding:7px;background:linear-gradient(135deg,#1877F2,#0d5bda);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;">تصفح الفرص</button>
         </div>
 
-        <!-- النقاط والرصيد -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-          <div style="background:#F0F2F5;border-radius:12px;padding:14px;text-align:center;">
-            <div id="fbTotalPts" style="font-size:22px;font-weight:900;color:#1877F2;">0</div>
-            <div style="font-size:11px;color:#65676B;font-weight:700;">نقطة إجمالية</div>
+        <!-- كيفية الحصول على النقاط -->
+        <div style="background:white;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+          <div style="font-size:12px;font-weight:900;color:#050505;margin-bottom:8px;">🎯 كيفية الحصول على النقاط</div>
+          <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#F0F9FF;border-radius:8px;padding:5px 8px;">
+              <span style="font-size:10px;color:#050505;font-weight:700;">📢 منشور</span>
+              <span style="font-size:11px;font-weight:900;color:#1877F2;">+50</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#F0FFF4;border-radius:8px;padding:5px 8px;">
+              <span style="font-size:10px;color:#050505;font-weight:700;">🖼️ صورة</span>
+              <span style="font-size:11px;font-weight:900;color:#22c55e;">+50</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#FFF7ED;border-radius:8px;padding:5px 8px;">
+              <span style="font-size:10px;color:#050505;font-weight:700;">🎬 فيديو</span>
+              <span style="font-size:11px;font-weight:900;color:#f97316;">+70</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#F5F3FF;border-radius:8px;padding:5px 8px;">
+              <span style="font-size:10px;color:#050505;font-weight:700;">📖 قصة</span>
+              <span style="font-size:11px;font-weight:900;color:#7c3aed;">+15</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#FFF0F3;border-radius:8px;padding:5px 8px;">
+              <span style="font-size:10px;color:#050505;font-weight:700;">💬 تعليق</span>
+              <span style="font-size:11px;font-weight:900;color:#e11d48;">+3</span>
+            </div>
           </div>
-          <div style="background:#F0F2F5;border-radius:12px;padding:14px;text-align:center;">
-            <div id="fbBalance" style="font-size:22px;font-weight:900;color:#00c853;">0 دج</div>
-            <div style="font-size:11px;color:#65676B;font-weight:700;">الرصيد</div>
-          </div>
+          <button onclick="openPointsRules()" style="width:100%;padding:7px;background:#F0F2F5;border:none;border-radius:8px;color:#050505;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800;cursor:pointer;">عرض جميع القواعد</button>
         </div>
+      </div>
 
-        <!-- 7 نجوم التقييم — كما يراها الآخرون في ملفك -->
-        <div style="background:#F0F2F5;border-radius:14px;padding:14px;margin-bottom:14px;">
-          <div style="font-size:13px;font-weight:900;color:#050505;margin-bottom:4px;">⭐ تقييمك (7 معايير × 3000 نجم = توثيق)</div>
-          <div style="font-size:10px;color:#65676B;margin-bottom:10px;">هذه النجوم مخصصة لملفك وتظهر للآخرين كما تراها</div>
-          <div id="fbStarsRating" style="display:flex;flex-direction:column;gap:8px;"></div>
-          <div id="fbTotalStars" style="margin-top:10px;text-align:center;font-size:12px;color:#65676B;font-weight:700;"></div>
-          <!-- معدل تقييم الزوار لملفك -->
-          <div id="fbVisitorRatingSum" style="margin-top:8px;text-align:center;font-size:11px;color:#65676B;"></div>
-        </div>
+      <!-- ▌7▐ بيانات التسجيل + محفظة النجوم -->
+      <div style="background:white;border-radius:16px;margin:0 10px 10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div id="fbRegInfo" style="font-size:12px;color:#65676B;line-height:2;margin-bottom:10px;"></div>
 
-        <!-- ── محفظة النجوم للتوثيق ── -->
-        <div style="background:linear-gradient(135deg,#FFF8E1,#FFF3CD);border:1.5px solid rgba(245,197,24,0.4);border-radius:14px;padding:14px;margin-bottom:14px;">
+        <!-- محفظة النجوم -->
+        <div style="background:linear-gradient(135deg,#FFF8E1,#FFF3CD);border:1.5px solid rgba(245,197,24,0.4);border-radius:14px;padding:12px;margin-bottom:10px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
             <div style="font-size:13px;font-weight:900;color:#050505;">🌟 محفظة النجوم</div>
-            <div id="fbStarsWalletBadge" style="background:linear-gradient(90deg,#f5c518,#f97316);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:900;color:white;">0 ⭐</div>
+            <div id="fbStarsWalletBadge" style="background:linear-gradient(90deg,#f5c518,#f97316);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:900;color:white;">0 ⭐</div>
           </div>
-          <div style="font-size:11px;color:#65676B;margin-bottom:8px;">كل تقييم من أصدقائك يُضاف هنا لتوثيق حسابك</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
             <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;">
-              <div id="fbStarsWalletTotal" style="font-size:18px;font-weight:900;color:#f59e0b;">0</div>
-              <div style="font-size:9px;color:#65676B;font-weight:700;">إجمالي النجوم</div>
+              <div id="fbStarsWalletTotal" style="font-size:16px;font-weight:900;color:#f59e0b;">0</div>
+              <div style="font-size:9px;color:#65676B;font-weight:700;">إجمالي</div>
             </div>
             <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;">
-              <div id="fbStarsWalletRaters" style="font-size:18px;font-weight:900;color:#1877F2;">0</div>
-              <div style="font-size:9px;color:#65676B;font-weight:700;">عدد المقيّمين</div>
+              <div id="fbStarsWalletRaters" style="font-size:16px;font-weight:900;color:#1877F2;">0</div>
+              <div style="font-size:9px;color:#65676B;font-weight:700;">مقيّمين</div>
             </div>
             <div style="background:white;border-radius:10px;padding:8px 4px;text-align:center;">
-              <div id="fbStarsWalletAvg" style="font-size:18px;font-weight:900;color:#00c853;">0</div>
-              <div style="font-size:9px;color:#65676B;font-weight:700;">معدل التقييم</div>
+              <div id="fbStarsWalletAvg" style="font-size:16px;font-weight:900;color:#22c55e;">0</div>
+              <div style="font-size:9px;color:#65676B;font-weight:700;">معدل</div>
             </div>
           </div>
-          <!-- شريط التقدم نحو التوثيق -->
-          <div style="margin-bottom:6px;">
+          <div style="margin-bottom:4px;">
             <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-              <span style="font-size:10px;font-weight:700;color:#050505;">التقدم نحو التوثيق</span>
+              <span style="font-size:10px;font-weight:700;color:#050505;">نحو التوثيق</span>
               <span id="fbWalletProgressLabel" style="font-size:10px;color:#65676B;">0 / 150 ⭐</span>
             </div>
-            <div style="height:6px;background:#E4E6EB;border-radius:3px;overflow:hidden;">
-              <div id="fbWalletProgressBar" style="height:100%;background:linear-gradient(90deg,#f5c518,#f97316);border-radius:3px;transition:width .6s ease;width:0%;"></div>
+            <div style="height:5px;background:#E4E6EB;border-radius:3px;overflow:hidden;">
+              <div id="fbWalletProgressBar" style="height:100%;background:linear-gradient(90deg,#f5c518,#f97316);border-radius:3px;transition:width .6s;width:0%;"></div>
             </div>
           </div>
-          <div id="fbStarsWalletStatus" style="font-size:11px;text-align:center;color:#65676B;font-weight:700;"></div>
+          <div id="fbStarsWalletStatus" style="font-size:11px;text-align:center;color:#65676B;font-weight:700;margin-top:4px;"></div>
         </div>
 
         <!-- أزرار الإجراءات -->
-        <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <div style="display:flex;gap:8px;">
           <button onclick="showProfileEditMenu()" style="flex:1;padding:9px;background:#E4E6EB;border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:#050505;cursor:pointer;">✏️ تعديل الملف</button>
-          <button onclick="showBalanceModal()" style="flex:1;padding:9px;background:linear-gradient(135deg,#00c853,#1877F2);border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;">💰 رصيدي</button>
+          <button onclick="showBalanceModal()" style="flex:1;padding:9px;background:linear-gradient(135deg,#22c55e,#1877F2);border:none;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;color:white;cursor:pointer;">💰 رصيدي</button>
         </div>
+      </div>
 
-        <!-- منشورات الملف الشخصي -->
+      <!-- ▌8▐ منشوراتي -->
+      <div style="background:white;border-radius:16px;margin:0 10px 14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
         <div style="font-size:14px;font-weight:900;color:#050505;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #E4E6EB;">📝 منشوراتي</div>
         <div id="fbProfilePostsContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
       </div>
-    </div>
+
+    </div><!-- end socialPanel_myprofile -->
 
   </div><!-- end scrollable -->
 
   <!-- ── (removed bottom tab bar – moved to top) ── -->
 </div>
+
+<!-- 🔧 سكريبت تهيئة الملف الشخصي الجديد -->
+<script>
+(function(){
+'use strict';
+
+/* ── تحديث لوحة الملف الشخصي الجديدة ── */
+window._refreshNewProfileUI = function(){
+  try {
+    var name = (typeof getCurrentUser==='function') ? getCurrentUser() : localStorage.getItem('sklab_user_name') || '';
+    var pts  = parseInt(localStorage.getItem('sklab_points_'+name)||localStorage.getItem('sklab_total_points')||'0',10)||0;
+    var stars= parseInt(localStorage.getItem('sklab_stars_'+name)||'0',10)||0;
+    var rank = localStorage.getItem('sklab_rank_'+name)||'–';
+    var friends= parseInt(localStorage.getItem('sklab_friends_count_'+name)||'0',10)||0;
+    var regDate = localStorage.getItem('sklab_reg_date_'+name)||'';
+    var balance = parseFloat(localStorage.getItem('sklab_balance_'+name)||'0')||0;
+    var avatar  = localStorage.getItem('sklab_avatar_'+name)||'';
+    var coverUrl= localStorage.getItem('sklab_cover_'+name)||'';
+
+    /* الاسم */
+    var el;
+    el=document.getElementById('fbProfileName');  if(el) el.textContent=name||'';
+    el=document.getElementById('fbBankCardName'); if(el) el.textContent=name||'';
+    el=document.getElementById('fbMemberCardName');if(el)el.textContent=name||'';
+    el=document.getElementById('fbMemberCardID'); if(el) el.textContent='ID: NL-DZ-'+new Date().getFullYear()+'-'+(Math.floor(Math.random()*9000)+1000);
+
+    /* الرصيد / النقاط / النجوم */
+    el=document.getElementById('fbTotalPts');  if(el) el.textContent=pts.toLocaleString('ar-DZ');
+    el=document.getElementById('fbBankBalance');if(el)el.textContent=balance.toLocaleString('ar-DZ');
+    el=document.getElementById('fbBankStars'); if(el)el.textContent=stars.toLocaleString('ar-DZ');
+
+    /* الترتيب */
+    el=document.getElementById('fbRankBadge'); if(el) el.textContent='#'+rank;
+
+    /* المستوى: كل 10,000 نقطة = مستوى */
+    var levels=['مبتدئ','فضي 1','فضي 2','ذهبي 1','ذهبي 2','ماسي','أسطوري'];
+    var levelIdx = Math.min(Math.floor(pts/10000), levels.length-1);
+    var levelName= levels[levelIdx]||'مبتدئ';
+    var ptsInLevel= pts % 10000;
+    var pctInLevel= Math.min(Math.round(ptsInLevel/100), 100);
+
+    el=document.getElementById('fbLevelBadge');  if(el) el.textContent='🚀 '+levelName;
+    el=document.getElementById('fbLevelLabel');   if(el) el.textContent=levelName;
+    el=document.getElementById('fbDigitalLevel'); if(el) el.textContent=levelName;
+    el=document.getElementById('fbLevelBar');     if(el) el.style.width=pctInLevel+'%';
+    el=document.getElementById('fbLevelPct');     if(el) el.textContent=pctInLevel+'%';
+    el=document.getElementById('fbLevelPts');     if(el) el.textContent=ptsInLevel.toLocaleString('ar-DZ')+' / 10,000 نقطة';
+    el=document.getElementById('fbDigitalPct');   if(el) el.textContent=pctInLevel+'%';
+    el=document.getElementById('fbDigitalPtsInfo');if(el)el.textContent=ptsInLevel.toLocaleString('ar-DZ')+' / 10,000 نقطة';
+
+    /* قوس SVG */
+    var arc=document.getElementById('fbDigitalArc');
+    if(arc){ var da=(pctInLevel/100)*100; arc.setAttribute('stroke-dasharray',da+','+100); }
+
+    /* الأصدقاء */
+    el=document.getElementById('fbFollowersCount');if(el)el.textContent=friends.toLocaleString('ar-DZ');
+
+    /* الصورة الشخصية */
+    if(avatar){
+      var pw=document.getElementById('fbProfilePicWrapper');
+      if(pw){
+        pw.innerHTML='<img src="'+avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
+        /* شارة التوثيق */
+        var bd=document.createElement('div');
+        bd.id='fbAvatarVerifiedBadge';
+        bd.style.cssText='position:absolute;bottom:3px;right:3px;width:24px;height:24px;border-radius:50%;background:#B0BEC5;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:11px;z-index:5;';
+        bd.textContent='✓';
+        pw.appendChild(bd);
+      }
+      var ba=document.getElementById('fbBankCardAvatar');    if(ba){ ba.innerHTML='<img src="'+avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; }
+      var ma=document.getElementById('fbMemberCardAvatar'); if(ma){ ma.innerHTML='<img src="'+avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; }
+    }
+
+    /* صورة الغلاف */
+    if(coverUrl){
+      var ci=document.getElementById('profileCoverImgFB');
+      if(ci) ci.style.backgroundImage='url('+coverUrl+')';
+    }
+
+    /* معلومات التسجيل */
+    el=document.getElementById('fbRegInfo');
+    if(el && regDate){
+      el.innerHTML='📅 تاريخ الانضمام: <strong>'+regDate+'</strong>';
+    }
+
+    /* نجوم التقييم بالصف العلوي */
+    var starRow=document.getElementById('fbStarRatingRow');
+    if(starRow){
+      var starsVal = parseInt(localStorage.getItem('sklab_visitor_rating_'+name)||'0',10)||0;
+      var filled=Math.min(Math.floor(starsVal/1000),5);
+      starRow.innerHTML='';
+      for(var s=0;s<5;s++){
+        var sp=document.createElement('span');
+        sp.style.fontSize='16px';
+        sp.textContent=s<filled?'⭐':'☆';
+        if(s>=filled) sp.style.opacity='.3';
+        starRow.appendChild(sp);
+      }
+    }
+
+    /* رسم منحنى النشاط */
+    _drawActivityChart();
+
+    /* تحديث بطاقة البنك */
+    var cardNum=document.getElementById('fbBankCardNum');
+    if(cardNum){
+      var storedCard=localStorage.getItem('sklab_card_number_'+name)||'';
+      if(storedCard.length>=12){
+        var masked=storedCard.replace(/(\d{4})(?=\d)/g,'$1 ');
+        cardNum.textContent=masked;
+      }
+    }
+
+    /* إحصائيات التفاعل */
+    var views   =parseInt(localStorage.getItem('sklab_total_views_'+name)||'0',10)||0;
+    var comments=parseInt(localStorage.getItem('sklab_total_comments_'+name)||'0',10)||0;
+    var likes   =parseInt(localStorage.getItem('sklab_total_likes_'+name)||'0',10)||0;
+    var shares  =parseInt(localStorage.getItem('sklab_total_shares_'+name)||'0',10)||0;
+    el=document.getElementById('fbStatViews');   if(el) el.textContent=_fmtNum(views);
+    el=document.getElementById('fbStatComments');if(el) el.textContent=_fmtNum(comments);
+    el=document.getElementById('fbStatLikes');   if(el) el.textContent=_fmtNum(likes);
+    el=document.getElementById('fbStatShares');  if(el) el.textContent=_fmtNum(shares);
+    el=document.getElementById('fbViewsCount');  if(el) el.textContent=_fmtNum(views);
+    el=document.getElementById('fbPostsCount');  if(el) el.textContent=_fmtNum(likes);
+    el=document.getElementById('fbFollowingCount');if(el) el.textContent=_fmtNum(parseInt(localStorage.getItem('sklab_posts_count_'+name)||'0',10)||0);
+
+    /* نقاط هذا الأسبوع */
+    var weekly=parseInt(localStorage.getItem('sklab_weekly_pts_'+name)||'0',10)||0;
+    el=document.getElementById('fbWeeklyPtsGain');if(el) el.textContent='+'+(weekly>0?weekly.toLocaleString('ar-DZ'):0)+' هذا الأسبوع ▲';
+
+    /* أيام في المستوى الحالي */
+    el=document.getElementById('fbDaysInLevel');
+    if(el){
+      var dil=parseInt(localStorage.getItem('sklab_days_in_level_'+name)||'0',10)||0;
+      el.textContent=dil||'–';
+    }
+
+  } catch(e){ console.warn('_refreshNewProfileUI error:',e); }
+};
+
+/* ── تنسيق الأرقام الكبيرة ── */
+function _fmtNum(n){
+  if(n>=1000000) return (n/1000000).toFixed(1)+'M';
+  if(n>=1000)    return (n/1000).toFixed(1)+'K';
+  return ''+n;
+}
+
+/* ── رسم منحنى النشاط ── */
+window._drawActivityChart = function(){
+  var c=document.getElementById('fbActivityChart');
+  if(!c||!c.getContext) return;
+  c.width=c.offsetWidth||300;
+  var ctx=c.getContext('2d');
+  var w=c.width, h=60;
+  ctx.clearRect(0,0,w,h);
+  /* بيانات وهمية تُستبدل لاحقاً بالبيانات الحقيقية */
+  var data=[20,35,28,55,42,60,48,70,55,65,72,80];
+  var max=Math.max.apply(null,data)||1;
+  var step=w/(data.length-1);
+  /* تدرج -->  */
+  var grad=ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'rgba(99,102,241,0.4)');
+  grad.addColorStop(1,'rgba(99,102,241,0)');
+  ctx.beginPath();
+  ctx.moveTo(0,h-(data[0]/max)*(h-8)-4);
+  for(var i=1;i<data.length;i++){
+    var x=i*step, y=h-(data[i]/max)*(h-8)-4;
+    var px=(i-1)*step, py=h-(data[i-1]/max)*(h-8)-4;
+    var cpx1=px+step/3, cpy1=py, cpx2=x-step/3, cpy2=y;
+    ctx.bezierCurveTo(cpx1,cpy1,cpx2,cpy2,x,y);
+  }
+  /* منطقة التعبئة */
+  ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+  /* الخط */
+  ctx.beginPath();
+  ctx.moveTo(0,h-(data[0]/max)*(h-8)-4);
+  for(var j=1;j<data.length;j++){
+    var xj=j*step, yj=h-(data[j]/max)*(h-8)-4;
+    var pxj=(j-1)*step, pyj=h-(data[j-1]/max)*(h-8)-4;
+    ctx.bezierCurveTo(pxj+step/3,pyj,xj-step/3,yj,xj,yj);
+  }
+  ctx.strokeStyle='#6366f1'; ctx.lineWidth=2; ctx.stroke();
+  /* نقاط دائرية مميزة */
+  for(var k=0;k<data.length;k++){
+    var xk=k*step, yk=h-(data[k]/max)*(h-8)-4;
+    ctx.beginPath(); ctx.arc(xk,yk,3,0,Math.PI*2);
+    ctx.fillStyle='#6366f1'; ctx.fill();
+    ctx.strokeStyle='white'; ctx.lineWidth=1.5; ctx.stroke();
+  }
+};
+
+/* ── فتح قواعد النقاط ── */
+window.openPointsRules = window.openPointsRules || function(){
+  if(typeof showToast==='function') showToast('📋 قواعد النقاط — قريباً');
+};
+
+/* ── فتح لوحة رقمية ── */
+window.openDigitalDashboard = window.openDigitalDashboard || function(){
+  if(typeof showBalanceModal==='function') showBalanceModal();
+};
+
+/* ── فتح سوق العمل ── */
+window.openJobsMarket = window.openJobsMarket || function(){
+  if(typeof showToast==='function') showToast('💼 سوق العمل — قريباً');
+};
+
+/* ── عرض بطاقة العضو ── */
+window.showMemberCard = window.showMemberCard || function(){
+  if(typeof openDigitalCard==='function') openDigitalCard();
+  else if(typeof showToast==='function') showToast('🪪 بطاقة الانخراط — قريباً');
+};
+
+/* تحديث عند فتح تبويب الملف الشخصي */
+var _origShowMyProfile = window.showMyProfile;
+window.showMyProfile = function(){
+  if(typeof _origShowMyProfile==='function') _origShowMyProfile.apply(this,arguments);
+  setTimeout(window._refreshNewProfileUI, 200);
+};
+
+/* تحديث عند تسجيل الدخول */
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    window._refreshNewProfileUI();
+    /* إعادة رسم المنحنى عند تغيير الحجم */
+    window.addEventListener('resize', function(){
+      if(typeof window._drawActivityChart==='function') window._drawActivityChart();
+    });
+  }, 1800);
+});
+
+/* تحديث كلما تغيرت النقاط */
+var _origLS = Storage.prototype.setItem;
+Storage.prototype.setItem = function(k,v){
+  _origLS.call(this,k,v);
+  if(k && (k.includes('points')||k.includes('stars')||k.includes('rank')||k.includes('avatar')||k.includes('cover'))){
+    clearTimeout(window._refreshTimer);
+    window._refreshTimer = setTimeout(window._refreshNewProfileUI, 400);
+  }
+};
+
+console.log('✅ [ConnectDZ] الملف الشخصي الجديد — جاهز');
+})();
+</script>
 
 <!-- ── نافذة إنشاء منشور اجتماعي ── -->
 <div id="socialCreatePostModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);z-index:5500;align-items:flex-end;justify-content:center;">
@@ -5636,17 +6083,6 @@ function switchLoginTab(tab){
         <div style="font-size:9px;color:#65676B;font-weight:700;">المستوى</div>
       </div>
     </div>
-    <!-- النجوم والترتيب في البطولة — مرئي للزوار -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
-      <div style="background:linear-gradient(135deg,#FFF8E1,#FFFDE7);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:8px;text-align:center;">
-        <div id="mpvStarsCount" style="font-size:17px;font-weight:900;color:#f59e0b;">⭐ 0</div>
-        <div style="font-size:9px;color:#65676B;font-weight:700;">رصيد النجوم</div>
-      </div>
-      <div style="background:linear-gradient(135deg,#F0FFF4,#E8FFF0);border:1px solid rgba(0,200,83,0.25);border-radius:10px;padding:8px;text-align:center;">
-        <div id="mpvRankDisplay" style="font-size:15px;font-weight:900;color:#00c853;">#--</div>
-        <div style="font-size:9px;color:#65676B;font-weight:700;">ترتيبي في البطولة</div>
-      </div>
-    </div>
     <div style="font-size:11px;color:#65676B;margin-bottom:12px;">عضو القادة المستقبليين • الجزائر 🇩🇿</div>
 
     <!-- عناصر مخفية للمتوافقية مع الكود القديم -->
@@ -5770,9 +6206,6 @@ function switchLoginTab(tab){
     <div id="ppTab_info" onclick="switchProfileTab('info')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">معلومات</div>
     <div id="ppTab_activity" onclick="switchProfileTab('activity')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">إنجازاتي</div>
     <div id="ppTab_about" onclick="switchProfileTab('about')" style="flex:1;padding:14px 4px;text-align:center;font-size:13px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">حول</div>
-    <div id="ppTab_mycards" onclick="switchProfileTab('mycards')" style="flex:1;padding:14px 4px;text-align:center;font-size:11px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">💳 بطاقاتي</div>
-    <div id="ppTab_dashboard" onclick="switchProfileTab('dashboard')" style="flex:1;padding:14px 4px;text-align:center;font-size:11px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">📊 لوحتي</div>
-    <div id="ppTab_bourse" onclick="switchProfileTab('bourse')" style="flex:1;padding:14px 4px;text-align:center;font-size:11px;font-weight:700;color:#65676B;border-bottom:3px solid transparent;cursor:pointer;transition:.2s;">💹 البورصة</div>
   </div>
 
   <!-- ── Page Content ── -->
@@ -5899,301 +6332,6 @@ function switchLoginTab(tab){
         </div>
       </div>
     </div>
-    <!-- ══════════════════════════════════════════════════════
-         💳 TAB: بطاقاتي — البطاقة البنكية + بطاقة الانخراط
-         ══════════════════════════════════════════════════════ -->
-    <div id="ppPanel_mycards" style="display:none;padding:16px 12px;background:#0d1117;min-height:60vh;">
-
-      <!-- ─── العنوان ─── -->
-      <div style="text-align:center;margin-bottom:20px;">
-        <div style="font-size:22px;font-weight:900;color:#00e5a0;letter-spacing:1px;">💳 بطاقاتي الرسمية</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.45);margin-top:4px;">Next Leaders DZ</div>
-      </div>
-
-      <!-- ─── البطاقة البنكية العصرية ─── -->
-      <div style="margin-bottom:28px;">
-        <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.6);margin-bottom:12px;display:flex;align-items:center;gap:6px;">🏦 البطاقة البنكية الرقمية</div>
-        <div id="nldBankCard" style="
-          position:relative;
-          width:100%;max-width:360px;margin:0 auto;
-          height:200px;
-          border-radius:22px;
-          background:linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%);
-          box-shadow:0 20px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.06),inset 0 1px 0 rgba(255,255,255,0.1);
-          overflow:hidden;
-          cursor:pointer;
-          transition:transform .3s;
-        " onclick="this.style.transform=this.style.transform?'':'rotateY(180deg)'">
-          <!-- تأثير الضوء -->
-          <div style="position:absolute;top:-40%;left:-20%;width:80%;height:200%;background:linear-gradient(105deg,transparent 40%,rgba(0,229,160,0.08) 50%,transparent 60%);pointer-events:none;"></div>
-          <!-- شريط ذهبي علوي -->
-          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#00e5a0,#FFD700,transparent);"></div>
-          <!-- شعار المنظمة -->
-          <div style="position:absolute;top:18px;right:20px;font-size:11px;font-weight:900;color:rgba(255,255,255,0.9);letter-spacing:2px;">NEXT LEADERS DZ</div>
-          <!-- صورة المنخرط -->
-          <div id="nldCardAvatar" style="position:absolute;top:14px;left:18px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#00e5a0,#0052cc);border:2px solid rgba(255,255,255,0.3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 12px rgba(0,0,0,0.4);">👑</div>
-          <!-- شريحة بلاستيكية -->
-          <div style="position:absolute;top:70px;left:18px;width:42px;height:32px;background:linear-gradient(135deg,#FFD700,#FFA500,#FFD700);border-radius:6px;box-shadow:0 2px 8px rgba(255,165,0,0.4);"></div>
-          <!-- الاسم -->
-          <div id="nldCardName" style="position:absolute;bottom:54px;right:20px;left:80px;font-size:14px;font-weight:900;color:white;letter-spacing:1px;text-align:right;text-shadow:0 1px 4px rgba(0,0,0,0.6);"></div>
-          <!-- رقم العضو -->
-          <div id="nldCardNumber" style="position:absolute;bottom:34px;right:20px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);letter-spacing:3px;"></div>
-          <!-- الرصيد من النجوم -->
-          <div style="position:absolute;bottom:14px;right:20px;display:flex;align-items:center;gap:6px;">
-            <div style="background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.35);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:900;color:#00e5a0;">⭐ <span id="nldCardStars">0</span> نجمة</div>
-            <div style="background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:900;color:#FFD700;"><span id="nldCardDzd">0</span> دج</div>
-          </div>
-          <!-- رمز الاتصال اللاسلكي -->
-          <div style="position:absolute;bottom:14px;left:18px;font-size:20px;color:rgba(255,255,255,0.25);">⠿</div>
-        </div>
-        <div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(255,255,255,0.3);">50 نجمة = 30 دج • اضغط للتقليب</div>
-      </div>
-
-      <!-- ─── بطاقة الانخراط ─── -->
-      <div>
-        <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,0.6);margin-bottom:12px;display:flex;align-items:center;gap:6px;">🪪 بطاقة الانخراط الرسمية</div>
-        <div id="nldMemberCard" style="
-          position:relative;
-          width:100%;max-width:360px;margin:0 auto;
-          border-radius:20px;
-          background:linear-gradient(160deg,#050a0e 0%,#0d2137 50%,#071522 100%);
-          border:1px solid rgba(0,229,160,0.2);
-          box-shadow:0 20px 50px rgba(0,0,0,0.7),0 0 30px rgba(0,229,160,0.06);
-          overflow:hidden;
-          padding:20px;
-        ">
-          <!-- خطوط زخرفية -->
-          <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(45deg,transparent,transparent 30px,rgba(0,229,160,0.02) 30px,rgba(0,229,160,0.02) 31px);pointer-events:none;"></div>
-          <!-- شريط علوي ملون -->
-          <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#00e5a0,#0052cc,#FFD700,#00e5a0);"></div>
-
-          <!-- رأس البطاقة -->
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;position:relative;">
-            <div id="nldMemberCardAvatar" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#00e5a0,#0052cc);border:2px solid rgba(0,229,160,0.5);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 4px 14px rgba(0,229,160,0.3);flex-shrink:0;">👑</div>
-            <div style="flex:1;">
-              <div style="font-size:9px;font-weight:800;color:#00e5a0;letter-spacing:2px;margin-bottom:2px;">NEXT LEADERS DZ</div>
-              <div id="nldMemberCardName" style="font-size:16px;font-weight:900;color:white;"></div>
-              <div id="nldMemberCardRole" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;"></div>
-            </div>
-            <!-- شارة التوثيق -->
-            <div id="nldMemberVerifiedBadge" style="background:linear-gradient(135deg,#1877F2,#0052cc);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(24,119,242,0.5);">✅</div>
-          </div>
-
-          <!-- معلومات العضوية -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-            <div style="background:rgba(0,229,160,0.07);border:1px solid rgba(0,229,160,0.15);border-radius:10px;padding:8px 10px;">
-              <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-bottom:2px;">رقم العضو</div>
-              <div id="nldMemberCardCode" style="font-size:12px;font-weight:900;color:#00e5a0;letter-spacing:1px;"></div>
-            </div>
-            <div style="background:rgba(255,215,0,0.07);border:1px solid rgba(255,215,0,0.15);border-radius:10px;padding:8px 10px;">
-              <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-bottom:2px;">تاريخ الانضمام</div>
-              <div id="nldMemberCardDate" style="font-size:11px;font-weight:800;color:#FFD700;"></div>
-            </div>
-            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:8px 10px;">
-              <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-bottom:2px;">النجوم</div>
-              <div id="nldMemberCardStars" style="font-size:14px;font-weight:900;color:white;">⭐ 0</div>
-            </div>
-            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:8px 10px;">
-              <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-bottom:2px;">الرصيد</div>
-              <div id="nldMemberCardBalance" style="font-size:13px;font-weight:900;color:#00e5a0;">0 دج</div>
-            </div>
-          </div>
-
-          <!-- شريط الرمز السري والباركود -->
-          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;display:flex;align-items:center;gap:12px;">
-            <!-- باركود -->
-            <div id="nldBarcode" style="flex:1;">
-              <svg width="100%" height="40" viewBox="0 0 200 40" id="nldBarcodeSVG">
-                <rect width="200" height="40" fill="white" rx="4"/>
-              </svg>
-            </div>
-            <!-- رمز سري -->
-            <div style="text-align:center;flex-shrink:0;">
-              <div style="font-size:8px;color:rgba(255,255,255,0.4);margin-bottom:4px;">الرمز السري</div>
-              <div id="nldSecretPin" style="font-size:18px;font-weight:900;color:white;letter-spacing:4px;background:rgba(0,0,0,0.4);border-radius:8px;padding:4px 10px;cursor:pointer;" onclick="_toggleCardPin(this)">****</div>
-              <div style="font-size:8px;color:rgba(255,255,255,0.3);margin-top:3px;">اضغط للكشف</div>
-            </div>
-          </div>
-
-          <!-- شعار المنظمة في القاع -->
-          <div style="margin-top:12px;text-align:center;">
-            <div style="font-size:10px;font-weight:900;color:rgba(0,229,160,0.4);letter-spacing:3px;">NEXT ★ LEADERS ★ DZ • الجزائر 🇩🇿</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════
-         📊 TAB: لوحتي — النقاط + التحليلات + البيانات
-         ══════════════════════════════════════════════════════ -->
-    <div id="ppPanel_dashboard" style="display:none;background:#0d1117;min-height:60vh;padding:16px 12px;">
-
-      <!-- عنوان -->
-      <div style="text-align:center;margin-bottom:20px;">
-        <div style="font-size:20px;font-weight:900;color:#00e5a0;">📊 لوحة التحكم الشخصية</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px;">بياناتك الكاملة في مكان واحد</div>
-      </div>
-
-      <!-- ─── 1. لوحة النقاط الرقمية ─── -->
-      <div style="background:linear-gradient(135deg,rgba(0,229,160,0.08),rgba(0,82,204,0.08));border:1px solid rgba(0,229,160,0.2);border-radius:18px;padding:18px;margin-bottom:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-          <div style="font-size:14px;font-weight:900;color:white;">🏆 إجمالي النقاط</div>
-          <div id="dashTotalPts" style="font-size:28px;font-weight:900;color:#00e5a0;text-shadow:0 0 20px rgba(0,229,160,0.5);">0</div>
-        </div>
-        <!-- شريط التقدم نحو المستوى -->
-        <div style="margin-bottom:10px;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-            <span style="font-size:11px;color:rgba(255,255,255,0.5);">المستوى الحالي</span>
-            <span id="dashLevelLabel" style="font-size:12px;font-weight:900;color:#FFD700;background:rgba(255,215,0,0.1);border-radius:20px;padding:2px 10px;">🚀 المستوى 1</span>
-          </div>
-          <div style="height:10px;background:rgba(255,255,255,0.07);border-radius:10px;overflow:hidden;position:relative;">
-            <div id="dashLevelBar" style="height:100%;background:linear-gradient(90deg,#00e5a0,#0052cc);border-radius:10px;transition:width 1s ease;width:0%;box-shadow:0 0 10px rgba(0,229,160,0.5);"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-top:5px;">
-            <span id="dashPtsFrom" style="font-size:10px;color:rgba(255,255,255,0.4);">0 نقطة</span>
-            <span id="dashPtsTo" style="font-size:10px;color:rgba(255,255,255,0.4);">10,000 نقطة</span>
-          </div>
-        </div>
-        <!-- النجوم -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;">
-          <div style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:10px;padding:8px;text-align:center;">
-            <div id="dashStars" style="font-size:18px;font-weight:900;color:#FFD700;">⭐ 0</div>
-            <div style="font-size:9px;color:rgba(255,255,255,0.4);">النجوم</div>
-          </div>
-          <div style="background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.2);border-radius:10px;padding:8px;text-align:center;">
-            <div id="dashRank" style="font-size:16px;font-weight:900;color:#00e5a0;">#--</div>
-            <div style="font-size:9px;color:rgba(255,255,255,0.4);">ترتيبي</div>
-          </div>
-          <div style="background:rgba(24,119,242,0.08);border:1px solid rgba(24,119,242,0.2);border-radius:10px;padding:8px;text-align:center;">
-            <div id="dashBalance" style="font-size:14px;font-weight:900;color:#1877F2;">0 دج</div>
-            <div style="font-size:9px;color:rgba(255,255,255,0.4);">الرصيد</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ─── 2. لوحة التفاعل والمشاهدات ─── -->
-      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:16px;margin-bottom:14px;">
-        <div style="font-size:13px;font-weight:900;color:white;margin-bottom:14px;">👁️ إحصائيات التفاعل</div>
-        <!-- نسبة المشاهدات الإجمالية -->
-        <div style="margin-bottom:12px;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-            <span style="font-size:12px;color:rgba(255,255,255,0.6);">📈 نسبة المشاهدات الإجمالية</span>
-            <span id="dashViewRate" style="font-size:12px;font-weight:900;color:#00e5a0;">0%</span>
-          </div>
-          <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:6px;overflow:hidden;">
-            <div id="dashViewRateBar" style="height:100%;background:linear-gradient(90deg,#00e5a0,#00b894);border-radius:6px;width:0%;transition:width 1s;"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-top:5px;">
-            <span style="font-size:10px;color:rgba(255,255,255,0.35);">القصص • المنشورات • الملف الشخصي</span>
-          </div>
-        </div>
-        <!-- شبكة الإحصائيات -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px;">
-            <span style="font-size:20px;">📝</span>
-            <div>
-              <div id="dashPostsCount" style="font-size:16px;font-weight:900;color:white;">0</div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.4);">منشوراتي</div>
-            </div>
-          </div>
-          <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px;">
-            <span style="font-size:20px;">💬</span>
-            <div>
-              <div id="dashCommentsCount" style="font-size:16px;font-weight:900;color:white;">0</div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.4);">التعليقات</div>
-            </div>
-          </div>
-          <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px;">
-            <span style="font-size:20px;">❤️</span>
-            <div>
-              <div id="dashLikesCount" style="font-size:16px;font-weight:900;color:white;">0</div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.4);">الإعجابات</div>
-            </div>
-          </div>
-          <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px;">
-            <span style="font-size:20px;">👁️</span>
-            <div>
-              <div id="dashProfileVisits" style="font-size:16px;font-weight:900;color:white;">0</div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.4);">زيارة الملف</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ─── 3. شريط التقدم اليومي (الشعلة) ─── -->
-      <div style="background:linear-gradient(135deg,rgba(255,87,34,0.1),rgba(255,152,0,0.08));border:1px solid rgba(255,87,34,0.2);border-radius:16px;padding:16px;margin-bottom:14px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span id="dashStreakFlame" style="font-size:36px;">🔥</span>
-          <div style="flex:1;">
-            <div style="font-size:14px;font-weight:900;color:white;">المشاركة اليومية</div>
-            <div id="dashStreakInfo" style="font-size:12px;color:rgba(255,152,0,0.8);margin-top:2px;">جارٍ التحميل...</div>
-            <div style="height:6px;background:rgba(255,255,255,0.07);border-radius:6px;overflow:hidden;margin-top:8px;">
-              <div id="dashStreakBar" style="height:100%;background:linear-gradient(90deg,#FF5722,#FF9800);border-radius:6px;width:0%;transition:width 1s;"></div>
-            </div>
-          </div>
-          <div style="text-align:center;background:rgba(255,255,255,0.06);border-radius:10px;padding:6px 10px;">
-            <div id="dashStreakDays" style="font-size:20px;font-weight:900;color:#FF9800;">0</div>
-            <div style="font-size:9px;color:rgba(255,255,255,0.4);">يوم</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════
-         💹 TAB: البورصة — نظام النقاط وسوق العمل
-         ══════════════════════════════════════════════════════ -->
-    <div id="ppPanel_bourse" style="display:none;background:#0d1117;min-height:60vh;padding:16px 12px;">
-
-      <div style="text-align:center;margin-bottom:20px;">
-        <div style="font-size:20px;font-weight:900;color:#FFD700;">💹 بورصة النقاط</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px;">كيف تكسب نقاطك وتحوّلها</div>
-      </div>
-
-      <!-- نسبة التحويل -->
-      <div style="background:linear-gradient(135deg,rgba(255,215,0,0.1),rgba(255,165,0,0.06));border:1px solid rgba(255,215,0,0.2);border-radius:16px;padding:16px;margin-bottom:16px;">
-        <div style="font-size:13px;font-weight:900;color:#FFD700;margin-bottom:10px;">💰 نسبة التحويل</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:10px;text-align:center;">
-            <div style="font-size:22px;font-weight:900;color:#FFD700;">50</div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.5);">نجمة ⭐</div>
-          </div>
-          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:10px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;">
-            <div style="font-size:18px;color:rgba(255,255,255,0.3);">═</div>
-            <div>
-              <div style="font-size:22px;font-weight:900;color:#00e5a0;">30</div>
-              <div style="font-size:10px;color:rgba(255,255,255,0.5);">دينار جزائري</div>
-            </div>
-          </div>
-        </div>
-        <!-- رصيدي المحوّل -->
-        <div style="margin-top:12px;background:rgba(0,0,0,0.3);border-radius:10px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:12px;color:rgba(255,255,255,0.6);">💎 رصيدي القابل للسحب</span>
-          <span id="bourseMyBalance" style="font-size:16px;font-weight:900;color:#00e5a0;">0 دج</span>
-        </div>
-      </div>
-
-      <!-- جدول الكسب -->
-      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden;margin-bottom:16px;">
-        <div style="background:rgba(0,229,160,0.08);padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);">
-          <div style="font-size:13px;font-weight:900;color:#00e5a0;">📋 جدول كسب النقاط</div>
-        </div>
-        <div id="bourseTable" style="padding:6px 0;">
-          <!-- يملأ بالجافاسكريبت -->
-        </div>
-      </div>
-
-      <!-- فئات خاصة -->
-      <div style="background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.1);border-radius:16px;overflow:hidden;">
-        <div style="background:rgba(255,215,0,0.08);padding:12px 16px;border-bottom:1px solid rgba(255,215,0,0.1);">
-          <div style="font-size:13px;font-weight:900;color:#FFD700;">⚡ مكافآت خاصة</div>
-        </div>
-        <div id="bourseBonus" style="padding:6px 0;">
-          <!-- يملأ بالجافاسكريبت -->
-        </div>
-      </div>
-    </div>
-
     <!-- ── TAB: حول ── -->
     <div id="ppPanel_about" style="display:none;">
       <div style="background:white;margin-top:8px;padding:16px;">
@@ -37419,299 +37557,8 @@ window._removeShaimaaFromBeginner = function(){
 
 /* تنفيذ عند الحاجة — يستدعيها المدير يدوياً أو تلقائياً */
 /* window._removeShaimaaFromBeginner(); */ /* أزل التعليق لتفعيل الحذف التلقائي */
-<!-- ══════════════════════════════════════════════════════════════
-   🆕 Next Leaders DZ — بطاقاتي + لوحتي + البورصة
-   ══════════════════════════════════════════════════════════════ -->
-<script>
-(function(){
-'use strict';
-
-/* ═══════════════════════════════════════════
-   تمديد switchProfileTab لدعم التبويبات الجديدة
-   ═══════════════════════════════════════════ */
-var _origSwitchTab = window.switchProfileTab;
-window.switchProfileTab = function(tab){
-  var newTabs = ['mycards','dashboard','bourse'];
-  var allTabs = ['posts','info','activity','about','mycards','dashboard','bourse'];
-
-  if(!newTabs.includes(tab)){
-    /* تبويب قديم — نحجب التبويبات الجديدة */
-    newTabs.forEach(function(t){
-      var panel = document.getElementById('ppPanel_'+t);
-      var tabEl = document.getElementById('ppTab_'+t);
-      if(panel) panel.style.display='none';
-      if(tabEl){ tabEl.style.color='#65676B'; tabEl.style.borderBottom='3px solid transparent'; }
-    });
-    if(_origSwitchTab) _origSwitchTab(tab);
-    return;
-  }
-
-  /* إخفاء كل التبويبات */
-  allTabs.forEach(function(t){
-    var panel = document.getElementById('ppPanel_'+t);
-    var tabEl = document.getElementById('ppTab_'+t);
-    if(panel) panel.style.display='none';
-    if(tabEl){ tabEl.style.color='#65676B'; tabEl.style.borderBottomColor='transparent'; }
-  });
-
-  /* إظهار التبويب المختار */
-  var activePanel = document.getElementById('ppPanel_'+tab);
-  var activeTab   = document.getElementById('ppTab_'+tab);
-  if(activePanel) activePanel.style.display='block';
-  if(activeTab){ activeTab.style.color='#00e5a0'; activeTab.style.borderBottomColor='#00e5a0'; }
-
-  /* تهيئة محتوى التبويب */
-  if(tab==='mycards')   _initMyCards();
-  if(tab==='dashboard') _initDashboard();
-  if(tab==='bourse')    _initBourse();
-};
-
-/* ══════════════════════════════════
-   🎨 توليد الباركود SVG
-   ══════════════════════════════════ */
-function _generateBarcode(code, svgId){
-  var svg = document.getElementById(svgId);
-  if(!svg) return;
-  var str = (code||'NLD000000').replace(/[^A-Z0-9]/gi,'');
-  var bars = '';
-  var x = 10;
-  for(var i=0;i<str.length;i++){
-    var c = str.charCodeAt(i);
-    for(var b=7;b>=0;b--){
-      var bit = (c>>b)&1;
-      if(bit){ bars += '<rect x="'+x+'" y="4" width="1.5" height="32" fill="#050505"/>'; }
-      x += 2;
-    }
-  }
-  svg.innerHTML = '<rect width="200" height="40" fill="white" rx="4"/>'+bars+'<rect x="0" y="36" width="200" height="4" fill="white" rx="4"/>';
-}
-
-/* ══════════════════════════════════
-   🔐 كشف الرمز السري
-   ══════════════════════════════════ */
-var _pinVisible = false;
-window._toggleCardPin = function(el){
-  _pinVisible = !_pinVisible;
-  var name = localStorage.getItem('sklab_user_name')||'';
-  /* رمز مشتق من الاسم — 4 أرقام ثابتة */
-  var pin = '';
-  for(var i=0;i<4;i++){ pin += ((name.charCodeAt(i%name.length)||5)%10); }
-  el.textContent = _pinVisible ? pin : '****';
-};
-
-/* ══════════════════════════════════
-   💳 تهيئة بطاقاتي
-   ══════════════════════════════════ */
-function _initMyCards(){
-  var name    = localStorage.getItem('sklab_user_name') || '---';
-  var code    = localStorage.getItem('sklab_user_code') || ('NLD-'+Math.floor(1000000+Math.random()*9000000));
-  var stars   = parseInt(localStorage.getItem('sklab_user_stars')||'0')||0;
-  var balance = parseInt(localStorage.getItem('sklab_user_balance')||'0')||0;
-  var joined  = localStorage.getItem('sklab_join_date')||new Date().toLocaleDateString('ar-DZ');
-  var role    = localStorage.getItem('sklab_user_role')||'عضو';
-  var dzdVal  = Math.floor(stars/50)*30;
-
-  /* البطاقة البنكية */
-  _setText('nldCardName',   name.toUpperCase());
-  _setText('nldCardNumber', code);
-  _setText('nldCardStars',  stars);
-  _setText('nldCardDzd',    dzdVal+' دج');
-
-  /* بطاقة الانخراط */
-  _setText('nldMemberCardName',    name);
-  _setText('nldMemberCardRole',    role);
-  _setText('nldMemberCardCode',    code);
-  _setText('nldMemberCardDate',    joined);
-  _setText('nldMemberCardStars',   '⭐ '+stars);
-  _setText('nldMemberCardBalance', balance+' دج');
-
-  /* صورة الملف */
-  var avatarSrc = localStorage.getItem('sklab_profile_pic')||'';
-  ['nldCardAvatar','nldMemberCardAvatar'].forEach(function(id){
-    var el = document.getElementById(id);
-    if(!el) return;
-    if(avatarSrc){
-      el.innerHTML='<img src="'+avatarSrc+'" style="width:100%;height:100%;object-fit:cover;">';
-    }
-  });
-
-  /* الباركود */
-  _generateBarcode(code.replace(/\W/g,''), 'nldBarcodeSVG');
-
-  /* جلب من Firebase */
-  var db = window.firebaseDb||(window.firebase&&window.firebase.database&&window.firebase.database());
-  if(db && name && name!=='---'){
-    db.ref('users/'+name.replace(/\s+/g,'_')).once('value').then(function(snap){
-      var v=snap.val()||{};
-      var s=parseInt(v.stars||stars);
-      var b=parseInt(v.balance||balance);
-      var d=Math.floor(s/50)*30;
-      _setText('nldCardStars',s); _setText('nldCardDzd',d+' دج');
-      _setText('nldMemberCardStars','⭐ '+s);
-      _setText('nldMemberCardBalance',b+' دج');
-    }).catch(function(){});
-  }
-}
-
-/* ══════════════════════════════════
-   📊 تهيئة لوحتي
-   ══════════════════════════════════ */
-function _initDashboard(){
-  var name    = localStorage.getItem('sklab_user_name')||'';
-  var pts     = parseInt(localStorage.getItem('sklab_user_points')||'0')||0;
-  var stars   = parseInt(localStorage.getItem('sklab_user_stars')||'0')||0;
-  var balance = parseInt(localStorage.getItem('sklab_user_balance')||'0')||0;
-  var streak  = parseInt(localStorage.getItem('sklab_streak')||'0')||0;
-
-  /* النقاط والمستوى */
-  _setText('dashTotalPts', pts.toLocaleString('ar-DZ'));
-  var level = Math.floor(pts/10000)+1;
-  var ptsInLevel = pts%10000;
-  _setText('dashLevelLabel','🚀 المستوى '+level);
-  _setText('dashPtsFrom', ptsInLevel.toLocaleString()+' نقطة');
-  _setText('dashPtsTo', '10,000 نقطة');
-  _setWidth('dashLevelBar', Math.min((ptsInLevel/10000)*100,100));
-
-  /* النجوم والرصيد */
-  _setText('dashStars','⭐ '+stars);
-  _setText('dashBalance', balance+' دج');
-
-  /* الشعلة */
-  _setText('dashStreakDays', streak);
-  _setText('dashStreakInfo', streak>0 ? '🔥 '+streak+' يوم متتالي' : 'ابدأ مشاركتك اليوم!');
-  _setWidth('dashStreakBar', Math.min((streak/100)*100,100));
-
-  /* جلب من Firebase */
-  var db = window.firebaseDb||(window.firebase&&window.firebase.database&&window.firebase.database());
-  if(db && name){
-    var key = name.replace(/\s+/g,'_');
-    db.ref('leaderboard').orderByChild('points').once('value').then(function(snap){
-      var rows=[];
-      snap.forEach(function(c){ rows.push({k:c.key,pts:c.val().points||0}); });
-      rows.sort(function(a,b){return b.pts-a.pts;});
-      var rank = rows.findIndex(function(r){return r.k===key;})+1;
-      _setText('dashRank', rank>0?'#'+rank:'#--');
-    }).catch(function(){});
-
-    db.ref('users/'+key).once('value').then(function(snap){
-      var v=snap.val()||{};
-      var p=parseInt(v.points||pts); var s=parseInt(v.stars||stars); var b=parseInt(v.balance||balance);
-      _setText('dashTotalPts', p.toLocaleString('ar-DZ'));
-      var lv=Math.floor(p/10000)+1; var pin=p%10000;
-      _setText('dashLevelLabel','🚀 المستوى '+lv);
-      _setText('dashPtsFrom', pin.toLocaleString()+' نقطة');
-      _setWidth('dashLevelBar', Math.min((pin/10000)*100,100));
-      _setText('dashStars','⭐ '+s);
-      _setText('dashBalance', b+' دج');
-    }).catch(function(){});
-
-    /* إحصائيات التفاعل */
-    db.ref('socialPosts').orderByChild('author').equalTo(name).once('value').then(function(snap){
-      _setText('dashPostsCount', snap.numChildren());
-    }).catch(function(){});
-
-    db.ref('users/'+key+'/profileVisits').once('value').then(function(snap){
-      _setText('dashProfileVisits', snap.val()||0);
-    }).catch(function(){});
-  }
-
-  /* نسبة المشاهدة الإجمالية */
-  var viewRate = Math.min(Math.round((pts/100000)*100),100);
-  _setText('dashViewRate', viewRate+'%');
-  _setWidth('dashViewRateBar', viewRate);
-}
-
-/* ══════════════════════════════════
-   💹 تهيئة البورصة
-   ══════════════════════════════════ */
-function _initBourse(){
-  var balance = parseInt(localStorage.getItem('sklab_user_balance')||'0')||0;
-  _setText('bourseMyBalance', balance+' دج');
-
-  var tableData = [
-    {icon:'📝', label:'نشر منشور',                pts:50},
-    {icon:'📖', label:'نشر قصة',                  pts:15},
-    {icon:'🎬', label:'نشر فيديو',                pts:70},
-    {icon:'🖼️', label:'نشر صورة',                 pts:50},
-    {icon:'💬', label:'تعليقي للغير (كل تعليق)',  pts:3},
-    {icon:'💬', label:'تعليق الغير لي',            pts:7},
-    {icon:'❤️', label:'إعجابي للغير',             pts:2},
-    {icon:'❤️', label:'إعجاب الغير لي',           pts:4},
-    {icon:'👍', label:'إعجاب على تعليق',          pts:1},
-    {icon:'👁️', label:'مشاهدتي للغير',            pts:1},
-    {icon:'👁️', label:'مشاهدة الغير لي',          pts:5},
-    {icon:'📲', label:'النشر من أيقونات التطبيق', pts:100},
-    {icon:'🔧', label:'فتح ميزات وخاصيات',        pts:3},
-    {icon:'✉️', label:'رسالة عبر المسنجر',        pts:7},
-  ];
-
-  var bonusData = [
-    {icon:'🥇', label:'المرتبة الأولى في قسم البطولة (يوميًا)', pts:100},
-    {icon:'🔥', label:'المشاركة اليومية المستمرة (شعلة)',       pts:'متغير'},
-  ];
-
-  var tableEl = document.getElementById('bourseTable');
-  var bonusEl = document.getElementById('bourseBonus');
-  if(tableEl){
-    tableEl.innerHTML = tableData.map(function(r,i){
-      var color = r.pts>=50 ? '#00e5a0' : r.pts>=10 ? '#FFD700' : 'rgba(255,255,255,0.7)';
-      var bg = i%2===0 ? 'rgba(255,255,255,0.02)' : 'transparent';
-      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:'+bg+';border-bottom:1px solid rgba(255,255,255,0.04);">'
-        +'<div style="display:flex;align-items:center;gap:10px;">'
-        +'<span style="font-size:18px;width:24px;text-align:center;">'+r.icon+'</span>'
-        +'<span style="font-size:12px;color:rgba(255,255,255,0.8);font-weight:700;">'+r.label+'</span>'
-        +'</div>'
-        +'<div style="background:rgba(0,0,0,0.3);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:900;color:'+color+';min-width:40px;text-align:center;">+'+r.pts+'</div>'
-        +'</div>';
-    }).join('');
-  }
-  if(bonusEl){
-    bonusEl.innerHTML = bonusData.map(function(r){
-      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,215,0,0.06);">'
-        +'<div style="display:flex;align-items:center;gap:10px;">'
-        +'<span style="font-size:20px;">'+r.icon+'</span>'
-        +'<span style="font-size:12px;color:rgba(255,255,255,0.8);font-weight:700;">'+r.label+'</span>'
-        +'</div>'
-        +'<div style="background:rgba(255,215,0,0.12);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:900;color:#FFD700;">+'+r.pts+'</div>'
-        +'</div>';
-    }).join('');
-  }
-}
-
-/* ── دوال مساعدة ── */
-function _setText(id,val){var el=document.getElementById(id);if(el)el.textContent=val;}
-function _setWidth(id,pct){var el=document.getElementById(id);if(el)el.style.width=pct+'%';}
-
-/* ══════════════════════════════════════════════════════════
-   ملف الشخصي للغير — تحديث النجوم والترتيب عند الفتح
-   ══════════════════════════════════════════════════════════ */
-var _origOpenMPV = window.openMemberProfileView;
-window.openMemberProfileView = function(name){
-  if(_origOpenMPV) _origOpenMPV.apply(this,arguments);
-  if(!name) return;
-  var db = window.firebaseDb||(window.firebase&&window.firebase.database&&window.firebase.database());
-  if(!db) return;
-  var key = name.replace(/\s+/g,'_');
-  /* النجوم */
-  db.ref('users/'+key+'/stars').once('value').then(function(s){
-    _setText('mpvStarsCount','⭐ '+(s.val()||0));
-  }).catch(function(){});
-  /* الترتيب */
-  db.ref('leaderboard').orderByChild('points').once('value').then(function(snap){
-    var rows=[];
-    snap.forEach(function(c){ rows.push({k:c.key,pts:c.val().points||0}); });
-    rows.sort(function(a,b){return b.pts-a.pts;});
-    var rank = rows.findIndex(function(r){return r.k===key;})+1;
-    _setText('mpvRankDisplay', rank>0?'#'+rank:'#--');
-  }).catch(function(){});
-  /* تسجيل زيارة الملف */
-  var myName = localStorage.getItem('sklab_user_name')||'';
-  if(myName && myName !== name){
-    db.ref('users/'+key+'/profileVisits').transaction(function(v){ return (v||0)+1; });
-  }
-};
-
-console.log('✅ [NLD] بطاقاتي + لوحتي + البورصة — جاهزة');
+console.log('✅ [ConnectDZ] نظام حذف العضو (شيماء/المبتدئ) — جاهز. استدعِ: window._removeShaimaaFromBeginner()');
 })();
 </script>
+</body>
 </html>
