@@ -4894,6 +4894,203 @@ function switchLoginTab(tab){
     </div>
   </div>
 
+  <!-- لوحة: لوحة البيانات والتفاعل (دائرة) -->
+  <div id="wheelPanel_analytics" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);align-items:flex-end;justify-content:center;animation:fadeIn .25s ease;">
+    <div style="background:linear-gradient(160deg,#0d1117,#0a1628);border:1px solid rgba(0,153,255,0.3);border-radius:28px 28px 0 0;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;padding:0 0 30px;">
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#0099ff,#00c6ff);padding:20px 18px 16px;border-radius:28px 28px 0 0;position:sticky;top:0;z-index:1;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:17px;font-weight:900;color:white;">📊 لوحة البيانات والتفاعل</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.85);margin-top:2px;">إحصائياتك ونشاطك الكامل</div>
+          </div>
+          <div onclick="closeWheelPanel('analytics')" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:900;color:white;">✕</div>
+        </div>
+      </div>
+      <!-- Content -->
+      <div style="padding:16px;">
+
+        <!-- نسبة المشاهدات الإجمالية -->
+        <div style="background:rgba(0,153,255,0.1);border:1px solid rgba(0,153,255,0.25);border-radius:16px;padding:16px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:900;color:#0099ff;margin-bottom:4px;">👁️ نسبة المشاهدات الإجمالية</div>
+          <div style="font-size:10px;color:#8b949e;margin-bottom:12px;">القصص · المنشورات · الملف الشخصي</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div style="background:rgba(0,0,0,0.4);border-radius:12px;padding:10px 6px;text-align:center;border:1px solid rgba(0,198,255,0.15);">
+              <div style="font-size:10px;color:#8b949e;margin-bottom:4px;">📖 القصص</div>
+              <div style="font-size:22px;font-weight:900;color:#00c6ff;" id="wAnalyticsStoryViews">0</div>
+              <div style="font-size:9px;color:#8b949e;margin-top:2px;">مشاهدة</div>
+            </div>
+            <div style="background:rgba(0,0,0,0.4);border-radius:12px;padding:10px 6px;text-align:center;border:1px solid rgba(0,153,255,0.15);">
+              <div style="font-size:10px;color:#8b949e;margin-bottom:4px;">📄 المنشورات</div>
+              <div style="font-size:22px;font-weight:900;color:#0099ff;" id="wAnalyticsPostViews">0</div>
+              <div style="font-size:9px;color:#8b949e;margin-top:2px;">مشاهدة</div>
+            </div>
+            <div style="background:rgba(0,0,0,0.4);border-radius:12px;padding:10px 6px;text-align:center;border:1px solid rgba(0,229,255,0.15);">
+              <div style="font-size:10px;color:#8b949e;margin-bottom:4px;">👤 الملف</div>
+              <div style="font-size:22px;font-weight:900;color:#00e5ff;" id="wAnalyticsProfileViews">0</div>
+              <div style="font-size:9px;color:#8b949e;margin-top:2px;">زيارة</div>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:10px 12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <span style="font-size:11px;color:#8b949e;">📊 الإجمالي الكلي</span>
+              <span style="font-size:13px;color:#00c6ff;font-weight:900;" id="wAnalyticsTotalViews">0</span>
+            </div>
+            <div style="background:rgba(255,255,255,0.08);border-radius:6px;height:7px;overflow:hidden;">
+              <div id="wAnalyticsTotalViewsBar" style="background:linear-gradient(90deg,#0099ff,#00e5ff);height:100%;width:0%;transition:width .8s ease;border-radius:6px;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;">
+              <span style="font-size:9px;color:rgba(0,198,255,0.7);" id="wAnalyticsStoryPct">قصص 0%</span>
+              <span style="font-size:9px;color:rgba(0,153,255,0.7);" id="wAnalyticsPostPct">منشورات 0%</span>
+              <span style="font-size:9px;color:rgba(0,229,255,0.7);" id="wAnalyticsProfilePct">ملف 0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- إحصائيات النشاط -->
+        <div style="background:rgba(0,200,83,0.08);border:1px solid rgba(0,200,83,0.2);border-radius:16px;padding:16px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:900;color:#00c853;margin-bottom:12px;">📊 إحصائيات النشاط</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:rgba(0,0,0,0.25);border-radius:10px;">
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#00c853,#007a33);display:flex;align-items:center;justify-content:center;font-size:14px;">📄</div><div><div style="font-size:12px;font-weight:800;color:#c9d1d9;">عدد المنشورات</div></div></div>
+              <div style="text-align:center;"><div style="font-size:22px;font-weight:900;color:#00c853;" id="wAnalyticsPostCount">0</div><div style="font-size:9px;color:#8b949e;">منشور</div></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:rgba(0,0,0,0.25);border-radius:10px;">
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#00bcd4,#006978);display:flex;align-items:center;justify-content:center;font-size:14px;">💬</div><div><div style="font-size:12px;font-weight:800;color:#c9d1d9;">عدد التعليقات</div></div></div>
+              <div style="text-align:center;"><div style="font-size:22px;font-weight:900;color:#00bcd4;" id="wAnalyticsCommentCount">0</div><div style="font-size:9px;color:#8b949e;">تعليق</div></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:rgba(0,0,0,0.25);border-radius:10px;">
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#e53935,#7f0000);display:flex;align-items:center;justify-content:center;font-size:14px;">❤️</div><div><div style="font-size:12px;font-weight:800;color:#c9d1d9;">عدد الإعجابات</div></div></div>
+              <div style="text-align:center;"><div style="font-size:22px;font-weight:900;color:#ef5350;" id="wAnalyticsLikeCount">0</div><div style="font-size:9px;color:#8b949e;">إعجاب</div></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:rgba(0,0,0,0.25);border-radius:10px;">
+              <div style="display:flex;align-items:center;gap:8px;"><div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#FFD700,#e65100);display:flex;align-items:center;justify-content:center;font-size:14px;">👤</div><div><div style="font-size:12px;font-weight:800;color:#c9d1d9;">نسبة زيارة ملفي الشخصي</div></div></div>
+              <div style="text-align:center;"><div style="font-size:22px;font-weight:900;color:#FFD700;" id="wAnalyticsProfileVisits">0</div><div style="font-size:9px;color:#8b949e;">زيارة</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- معدل التفاعل -->
+        <div style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:16px;padding:16px;">
+          <div style="font-size:13px;font-weight:900;color:#a855f7;margin-bottom:12px;">📈 معدل التفاعل الإجمالي</div>
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;background:rgba(0,0,0,0.35);border-radius:12px;padding:12px;text-align:center;border:1px solid rgba(168,85,247,0.2);">
+              <div style="font-size:28px;font-weight:900;color:#a855f7;" id="wAnalyticsEngagementRate">0%</div>
+              <div style="font-size:10px;color:#8b949e;margin-top:3px;">معدل التفاعل</div>
+            </div>
+            <div style="flex:1;background:rgba(0,0,0,0.35);border-radius:12px;padding:12px;text-align:center;border:1px solid rgba(245,197,24,0.2);">
+              <div style="font-size:28px;font-weight:900;color:#f5c518;" id="wAnalyticsRankScore">0</div>
+              <div style="font-size:10px;color:#8b949e;margin-top:3px;">مجموع نقاطي</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;background:rgba(255,255,255,0.06);border-radius:6px;height:5px;overflow:hidden;">
+            <div id="wAnalyticsEngagementBar" style="background:linear-gradient(90deg,#a855f7,#f5c518);height:100%;width:0%;transition:width .8s ease;border-radius:6px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- لوحة: البورصة وسوق العمل (دائرة) -->
+  <div id="wheelPanel_market" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,0.75);backdrop-filter:blur(14px);align-items:flex-end;justify-content:center;animation:fadeIn .25s ease;">
+    <div style="background:linear-gradient(160deg,#0d1117,#1a1200);border:1px solid rgba(255,215,0,0.3);border-radius:28px 28px 0 0;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;padding:0 0 30px;">
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#FFD700,#f97316);padding:20px 18px 16px;border-radius:28px 28px 0 0;position:sticky;top:0;z-index:1;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:17px;font-weight:900;color:#0d1117;">💹 البورصة وسوق العمل</div>
+            <div style="font-size:11px;color:rgba(0,0,0,0.65);margin-top:2px;">كيفية كسب النقاط والمكافآت</div>
+          </div>
+          <div onclick="closeWheelPanel('market')" style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:900;color:#0d1117;">✕</div>
+        </div>
+      </div>
+      <!-- Content -->
+      <div style="padding:16px;">
+
+        <!-- رصيد النقاط -->
+        <div style="background:linear-gradient(135deg,#FFD700,#f97316);border-radius:16px;padding:18px;margin-bottom:14px;text-align:center;box-shadow:0 6px 20px rgba(255,215,0,0.25);">
+          <div style="font-size:11px;color:rgba(0,0,0,0.6);font-weight:700;margin-bottom:4px;">💰 رصيدك الحالي من النقاط</div>
+          <div style="font-size:42px;font-weight:900;color:#0d1117;line-height:1;" id="wMarketCurrentPoints">0</div>
+          <div style="font-size:11px;color:rgba(0,0,0,0.5);margin-top:4px;">نقطة</div>
+        </div>
+
+        <!-- نسبة التحويل -->
+        <div style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.25);border-radius:14px;padding:14px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:900;color:#FFD700;margin-bottom:10px;">💱 كيفية تحويل النقاط إلى مكافأة</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(255,215,0,0.1);border-radius:8px;border:1px solid rgba(255,215,0,0.15);">
+              <div style="display:flex;align-items:center;gap:6px;"><span>💵</span><span style="color:#c9d1d9;">كل 50 نقطة تساوي</span></div>
+              <span style="color:#FFD700;font-weight:900;">30 دج</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(255,200,0,0.1);border-radius:8px;border:1px solid rgba(255,200,0,0.2);">
+              <div style="display:flex;align-items:center;gap:6px;"><span>🥇</span><span style="color:#c9d1d9;">أعلى 15 عضو</span></div>
+              <span style="color:#f5c518;font-weight:900;">35 دج / 50 نقطة</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(0,200,83,0.1);border-radius:8px;border:1px solid rgba(0,200,83,0.2);">
+              <div style="display:flex;align-items:center;gap:6px;"><span>🏦</span><span style="color:#FFD700;font-weight:800;">قيمة نقاطك الآن</span></div>
+              <span style="color:#00c853;font-weight:900;font-size:13px;" id="wMarketMyPtsValue">0 دج</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- النشر -->
+        <div style="background:rgba(0,200,83,0.07);border:1px solid rgba(0,200,83,0.2);border-radius:14px;padding:14px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+            <div style="width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#00c853,#007a33);display:flex;align-items:center;justify-content:center;font-size:13px;">📤</div>
+            <div style="font-size:13px;font-weight:900;color:#00c853;">كسب النقاط — النشر</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;"><span style="color:#c9d1d9;">📄 نشر منشور</span><span style="color:#00c853;font-weight:900;background:rgba(0,200,83,0.15);padding:2px 8px;border-radius:20px;">+50 نقطة</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;"><span style="color:#c9d1d9;">📖 نشر قصة</span><span style="color:#00c853;font-weight:900;background:rgba(0,200,83,0.15);padding:2px 8px;border-radius:20px;">+15 نقطة</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;"><span style="color:#c9d1d9;">🎬 نشر فيديو</span><span style="color:#00c853;font-weight:900;background:rgba(0,200,83,0.15);padding:2px 8px;border-radius:20px;">+70 نقطة</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;"><span style="color:#c9d1d9;">🖼️ نشر صورة</span><span style="color:#00c853;font-weight:900;background:rgba(0,200,83,0.15);padding:2px 8px;border-radius:20px;">+50 نقطة</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(255,215,0,0.1);border-radius:8px;border:1px solid rgba(255,215,0,0.25);"><span style="color:#FFD700;">📱 نشر من أيقونات التطبيق</span><span style="color:#FFD700;font-weight:900;background:rgba(255,215,0,0.15);padding:2px 8px;border-radius:20px;">+100 نقطة</span></div>
+          </div>
+        </div>
+
+        <!-- التفاعل -->
+        <div style="background:rgba(0,153,255,0.07);border:1px solid rgba(0,153,255,0.2);border-radius:14px;padding:14px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+            <div style="width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#0099ff,#0057b8);display:flex;align-items:center;justify-content:center;font-size:13px;">💬</div>
+            <div style="font-size:13px;font-weight:900;color:#0099ff;">كسب النقاط — التفاعل</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;">
+            <div style="font-size:10px;color:#8b949e;padding:3px 4px;font-weight:700;">— التعليقات —</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;"><span style="color:#c9d1d9;">💬 تعليقي على منشور الغير</span><span style="color:#0099ff;font-weight:900;background:rgba(0,153,255,0.15);padding:2px 8px;border-radius:20px;">+3 نقاط</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;"><span style="color:#c9d1d9;">💬 تعليق الغير على منشوري</span><span style="color:#00c6ff;font-weight:900;background:rgba(0,198,255,0.15);padding:2px 8px;border-radius:20px;">+7 نقاط</span></div>
+            <div style="font-size:10px;color:#8b949e;padding:5px 4px 2px;font-weight:700;">— الإعجابات —</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;"><span style="color:#c9d1d9;">❤️ إعجابي بمنشور الغير</span><span style="color:#0099ff;font-weight:900;background:rgba(0,153,255,0.15);padding:2px 8px;border-radius:20px;">+2 نقطة</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;"><span style="color:#c9d1d9;">❤️ إعجاب الغير بمنشوري</span><span style="color:#00c853;font-weight:900;background:rgba(0,200,83,0.15);padding:2px 8px;border-radius:20px;">+4 نقاط</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;"><span style="color:#c9d1d9;">👍 إعجاب على أي تعليق</span><span style="color:#0099ff;font-weight:900;background:rgba(0,153,255,0.15);padding:2px 8px;border-radius:20px;">+1 نقطة</span></div>
+            <div style="font-size:10px;color:#8b949e;padding:5px 4px 2px;font-weight:700;">— المشاهدات —</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;"><span style="color:#c9d1d9;">👁️ مشاهدتي لمنشور الغير</span><span style="color:#8b949e;font-weight:900;background:rgba(255,255,255,0.07);padding:2px 8px;border-radius:20px;">+1 نقطة</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;"><span style="color:#c9d1d9;">👁️ كل مشاهدة الغير لي</span><span style="color:#00c853;font-weight:900;background:rgba(0,200,83,0.15);padding:2px 8px;border-radius:20px;">+5 نقاط</span></div>
+            <div style="font-size:10px;color:#8b949e;padding:5px 4px 2px;font-weight:700;">— المراسلة والميزات —</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(168,85,247,0.1);border-radius:8px;border:1px solid rgba(168,85,247,0.2);"><span style="color:#d4a9fc;">💌 رسالة عبر المسنجر</span><span style="color:#a855f7;font-weight:900;background:rgba(168,85,247,0.15);padding:2px 8px;border-radius:20px;">+7 نقاط</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.25);border-radius:8px;"><span style="color:#c9d1d9;">🔓 فتح ميزة / خاصية</span><span style="color:#0099ff;font-weight:900;background:rgba(0,153,255,0.15);padding:2px 8px;border-radius:20px;">+3 نقاط</span></div>
+          </div>
+        </div>
+
+        <!-- مكافأة المركز الأول -->
+        <div style="background:linear-gradient(135deg,rgba(255,215,0,0.12),rgba(249,115,22,0.08));border:1px solid rgba(255,215,0,0.35);border-radius:14px;padding:14px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+            <div style="width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#FFD700,#f97316);display:flex;align-items:center;justify-content:center;font-size:13px;">🏆</div>
+            <div style="font-size:13px;font-weight:900;color:#FFD700;">مكافأة المركز الأول</div>
+          </div>
+          <div style="background:rgba(255,215,0,0.1);border-radius:10px;padding:12px;display:flex;align-items:flex-start;gap:10px;">
+            <span style="font-size:22px;flex-shrink:0;">👑</span>
+            <div>
+              <div style="font-size:12px;color:#c9d1d9;line-height:1.7;">المرتبة الأولى في <strong style="color:#FFD700;">أي قسم من أقسام البطولة</strong> تمنحك:</div>
+              <div style="font-size:16px;font-weight:900;color:#FFD700;margin-top:4px;">+100 نقطة إضافية</div>
+              <div style="font-size:11px;color:#8b949e;margin-top:2px;">لكل يوم تبقى في المستوى الأول 🔥</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <!-- ── Side Menu Overlay ── -->
   <div id="socialSideMenuOverlay" onclick="closeSocialSideMenu()" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:50;"></div>
   <!-- ── Side Menu Drawer (الجديد) ── -->
@@ -19957,6 +20154,8 @@ var _WHEEL_ITEMS = [
   { id:'nld',       emoji:'🥇',  label:'Next\nLeaders DZ',   color:'linear-gradient(135deg,#FFD700,#e52d27)',  action: function(){ if(typeof openNldChampionship==='function') openNldChampionship(); } },
   { id:'mouloudiya',emoji:'🔴',  label:'مولودية\nأكادير',    color:'linear-gradient(135deg,#e52d27,#f5c518)',  action: function(){ openWheelPanel('mouloudiya'); } },
   { id:'shabab',    emoji:'🟢',  label:'شباب\nآمال',         color:'linear-gradient(135deg,#00c853,#004d1a)',  action: function(){ openWheelPanel('shabab'); } },
+  { id:'analytics', emoji:'📊',  label:'لوحة\nالبيانات',     color:'linear-gradient(135deg,#0099ff,#00c6ff)',  action: function(){ closeWheelMenu(); setTimeout(function(){ openWheelPanel('analytics'); },200); } },
+  { id:'market',    emoji:'💹',  label:'البورصة\nوالنقاط',   color:'linear-gradient(135deg,#FFD700,#f97316)',  action: function(){ closeWheelMenu(); setTimeout(function(){ openWheelPanel('market'); },200); } },
 ];
 
 var _wheelOpen = false;
@@ -20080,12 +20279,74 @@ function openWheelPanel(panelId){
   var overlay = document.getElementById('wheelPanel_' + panelId);
   if(!overlay){ if(typeof showToast==='function') showToast('الصفحة قيد الإنشاء'); return; }
   overlay.style.display = 'flex';
-  _loadWheelPanelContent(panelId);
+  if(panelId === 'analytics') _loadWheelAnalyticsData();
+  else if(panelId === 'market') _loadWheelMarketData();
+  else _loadWheelPanelContent(panelId);
 }
 
 function closeWheelPanel(panelId){
   var overlay = document.getElementById('wheelPanel_' + panelId);
   if(overlay) overlay.style.display = 'none';
+}
+
+/* ── بيانات لوحة التحليل في الدائرة ── */
+function _loadWheelAnalyticsData(){
+  try{
+    var name = typeof getCurrentUser==='function' ? getCurrentUser() : null;
+    if(!name || name==='زائر') return;
+    var allPosts = typeof getSocialPosts==='function' ? getSocialPosts() : [];
+    var myFeedPosts = allPosts.filter(function(p){ return p.author===name; });
+    var totalPostViews=0, totalLikes=0, totalComments=0;
+    myFeedPosts.forEach(function(p){
+      totalPostViews += (p.views||0);
+      totalLikes += Object.values(p.reactions||{}).reduce(function(s,arr){ return s+(arr.length||0); },0);
+      totalComments += (p.comments||[]).length;
+    });
+    var profileVisits = parseInt(localStorage.getItem('profileVisits_'+name.replace(/\s+/g,'_'))||'0');
+    var storyViews    = parseInt(localStorage.getItem('storyViews_'+name.replace(/\s+/g,'_'))||'0');
+    var totalViews = totalPostViews + storyViews + profileVisits;
+    var set=function(id,v){ var el=document.getElementById(id); if(el) el.innerText=v; };
+    set('wAnalyticsStoryViews',   storyViews.toLocaleString());
+    set('wAnalyticsPostViews',    totalPostViews.toLocaleString());
+    set('wAnalyticsProfileViews', profileVisits.toLocaleString());
+    set('wAnalyticsTotalViews',   totalViews.toLocaleString());
+    set('wAnalyticsPostCount',    myFeedPosts.length.toLocaleString());
+    set('wAnalyticsCommentCount', totalComments.toLocaleString());
+    set('wAnalyticsLikeCount',    totalLikes.toLocaleString());
+    set('wAnalyticsProfileVisits',profileVisits.toLocaleString());
+    var engRate = totalPostViews>0 ? Math.round(((totalLikes+totalComments)/Math.max(totalPostViews,1))*100) : 0;
+    set('wAnalyticsEngagementRate', engRate+'%');
+    var sheetPts  = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+    var quizPts   = parseInt(localStorage.getItem('pts_earned_'+name.replace(/\s+/g,'_'))||'0');
+    var intPts    = parseInt(localStorage.getItem('pts_interact_'+name.replace(/\s+/g,'_'))||'0');
+    set('wAnalyticsRankScore', (sheetPts+quizPts+intPts).toLocaleString());
+    var bar = document.getElementById('wAnalyticsTotalViewsBar');
+    if(bar) bar.style.width = (totalViews>0 ? Math.min(100,Math.round((totalViews/Math.max(totalViews,200))*100)) : 0) + '%';
+    var engBar = document.getElementById('wAnalyticsEngagementBar');
+    if(engBar) engBar.style.width = Math.min(engRate,100)+'%';
+    if(totalViews>0){
+      var sp=Math.round((storyViews/totalViews)*100), pp=Math.round((totalPostViews/totalViews)*100), pfp=Math.round((profileVisits/totalViews)*100);
+      var e1=document.getElementById('wAnalyticsStoryPct'), e2=document.getElementById('wAnalyticsPostPct'), e3=document.getElementById('wAnalyticsProfilePct');
+      if(e1) e1.innerText='قصص '+sp+'%'; if(e2) e2.innerText='منشورات '+pp+'%'; if(e3) e3.innerText='ملف '+pfp+'%';
+    }
+  }catch(ex){}
+}
+
+/* ── بيانات لوحة البورصة في الدائرة ── */
+function _loadWheelMarketData(){
+  try{
+    var name = typeof getCurrentUser==='function' ? getCurrentUser() : null;
+    if(!name || name==='زائر') return;
+    var sheetPts = window._sheetPtsCache >= 0 ? window._sheetPtsCache : 0;
+    var quizPts  = parseInt(localStorage.getItem('pts_earned_'+name.replace(/\s+/g,'_'))||'0');
+    var intPts   = parseInt(localStorage.getItem('pts_interact_'+name.replace(/\s+/g,'_'))||'0');
+    var total    = sheetPts + quizPts + intPts;
+    var set=function(id,v){ var el=document.getElementById(id); if(el) el.innerText=v; };
+    set('wMarketCurrentPoints', total.toLocaleString());
+    var rate  = 30;
+    var units = Math.floor(total/50);
+    set('wMarketMyPtsValue', (units*rate).toLocaleString()+' دج');
+  }catch(ex){}
 }
 
 function _loadWheelPanelContent(panelId){
