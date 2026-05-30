@@ -4419,7 +4419,7 @@ function switchLoginTab(tab){
         </button>
 
         <!-- جرس التنبيهات من المدير -->
-        <div class="notif-btn" id="notifBell" onclick="openNotifications()" title="التنبيهات" style="position:relative;background:linear-gradient(135deg,#FFD700,#FFA500);border-color:#FFD700;border-width:2px;font-size:20px;box-shadow:0 4px 12px rgba(255,180,0,0.45);">🔔<span id="notifBadge" style="display:none;position:absolute;top:-5px;left:-5px;min-width:18px;height:18px;border-radius:9px;background:#e52d27;border:2px solid var(--dark);font-size:10px;font-weight:900;color:white;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;"></span></div>
+        <div class="notif-btn" id="notifBell" onclick="openNotifications()" title="التنبيهات" style="position:relative;background:white;border:2px solid #E4E6EB;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.15);">🔔<span id="notifBadge" style="display:none;position:absolute;top:-5px;left:-5px;min-width:18px;height:18px;border-radius:9px;background:#e52d27;border:2px solid var(--dark);font-size:10px;font-weight:900;color:white;align-items:center;justify-content:center;font-family:'Tajawal',sans-serif;"></span></div>
         <!-- زر خصم نقاط - للمدير فقط -->
         <div class="notif-btn" id="adminDeductPtsBtn" onclick="openAdminDeductPointsPanel()" title="خصم نقاط من الأعضاء" style="display:none;position:relative;background:linear-gradient(135deg,rgba(239,68,68,0.25),rgba(185,28,28,0.2));border-color:rgba(239,68,68,0.5);font-size:18px;">➖</div>
         <!-- زر إرسال نقاط - للمدير فقط -->
@@ -4573,7 +4573,7 @@ function switchLoginTab(tab){
         <span id="socialNotifBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;">0</span>
       </div>
       <div id="sTab_pages" onclick="switchSocialTab('pages')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
-        <div style="width:32px;height:32px;background:linear-gradient(135deg,#00c853,#00b894);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,200,83,0.5);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='white'><path d='M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z'/></svg></div>
+        <div style="width:32px;height:32px;background:white;border:2px solid #E4E6EB;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.12);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='#00c853'><path d='M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z'/></svg></div>
         <span style="font-size:9px;font-weight:800;color:#00c853;">مسنجر</span>
         <span id="socialMsgBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;"></span>
       </div>
@@ -4942,6 +4942,21 @@ function switchLoginTab(tab){
     border: 1px solid rgba(139,92,246,0.2) !important;
   }
   .member-greeting-stat .gs-icon { filter: drop-shadow(0 0 4px rgba(139,92,246,0.5)); }
+  /* ✅ إصلاح ألوان النصوص على الخلفية الداكنة */
+  .member-greeting-stat .gs-num { color: #ffffff !important; }
+  .member-greeting-stat .gs-label { color: rgba(200,200,255,0.75) !important; }
+  .member-greeting-title {
+    background: linear-gradient(135deg,#ffffff,#c4b5fd,#7dd3fc) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+  }
+  .member-greeting-sub { color: rgba(180,200,255,0.8) !important; }
+  .member-badge-inline {
+    background: linear-gradient(135deg,rgba(139,92,246,0.25),rgba(56,189,248,0.2)) !important;
+    border-color: rgba(139,92,246,0.45) !important;
+    color: #c4b5fd !important;
+  }
 
   /* عنوان القسم */
   .section-title {
@@ -4991,14 +5006,15 @@ function switchLoginTab(tab){
     border: 1.5px solid rgba(167,139,250,0.3) !important;
   }
 
-  /* تحسين زر الإشعارات */
+  /* تحسين زر الإشعارات — أبيض */
   .notif-btn {
-    background: rgba(15,10,30,0.6) !important;
-    border-color: rgba(139,92,246,0.2) !important;
+    background: white !important;
+    border-color: #E4E6EB !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important;
   }
   .notif-btn:hover {
-    background: rgba(139,92,246,0.12) !important;
-    border-color: rgba(139,92,246,0.4) !important;
+    background: #F0F2F5 !important;
+    border-color: #CDD3D8 !important;
   }
 
   /* تدرج خلفية الهيرو — إضافة البنفسجي */
@@ -20471,10 +20487,13 @@ function _buildWheel(){
       to   { transform: rotate(360deg); }
     }
     #wheelOrbitRing.orbiting {
-      animation: wheelRingOrbit 20s linear infinite;
+      animation: wheelRingOrbit 18s linear infinite;
     }
+    /* ✅ الأيقونات تبقى ظاهرة أثناء الدوران */
     #wheelOrbitRing.orbiting .wheel-item {
       animation: none !important;
+      opacity: 1 !important;
+      pointer-events: all !important;
     }
     #wheelOrbitRing.orbiting .wheel-item-emoji {
       display:inline-block;
@@ -20482,7 +20501,8 @@ function _buildWheel(){
     /* الأيقونة تبقى مستقيمة رغم دوران الحلقة */
     #wheelOrbitRing.orbiting .wheel-item-emoji,
     #wheelOrbitRing.orbiting .wheel-item-label {
-      animation: wheelCounterRot 20s linear infinite;
+      display: inline-block;
+      animation: wheelCounterRot 18s linear infinite;
     }
     @keyframes wheelCounterRot {
       from { transform: rotate(0deg); }
