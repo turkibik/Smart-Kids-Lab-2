@@ -253,18 +253,35 @@ document.addEventListener('touchend', function(e){
       document.head.appendChild(st);
     }
 
-    /* تنفيذ التحديث الفعلي */
+    /* ✅ تنفيذ التحديث الفعلي — جلب من Firebase + تحديث كل البيانات */
     setTimeout(function(){
       try{
-        /* تحديث Feed الرئيسي */
-        if(typeof loadSocialFeed==='function') loadSocialFeed();
-        else if(typeof renderFeed==='function') renderFeed();
-        else if(typeof loadPosts==='function') loadPosts();
-        /* تحديث إشعارات */
+        /* جلب المنشورات مباشرة من Firebase */
+        try{
+          var _PTR_FB_URL = 'https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json?orderBy="ts"&limitToLast=2000&_='+Date.now();
+          fetch(_PTR_FB_URL, {cache:'no-store'})
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+              if(data && typeof data==='object'){
+                var fbPosts = Object.values(data).filter(function(p){ return p&&p.id&&p.author&&!p._archived; });
+                if(typeof _mergePosts==='function' && typeof getSocialPosts==='function' && typeof saveSocialPosts==='function'){
+                  var merged = _mergePosts(getSocialPosts(), fbPosts);
+                  saveSocialPosts(merged);
+                }
+              }
+              if(typeof renderSocialFeed==='function') renderSocialFeed();
+            }).catch(function(){ if(typeof renderSocialFeed==='function') renderSocialFeed(); });
+        }catch(e2){
+          if(typeof renderSocialFeed==='function') renderSocialFeed();
+          else if(typeof loadSocialFeed==='function') loadSocialFeed();
+        }
+        /* تحديث الإشعارات */
         if(typeof loadNotifications==='function') loadNotifications();
         /* تحديث بيانات المستخدم */
         if(typeof refreshUserData==='function') refreshUserData();
-        if(typeof showToast==='function') showToast('✅ تم تحديث البيانات');
+        /* تحديث لوحة الترتيب */
+        if(typeof renderLeaderboard==='function') renderLeaderboard();
+        if(typeof showToast==='function') showToast('✅ تم تحديث البيانات من السيرفر');
       }catch(ex){}
       /* إخفاء المؤشر */
       ind.style.height = '0px';
@@ -4440,7 +4457,7 @@ function switchLoginTab(tab){
         <!-- زر نشر منشور - للمدير فقط -->
         <div class="notif-btn" id="adminPostBtn" onclick="openAdminCommandPanel()" title="نشر منشور" style="display:none;position:relative;background:linear-gradient(135deg,rgba(0,229,160,0.2),rgba(0,153,255,0.15));border-color:rgba(0,229,160,0.4);font-size:18px;">📣</div>
         <!-- زر الإدارة في الأعلى - للأدمن فقط -->
-        <div class="notif-btn" id="adminNavBtn" onclick="showModal('adminModal')" title="لوحة الإدارة" style="display:none;position:relative;background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(245,158,11,0.2));border-color:rgba(220,38,38,0.4);font-size:18px;">⚙️</div>
+        <div class="notif-btn" id="adminNavBtn" onclick="if(typeof openAdminFullPage==='function') openAdminFullPage(); else showModal('adminModal');" title="لوحة الإدارة" style="display:none;position:relative;background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(245,158,11,0.2));border-color:rgba(220,38,38,0.4);font-size:18px;">⚙️</div>
         <!-- زر مجموع نقاط الأعضاء - للمدير فقط -->
         <div class="notif-btn" id="adminAllPtsBtn" onclick="openAdminTotalPtsPanel()" title="مجموع نقاط كل عضو" style="display:none;position:relative;background:linear-gradient(135deg,rgba(0,229,255,0.2),rgba(99,102,241,0.2));border-color:rgba(0,229,255,0.5);font-size:18px;">📊</div>
         <button class="logout-btn" onclick="goBackToSocialHome()" title="رجوع للصفحة الرئيسية" style="gap:5px;">
@@ -5578,10 +5595,10 @@ function switchLoginTab(tab){
 
       <div style="height:1px;background:#E4E6EB;margin:4px 16px;"></div>
 
-      <!-- إضافة حساب — يفتح واجهة تسجيل الدخول -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>{ doLogout(); },200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <!-- إضافة حساب — يفتح لوحة تبديل الحسابات -->
+      <div onclick="closeSocialSideMenu();setTimeout(function(){ if(typeof window.openMultiAccPanel==='function') window.openMultiAccPanel(); else if(typeof doLogout==='function') doLogout(); },200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#00c853,#007a33);display:flex;align-items:center;justify-content:center;font-size:18px;">➕</div>
-        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">إضافة حساب</div><div style="font-size:11px;color:#65676B;">العودة لواجهة تسجيل الدخول</div></div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">إضافة / تبديل حساب</div><div style="font-size:11px;color:#65676B;">تبديل بين الحسابات المحفوظة</div></div>
         <span style="color:#BCC0C4;font-size:16px;">›</span>
       </div>
 
@@ -6540,10 +6557,10 @@ function switchLoginTab(tab){
           <div id="mpvHeaderBalance" style="font-size:14px;font-weight:900;color:#a5b4fc;font-family:'Tajawal',sans-serif;">--</div>
           <div style="font-size:8px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">جواهر</div>
         </div>
-        <!-- حول -->
-        <div onclick="openMpvAboutSheet()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.22);border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;transition:.18s;" onmouseover="this.style.filter='brightness(1.2)'" onmouseout="this.style.filter='none'">
-          <div style="font-size:20px;margin-bottom:3px;">ℹ️</div>
-          <div style="font-size:14px;font-weight:900;color:#f87171;font-family:'Tajawal',sans-serif;">حول</div>
+        <!-- حول / تعديل —يتغير بحسب هوية الزائر -->
+        <div id="mpvAboutOrEditBtn" onclick="_mpvAboutOrEdit()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.22);border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;transition:.18s;" onmouseover="this.style.filter='brightness(1.2)'" onmouseout="this.style.filter='none'">
+          <div id="mpvAboutOrEditIcon" style="font-size:20px;margin-bottom:3px;">ℹ️</div>
+          <div id="mpvAboutOrEditLabel" style="font-size:14px;font-weight:900;color:#f87171;font-family:'Tajawal',sans-serif;">حول</div>
           <div style="font-size:8px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">معلومات</div>
         </div>
       </div>
@@ -7170,7 +7187,7 @@ function switchLoginTab(tab){
 </div>
 
 <!-- زر تبديل لوحة الإدارة (يظهر فقط للمدير) -->
-<div class="admin-toggle-btn" id="adminToggleBtn" onclick="showModal('adminModal')" title="لوحة الإدارة">⚙️</div>
+<div class="admin-toggle-btn" id="adminToggleBtn" onclick="if(typeof openAdminFullPage==='function') openAdminFullPage(); else showModal('adminModal');" title="لوحة الإدارة">⚙️</div>
 
 <!-- ══════════════════════════════════════════════════════
      💻 نافذة برمجة التطبيق — إرسال رسائل للمنخرطين
@@ -8706,6 +8723,11 @@ function showModal(id){
   if(id==='rankingCard') loadRanking();
   if(id==='quizCard')    loadQuiz();
   if(id==='adminModal'){
+    /* ✅ توجيه مباشر للوحة الكاملة بدلاً من اللوحة القديمة */
+    if(typeof openAdminControlPanel==='function'){
+      setTimeout(function(){ openAdminControlPanel(); }, 50);
+      return; /* لا تفتح adminModal القديمة */
+    }
     loadAdminStats();
     adminRenderSentLog();
     adminLoadMembersSelect();
@@ -9483,6 +9505,40 @@ function openNLDInfoModal(){
   overlay.innerHTML = '<div style="width:100%;max-width:500px;background:linear-gradient(160deg,#0d1117,#1a1a40);border-radius:28px 28px 0 0;padding:0 0 20px;max-height:88vh;overflow-y:auto;"><div style="width:44px;height:4px;background:rgba(255,255,255,0.25);border-radius:2px;margin:12px auto 0;"></div><div style="padding:18px 20px 14px;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#7c3aed,#4f46e5);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 6px 20px rgba(124,58,237,0.4);">&#x1F3DB;</div><div><div style="font-size:19px;font-weight:900;color:white;">Next Leaders DZ</div><div style="font-size:11px;color:#a78bfa;margin-top:2px;">&#x647;&#x64A;&#x626;&#x629; &#x634;&#x628;&#x627;&#x628;&#x64A;&#x629; &#x645;&#x633;&#x62A;&#x642;&#x644;&#x629; &bull; &#x627;&#x644;&#x62C;&#x632;&#x627;&#x626;&#x631; &#x1F1E9;&#x1F1FF;</div></div></div><div style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);border-radius:16px;padding:14px;margin-bottom:10px;"><div style="font-size:12px;font-weight:900;color:#a78bfa;margin-bottom:8px;">&#x1F3AF; &#x631;&#x633;&#x627;&#x644;&#x62A;&#x646;&#x627;</div><div style="font-size:13px;color:rgba(255,255,255,0.8);line-height:1.8;">&#x62A;&#x645;&#x643;&#x64A;&#x646; &#x627;&#x644;&#x634;&#x628;&#x627;&#x628; &#x627;&#x644;&#x62C;&#x632;&#x627;&#x626;&#x631;&#x64A; &#x639;&#x628;&#x631; &#x648;&#x631;&#x634;&#x627;&#x62A; &#x639;&#x645;&#x644;&#x60C; &#x62A;&#x639;&#x627;&#x648;&#x646;&#x60C; &#x645;&#x646;&#x627;&#x641;&#x633;&#x629;&#x60C; &#x633;&#x64A;&#x627;&#x62D;&#x629;&#x60C; &#x627;&#x643;&#x62A;&#x634;&#x627;&#x641;&#x60C; &#x648;&#x62A;&#x646;&#x645;&#x64A;&#x629; &#x627;&#x644;&#x645;&#x647;&#x627;&#x631;&#x627;&#x62A; &#x627;&#x644;&#x642;&#x64A;&#x627;&#x62F;&#x64A;&#x629; &#x641;&#x64A; &#x628;&#x64A;&#x626;&#x629; &#x625;&#x628;&#x62F;&#x627;&#x639;&#x64A;&#x629; &#x648;&#x627;&#x628;&#x62A;&#x643;&#x627;&#x631;&#x64A;&#x629;.</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;"><div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:12px;text-align:center;"><div style="font-size:22px;margin-bottom:4px;">&#x1F52C;</div><div style="font-size:11px;font-weight:800;color:white;">&#x648;&#x631;&#x634;&#x627;&#x62A; &#x639;&#x645;&#x644;</div></div><div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:12px;text-align:center;"><div style="font-size:22px;margin-bottom:4px;">&#x1F91D;</div><div style="font-size:11px;font-weight:800;color:white;">&#x62A;&#x639;&#x627;&#x648;&#x646;</div></div><div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:12px;text-align:center;"><div style="font-size:22px;margin-bottom:4px;">&#x1F3C6;</div><div style="font-size:11px;font-weight:800;color:white;">&#x645;&#x646;&#x627;&#x641;&#x633;&#x629;</div></div><div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:12px;text-align:center;"><div style="font-size:22px;margin-bottom:4px;">&#x1F9ED;</div><div style="font-size:11px;font-weight:800;color:white;">&#x633;&#x64A;&#x627;&#x62D;&#x629; &#x648;&#x627;&#x643;&#x62A;&#x634;&#x627;&#x641;</div></div></div><div style="background:rgba(79,70,229,0.1);border:1px solid rgba(79,70,229,0.2);border-radius:13px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">&#x1F680;</span><div style="font-size:11px;color:rgba(255,255,255,0.6);">Next Leaders DZ &#x647;&#x64A;&#x626;&#x629; &#x645;&#x633;&#x62A;&#x642;&#x644;&#x629; &#x2014; &#x644;&#x627; &#x62A;&#x631;&#x62A;&#x628;&#x637; &#x628;&#x623;&#x64A; &#x646;&#x638;&#x627;&#x645; &#x628;&#x637;&#x648;&#x644;&#x629; &#x623;&#x648; &#x62A;&#x631;&#x62A;&#x64A;&#x628;.</div></div><button onclick="document.getElementById(\'_nldInfoOverlay\').remove()" style="width:100%;padding:14px;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:16px;color:white;font-family:\'Tajawal\',sans-serif;font-size:15px;font-weight:900;cursor:pointer;">&#x2715; &#x625;&#x63A;&#x644;&#x627;&#x642;</button></div></div>';
   overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
   document.body.appendChild(overlay);
+}
+
+/* ✅ زر حول/تعديل — يتغير حسب هوية المشاهد */
+function _mpvAboutOrEdit(){
+  var viewer = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+  var viewed = window._mpvCurrentUser || '';
+  if(viewer && viewer === viewed){
+    /* ملفي الشخصي — أفتح التعديل */
+    if(typeof openEditProfileOverlay==='function') openEditProfileOverlay();
+    else if(typeof showProfileEditMenu==='function') showProfileEditMenu();
+    else if(typeof _openEditInfoModal==='function') _openEditInfoModal();
+  } else {
+    openMpvAboutSheet();
+  }
+}
+
+/* تحديث أيقونة الزر عند فتح ملف شخصي */
+function _updateMpvAboutOrEditBtn(memberName){
+  var viewer = typeof getCurrentUser==='function' ? getCurrentUser() : '';
+  var icon = document.getElementById('mpvAboutOrEditIcon');
+  var label = document.getElementById('mpvAboutOrEditLabel');
+  var btn = document.getElementById('mpvAboutOrEditBtn');
+  if(!icon || !label) return;
+  if(viewer && viewer === memberName){
+    icon.textContent = '✏️';
+    label.textContent = 'تعديل';
+    label.style.color = '#34d399';
+    if(btn){ btn.style.background='rgba(0,200,83,0.1)'; btn.style.border='1px solid rgba(0,200,83,0.22)'; }
+  } else {
+    icon.textContent = 'ℹ️';
+    label.textContent = 'حول';
+    label.style.color = '#f87171';
+    if(btn){ btn.style.background='rgba(239,68,68,0.1)'; btn.style.border='1px solid rgba(239,68,68,0.22)'; }
+  }
 }
 
 function openMpvAboutSheet(){
@@ -19389,6 +19445,13 @@ let _mpvCurrentUser = null;
 /* viewMemberProfile الكاملة معرّفة لاحقاً (تشمل الأصدقاء + Firebase) */
 function viewMemberProfile(memberName){
   _mpvCurrentUser = memberName;
+  /* ✅ فتح ملف العضو مباشرة عند الضغط على الصورة */
+  if(typeof openFullMemberProfile === 'function'){
+    openFullMemberProfile(memberName);
+  } else {
+    const el = document.getElementById('memberProfileView');
+    if(el){ el.style.display='flex'; el.scrollTop=0; }
+  }
 }
 
 function updateMpvFriendBtn(memberName){
@@ -19487,14 +19550,48 @@ function openGroupView(groupId){
   showToast('📋 ميزة المجموعات قريباً...');
 }
 function createGroup(){
-  const name = prompt('اسم المجموعة الجديدة:');
-  if(!name) return;
-  const groups = getGroups();
-  groups.push({ id:'g'+Date.now(), name, desc:'مجموعة جديدة', members:[], icon:'👥', cover:'linear-gradient(135deg,#667eea,#764ba2)' });
-  localStorage.setItem(_groupsKey, JSON.stringify(groups));
-  renderGroupsPanel();
-  showToast('تم إنشاء المجموعة ✅');
+  /* ✅ إنشاء مجموعة حقيقية مع Firebase */
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;';
+  ov.innerHTML = `<div style="background:white;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:24px 20px 36px;font-family:'Tajawal',sans-serif;">
+    <div style="width:40px;height:4px;background:#E4E6EB;border-radius:2px;margin:0 auto 20px;"></div>
+    <div style="font-size:18px;font-weight:900;color:#050505;margin-bottom:16px;text-align:center;">➕ إنشاء مجموعة جديدة</div>
+    <input id="_newGrpName" placeholder="اسم المجموعة..." style="width:100%;padding:12px 16px;border:1.5px solid #E4E6EB;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;box-sizing:border-box;outline:none;margin-bottom:10px;text-align:right;" oninput="this.style.borderColor='#00c853'">
+    <input id="_newGrpDesc" placeholder="وصف المجموعة (اختياري)..." style="width:100%;padding:12px 16px;border:1.5px solid #E4E6EB;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:13px;box-sizing:border-box;outline:none;margin-bottom:16px;text-align:right;">
+    <div style="display:flex;gap:10px;">
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;padding:13px;background:#F0F2F5;border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;color:#65676B;cursor:pointer;">إلغاء</button>
+      <button onclick="_submitCreateGroup()" style="flex:1;padding:13px;background:linear-gradient(135deg,#00c853,#007a33);border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:900;color:white;cursor:pointer;">إنشاء ✅</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  setTimeout(()=>{ var inp=document.getElementById('_newGrpName'); if(inp) inp.focus(); }, 200);
 }
+
+window._submitCreateGroup = function(){
+  var name = (document.getElementById('_newGrpName')||{}).value||'';
+  var desc = (document.getElementById('_newGrpDesc')||{}).value||'مجموعة جديدة';
+  name = name.trim();
+  if(!name){ showToast('⚠️ أدخل اسم المجموعة'); return; }
+  var creator = typeof getCurrentUser==='function' ? getCurrentUser() : 'عضو';
+  var gid = 'g'+Date.now();
+  var groupData = { id:gid, name, desc, members:[creator], icon:'👥', cover:'linear-gradient(135deg,#667eea,#764ba2)', createdAt:Date.now(), createdBy:creator };
+  /* حفظ محلي */
+  var groups = typeof getGroups==='function' ? getGroups() : [];
+  groups.push(groupData);
+  localStorage.setItem(typeof _groupsKey!=='undefined'?_groupsKey:'cdz_groups', JSON.stringify(groups));
+  /* حفظ Firebase */
+  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
+  if(db){
+    db.ref('groups/'+gid).set(groupData).then(function(){
+      showToast('✅ تم إنشاء المجموعة وحفظها في السيرفر');
+    }).catch(function(){ showToast('✅ تم إنشاء المجموعة محلياً'); });
+  } else {
+    showToast('✅ تم إنشاء المجموعة');
+  }
+  /* إغلاق النافذة وتحديث القائمة */
+  document.querySelectorAll('[style*="fixed"][style*="rgba(0,0,0,0.6)"]').forEach(function(el){ el.remove(); });
+  if(typeof renderGroupsPanel==='function') renderGroupsPanel();
+};
 
 /* ══════════════════════════════════════════
    📄 الصفحات — الصفحة الرسمية فقط
@@ -20041,6 +20138,7 @@ function viewMemberProfile(memberName){
   _renderMpvExtendedInfo(memberName, isFriend || isMe);
 
   updateMpvFriendBtn(memberName);
+  _updateMpvAboutOrEditBtn(memberName);
   renderMpvPosts(memberName, true);
 
   // ✅ جلب الإحصائيات الحقيقية من Firebase وتحديث الواجهة
@@ -20060,13 +20158,13 @@ function viewMemberProfile(memberName){
       try{ friends = JSON.parse(localStorage.getItem('nld_friends_'+normN)||'[]'); }catch(ex){}
       if(friendsEl) friendsEl.innerText = friends.length;
 
-      // جلب الجواهر من rankingUrl
+      // ✅ جلب الجواهر من rankingUrl مع بحث محسّن
       if(typeof rankingUrl !== 'undefined' && rankingUrl){
         var txt = await fetch(rankingUrl+'&_='+Date.now(), {cache:'no-store'}).then(function(r){ return r.text(); }).catch(function(){ return ''; });
         if(!txt){ if(gemsEl) gemsEl.innerText = '—'; return; }
-        var norm = function(s){ return s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase(); };
-        function csvLine(line){
-          var res=[]; var cur=''; var q=false;
+        function _normName(s){ return (s||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase(); }
+        function _csvSplit(line){
+          var res=[],cur='',q=false;
           for(var i=0;i<=line.length;i++){
             var ch=line[i];
             if(ch==='"'){q=!q;}
@@ -20075,18 +20173,27 @@ function viewMemberProfile(memberName){
           }
           return res;
         }
+        var _targetNorm = _normName(memberName);
         var rows = txt.split('\n').slice(1).filter(function(r){ return r.trim(); });
         var gems = 0;
         for(var i=0;i<rows.length;i++){
-          var cols = csvLine(rows[i]);
-          // ابحث عن الاسم في أي عمود
+          var cols = _csvSplit(rows[i]);
+          var found = false;
+          // بحث في كل الأعمدة
           for(var j=0;j<cols.length;j++){
-            if(norm(cols[j])===norm(memberName)){
-              gems = parseInt((cols[cols.length-1]||'').replace(/[^\d]/g,''))||0;
-              break;
+            var cellNorm = _normName(cols[j]);
+            // مطابقة كاملة أو جزئية (اسم مضمّن)
+            if(cellNorm === _targetNorm || (cellNorm.length>2 && _targetNorm.indexOf(cellNorm)!==-1) || (cellNorm.length>2 && cellNorm.indexOf(_targetNorm)!==-1)){
+              // استخراج أكبر رقم في الصف
+              var maxPts = 0;
+              for(var k=0;k<cols.length;k++){
+                var num = parseInt((cols[k]||'').replace(/[^\d]/g,''))||0;
+                if(num > maxPts) maxPts = num;
+              }
+              if(maxPts > 0){ gems = maxPts; found = true; break; }
             }
           }
-          if(gems) break;
+          if(found) break;
         }
         if(gemsEl) gemsEl.innerText = gems ? gems.toLocaleString() : '0';
       } else {
@@ -24446,6 +24553,7 @@ function _fbErrorHTML(msg){
   }
 
   const db       = firebase.database();
+  window.firebaseDb = db; /* ✅ تعريض db للمحادثة الجماعية وسائر الوحدات */
   const DB_URL   = "https://connectdz-49fab-default-rtdb.firebaseio.com";
   const VAPID_KEY = 'BNBfJEdK6BYmpL-ZzB27HFKxw_-L-hyswuZjWc8ZUzmcSKO7pcpcDtTZrJsxjRlacxfccXebJW2j_snAsgsvIU4';
 
@@ -35565,18 +35673,39 @@ async function _runWeeklyEvaluation(allMembers, assignments){
   const firstWeekDone = localStorage.getItem(FIRST_WEEK_KEY) === '1';
 
   if(!firstWeekDone){
-    const beginnerMembers = (divMap['beginner'] || []).slice(0, 10);
-    const nextDiv = NLD_DIVISIONS[NLD_DIVISIONS.length - 2]; // الهاوي (القسم فوق المبتدئ)
-    if(beginnerMembers.length > 0 && nextDiv){
-      for(const m of beginnerMembers){
-        const key = (m.name||'').replace(/\s+/g,'_');
-        newAssignments[key] = { divId: nextDiv.id, updatedAt: ts, promotedFrom: 'beginner' };
+    /* ✅ تحقق أولاً من Firebase أن الأسبوع الأول لم يُنفَّذ بالفعل */
+    let fbFirstDone = false;
+    try{
+      const fbCheckRes = await fetch(`${_NLD_FB}/nld_first_week.json`, {cache:'no-store'});
+      const fbCheckVal = await fbCheckRes.json();
+      fbFirstDone = fbCheckVal === true || fbCheckVal === 1 || fbCheckVal === '1';
+    }catch(e){}
+
+    if(!fbFirstDone){
+      const beginnerMembers = (divMap['beginner'] || []).slice(0, 10);
+      const nextDiv = NLD_DIVISIONS[NLD_DIVISIONS.length - 2]; // الهاوي
+      if(beginnerMembers.length > 0 && nextDiv){
+        for(const m of beginnerMembers){
+          const key = (m.name||'').replace(/\s+/g,'_');
+          newAssignments[key] = { divId: nextDiv.id, updatedAt: ts, promotedFrom: 'beginner' };
+        }
+        divMap[nextDiv.id] = [...(divMap[nextDiv.id]||[]), ...beginnerMembers].sort((a,b)=>b.total-a.total);
+        divMap['beginner'] = (divMap['beginner']||[]).filter(m=>!beginnerMembers.includes(m));
+        console.log(`✅ [NLD] الأسبوع الأول: ${beginnerMembers.length} عضو صعدوا من المبتدئ → ${nextDiv.name}`);
+        /* حفظ في Firebase لمنع إعادة التنفيذ من أي جهاز آخر */
+        try{
+          await fetch(`${_NLD_FB}/nld_first_week.json`,{
+            method:'PUT', headers:{'Content-Type':'application/json'},
+            body:'true'
+          });
+        }catch(e){}
       }
-      divMap[nextDiv.id] = [...(divMap[nextDiv.id]||[]), ...beginnerMembers].sort((a,b)=>b.total-a.total);
-      divMap['beginner'] = (divMap['beginner']||[]).filter(m=>!beginnerMembers.includes(m));
-      console.log(`✅ [NLD] الأسبوع الأول: ${beginnerMembers.length} عضو صعدوا من المبتدئ → ${nextDiv.name}`);
+      localStorage.setItem(FIRST_WEEK_KEY, '1');
+    } else {
+      /* Firebase يؤكد أن الأسبوع الأول تم — سجّل محلياً وتخطَّ */
+      localStorage.setItem(FIRST_WEEK_KEY, '1');
+      console.log('[NLD] الأسبوع الأول تم بالفعل (من Firebase) — تخطي');
     }
-    localStorage.setItem(FIRST_WEEK_KEY, '1');
   }
 
   /* ══════════════════════════════════════════════════════
@@ -35641,8 +35770,25 @@ async function _runWeeklyEvaluation(allMembers, assignments){
     console.log(`✅ [NLD] تبادل (${actualCount}): ${relegMembers.map(m=>m.name).join('، ')} نزلوا من ${upperDiv.name} → ${lowerDiv.name}`);
   }
 
-  // حفظ التعيينات في Firebase
+  // ✅ حفظ التعيينات في Firebase + قفل لمنع التكرار
   try{
+    // ① أولاً: تحقق من Firebase إن لم يُنفَّذ التقييم بواسطة جهاز آخر
+    const evalLockRes = await fetch(`${_NLD_FB}/nld_eval_lock.json`, {cache:'no-store'});
+    const evalLock = await evalLockRes.json();
+    if(evalLock && evalLock.week === currentWeek){
+      // جهاز آخر نفّذ التقييم بالفعل — حمّل نتائجه
+      console.log('[NLD] التقييم نُفِّذ من جهاز آخر — تحميل النتائج');
+      localStorage.setItem(WEEK_EVAL_KEY, String(currentWeek));
+      const divRes = await fetch(`${_NLD_FB}/nld_divisions.json`, {cache:'no-store'});
+      const latestAssign = await divRes.json();
+      return latestAssign || assignments;
+    }
+    // ② تسجيل القفل في Firebase أولاً (منع تكرار من أجهزة أخرى)
+    await fetch(`${_NLD_FB}/nld_eval_lock.json`,{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ week: currentWeek, executedAt: Date.now() })
+    });
+    // ③ حفظ التعيينات الجديدة
     await fetch(`${_NLD_FB}/nld_divisions.json`,{
       method:'PATCH', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(newAssignments)
@@ -35848,6 +35994,23 @@ window._nldGetCountdown = function(){
 };
 
 console.log('✅ [NLDChampionship v5] البطولة المحترفة — صعود/نزول 5 — أسبوع أول الليلة 22:00');
+
+/* ✅ مؤقت يراقب الساعة 22:00 كل دقيقة — يُنفِّذ التقييم فور حلول الوقت */
+(function _watchEvalTime(){
+  function _check(){
+    var now = new Date();
+    /* السبت بعد 22:00 وقبل 22:10 — نافذة التنفيذ */
+    if(now.getDay()===6 && now.getHours()===22 && now.getMinutes()<10){
+      if(typeof window.nldChampLoadAll==='function'){
+        console.log('[NLD] ⏰ حان وقت التقييم الأسبوعي — تشغيل تلقائي');
+        window.nldChampLoadAll(); /* هذه تستدعي _runWeeklyEvaluation داخلياً */
+      }
+    }
+  }
+  setInterval(_check, 60000); // كل دقيقة
+  setTimeout(_check, 3000); // فحص فوري بعد 3 ثوانٍ من التحميل
+})();
+
 })();
 </script>
 
@@ -38046,10 +38209,17 @@ console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات �
     document.body.appendChild(overlay);
   };
 
-  /* ── تطبيق سمة بالـ id ── */
+  /* ✅ تطبيق سمة بالـ id — مباشرة ويغلق النافذة */
   window._applyThemeById = function(id){
     var t = APP_THEMES.find(function(x){ return x.id===id; });
-    if(t) applyTheme(t);
+    if(t){
+      applyTheme(t);
+      /* إغلاق نافذة الاختيار بعد التطبيق */
+      setTimeout(function(){
+        var ov = document.getElementById('_appThemePickerOverlay');
+        if(ov) ov.remove();
+      }, 500);
+    }
   };
 
   /* ── تطبيق السمة المحفوظة عند التحميل ── */
@@ -39467,4 +39637,55 @@ console.log('✅ [ادواتي] لوحة الأدوات — جاهزة');
 })();
 </script>
 
+
+<script>
+/* ✅ مزامنة المنشورات المحلية مع Firebase — يُنفَّذ مرة واحدة لكل جلسة */
+(function _syncLocalPostsToFirebase(){
+  var SYNC_KEY = 'cdz_posts_synced_v1';
+  var lastSync = parseInt(localStorage.getItem(SYNC_KEY)||'0');
+  var now = Date.now();
+  // تزامن كل 10 دقائق كحد أقصى
+  if(now - lastSync < 600000) return;
+  
+  window.addEventListener('load', function(){
+    setTimeout(function(){
+      try{
+        var _FB_POSTS = 'https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts';
+        var posts = [];
+        try{ posts = JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){}
+        
+        // فلتر: منشورات حقيقية فقط (ليست إعلانات أو تلقائية)
+        var realPosts = posts.filter(function(p){
+          return p && p.id && p.author && !p.isAutoPost && !p.isActivityAd && !p.isAd && !p._archived;
+        });
+        
+        if(realPosts.length === 0) return;
+        
+        // رفع كل منشور غير موجود في Firebase
+        var uploaded = 0;
+        realPosts.forEach(function(p){
+          if(!p.id) return;
+          fetch(_FB_POSTS+'/'+p.id+'.json', {cache:'no-store'})
+            .then(function(r){ return r.json(); })
+            .then(function(existing){
+              if(!existing){
+                // منشور غير موجود في Firebase — ارفعه
+                fetch(_FB_POSTS+'/'+p.id+'.json',{
+                  method:'PUT',
+                  headers:{'Content-Type':'application/json'},
+                  body: JSON.stringify(p)
+                }).then(function(){ uploaded++; }).catch(function(){});
+              }
+            }).catch(function(){});
+        });
+        
+        localStorage.setItem(SYNC_KEY, String(now));
+        console.log('[ConnectDZ] ✅ مزامنة المنشورات المحلية مع Firebase — '+realPosts.length+' منشور');
+      }catch(ex){
+        console.warn('[ConnectDZ] مزامنة فشلت:', ex);
+      }
+    }, 3000); // بعد 3 ثوانٍ من التحميل
+  });
+})();
+</script>
 </body>
