@@ -4470,7 +4470,7 @@ function switchLoginTab(tab){
 
   <!-- ── Top Bar (Facebook-style) ── -->
   <div id="socialTopBar" style="background:white;border-bottom:2px solid #E4E6EB;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-    <!-- Row 1: القائمة يمين + اسم التطبيق يسار + تبديل الحساب + بحث -->
+    <!-- Row 1: القائمة يمين + اسم التطبيق يسار + بحث -->
     <div style="padding:8px 12px 6px;display:flex;align-items:center;gap:8px;">
       <!-- Hamburger Menu يمين (3 شرطات) -->
       <div onclick="toggleSocialSideMenu()" id="socialMenuBtn" style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--cdz-c1,#00c853),var(--cdz-c2,#e53935));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:.15s;flex-shrink:0;box-shadow:0 2px 8px rgba(0,200,83,0.35);" title="القائمة">
@@ -4480,24 +4480,10 @@ function switchLoginTab(tab){
       </div>
       <!-- اسم التطبيق يسار -->
       <div style="font-size:20px;font-weight:900;background:linear-gradient(90deg,#00c853,#e53935);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;flex:1;font-family:'Tajawal',sans-serif;">Connect DZ</div>
-      <!-- 🔄 زر تبديل الحسابات -->
-      <div id="accountSwitcherBtn" onclick="toggleAccountSwitcherPanel()" style="width:38px;height:38px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;overflow:hidden;position:relative;border:2px solid rgba(0,200,83,0.3);" title="تبديل الحساب" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">
-        <img id="accountSwitcherAvatar" src="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:none;" />
-        <span id="accountSwitcherInitial" style="font-size:15px;font-weight:900;color:#444;">👤</span>
-      </div>
       <!-- زر البحث -->
       <div onclick="toggleSocialSearch()" style="width:38px;height:38px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'" title="بحث">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </div>
-    </div>
-
-    <!-- 🔄 لوحة تبديل الحسابات -->
-    <div id="accountSwitcherPanel" style="display:none;position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:99999;width:92%;max-width:360px;background:#fff;border-radius:18px;box-shadow:0 8px 40px rgba(0,0,0,0.18);overflow:hidden;animation:fadeIn .2s ease;">
-      <div style="background:linear-gradient(135deg,#00c853,#e53935);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-size:15px;font-weight:900;color:white;">🔄 تبديل الحساب</div>
-        <div onclick="toggleAccountSwitcherPanel()" style="font-size:20px;color:white;cursor:pointer;line-height:1;">✕</div>
-      </div>
-      <div id="accountSwitcherList" style="max-height:320px;overflow-y:auto;padding:8px 0;"></div>
     </div>
     <!-- Search bar (hidden by default) -->
     <div id="socialSearchBar" style="display:none;padding:4px 12px 8px;">
@@ -33536,16 +33522,16 @@ function renderDivision(divIdx, allMembers){
 
   const rows = members.map((m,i)=>{
     const isMe = (m.name||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase()===normCurr;
-    // صعود: أول 3 يصعدون (أخضر)
-    const isPromo = i < 3 && divIdx > 0;
-    // هبوط: آخر 2 ينزلون (أحمر)
-    const isRelg = i >= members.length - 2 && members.length > 2 && divIdx < NLD_DIVISIONS.length - 1;
+    // صعود: حتى 5 أوائل يصعدون (أخضر)
+    const isPromo = i < NLD_PROMO_COUNT && divIdx > 0;
+    // هبوط: حتى 5 أواخر ينزلون (أحمر)
+    const isRelg = i >= members.length - NLD_PROMO_COUNT && members.length > NLD_PROMO_COUNT && divIdx < NLD_DIVISIONS.length - 1;
 
     const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
     const borderL = isPromo ? '3px solid #22c55e' : isRelg ? '3px solid #ef4444' : '3px solid transparent';
-    const promoBadge = isPromo ? '<span style="font-size:16px;font-weight:900;color:#22c55e;" title="صعود">🟢⬆</span>' : '';
-    const relegBadge = isRelg ? '<span style="font-size:16px;font-weight:900;color:#ef4444;" title="نزول">🔴⬇</span>' : '';
+    const promoBadge = isPromo ? '<span style="font-size:18px;font-weight:900;color:#22c55e;line-height:1;filter:drop-shadow(0 0 4px rgba(34,197,94,0.7));">↑</span>' : '';
+    const relegBadge = isRelg ? '<span style="font-size:18px;font-weight:900;color:#ef4444;line-height:1;filter:drop-shadow(0 0 4px rgba(239,68,68,0.7));">↓</span>' : '';
     const meBadge = isMe ? '<span style="font-size:10px;font-weight:900;color:#00e5a0;background:rgba(0,229,160,0.15);border-radius:6px;padding:2px 6px;">✦ أنت</span>' : '';
 
     const photo = typeof localStorage!=='undefined' ? localStorage.getItem('nld_photo_'+m.name.replace(/\s+/g,'_')) : null;
@@ -33596,8 +33582,8 @@ function renderDivision(divIdx, allMembers){
       <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px;">النقاط المطلوبة: ${div.rangeLabel}</div>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);">${members.length} عضو</div>
-        ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ أقصى 5 يصعدون (بشرط النقاط)</div>`:''}
-        ${divIdx<NLD_DIVISIONS.length-1?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ أقصى 5 ينزلون (بشرط النقاط)</div>`:''}
+        ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون</div>`:''}
+        ${divIdx<NLD_DIVISIONS.length-1?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ 2 أخيرين ينزلون</div>`:''}
         ${myRankBadge}
       </div>
     </div>
@@ -33627,7 +33613,7 @@ console.log('✅ [NLDChampionship v4] البطولة المحترفة — Google
    ══════════════════════════════════════════════════════════════ */
 
 const _NLD_FB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-const NLD_PROMO_COUNT = 5; // عدد الصاعدين والنازلين (أقصى 5، بشرط توفر الشروط)
+const NLD_PROMO_COUNT = 5; // عدد الصاعدين والنازلين (حد أقصى)
 const NLD_MAX_MEMBERS = 10; // الحد الأقصى لكل قسم
 
 /* ── تحميل تعيينات الأقسام من Firebase ── */
@@ -33681,23 +33667,18 @@ function _getWeekNumber(){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   🔄 تنفيذ التقييم الأسبوعي — كل سبت
-   ★ الأسبوع الأول: أعلى 10 من المبتدئين يصعدون تلقائياً
-   ★ الأسابيع التالية: أقصى 5 صاعدين / 5 نازلين بشرط:
-      - القسم يجب أن يحتوي على 10 منخرطين على الأقل
-      - الصاعدون يجب أن تكون نقاطهم أعلى من النازلين
-      - العدد ليس مشترطاً أن يكون 5 (يمكن 1، 2، إلخ — ما يستوفي الشرط)
+   🔄 تنفيذ التقييم الأسبوعي (نهاية الأسبوع الساعة 21:00)
    ══════════════════════════════════════════════════════════════ */
 async function _runWeeklyEvaluation(allMembers, assignments){
-  const WEEK_EVAL_KEY  = 'nld_last_eval_week';
-  const FIRST_WEEK_KEY = 'nld_first_week_done';
-  const currentWeek    = _getWeekNumber();
-  const lastEvalWeek   = parseInt(localStorage.getItem(WEEK_EVAL_KEY)||'-1');
+  const WEEK_EVAL_KEY = 'nld_last_eval_week';
+  const currentWeek = _getWeekNumber();
+  const lastEvalWeek = parseInt(localStorage.getItem(WEEK_EVAL_KEY)||'-1');
 
-  // التقييم يُقام كل سبت (أي وقت من اليوم)
+  // فحص هل الوقت الحالي بعد 21:00 يوم السبت (نهاية الأسبوع)
   const now = new Date();
   const dayOfWeek = now.getDay(); // 0=أحد, 6=سبت
-  const isEvalTime = (dayOfWeek === 6);
+  const hour = now.getHours();
+  const isEvalTime = (dayOfWeek === 6 && hour >= 21);
 
   if(!isEvalTime || currentWeek === lastEvalWeek) return assignments;
 
@@ -33710,87 +33691,96 @@ async function _runWeeklyEvaluation(allMembers, assignments){
     const divId = (assignments[key] && assignments[key].divId) || 'beginner';
     if(divMap[divId]) divMap[divId].push(m);
   }
-  NLD_DIVISIONS.forEach(d => { divMap[d.id].sort((a,b) => b.total - a.total); });
+  // ترتيب كل قسم تنازلياً
+  NLD_DIVISIONS.forEach(d => {
+    divMap[d.id].sort((a,b) => b.total - a.total);
+  });
 
   const newAssignments = { ...assignments };
   const divCount = NLD_DIVISIONS.length;
-  const isFirstWeek = !localStorage.getItem(FIRST_WEEK_KEY);
   const ts = Date.now();
 
   /* ══════════════════════════════════════════════════════
-     الأسبوع الأول: أعلى 10 من المبتدئين يصعدون تلقائياً
-     إلى القسم الذي يليه (الهاوي)
+     الأسبوع الأول الخاص: أول 10 من المبتدئ يصعدون تلقائياً
      ══════════════════════════════════════════════════════ */
-  if(isFirstWeek){
-    const beginnerMembers = divMap['beginner'] || [];
-    const amateurDiv = NLD_DIVISIONS.find(d => d.id === 'amateur');
-    if(amateurDiv && beginnerMembers.length >= 10){
-      const top10 = beginnerMembers.slice(0, 10);
-      for(const m of top10){
+  const FIRST_WEEK_KEY = 'nld_first_week_done';
+  const firstWeekDone = localStorage.getItem(FIRST_WEEK_KEY) === '1';
+
+  if(!firstWeekDone){
+    const beginnerMembers = (divMap['beginner'] || []).slice(0, 10);
+    const nextDiv = NLD_DIVISIONS[NLD_DIVISIONS.length - 2]; // الهاوي (القسم فوق المبتدئ)
+    if(beginnerMembers.length > 0 && nextDiv){
+      for(const m of beginnerMembers){
         const key = (m.name||'').replace(/\s+/g,'_');
-        newAssignments[key] = { divId: 'amateur', updatedAt: ts, promotedFrom: 'beginner', firstWeekPromo: true };
+        newAssignments[key] = { divId: nextDiv.id, updatedAt: ts, promotedFrom: 'beginner' };
       }
-      console.log(`✅ [NLD] الأسبوع الأول: ${top10.map(m=>m.name).join('، ')} صعدوا من المبتدئ → الهاوي (10 أوائل)`);
+      divMap[nextDiv.id] = [...(divMap[nextDiv.id]||[]), ...beginnerMembers].sort((a,b)=>b.total-a.total);
+      divMap['beginner'] = (divMap['beginner']||[]).filter(m=>!beginnerMembers.includes(m));
+      console.log(`✅ [NLD] الأسبوع الأول: ${beginnerMembers.length} عضو صعدوا من المبتدئ → ${nextDiv.name}`);
     }
     localStorage.setItem(FIRST_WEEK_KEY, '1');
-  } else {
-    /* ══════════════════════════════════════════════════════
-       الأسابيع التالية: أقصى 5 صاعدين / 5 نازلين
-       الشرط:
-       ① كلا القسمين يحتوي ≥ 10 منخرطين
-       ② أقل نقاط بين الصاعدين > أعلى نقاط بين النازلين
-       ③ العدد الفعلي = min(5, عدد المستوفين للشرط)
-       ══════════════════════════════════════════════════════ */
-    for(let i = divCount - 1; i >= 1; i--){
-      const lowerDiv  = NLD_DIVISIONS[i];
-      const upperDiv  = NLD_DIVISIONS[i-1];
-      if(lowerDiv.id === 'beginner') continue; // المبتدئون لا يشملهم نزول في الأسابيع العادية
+  }
 
-      const lowerMembers = divMap[lowerDiv.id] || [];
-      const upperMembers = divMap[upperDiv.id] || [];
+  /* ══════════════════════════════════════════════════════
+     الأسابيع العادية: منطق التبادل المرن (1 إلى 5)
+     الشرط: القسم يجب أن يكون به 10 منخرطين
+     عدد التبادل = أكبر عدد ممكن (1-5) يحقق شرط
+     أن أقل نقاط الصاعدين > أعلى نقاط النازلين
+     ══════════════════════════════════════════════════════ */
+  for(let i = divCount - 1; i >= 1; i--){
+    const lowerDiv  = NLD_DIVISIONS[i];
+    const upperDiv  = NLD_DIVISIONS[i-1];
+    const isBeginners = lowerDiv.id === 'beginner';
 
-      // الشرط: كلا القسمين يجب أن يكون فيهما 10 منخرطين على الأقل
-      if(lowerMembers.length < NLD_MAX_MEMBERS || upperMembers.length < NLD_MAX_MEMBERS) continue;
+    const lowerMembers = divMap[lowerDiv.id] || [];
+    const upperMembers = divMap[upperDiv.id] || [];
 
-      // نحدد المرشحين للصعود (أعلى 5 من القسم الأدنى) والنزول (أدنى 5 من القسم الأعلى)
-      const candidatesPromo = lowerMembers.slice(0, NLD_PROMO_COUNT);  // أعلى 5 من القسم الأدنى
-      const candidatesReleg = upperMembers.slice(-NLD_PROMO_COUNT);     // أدنى 5 من القسم الأعلى
+    // كلا القسمين يجب أن يكون به 10 منخرطين على الأقل
+    const upperFull = upperMembers.length >= NLD_MAX_MEMBERS;
+    const lowerFull = lowerMembers.length >= NLD_MAX_MEMBERS;
 
-      // نجمع من يستوفي الشرط فعلاً: الصاعد نقاطه > أي نازل
-      const validPairs = [];
-      for(const promoter of candidatesPromo){
-        const allRelgBelow = candidatesReleg.every(r => promoter.total > r.total);
-        if(allRelgBelow) validPairs.push(promoter);
-      }
-      if(validPairs.length === 0) continue; // لا تبادل
+    if(!upperFull || !lowerFull) continue;
 
-      // عدد الأزواج الفعلية = min(validPairs.length, candidatesReleg المستوفية)
-      const actualCount = Math.min(validPairs.length, NLD_PROMO_COUNT);
-      const finalPromo  = validPairs.slice(0, actualCount);
-      const finalReleg  = candidatesReleg.slice(0, actualCount);
-
-      for(const m of finalPromo){
-        const key = (m.name||'').replace(/\s+/g,'_');
-        newAssignments[key] = { divId: upperDiv.id, updatedAt: ts, promotedFrom: lowerDiv.id };
-      }
-      for(const m of finalReleg){
-        const key = (m.name||'').replace(/\s+/g,'_');
-        newAssignments[key] = { divId: lowerDiv.id, updatedAt: ts, relegatedFrom: upperDiv.id };
-      }
-
-      // تحديث divMap
-      divMap[upperDiv.id] = [
-        ...upperMembers.filter(m => !finalReleg.includes(m)),
-        ...finalPromo
-      ].sort((a,b) => b.total - a.total);
-      divMap[lowerDiv.id] = [
-        ...lowerMembers.filter(m => !finalPromo.includes(m)),
-        ...finalReleg
-      ].sort((a,b) => b.total - a.total);
-
-      console.log(`✅ [NLD] صعد (${finalPromo.length}): ${finalPromo.map(m=>m.name).join('، ')} من ${lowerDiv.name} → ${upperDiv.name}`);
-      console.log(`✅ [NLD] نزل (${finalReleg.length}): ${finalReleg.map(m=>m.name).join('، ')} من ${upperDiv.name} → ${lowerDiv.name}`);
+    // تحديد العدد الفعلي للتبادل (1 إلى 5) بشرط تحقق شروط الصعود
+    let actualCount = 0;
+    for(let c = 1; c <= NLD_PROMO_COUNT; c++){
+      const topC    = lowerMembers.slice(0, c);
+      const bottomC = upperMembers.slice(-c);
+      if(topC.length < c || bottomC.length < c) break;
+      const minPromo = Math.min(...topC.map(m => m.total));
+      const maxReleg = Math.max(...bottomC.map(m => m.total));
+      if(minPromo > maxReleg) actualCount = c; // الشرط تحقق لـ c أعضاء
+      else break; // إذا فشل الشرط عند c لن يتحقق لـ c+1
     }
+
+    if(actualCount === 0) continue; // لا يوجد تبادل
+
+    const promoMembers = lowerMembers.slice(0, actualCount);
+    const relegMembers = upperMembers.slice(-actualCount);
+
+    // ✅ تنفيذ التبادل
+    for(const m of promoMembers){
+      const key = (m.name||'').replace(/\s+/g,'_');
+      newAssignments[key] = { divId: upperDiv.id, updatedAt: ts, promotedFrom: lowerDiv.id };
+    }
+    for(const m of relegMembers){
+      const key = (m.name||'').replace(/\s+/g,'_');
+      newAssignments[key] = { divId: lowerDiv.id, updatedAt: ts, relegatedFrom: upperDiv.id };
+    }
+
+    // تحديث divMap للحسابات اللاحقة
+    divMap[upperDiv.id] = [
+      ...upperMembers.filter(m => !relegMembers.includes(m)),
+      ...promoMembers
+    ].sort((a,b) => b.total - a.total);
+
+    divMap[lowerDiv.id] = [
+      ...lowerMembers.filter(m => !promoMembers.includes(m)),
+      ...relegMembers
+    ].sort((a,b) => b.total - a.total);
+
+    console.log(`✅ [NLD] تبادل (${actualCount}): ${promoMembers.map(m=>m.name).join('، ')} صعدوا من ${lowerDiv.name} → ${upperDiv.name}`);
+    console.log(`✅ [NLD] تبادل (${actualCount}): ${relegMembers.map(m=>m.name).join('، ')} نزلوا من ${upperDiv.name} → ${lowerDiv.name}`);
   }
 
   // حفظ التعيينات في Firebase
@@ -33802,7 +33792,7 @@ async function _runWeeklyEvaluation(allMembers, assignments){
     localStorage.setItem(WEEK_EVAL_KEY, String(currentWeek));
     console.log('✅ [NLD] تم تنفيذ التقييم الأسبوعي بنجاح');
   }catch(e){
-    console.warn('[NLD] فشل حفظ نتائج التقييع:', e);
+    console.warn('[NLD] فشل حفظ نتائج التقييم:', e);
   }
 
   return newAssignments;
@@ -33858,35 +33848,47 @@ function renderDivision(divIdx, allMembers, assignments){
         return assignments[k] && assignments[k].divId === upperDiv.id;
       }).sort((a,b) => b.total - a.total);
       if(upperMembers.length < NLD_MAX_MEMBERS) return false;
-      const bottomUpper = upperMembers.slice(-NLD_PROMO_COUNT);
-      const topLower = members.slice(0, NLD_PROMO_COUNT);
-      const minPromo = Math.min(...topLower.map(m=>m.total));
-      const maxReleg = Math.max(...bottomUpper.map(m=>m.total));
-      return minPromo > maxReleg;
+      // فحص مرن: هل هذا العضو (i+1) ضمن العدد الذي يحقق الشرط؟
+      let validCount = 0;
+      for(let c = 1; c <= NLD_PROMO_COUNT; c++){
+        const topC    = members.slice(0, c);
+        const bottomC = upperMembers.slice(-c);
+        if(topC.length < c || bottomC.length < c) break;
+        const minP = Math.min(...topC.map(m=>m.total));
+        const maxR = Math.max(...bottomC.map(m=>m.total));
+        if(minP > maxR) validCount = c; else break;
+      }
+      return i < validCount;
     })();
-    // هبوط: آخر 5 (فقط إذا القسم ممتلئ وشرط التبادل تحقق من القسم الأدنى)
-    const isRelg = !isBeginners && isFull && i >= members.length - NLD_PROMO_COUNT && members.length >= NLD_PROMO_COUNT && divIdx < NLD_DIVISIONS.length - 1 && (()=>{
+    // هبوط: آخر N (فقط إذا القسم ممتلئ وشرط التبادل تحقق من القسم الأدنى)
+    const isRelg = !isBeginners && isFull && divIdx < NLD_DIVISIONS.length - 1 && (()=>{
       const lowerDiv = NLD_DIVISIONS[divIdx + 1];
-      if(lowerDiv.id === 'beginner') return false;
       const lowerMembers = allMembers.filter(m => {
         const k = (m.name||'').replace(/\s+/g,'_');
         const divId = (assignments[k] && assignments[k].divId) || 'beginner';
         return divId === lowerDiv.id;
       }).sort((a,b) => b.total - a.total);
       if(lowerMembers.length < NLD_MAX_MEMBERS) return false;
-      const topLower = lowerMembers.slice(0, NLD_PROMO_COUNT);
-      const bottomUpper = members.slice(-NLD_PROMO_COUNT);
-      if(topLower.length < 1 || bottomUpper.length < 1) return false;
-      const minPromo = Math.min(...topLower.map(m=>m.total));
-      const maxReleg = Math.max(...bottomUpper.map(m=>m.total));
-      return minPromo > maxReleg;
+      // فحص مرن: عدد التبادل الصحيح
+      let validCount = 0;
+      for(let c = 1; c <= NLD_PROMO_COUNT; c++){
+        const topC    = lowerMembers.slice(0, c);
+        const bottomC = members.slice(-c);
+        if(topC.length < c || bottomC.length < c) break;
+        const minP = Math.min(...topC.map(m=>m.total));
+        const maxR = Math.max(...bottomC.map(m=>m.total));
+        if(minP > maxR) validCount = c; else break;
+      }
+      if(validCount === 0) return false;
+      // هل هذا العضو ضمن آخر validCount؟
+      return i >= members.length - validCount;
     })();
 
     const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
     const borderL = isPromo ? '3px solid #22c55e' : isRelg ? '3px solid #ef4444' : '3px solid transparent';
-    const promoBadge = isPromo ? '<span style="font-size:16px;font-weight:900;color:#22c55e;" title="صعود">🟢⬆</span>' : '';
-    const relegBadge = isRelg ? '<span style="font-size:16px;font-weight:900;color:#ef4444;" title="نزول">🔴⬇</span>' : '';
+    const promoBadge = isPromo ? '<span style="font-size:18px;font-weight:900;color:#22c55e;line-height:1;filter:drop-shadow(0 0 4px rgba(34,197,94,0.7));">↑</span>' : '';
+    const relegBadge = isRelg ? '<span style="font-size:18px;font-weight:900;color:#ef4444;line-height:1;filter:drop-shadow(0 0 4px rgba(239,68,68,0.7));">↓</span>' : '';
     const meBadge = isMe ? '<span style="font-size:10px;font-weight:900;color:#00e5a0;background:rgba(0,229,160,0.15);border-radius:6px;padding:2px 6px;">✦ أنت</span>' : '';
 
     const photo = typeof localStorage!=='undefined' ? localStorage.getItem('nld_photo_'+m.name.replace(/\s+/g,'_')) : null;
@@ -33932,10 +33934,10 @@ function renderDivision(divIdx, allMembers, assignments){
     : `<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);">${totalInDiv}/${NLD_MAX_MEMBERS} عضو</div>`) : '';
 
   const promoNote = isFull && divIdx > 0
-    ? `<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ أقصى 5 يصعدون إن تفوّقوا على أدنى 5 في القسم الأعلى</div>` : '';
+    ? `<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ حتى 5 صاعدين إن تفوّقوا على أسفل القسم الأعلى</div>` : '';
   const relegNote = isFull && !isBeginners && divIdx < NLD_DIVISIONS.length-1
-    ? `<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ أقصى 5 ينزلون إن تفوّق عليهم أعلى 5 من القسم الأدنى</div>` : '';
-  const evalNote = `<div style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:10px;padding:5px 12px;font-size:10px;font-weight:700;color:#FFA500;">📅 التقييم: كل سبت (الأسبوع الأول: 10 صاعدين من المبتدئ)</div>`;
+    ? `<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ حتى 5 نازلين إن تفوّق عليهم أعلى نقاط من القسم الأدنى</div>` : '';
+  const evalNote = `<div style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:10px;padding:5px 12px;font-size:10px;font-weight:700;color:#FFA500;">📅 التقييم: كل سبت 21:00 — يشترط 10 منخرطين</div>`;
 
   const hexRgb = h=>{ const m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return m?`${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)}`:'150,150,150'; };
   const drgb = hexRgb(div.color);
@@ -33952,7 +33954,7 @@ function renderDivision(divIdx, allMembers, assignments){
         ${evalNote}
         ${myRankBadge}
       </div>
-      ${isBeginners ? '<div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:8px;">🌟 قسم المبتدئين — لا حد للأعضاء — صعود فقط</div>' : ''}
+      ${isBeginners ? `<div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:8px;">🌟 قسم المبتدئين — ${localStorage.getItem('nld_first_week_done')==='1' ? 'صعود حتى 5 عند تحقق الشروط' : '⚡ الأسبوع الأول: أول 10 مراكز تصعد تلقائياً'}</div>` : ''}
     </div>
     <div>${rows}</div>
   `;
@@ -35837,162 +35839,7 @@ console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات �
     };
   }
 
-  <!-- ══════════════════════════════════════════════════════════════
-     🔄 نظام تبديل الحسابات السريع — الحسابات المفتوحة على نفس الجهاز
-     ══════════════════════════════════════════════════════════════ -->
-<script>
-(function(){
-'use strict';
-
-/* ── تحديث أيقونة/صورة الحساب النشط في الزر ── */
-function _updateSwitcherBtn(){
-  const name = localStorage.getItem('sklab_user_name') || '';
-  const btnAvatar = document.getElementById('accountSwitcherAvatar');
-  const btnInitial = document.getElementById('accountSwitcherInitial');
-  if(!btnAvatar || !btnInitial) return;
-
-  const photo = name ? (localStorage.getItem('nld_photo_'+name.replace(/\s+/g,'_'))||'') : '';
-  if(photo){
-    btnAvatar.src = photo;
-    btnAvatar.style.display = 'block';
-    btnInitial.style.display = 'none';
-  } else if(name){
-    btnAvatar.style.display = 'none';
-    btnInitial.style.display = 'block';
-    btnInitial.innerText = name.charAt(0).toUpperCase() || '👤';
-  } else {
-    btnAvatar.style.display = 'none';
-    btnInitial.style.display = 'block';
-    btnInitial.innerText = '👤';
-  }
-}
-
-/* ── فتح/إغلاق لوحة التبديل ── */
-window.toggleAccountSwitcherPanel = function(){
-  const panel = document.getElementById('accountSwitcherPanel');
-  if(!panel) return;
-  if(panel.style.display === 'none'){
-    _buildSwitcherList();
-    panel.style.display = 'block';
-    // إغلاق عند الضغط خارج اللوحة
-    setTimeout(()=>{
-      document.addEventListener('click', _outsideClickClose, {once:true, capture:true});
-    }, 100);
-  } else {
-    panel.style.display = 'none';
-  }
-};
-
-function _outsideClickClose(e){
-  const panel = document.getElementById('accountSwitcherPanel');
-  const btn   = document.getElementById('accountSwitcherBtn');
-  if(!panel) return;
-  if(!panel.contains(e.target) && !btn.contains(e.target)){
-    panel.style.display = 'none';
-  }
-}
-
-/* ── بناء قائمة الحسابات المحفوظة ── */
-function _buildSwitcherList(){
-  const listEl = document.getElementById('accountSwitcherList');
-  if(!listEl) return;
-
-  /* اقرأ الحسابات المحفوظة */
-  const deviceId = localStorage.getItem('__cdz_device_id') || 'default';
-  let accounts = [];
-  try{
-    const raw = localStorage.getItem('nld_saved_accounts_'+deviceId) ||
-                localStorage.getItem('nld_saved_accounts') || '[]';
-    accounts = JSON.parse(raw);
-  }catch(e){ accounts = []; }
-
-  const currentUser = localStorage.getItem('sklab_user_name') || '';
-
-  if(!accounts || accounts.length === 0){
-    listEl.innerHTML = `<div style="padding:20px;text-align:center;color:#888;font-size:13px;font-family:'Tajawal',sans-serif;">لا توجد حسابات محفوظة على هذا الجهاز</div>`;
-    return;
-  }
-
-  listEl.innerHTML = accounts.map(acc => {
-    const name = acc.name || acc;
-    const isActive = (typeof name === 'string') && name.trim().toLowerCase() === currentUser.trim().toLowerCase();
-    const photo = localStorage.getItem('nld_photo_'+(name||'').replace(/\s+/g,'_')) || '';
-    const avatarHtml = photo
-      ? `<img src="${photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid ${isActive?'#00c853':'#E4E6EB'};">`
-      : `<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#00c853,#e53935);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:white;flex-shrink:0;">${(name||'?').charAt(0).toUpperCase()}</div>`;
-    return `<div onclick="switchToAccount('${(name||'').replace(/'/g,"\\'")}${isActive ? '__ACTIVE__' : ''}')" style="display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;transition:.15s;background:${isActive?'rgba(0,200,83,0.06)':'transparent'};" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='${isActive?'rgba(0,200,83,0.06)':'transparent'}'">
-      ${avatarHtml}
-      <div style="flex:1;font-family:'Tajawal',sans-serif;">
-        <div style="font-size:14px;font-weight:900;color:#1C1E21;">${name}</div>
-        ${isActive ? '<div style="font-size:11px;color:#00c853;font-weight:700;">✓ الحساب النشط</div>' : '<div style="font-size:11px;color:#888;">اضغط للتبديل</div>'}
-      </div>
-      ${isActive ? '<div style="width:10px;height:10px;border-radius:50%;background:#00c853;box-shadow:0 0 6px rgba(0,200,83,0.7);"></div>' : ''}
-    </div>`;
-  }).join('');
-}
-
-/* ── التبديل لحساب معين ── */
-window.switchToAccount = function(name){
-  if(!name || name.includes('__ACTIVE__')){
-    document.getElementById('accountSwitcherPanel').style.display='none';
-    return;
-  }
-  const cleanName = name.replace(/__ACTIVE__/g,'').trim();
-  if(!cleanName) return;
-
-  /* حفظ الحساب الحالي قبل التبديل */
-  const currentUser = localStorage.getItem('sklab_user_name') || '';
-
-  /* تحديث المستخدم النشط */
-  localStorage.setItem('sklab_user_name', cleanName);
-
-  /* إغلاق اللوحة */
-  const panel = document.getElementById('accountSwitcherPanel');
-  if(panel) panel.style.display='none';
-
-  /* إعادة تحميل الجلسة */
-  if(typeof showToast==='function') showToast('🔄 تم التبديل إلى: '+cleanName);
-
-  /* تحديث أيقونة الزر */
-  setTimeout(_updateSwitcherBtn, 300);
-
-  /* تحديث واجهة المستخدم */
-  setTimeout(()=>{
-    if(typeof doLogin==='function'){
-      // محاولة تسجيل دخول مباشر بالاسم
-      const passKey = 'nld_pass_'+(cleanName||'').replace(/\s+/g,'_');
-      const saved = localStorage.getItem(passKey);
-      if(typeof window.loginUser==='function'){
-        window.loginUser(cleanName);
-      } else if(typeof window.afterLogin==='function'){
-        window.afterLogin(cleanName);
-      } else {
-        // fallback: إعادة تحميل الصفحة
-        location.reload();
-      }
-    } else {
-      location.reload();
-    }
-  }, 500);
-};
-
-/* ── تحديث الزر عند أي تغيير في الجلسة ── */
-window.addEventListener('load', function(){
-  setTimeout(_updateSwitcherBtn, 1000);
-  setInterval(_updateSwitcherBtn, 5000);
-});
-
-/* ── تحديث فوري بعد تسجيل الدخول ── */
-const _origAfterLogin = window.afterLogin;
-window.afterLogin = function(){
-  const r = _origAfterLogin ? _origAfterLogin.apply(this,arguments) : null;
-  setTimeout(_updateSwitcherBtn, 800);
-  return r;
-};
-
-console.log('✅ [ConnectDZ] نظام تبديل الحسابات — جاهز');
-})();
-</script>
+  console.log('✅ [ConnectDZ] قاعدة بيانات البطولة /leaderboard — جاهزة ومتصلة');
 })();
 
 /* ══════════════════════════════════════════════════════════
@@ -37090,11 +36937,11 @@ window._removeShaimaaFromBeginner = function(){
   }).catch(function(e){ console.error('خطأ في قراءة الترتيب:',e); });
 };
 
-/* تنفيذ تلقائي عند تحميل الصفحة مباشرةً */
+/* تنفيذ تلقائي عند تحميل الصفحة — حذف شيماء سفيسيفي (المرتبة الثانية / 45,000 نقطة) */
 window.addEventListener('load', function(){
   setTimeout(function(){ window._removeShaimaaFromBeginner(); }, 3000);
 });
-console.log('✅ [ConnectDZ] نظام حذف العضو (شيماء/45000+) — سيُنفَّذ تلقائياً عند التحميل');
+console.log('✅ [ConnectDZ] نظام حذف العضو (شيماء/المبتدئ) — سيعمل تلقائياً عند التحميل');
 })();
 </script>
 </body>
