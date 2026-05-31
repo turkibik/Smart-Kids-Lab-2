@@ -256,16 +256,91 @@ document.addEventListener('touchend', function(e){
     /* تنفيذ التحديث الفعلي */
     setTimeout(function(){
       try{
-        /* تحديث Feed الرئيسي */
-        if(typeof loadSocialFeed==='function') loadSocialFeed();
-        else if(typeof renderFeed==='function') renderFeed();
-        else if(typeof loadPosts==='function') loadPosts();
-        /* تحديث إشعارات */
-        if(typeof loadNotifications==='function') loadNotifications();
-        /* تحديث بيانات المستخدم */
-        if(typeof refreshUserData==='function') refreshUserData();
-        if(typeof showToast==='function') showToast('✅ تم تحديث البيانات');
-      }catch(ex){}
+        var refreshCount = 0;
+        var txt2 = document.getElementById('_ptrText');
+        if(txt2) txt2.innerText = 'جاري جلب البيانات…';
+
+        /* ① جلب منشورات الفيد من Firebase مباشرة */
+        var _FB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+        fetch(_FB + '/social_posts.json?orderBy="ts"&limitToLast=100')
+          .then(function(r){ return r.ok ? r.json() : null; })
+          .then(function(data){
+            if(data){
+              var fbPosts = Object.values(data).filter(Boolean);
+              /* دمج مع المنشورات المحلية */
+              var localPosts = (typeof getSocialPosts === 'function') ? getSocialPosts() : [];
+              var localIds = new Set(localPosts.map(function(p){ return p.id; }).filter(Boolean));
+              var merged = localPosts.slice();
+              fbPosts.forEach(function(fp){
+                if(fp.id && !localIds.has(fp.id)) merged.push(fp);
+                else if(fp.id){
+                  /* تحديث الموجود بأحدث بيانات */
+                  var idx = merged.findIndex(function(p){ return p.id === fp.id; });
+                  if(idx >= 0) merged[idx] = Object.assign({}, merged[idx], fp);
+                }
+              });
+              merged.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+              if(typeof saveSocialPosts === 'function') saveSocialPosts(merged);
+              refreshCount++;
+            }
+            /* تحديث الواجهة بعد جلب المنشورات */
+            if(typeof renderSocialFeed === 'function') renderSocialFeed();
+            else if(typeof loadSocialFeed === 'function') loadSocialFeed();
+            else if(typeof renderFeed === 'function') renderFeed();
+          }).catch(function(){
+            if(typeof renderSocialFeed === 'function') renderSocialFeed();
+          });
+
+        /* ② جلب منشورات الملف الشخصي للمستخدم الحالي */
+        var curUser = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
+        if(curUser){
+          var userKey = curUser.replace(/\s+/g,'_');
+          fetch(_FB + '/member_posts/' + userKey + '.json')
+            .then(function(r){ return r.ok ? r.json() : null; })
+            .then(function(data){
+              if(!data) return;
+              var fbPosts = Object.values(data).filter(Boolean);
+              if(fbPosts.length === 0) return;
+              var lKey = (typeof getProfilePostsKey === 'function') ? getProfilePostsKey(curUser) : 'nld_profile_posts_'+userKey;
+              var local = JSON.parse(localStorage.getItem(lKey)||'[]');
+              var localIds = new Set(local.map(function(p){ return p.id; }).filter(Boolean));
+              fbPosts.forEach(function(fp){
+                if(fp.id && !localIds.has(fp.id)) local.push(fp);
+              });
+              local.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+              try{ localStorage.setItem(lKey, JSON.stringify(local)); }catch(e){}
+              if(typeof renderProfilePosts === 'function'){
+                var profileFeed = document.getElementById('profilePostsFeed');
+                if(profileFeed && profileFeed.offsetParent !== null) renderProfilePosts(curUser);
+              }
+              refreshCount++;
+            }).catch(function(){});
+        }
+
+        /* ③ تحديث بيانات أخرى */
+        if(typeof loadNotifications === 'function') loadNotifications();
+        if(typeof refreshUserData === 'function') refreshUserData();
+        if(typeof _updateNldTabIcon === 'function') _updateNldTabIcon();
+
+        /* ④ تحديث leaderboard إن كان مفتوحاً */
+        var ldPanel = document.getElementById('leaderboardPanel');
+        if(ldPanel && ldPanel.style.display !== 'none'){
+          if(typeof loadLeaderboard === 'function') loadLeaderboard();
+        }
+
+        /* ⑤ تحديث بيانات الأعضاء من Firebase */
+        fetch(_FB + '/appdata/members.json')
+          .then(function(r){ return r.ok ? r.json() : null; })
+          .then(function(data){
+            if(!data) return;
+            try{ localStorage.setItem('cdz_members_cache', JSON.stringify(data)); }catch(e){}
+            refreshCount++;
+          }).catch(function(){});
+
+        setTimeout(function(){
+          if(typeof showToast === 'function') showToast('✅ تم تحديث جميع البيانات من السيرفر');
+        }, 1200);
+      }catch(ex){ console.warn('[PTR] خطأ في التحديث:', ex); }
       /* إخفاء المؤشر */
       ind.style.height = '0px';
       setTimeout(function(){ ind.style.height='0px'; },300);
@@ -4684,21 +4759,23 @@ function switchLoginTab(tab){
         <span style="font-size:9px;font-weight:700;color:#65676B;">مسنجر</span>
         <span id="socialMsgBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;"></span>
       </div>
-      <div id="sTab_myprofile" onclick="if(typeof openNLDChampionship==='function'){openNLDChampionship();}else if(typeof openNldChampionship==='function'){openNldChampionship();}" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;" title="Next Leaders DZ — برنامج القيادة">
-        <!-- أيقونة البرنامج القيادي -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="url(#nldGrad2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <defs>
-            <linearGradient id="nldGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#7c3aed"/>
-              <stop offset="100%" style="stop-color:#60a5fa"/>
-            </linearGradient>
-          </defs>
-          <circle cx="12" cy="8" r="4"/>
-          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-          <path d="M15 11l2-2 2 2"/>
-          <line x1="17" y1="9" x2="17" y2="14"/>
-        </svg>
-        <span style="font-size:9px;font-weight:800;background:linear-gradient(90deg,#7c3aed,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">القادة</span>
+      <div id="sTab_myprofile" onclick="if(typeof openNLDChampionship==='function'){openNLDChampionship();}else if(typeof openNldChampionship==='function'){openNldChampionship();}" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;" title="البطولة المحترفة">
+        <!-- أيقونة البطولة الديناميكية -->
+        <div id="nldTabIconWrap" style="position:relative;display:flex;align-items:center;justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#trophyGrad)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+              <linearGradient id="trophyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" id="trophyGradStop1" style="stop-color:#FFD700"/>
+                <stop offset="100%" id="trophyGradStop2" style="stop-color:#ef4444"/>
+              </linearGradient>
+            </defs>
+            <path d="M8 21h8M12 17v4M7 4H4a2 2 0 0 0-2 2v1c0 2.8 1.7 5.2 4.3 6.3"/>
+            <path d="M17 4h3a2 2 0 0 1 2 2v1c0 2.8-1.7 5.2-4.3 6.3"/>
+            <path d="M7 4h10v8a5 5 0 0 1-10 0V4z"/>
+          </svg>
+          <span id="nldTabDivIcon" style="position:absolute;top:-6px;right:-6px;font-size:11px;line-height:1;">🌟</span>
+        </div>
+        <span id="nldTabDivName" style="font-size:9px;font-weight:800;color:#FFD700;">البطولة</span>
       </div>
     </div>
   </div>
@@ -9654,13 +9731,18 @@ function getProfilePostsKey(name){ return _profilePostsKey + name.replace(/\s+/g
 function renderProfilePosts(name){
   const feed = document.getElementById('profilePostsFeed');
   if(!feed) return;
-  const allPosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
-  /* إخفاء المنشورات المؤرشفة من العرض */
-  const posts = allPosts.filter(p => !p._archived);
-  const archivedCount = allPosts.filter(p => p._archived).length;
 
-  /* زر الأرشيف إن وجدت منشورات مؤرشفة */
-  const archiveBtnHtml = archivedCount > 0 ? `
+  /* جلب من Firebase أولاً — المصدر الرئيسي الدائم */
+  const _FB_DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  const memberKey = name.replace(/\s+/g,'_');
+
+  function _doRender(allPosts){
+    /* إخفاء المنشورات المؤرشفة من العرض */
+    const posts = allPosts.filter(p => !p._archived);
+    const archivedCount = allPosts.filter(p => p._archived).length;
+
+    /* زر الأرشيف إن وجدت منشورات مؤرشفة */
+    const archiveBtnHtml = archivedCount > 0 ? `
     <div onclick="window.openArchivedPosts()" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(135deg,rgba(24,119,242,0.08),rgba(0,200,83,0.05));border-radius:12px;border:1px dashed rgba(24,119,242,0.3);margin-bottom:10px;cursor:pointer;">
       <span style="font-size:20px;">🗃️</span>
       <div>
@@ -9670,23 +9752,22 @@ function renderProfilePosts(name){
       <span style="margin-right:auto;font-size:16px;color:#1877F2;">›</span>
     </div>` : '';
 
-  if(posts.length===0){
-    feed.innerHTML=archiveBtnHtml+`<div style="background:white;padding:30px 20px;text-align:center;margin:0 0 8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. شارك أول منشور!</div></div>`;
-    return;
-  }
+    if(posts.length===0){
+      feed.innerHTML=archiveBtnHtml+`<div style="background:white;padding:30px 20px;text-align:center;margin:0 0 8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. شارك أول منشور!</div></div>`;
+      return;
+    }
 
-  const postsHtml = posts.slice().reverse().map((p,ri)=>{
-    /* نجد الفهرس الحقيقي في allPosts */
-    const i = allPosts.indexOf(p);
-    const photo = getProfilePhoto ? getProfilePhoto(name) : null;
-    const avatarHtml = photo ? `<img loading="lazy" src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;">${getLeaderIcon(name)}</div>`;
-    const postId = 'pp_'+name.replace(/\s+/g,'_')+'_'+i;
-    const reactions = p.reactions||{};
-    const totalReacts = Object.values(reactions).flat().length;
-    const myReact = Object.keys(reactions).find(r=>(reactions[r]||[]).includes(name));
-    const reactEmojis = ['❤️','😂','😢','👍','🤦🏻'];
-    const comments = p.comments||[];
-    return `<div id="pppost_${postId}" style="background:white;padding:14px 16px;margin-bottom:8px;">
+    const postsHtml = posts.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map((p,ri)=>{
+      const i = allPosts.indexOf(p);
+      const photo = getProfilePhoto ? getProfilePhoto(name) : null;
+      const avatarHtml = photo ? `<img loading="lazy" src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;">${getLeaderIcon(name)}</div>`;
+      const postId = p.id || ('pp_'+name.replace(/\s+/g,'_')+'_'+i);
+      const reactions = p.reactions||{};
+      const totalReacts = Object.values(reactions).flat().length;
+      const myReact = Object.keys(reactions).find(r=>(reactions[r]||[]).includes(name));
+      const reactEmojis = ['❤️','😂','😢','👍','🤦🏻'];
+      const comments = p.comments||[];
+      return `<div id="pppost_${postId}" style="background:white;padding:14px 16px;margin-bottom:8px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
         ${avatarHtml}
         <div style="flex:1;">
@@ -9722,8 +9803,32 @@ function renderProfilePosts(name){
         </div>
       </div>
     </div>`;
-  }).join('');
-  feed.innerHTML = archiveBtnHtml + postsHtml;
+    }).join('');
+    feed.innerHTML = archiveBtnHtml + postsHtml;
+  }
+
+  /* عرض من localStorage أولاً (سريع) ثم تحديث من Firebase */
+  const localPosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
+  if(localPosts.length > 0) _doRender(localPosts);
+  else feed.innerHTML = '<div style="text-align:center;padding:20px;color:#65676B;font-size:13px;">⏳ جاري تحميل المنشورات...</div>';
+
+  /* جلب من Firebase — المصدر الدائم */
+  fetch(`${_FB_DB}/member_posts/${memberKey}.json`)
+    .then(r=>r.ok ? r.json() : null)
+    .then(data=>{
+      if(!data){ return; }
+      const fbPosts = Object.values(data).filter(Boolean);
+      if(fbPosts.length === 0) return;
+      /* دمج مع local */
+      const localIds = new Set(localPosts.map(p=>p.id).filter(Boolean));
+      const merged = [...localPosts];
+      fbPosts.forEach(fp=>{ if(fp.id && !localIds.has(fp.id)) merged.push(fp); });
+      merged.sort((a,b)=>(b.ts||0)-(a.ts||0));
+      /* تحديث localStorage */
+      try{ localStorage.setItem(getProfilePostsKey(name), JSON.stringify(merged)); }catch(e){}
+      _doRender(merged);
+    })
+    .catch(()=>{ /* يعمل من localStorage */ });
 }
 
 function addProfilePostReaction(ownerName, idx, emoji){
@@ -9955,34 +10060,11 @@ function submitPost(){
   const name = getCurrentUser();
   const text = (document.getElementById('postTextInput')||{}).value?.trim() || '';
   if(!text && _postImagesData.length === 0 && !_postVideoData){ showToast('✏️ اكتب شيئاً أو أضف صورة/فيديو', 'warning'); return; }
-  let posts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
   const now = new Date();
   const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
+  const postId = 'sp_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
   const newPost = {
-    text,
-    image: _postImagesData[0] || null,
-    images: _postImagesData.length > 0 ? [..._postImagesData] : null,
-    video: _postVideoData,
-    feeling: _postFeelingMode ? _feelings[_feelingIdx] : null,
-    date: dateStr, ts: Date.now(), reactions:{}, comments:[], views: 0
-  };
-  posts.push(newPost);
-  /* حفظ منشورات الملف الشخصي — لا حذف للمنشورات القديمة */
-  try {
-    localStorage.setItem(getProfilePostsKey(name), JSON.stringify(posts));
-  } catch(e) {
-    /* localStorage ممتلئ — احتفظ بكل المنشورات لكن حاول ضغط البيانات */
-    console.warn('localStorage ممتلئ، جارٍ الضغط...');
-    try {
-      localStorage.setItem(getProfilePostsKey(name), JSON.stringify(posts));
-    } catch(e2) {
-      console.error('فشل حفظ منشورات الملف الشخصي:', e2);
-    }
-  }
-  // نشر في الفيد العام أيضاً — منشورات دائمة لا تُحذف
-  const socialPosts = getSocialPosts();
-  const socialPost = {
-    id: 'sp_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
+    id: postId,
     author: name,
     text,
     image: _postImagesData[0] || null,
@@ -9990,23 +10072,51 @@ function submitPost(){
     video: _postVideoData,
     feeling: _postFeelingMode ? _feelings[_feelingIdx] : null,
     date: dateStr, ts: Date.now(), reactions:{}, comments:[], views: 0,
-    privacy: '🌐 عام'
+    privacy: '🌐 عام',
+    _protected: true  /* منشور محمي — لا يُحذف عند التحديث */
   };
-  socialPosts.push(socialPost);
+
+  /* ① حفظ في Firebase أولاً — المخزن الرئيسي الدائم */
+  const _FB_DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  const fbPostClean = Object.assign({}, newPost);
+  /* إزالة base64 الضخم من Firebase — يُخزن في Cloudinary */
+  if(fbPostClean.image && fbPostClean.image.startsWith('data:') && fbPostClean.image.length > 50000) fbPostClean.image = null;
+  if(fbPostClean.images) fbPostClean.images = fbPostClean.images.map(img => (img && img.startsWith('data:') && img.length > 50000) ? null : img);
+  if(fbPostClean.video && fbPostClean.video.startsWith('data:')) fbPostClean.video = null;
+
+  fetch(`${_FB_DB}/social_posts/${postId}.json`,{
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(fbPostClean)
+  }).then(()=>{
+    console.log('✅ [Posts] تم حفظ المنشور في Firebase:', postId);
+  }).catch(e=>{
+    console.warn('⚠️ [Posts] فشل الحفظ في Firebase، يُحفظ محلياً:', e);
+  });
+
+  /* ② حفظ في social_posts (الفيد العام) — Firebase + localStorage */
+  const socialPosts = getSocialPosts();
+  socialPosts.push(newPost);
   saveSocialPosts(socialPosts);
-  // مزامنة مع Firebase
+
+  /* ③ حفظ في منشورات الملف الشخصي — Firebase مستقل */
+  fetch(`${_FB_DB}/member_posts/${name.replace(/\s+/g,'_')}/${postId}.json`,{
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(fbPostClean)
+  }).catch(()=>{});
+
+  /* ④ تحديث localStorage كـ cache فقط */
   try{
-    const _FB_DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-    fetch(`${_FB_DB}/social_posts/${socialPost.id}.json`,{
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(socialPost)
-    }).catch(()=>{});
+    let profPosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
+    profPosts.push(newPost);
+    localStorage.setItem(getProfilePostsKey(name), JSON.stringify(profPosts));
   }catch(e){}
+
   ebPointsPost();
   closeCreatePost();
   renderProfilePosts(name);
   switchProfileTab('posts');
   if(typeof renderSocialFeed === 'function') renderSocialFeed();
+  showToast('✅ تم نشر منشورك للجميع!', 'success');
 }
 
 /* ===== ADMIN CONFIG ===== */
@@ -10019,7 +10129,7 @@ const SMARTKIDS_MEMBER_NAME = 'يحيى ديش';
 /* 🔒 نظام كلمة مرور المدير */
 /* ← غيّر هذه القيمة لكلمة مرورك السرية */
 /* 🔒 هاش SHA-256 لكلمة المرور — لا أحد يستطيع قراءة كلمة المرور الأصلية من هنا */
-const ADMIN_PASS_HASH = '71fee97039e7f150f9b4e761b151c10361fdd4e6c2ca71cb6a41fd668fb153ee';
+const ADMIN_PASS_HASH = 'd5228ad663312d59ecde69b7d3c09a4083c46e626e4726ae609bf8f0cc69d9b6';
 
 async function _hashPass(pass){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
@@ -17135,8 +17245,7 @@ function saveSocialPosts(arr){
     if(typeof showToast==='function') showToast('🧹 تم تنظيف المنشورات التلقائية القديمة — منشورات الأعضاء محفوظة ✅');
   } catch(e2) {
     try {
-      /* ✅ حفظ كل منشورات الأعضاء — لا حد لعدد المنشورات */
-      localStorage.setItem(_socialPostsKey, JSON.stringify(memberPosts));
+      localStorage.setItem(_socialPostsKey, JSON.stringify(memberPosts.slice(0, 50)));
       console.warn('تم الاحتفاظ بمنشورات الأعضاء فقط بسبب امتلاء الذاكرة');
     } catch(e3) {
       console.error('فشل الحفظ — بيانات محفوظة في IndexedDB و Firebase');
@@ -17144,32 +17253,57 @@ function saveSocialPosts(arr){
   }
 }
 
-/* ── استعادة المنشورات بعد تحديث التطبيق ── */
+/* ── استعادة المنشورات بعد تحديث التطبيق — Firebase أولاً ── */
 window._restorePostsAfterUpdate = async function(){
-  var localPosts = getSocialPosts();
-  if(localPosts.length >= 5) return; /* لا حاجة للاستعادة */
+  const _FB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
 
-  console.log('🔄 [PostRestore] جاري استعادة المنشورات بعد التحديث...');
-
-  /* محاولة 1: من IndexedDB */
-  var idbPosts = await window._loadPostsFromIDB();
-  if(idbPosts.length > 0){
-    var merged = _mergePosts ? _mergePosts(localPosts, idbPosts) : idbPosts;
-    saveSocialPosts(merged);
-    if(typeof renderSocialFeed==='function') renderSocialFeed();
-    console.log('✅ [PostRestore] تم استعادة ' + merged.length + ' منشور من IndexedDB');
-    return;
-  }
-
-  /* محاولة 2: من sessionStorage */
+  /* ① جلب المنشورات من Firebase — المصدر الدائم دائماً */
   try{
-    var backup = JSON.parse(sessionStorage.getItem('cdz_member_posts_backup')||'[]');
-    if(backup.length > 0){
-      saveSocialPosts(backup);
-      if(typeof renderSocialFeed==='function') renderSocialFeed();
-      console.log('✅ [PostRestore] تم استعادة ' + backup.length + ' منشور من sessionStorage');
+    const res = await fetch(`${_FB}/social_posts.json?orderBy="ts"&limitToLast=200`);
+    if(res.ok){
+      const data = await res.json();
+      if(data){
+        const fbPosts = Object.values(data).filter(Boolean);
+        if(fbPosts.length > 0){
+          const localPosts = getSocialPosts();
+          const localIds = new Set(localPosts.map(p=>p.id).filter(Boolean));
+          const merged = [...localPosts];
+          fbPosts.forEach(fp=>{
+            if(fp.id && !localIds.has(fp.id)) merged.push(fp);
+            else if(fp.id){
+              const idx = merged.findIndex(p=>p.id===fp.id);
+              if(idx>=0) merged[idx] = Object.assign({}, merged[idx], fp);
+            }
+          });
+          saveSocialPosts(merged);
+          if(typeof renderSocialFeed==='function') setTimeout(renderSocialFeed, 500);
+          console.log(`✅ [PostRestore] تم مزامنة ${fbPosts.length} منشور من Firebase`);
+        }
+      }
     }
-  }catch(ex){}
+  }catch(e){ console.warn('⚠️ [PostRestore] فشل الجلب من Firebase:', e); }
+
+  /* ② استعادة احتياطية من IndexedDB إذا كانت localStorage فارغة */
+  const localPosts = getSocialPosts();
+  if(localPosts.length < 3){
+    var idbPosts = await window._loadPostsFromIDB();
+    if(idbPosts.length > 0){
+      var merged = _mergePosts ? _mergePosts(localPosts, idbPosts) : idbPosts;
+      saveSocialPosts(merged);
+      if(typeof renderSocialFeed==='function') renderSocialFeed();
+      console.log('✅ [PostRestore] تم استعادة ' + merged.length + ' منشور من IndexedDB');
+      return;
+    }
+    /* محاولة 3: من sessionStorage */
+    try{
+      var backup = JSON.parse(sessionStorage.getItem('cdz_member_posts_backup')||'[]');
+      if(backup.length > 0){
+        saveSocialPosts(backup);
+        if(typeof renderSocialFeed==='function') renderSocialFeed();
+        console.log('✅ [PostRestore] تم استعادة ' + backup.length + ' منشور من sessionStorage');
+      }
+    }catch(ex){}
+  }
 };
 
 /* تشغيل الاستعادة عند بدء التطبيق */
@@ -17426,8 +17560,7 @@ const _FB_POSTS_URL = 'https://connectdz-49fab-default-rtdb.firebaseio.com/socia
 async function _fetchFirebasePosts(){
   try{
     /* ✅ رفع الحد إلى 2000 لضمان جلب كل منشورات الأعضاء منذ بداية التطبيق */
-    /* ✅ جلب كل المنشورات بدون حد — ضمان عدم فقدان أي منشور قديم */
-    const res = await fetch(_FB_POSTS_URL + '?orderBy="ts"&limitToLast=5000');
+    const res = await fetch(_FB_POSTS_URL + '?orderBy="ts"&limitToLast=2000');
     if(!res.ok) return [];
     const data = await res.json();
     if(!data || typeof data !== 'object') return [];
@@ -17544,120 +17677,16 @@ function _timeAgo(tsOrDateStr){
   return 'منذ ' + years + (years===1?' سنة':' سنوات');
 }
 
-/* ══════════════════════════════════════════════════════
-   📰 نظام الفيد الاجتماعي المتطور — Pagination v2
-   • 200 منشور في الصفحة الأولى (الأصدقاء + عام)
-   • "رؤية المزيد" عند الوصول لآخر منشور
-   • المنشورات القديمة دائمة — لا تُحذف أبداً
-   • المنشور الجديد (<30 دقيقة) يظهر أولاً دائماً
-   • بعد 30 دقيقة: الأكثر تعليقاً أولاً
-   ══════════════════════════════════════════════════════ */
-
-const _FEED_PAGE_SIZE  = 200;  // عدد المنشورات في كل صفحة
-let   _feedCurrentPage = 0;    // الصفحة الحالية (0 = الأولى)
-let   _feedAllSorted   = [];   // كل المنشورات المرتبة
-let   _feedIsLoading   = false;
-
-/* ── ترتيب المنشورات: جديد (<30 د) أولاً، ثم الأكثر تعليقاً ── */
-function _postScore(p, now){
-  const HALF_HOUR = 30 * 60 * 1000;
-  const age = now - (p.ts||0);
-  if(age < HALF_HOUR) return Number.MAX_SAFE_INTEGER - (p.ts||0);
-  const comments = (p.comments||[]).length;
-  const likes    = Object.values(p.reactions||{}).reduce((s,arr)=>s+(arr.length||0),0);
-  const views    = p.views || 0;
-  return comments * 10 + likes * 3 + views;
-}
-
-/* ── فلترة المنشورات حسب الخصوصية ── */
-function _filterPosts(allPostsRaw, myName){
-  return allPostsRaw.filter(p => {
-    if(!p || !p.id) return false;
-    if(p.groupId || p.pageId || p.isGroupPost || p.isPagePost) return false;
-    if(p.isActivityAd || p.isAutoPost || p.isAd || p.isWorkshop || p.isPageAd) return false;
-    const priv = p.privacy || '🌐 عام';
-    if(priv.includes('أنت فقط')) return myName && p.author === myName;
-    if(priv.includes('الأصدقاء')){
-      const myFriends = myName ? getFriends(myName) : [];
-      return myName && (p.author === myName || myFriends.includes(p.author));
-    }
-    return true;
-  });
-}
-
-/* ── عرض المنشورات التدريجية (append) ── */
-function _appendFeedPage(){
-  const container = document.getElementById('socialFeedContainer');
-  if(!container) return;
-
-  // إزالة زر "رؤية المزيد" القديم
-  const oldBtn = document.getElementById('feedLoadMoreBtn');
-  if(oldBtn) oldBtn.remove();
-
-  const start = _feedCurrentPage * _FEED_PAGE_SIZE;
-  const end   = start + _FEED_PAGE_SIZE;
-  const page  = _feedAllSorted.slice(start, end);
-
-  if(page.length === 0) return;
-
-  // إضافة المنشورات
-  const frag = document.createDocumentFragment();
-  page.forEach(p => {
-    const div = document.createElement('div');
-    div.innerHTML = renderSocialPostCard(p);
-    while(div.firstChild) frag.appendChild(div.firstChild);
-  });
-  container.appendChild(frag);
-
-  _feedCurrentPage++;
-
-  // إضافة زر "رؤية المزيد" إن كان هناك المزيد
-  if(_feedCurrentPage * _FEED_PAGE_SIZE < _feedAllSorted.length){
-    const remaining = _feedAllSorted.length - _feedCurrentPage * _FEED_PAGE_SIZE;
-    const loadMoreDiv = document.createElement('div');
-    loadMoreDiv.id = 'feedLoadMoreBtn';
-    loadMoreDiv.style.cssText = 'text-align:center;padding:20px 16px;';
-    loadMoreDiv.innerHTML = `
-      <div onclick="window._loadMoreFeedPosts()" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1877F2,#0a5dc2);color:white;padding:12px 28px;border-radius:50px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(24,119,242,0.35);transition:.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
-        <span style="font-size:18px;">⬇️</span>
-        <span>رؤية المزيد (${remaining} منشور متبقٍ)</span>
-      </div>
-    `;
-    container.appendChild(loadMoreDiv);
-
-    // Intersection Observer لتحميل تلقائي عند الوصول للزر
-    if(window.IntersectionObserver){
-      const obs = new IntersectionObserver((entries)=>{
-        if(entries[0].isIntersecting){
-          obs.disconnect();
-          window._loadMoreFeedPosts();
-        }
-      }, { rootMargin:'200px' });
-      obs.observe(loadMoreDiv);
-    }
-  }
-
-  setTimeout(_restoreOpenComments, 50);
-}
-
-/* ── تحميل صفحة إضافية عند الطلب ── */
-window._loadMoreFeedPosts = function(){
-  if(_feedIsLoading) return;
-  _appendFeedPage();
-};
-
 async function renderSocialFeed(){
   const container = document.getElementById('socialFeedContainer');
   if(!container) return;
 
   const myName = getCurrentUser();
-  _feedCurrentPage = 0;
-  _feedAllSorted   = [];
 
-  /* ① عرض المحلية فوراً */
+  /* ① عرض المحلية فوراً (تجربة سريعة) */
   let localPosts = getSocialPosts();
 
-  /* مزامنة IndexedDB إن كانت المحلية فارغة */
+  /* ① مزامنة IndexedDB إن كانت المحلية فارغة أو قليلة */
   if(localPosts.length < 3 && typeof window._loadPostsFromIDB === 'function'){
     const idbPosts = await window._loadPostsFromIDB();
     if(idbPosts.length > localPosts.length){
@@ -17671,28 +17700,40 @@ async function renderSocialFeed(){
       <div style="font-size:14px;color:#65676B;font-weight:700;">جاري تحميل المنشورات...</div>
     </div>`;
   } else {
-    /* عرض سريع للمحلية */
-    const now0 = Date.now();
-    const quick = _filterPosts(localPosts, myName).sort((a,b)=>_postScore(b,now0)-_postScore(a,now0));
-    _feedAllSorted = quick;
-    container.innerHTML = '';
-    _appendFeedPage();
+    /* عرض المحلية فوراً مرتّبة — الأحدث أولاً */
+    const sorted = localPosts.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+    container.innerHTML = sorted.map(p=>renderSocialPostCard(p)).join('');
   }
 
-  /* ② جلب Firebase */
+  /* ② جلب Firebase — المصدر السحابي الحقيقي */
   const fbPosts = await _fetchFirebasePosts();
 
-  /* ③ دمج Firebase + محلي — المنشورات القديمة محمية دائماً */
+  /* ③ دمج: Firebase + محلية + IDB */
   const allPostsRaw = _mergePosts(localPosts, fbPosts);
 
-  /* ④ حفظ دائم — لا حذف عند التحديث */
+  /* ④ حفظ النسخة المدمجة في كل الطبقات */
   saveSocialPosts(allPostsRaw);
 
   _startFbFeedPolling();
 
-  /* ⑤ فلترة وترتيب */
+  /* ⑤ فلترة: إظهار منشورات الأعضاء فقط — إخفاء الورشات والإعلانات التلقائية */
   const now = Date.now();
-  const posts = _filterPosts(allPostsRaw, myName);
+  const posts = allPostsRaw.filter(p => {
+    /* إزالة منشورات المجموعات والصفحات من الفيد الرئيسي */
+    if(p.groupId || p.pageId || p.isGroupPost || p.isPagePost) return false;
+    /* إخفاء الإعلانات والمنشورات التلقائية للورشات والصفحات */
+    if(p.isActivityAd || p.isAutoPost || p.isAd || p.isWorkshop || p.isPageAd) return false;
+    const priv = p.privacy || '🌐 عام';
+    /* منشورات "أنت فقط" — تظهر لصاحبها فقط */
+    if(priv.includes('أنت فقط')) return myName && p.author === myName;
+    /* منشورات "الأصدقاء" — تظهر لصاحبها وأصدقائه */
+    if(priv.includes('الأصدقاء')){
+      const myFriends = myName ? getFriends(myName) : [];
+      return myName && (p.author === myName || myFriends.includes(p.author));
+    }
+    /* 🌐 عام أو أي خصوصية أخرى — تظهر لجميع المستخدمين دائماً */
+    return true;
+  });
 
   if(posts.length === 0){
     container.innerHTML = `<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;border-radius:12px;">
@@ -17702,13 +17743,26 @@ async function renderSocialFeed(){
     return;
   }
 
-  /* ⑥ الترتيب النهائي */
-  _feedAllSorted = posts.sort((a,b) => _postScore(b,now) - _postScore(a,now));
-  _feedCurrentPage = 0;
+  /* ⑥ الترتيب الذكي:
+     - الجديد (أقل من 30 دقيقة) يظهر أولاً دائماً
+     - بعد 30 دقيقة: الأعلى مشاهدة ثم تعليقاً ثم إعجاباً
+  */
+  const THIRTY_MIN = 30 * 60 * 1000;
+  function _postScore(p){
+    const age = now - (p.ts||0);
+    if(age < THIRTY_MIN) return Number.MAX_SAFE_INTEGER - (p.ts||0); // الجديد جداً أولاً
+    const views = p.views || 0;
+    const comments = (p.comments||[]).length;
+    const likes = Object.values(p.reactions||{}).reduce((s,arr)=>s+(arr.length||0),0);
+    return views * 3 + comments * 2 + likes;
+  }
 
-  /* ⑦ عرض أول صفحة (200 منشور) */
-  container.innerHTML = '';
-  _appendFeedPage();
+  const sortedPosts = posts.slice().sort((a,b) => _postScore(b) - _postScore(a));
+
+  /* ⑦ عرض المنشورات المرتبة */
+  container.innerHTML = sortedPosts.map(p => renderSocialPostCard(p)).join('');
+  // استعادة التعليقات المفتوحة
+  setTimeout(_restoreOpenComments, 50);
 }
 
 function renderSocialPostCard(p){
@@ -35249,21 +35303,12 @@ function getMemberLevel(totalPts){
 }
 
 /* ── تحديد القسم بناءً على مجموع النقاط مباشرةً ── */
-/* ── تحديد القسم بناءً على الترتيب العام (لا النقاط):
-   المراكز 1–10  → المتقن  | المراكز 11–21 → الهاوي | الباقون → المبتدئ ── */
-function getMemberDivisionByRank(rankIndex){
-  // rankIndex يبدأ من 0 (الأول = 0)
-  const expertIdx   = NLD_DIVISIONS.findIndex(d => d.id === 'expert');
-  const amateurIdx  = NLD_DIVISIONS.findIndex(d => d.id === 'amateur');
-  const beginnerIdx = NLD_DIVISIONS.findIndex(d => d.id === 'beginner');
-  if(rankIndex < 10)  return expertIdx  >= 0 ? expertIdx  : NLD_DIVISIONS.length - 1;
-  if(rankIndex < 21)  return amateurIdx >= 0 ? amateurIdx : NLD_DIVISIONS.length - 1;
-  return beginnerIdx >= 0 ? beginnerIdx : NLD_DIVISIONS.length - 1;
-}
-/* دالة توافقية — غير مستخدمة في التصنيف الرئيسي (يعتمد الترتيب الآن) */
 function getMemberDivisionIdx(totalPts){
-  const beginnerIdx = NLD_DIVISIONS.findIndex(d => d.id === 'beginner');
-  return beginnerIdx >= 0 ? beginnerIdx : NLD_DIVISIONS.length - 1;
+  for(let i=0; i<NLD_DIVISIONS.length; i++){
+    const d = NLD_DIVISIONS[i];
+    if(totalPts >= d.minPts && totalPts <= d.maxPts) return i;
+  }
+  return NLD_DIVISIONS.length - 1; // مبتدئ افتراضياً
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -35349,13 +35394,12 @@ async function loadAllMembersWithPts(){
     upsert(name, total);
   });
 
-  /* ─── بناء النتيجة النهائية — مرتبة تنازلياً ثم نعيّن القسم بالترتيب ─── */
-  const resultRaw = Object.values(map)
-    .map(({name, pts: total})=>({ name, total, level: getMemberLevel(total) }))
-    .sort((a,b) => b.total - a.total);
-  const result = resultRaw.map((m, rankIndex) => ({
-    ...m,
-    divisionIdx: getMemberDivisionByRank(rankIndex) // الترتيب 1-10=متقن 11-21=هاوي 22+=مبتدئ
+  /* ─── بناء النتيجة النهائية ─── */
+  const result = Object.values(map).map(({name, pts: total})=>({
+    name,
+    total,
+    level       : getMemberLevel(total),
+    divisionIdx : getMemberDivisionIdx(total)
   }));
 
   console.log(`[NLDChamp v6] ✅ ${result.length} عضو — ranking:${rankTxt.status==='fulfilled'?'✓':'✗'} data:${dataTxt.status==='fulfilled'?'✓':'✗'} firebase:${Object.keys(fbStats).length}`);
@@ -35552,6 +35596,37 @@ window.openSideMenuItem = function(key){
 
 console.log('✅ [NLDChampionship v4] البطولة المحترفة — Google Sheets + Firebase');
 
+/* ── تحديث أيقونة البطولة في التاب حسب قسم المستخدم ── */
+window._updateNldTabIcon = function(){
+  try{
+    const name = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+    if(!name) return;
+    const iconEl = document.getElementById('nldTabDivIcon');
+    const nameEl = document.getElementById('nldTabDivName');
+    const stop1  = document.getElementById('trophyGradStop1');
+    const stop2  = document.getElementById('trophyGradStop2');
+    if(!iconEl || !nameEl) return;
+    // قراءة تعيين المستخدم من Firebase أو localStorage
+    const key = name.replace(/\s+/g,'_');
+    const doUpdate = function(divId){
+      const div = (typeof NLD_DIVISIONS !== 'undefined') ? NLD_DIVISIONS.find(d=>d.id===divId) : null;
+      if(!div) return;
+      iconEl.innerText = div.icon;
+      nameEl.innerText = div.name;
+      nameEl.style.color = div.color;
+      if(stop1) stop1.style.stopColor = div.color;
+      if(stop2) stop2.style.stopColor = div.color;
+    };
+    fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/nld_assignments/${key}.json`)
+      .then(r=>r.json()).then(d=>{
+        if(d && d.divId) doUpdate(d.divId);
+        else doUpdate('beginner');
+      }).catch(()=>{ doUpdate('beginner'); });
+  }catch(e){}
+};
+/* تشغيل عند تحميل الصفحة */
+window.addEventListener('load', function(){ setTimeout(window._updateNldTabIcon, 3000); });
+
 /* ══════════════════════════════════════════════════════════════
    🏆 نظام الصعود والنزول الأسبوعي — Firebase-based
    - كل قسم حد أقصى 10 مستخدمين (ما عدا المبتدئين)
@@ -35656,17 +35731,30 @@ async function _runWeeklyEvaluation(allMembers, assignments){
   const firstWeekDone = localStorage.getItem(FIRST_WEEK_KEY) === '1';
 
   if(!firstWeekDone){
-    const beginnerMembers = (divMap['beginner'] || []).slice(0, 10);
-    const nextDiv = NLD_DIVISIONS[NLD_DIVISIONS.length - 2]; // الهاوي (القسم فوق المبتدئ)
-    if(beginnerMembers.length > 0 && nextDiv){
-      for(const m of beginnerMembers){
+    const allBeginners = (divMap['beginner'] || []).slice().sort((a,b)=>b.total-a.total);
+    // أول 10 → المتقن (expert)
+    const top10 = allBeginners.slice(0, 10);
+    // المراتب 11-21 → الهاوي (amateur)
+    const next11 = allBeginners.slice(10, 21);
+    const expertDiv = NLD_DIVISIONS.find(d => d.id === 'expert');
+    const amateurDiv = NLD_DIVISIONS.find(d => d.id === 'amateur');
+    if(top10.length > 0 && expertDiv){
+      for(const m of top10){
         const key = (m.name||'').replace(/\s+/g,'_');
-        newAssignments[key] = { divId: nextDiv.id, updatedAt: ts, promotedFrom: 'beginner' };
+        newAssignments[key] = { divId: 'expert', updatedAt: ts, promotedFrom: 'beginner' };
       }
-      divMap[nextDiv.id] = [...(divMap[nextDiv.id]||[]), ...beginnerMembers].sort((a,b)=>b.total-a.total);
-      divMap['beginner'] = (divMap['beginner']||[]).filter(m=>!beginnerMembers.includes(m));
-      console.log(`✅ [NLD] الأسبوع الأول: ${beginnerMembers.length} عضو صعدوا من المبتدئ → ${nextDiv.name}`);
+      divMap['expert'] = [...(divMap['expert']||[]), ...top10].sort((a,b)=>b.total-a.total);
+      console.log(`✅ [NLD] الأسبوع الأول: ${top10.length} عضو صعدوا من المبتدئ → المتقن`);
     }
+    if(next11.length > 0 && amateurDiv){
+      for(const m of next11){
+        const key = (m.name||'').replace(/\s+/g,'_');
+        newAssignments[key] = { divId: 'amateur', updatedAt: ts, promotedFrom: 'beginner' };
+      }
+      divMap['amateur'] = [...(divMap['amateur']||[]), ...next11].sort((a,b)=>b.total-a.total);
+      console.log(`✅ [NLD] الأسبوع الأول: ${next11.length} عضو صعدوا من المبتدئ → الهاوي`);
+    }
+    divMap['beginner'] = allBeginners.filter(m => !top10.includes(m) && !next11.includes(m));
     localStorage.setItem(FIRST_WEEK_KEY, '1');
   }
 
