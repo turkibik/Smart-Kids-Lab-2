@@ -35430,7 +35430,6 @@ function buildTabs(){
     <div id="nldTab_${i}" onclick="nldSelectDiv(${i})" style="flex-shrink:0;padding:10px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:70px;border-bottom:3px solid ${i===_nldActiveDiv?d.color:'transparent'};transition:.2s;">
       <span style="font-size:16px;">${d.icon}</span>
       <span style="font-size:10px;font-weight:800;color:${i===_nldActiveDiv?d.color:'rgba(255,255,255,0.5)'};">${d.name}</span>
-      <span style="font-size:9px;color:rgba(255,255,255,0.3);">${d.rangeLabel}</span>
     </div>
   `).join('');
 }
@@ -35486,15 +35485,21 @@ window.nldChampLoadAll = async function(){
 };
 
 /* ── رسم قسم محدد ── */
-function renderDivision(divIdx, allMembers){
+function renderDivision(divIdx, allMembers, assignments){
   const div = NLD_DIVISIONS[divIdx];
   if(!div) return;
   const contentDiv = document.getElementById('nldChampContent');
   if(!contentDiv) return;
 
-  // فلترة الأعضاء حسب مجموع النقاط (divisionIdx) — معيار التصنيف الرئيسي
+  // فلترة الأعضاء حسب تعيين Firebase (divId) — لا حسب النقاط
+  const assigns = assignments || window._nldAssignments || {};
   const members = allMembers
-    .filter(m=> m.divisionIdx === divIdx)
+    .filter(m => {
+      const key = (m.name||'').replace(/\s+/g,'_');
+      const assigned = assigns[key];
+      const memberDivId = (assigned && assigned.divId) ? assigned.divId : 'beginner';
+      return memberDivId === div.id;
+    })
     .sort((a,b)=>b.total-a.total);
 
   const currentUser = typeof getCurrentUser==='function' ? getCurrentUser() : '';
@@ -35506,7 +35511,6 @@ function renderDivision(divIdx, allMembers){
         <div style="font-size:52px;margin-bottom:14px;">${div.icon}</div>
         <div style="font-size:16px;font-weight:900;color:${div.color};margin-bottom:8px;">قسم ${div.name}</div>
         <div style="font-size:13px;color:rgba(255,255,255,0.4);">لا يوجد أعضاء في هذا القسم حالياً</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:6px;">نطاق النقاط: ${div.rangeLabel}</div>
       </div>`;
     return;
   }
@@ -35571,8 +35575,7 @@ function renderDivision(divIdx, allMembers){
     <div style="background:linear-gradient(135deg,rgba(${drgb},0.1),rgba(${drgb},0.03));border:1px solid rgba(${drgb},0.28);border-radius:18px;padding:18px 16px;margin-bottom:14px;text-align:center;">
       <div style="font-size:44px;margin-bottom:6px;filter:drop-shadow(0 0 14px rgba(${drgb},0.6));">${div.icon}</div>
       <div style="font-size:19px;font-weight:900;color:${div.color};margin-bottom:4px;">قسم ${div.name}</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px;">النقاط المطلوبة: ${div.rangeLabel}</div>
-      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px;">
         <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);">${members.length} عضو</div>
         ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ حتى 5 صاعدين</div>`:''}
         ${(divIdx<NLD_DIVISIONS.length-1 && divIdx!==NLD_DIVISIONS.length-1)?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ حتى 5 نازلين</div>`:''}
@@ -35704,7 +35707,12 @@ async function _runWeeklyEvaluation(allMembers, assignments){
   const hour = now.getHours();
   const isEvalTime = (dayOfWeek === 6 && hour >= 21);
 
-  if(!isEvalTime || currentWeek === lastEvalWeek) return assignments;
+  // الأسبوع الأول يُنفَّذ فوراً بدون انتظار موعد التقييم
+  const FIRST_WEEK_KEY = 'nld_first_week_done';
+  const firstWeekDone = localStorage.getItem(FIRST_WEEK_KEY) === '1';
+
+  // إذا انتهى الأسبوع الأول وليس وقت التقييم الأسبوعي، نخرج
+  if(firstWeekDone && (!isEvalTime || currentWeek === lastEvalWeek)) return assignments;
 
   // بناء خريطة: divId → قائمة الأعضاء مرتبة تنازلياً
   const divMap = {};
@@ -35727,9 +35735,6 @@ async function _runWeeklyEvaluation(allMembers, assignments){
   /* ══════════════════════════════════════════════════════
      الأسبوع الأول الخاص: أول 10 من المبتدئ يصعدون تلقائياً
      ══════════════════════════════════════════════════════ */
-  const FIRST_WEEK_KEY = 'nld_first_week_done';
-  const firstWeekDone = localStorage.getItem(FIRST_WEEK_KEY) === '1';
-
   if(!firstWeekDone){
     const allBeginners = (divMap['beginner'] || []).slice().sort((a,b)=>b.total-a.total);
     // أول 10 → المتقن (expert)
@@ -35869,7 +35874,6 @@ function renderDivision(divIdx, allMembers, assignments){
         <div style="font-size:52px;margin-bottom:14px;">${div.icon}</div>
         <div style="font-size:16px;font-weight:900;color:${div.color};margin-bottom:8px;">قسم ${div.name}</div>
         <div style="font-size:13px;color:rgba(255,255,255,0.4);">لا يوجد أعضاء في هذا القسم حالياً</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:6px;">نطاق النقاط: ${div.rangeLabel}</div>
       </div>`;
     return;
   }
@@ -35949,7 +35953,6 @@ function renderDivision(divIdx, allMembers, assignments){
     <div style="background:linear-gradient(135deg,rgba(${drgb},0.1),rgba(${drgb},0.03));border:1px solid rgba(${drgb},0.28);border-radius:18px;padding:18px 16px;margin-bottom:14px;text-align:center;">
       <div style="font-size:44px;margin-bottom:6px;filter:drop-shadow(0 0 14px rgba(${drgb},0.6));">${div.icon}</div>
       <div style="font-size:19px;font-weight:900;color:${div.color};margin-bottom:4px;">قسم ${div.name}</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px;">النقاط المطلوبة: ${div.rangeLabel}</div>
       <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
         ${fullBadge}
         ${promoNote}
