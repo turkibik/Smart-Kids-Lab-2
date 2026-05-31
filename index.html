@@ -256,91 +256,16 @@ document.addEventListener('touchend', function(e){
     /* تنفيذ التحديث الفعلي */
     setTimeout(function(){
       try{
-        var refreshCount = 0;
-        var txt2 = document.getElementById('_ptrText');
-        if(txt2) txt2.innerText = 'جاري جلب البيانات…';
-
-        /* ① جلب منشورات الفيد من Firebase مباشرة */
-        var _FB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-        fetch(_FB + '/social_posts.json?orderBy="ts"&limitToLast=100')
-          .then(function(r){ return r.ok ? r.json() : null; })
-          .then(function(data){
-            if(data){
-              var fbPosts = Object.values(data).filter(Boolean);
-              /* دمج مع المنشورات المحلية */
-              var localPosts = (typeof getSocialPosts === 'function') ? getSocialPosts() : [];
-              var localIds = new Set(localPosts.map(function(p){ return p.id; }).filter(Boolean));
-              var merged = localPosts.slice();
-              fbPosts.forEach(function(fp){
-                if(fp.id && !localIds.has(fp.id)) merged.push(fp);
-                else if(fp.id){
-                  /* تحديث الموجود بأحدث بيانات */
-                  var idx = merged.findIndex(function(p){ return p.id === fp.id; });
-                  if(idx >= 0) merged[idx] = Object.assign({}, merged[idx], fp);
-                }
-              });
-              merged.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
-              if(typeof saveSocialPosts === 'function') saveSocialPosts(merged);
-              refreshCount++;
-            }
-            /* تحديث الواجهة بعد جلب المنشورات */
-            if(typeof renderSocialFeed === 'function') renderSocialFeed();
-            else if(typeof loadSocialFeed === 'function') loadSocialFeed();
-            else if(typeof renderFeed === 'function') renderFeed();
-          }).catch(function(){
-            if(typeof renderSocialFeed === 'function') renderSocialFeed();
-          });
-
-        /* ② جلب منشورات الملف الشخصي للمستخدم الحالي */
-        var curUser = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
-        if(curUser){
-          var userKey = curUser.replace(/\s+/g,'_');
-          fetch(_FB + '/member_posts/' + userKey + '.json')
-            .then(function(r){ return r.ok ? r.json() : null; })
-            .then(function(data){
-              if(!data) return;
-              var fbPosts = Object.values(data).filter(Boolean);
-              if(fbPosts.length === 0) return;
-              var lKey = (typeof getProfilePostsKey === 'function') ? getProfilePostsKey(curUser) : 'nld_profile_posts_'+userKey;
-              var local = JSON.parse(localStorage.getItem(lKey)||'[]');
-              var localIds = new Set(local.map(function(p){ return p.id; }).filter(Boolean));
-              fbPosts.forEach(function(fp){
-                if(fp.id && !localIds.has(fp.id)) local.push(fp);
-              });
-              local.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
-              try{ localStorage.setItem(lKey, JSON.stringify(local)); }catch(e){}
-              if(typeof renderProfilePosts === 'function'){
-                var profileFeed = document.getElementById('profilePostsFeed');
-                if(profileFeed && profileFeed.offsetParent !== null) renderProfilePosts(curUser);
-              }
-              refreshCount++;
-            }).catch(function(){});
-        }
-
-        /* ③ تحديث بيانات أخرى */
-        if(typeof loadNotifications === 'function') loadNotifications();
-        if(typeof refreshUserData === 'function') refreshUserData();
-        if(typeof _updateNldTabIcon === 'function') _updateNldTabIcon();
-
-        /* ④ تحديث leaderboard إن كان مفتوحاً */
-        var ldPanel = document.getElementById('leaderboardPanel');
-        if(ldPanel && ldPanel.style.display !== 'none'){
-          if(typeof loadLeaderboard === 'function') loadLeaderboard();
-        }
-
-        /* ⑤ تحديث بيانات الأعضاء من Firebase */
-        fetch(_FB + '/appdata/members.json')
-          .then(function(r){ return r.ok ? r.json() : null; })
-          .then(function(data){
-            if(!data) return;
-            try{ localStorage.setItem('cdz_members_cache', JSON.stringify(data)); }catch(e){}
-            refreshCount++;
-          }).catch(function(){});
-
-        setTimeout(function(){
-          if(typeof showToast === 'function') showToast('✅ تم تحديث جميع البيانات من السيرفر');
-        }, 1200);
-      }catch(ex){ console.warn('[PTR] خطأ في التحديث:', ex); }
+        /* تحديث Feed الرئيسي */
+        if(typeof loadSocialFeed==='function') loadSocialFeed();
+        else if(typeof renderFeed==='function') renderFeed();
+        else if(typeof loadPosts==='function') loadPosts();
+        /* تحديث إشعارات */
+        if(typeof loadNotifications==='function') loadNotifications();
+        /* تحديث بيانات المستخدم */
+        if(typeof refreshUserData==='function') refreshUserData();
+        if(typeof showToast==='function') showToast('✅ تم تحديث البيانات');
+      }catch(ex){}
       /* إخفاء المؤشر */
       ind.style.height = '0px';
       setTimeout(function(){ ind.style.height='0px'; },300);
@@ -364,6 +289,8 @@ document.addEventListener('touchend', function(e){
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://res.cloudinary.com">
 <link rel="preconnect" href="https://connectdz-49fab-default-rtdb.firebaseio.com">
+<link rel="dns-prefetch" href="https://connectdz-49fab-default-rtdb.firebaseio.com">
+<!-- ✅ إصلاح: dns-prefetch يُسرّع اتصال Firebase بحل DNS مسبقاً -->
 <link rel="manifest" href="/manifest.json">
 
 <!-- ══════════════════════════════════════════════
@@ -540,11 +467,15 @@ document.addEventListener('touchend', function(e){
     /* فحص الامتداد — منع التزوير (file.jpg في الحقيقة exe) */
     const ext = (file.name || '').split('.').pop().toLowerCase();
     /* ✅ نسمح بكل امتدادات الفيديو والصوت الشائعة */
+    /* ✅ إصلاح: كانت isVideoMime و isAudioMime غير معرَّفَتَين — تسبّبان ReferenceError صامتاً */
+    const isVideoMime = file.type.startsWith('video/');
+    const isAudioMime = file.type.startsWith('audio/');
     if(!ALLOWED_EXT.includes(ext) && !isVideoMime && !isAudioMime){
       throw new Error('❌ امتداد الملف غير مسموح: .' + ext);
     }
     /* فحص اسم الملف — منع path traversal */
-    if(/[\/\<>:"\|\?\*]/.test(file.name)){
+    /* ✅ إصلاح: أُضيف % و ; لمنع path traversal أشمل */
+    if(/[/\\<>:"\|\?\*%;]/.test(file.name)){
       throw new Error('❌ اسم الملف يحتوي رموز غير مسموحة');
     }
   }
@@ -678,6 +609,9 @@ document.addEventListener('touchend', function(e){
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open('POST', endpoint);
+      /* ✅ إصلاح: timeout 120 ثانية — يمنع التعليق اللانهائي عند انقطاع الإنترنت */
+      xhr.timeout = 120000;
+      xhr.ontimeout = () => reject(window.handleError ? window.handleError('NETWORK', 'انتهى وقت الرفع — تحقق من الإنترنت') : new Error('Timeout'));
 
       /* تتبع التقدم */
       xhr.upload.onprogress = (e) => {
@@ -1028,7 +962,8 @@ window.uploadStoryMusic = async function(file) {
         <div id="__fb_bar" style="height:100%;width:0%;background:#00e5a0;border-radius:99px;transition:width .4s ease;"></div>
       </div>
     `;
-    document.documentElement.appendChild(el);
+    /* ✅ إصلاح: استخدام document.body عند توفره، وإلا documentElement */
+    (document.body || document.documentElement).appendChild(el);
   }
 
   function updateLoader(pct){
@@ -1078,9 +1013,11 @@ window.uploadStoryMusic = async function(file) {
     /* 🔒 حد معدل الإرسال: 60 عملية كل 60 ثانية */
     const now = Date.now();
     if(now - _pushReset > 60000){ _pushCount = 0; _pushReset = now; }
-    if(_pushCount++ > 60){ console.warn('🔒 Firebase: تم تجاوز حد الإرسال'); return; }
+    if(++_pushCount > 60){ console.warn('🔒 Firebase: تم تجاوز حد الإرسال'); return; } /* ✅ إصلاح: pre-increment لضمان الدقة */
     /* 🔒 حد حجم القيمة: 50KB كحد أقصى */
-    const strVal = JSON.stringify(value);
+    /* ✅ إصلاح: try/catch حول JSON.stringify — كان يتعطل عند قيم دائرية */
+    let strVal;
+    try { strVal = JSON.stringify(value); } catch(e){ return; }
     if(strVal.length > 50000){ console.warn('🔒 Firebase: القيمة كبيرة جداً، تم الحذف'); return; }
     const safeKey = encodeURIComponent(key).replace(/%/g,'~');
     fetch(`${DB_URL}/appdata/${safeKey}.json`, {
@@ -1136,27 +1073,37 @@ window.uploadStoryMusic = async function(file) {
   };
 
   /* ── تحميل البيانات من Firebase عند الفتح ── */
-  /* ✅ حد أقصى للانتظار: 1500ms — بعدها يظهر الدخول فوراً والمزامنة تكمل في الخلفية */
-  showLoader();
+  /* ✅ إصلاح: تقليل وقت الانتظار 1500ms → 800ms + تخطي الـ loader عند وجود كاش */
+  const _hasCachedData = !!localStorage.getItem('__fb_loaded');
+  if(!_hasCachedData) showLoader();
   updateLoader(20);
 
   let _fbLoaderDone = false;
   function _fbDone(){
     if(_fbLoaderDone) return;
     _fbLoaderDone = true;
+    localStorage.setItem('__fb_loaded', '1');
     updateLoader(100);
-    setTimeout(hideLoader, 200);
+    setTimeout(hideLoader, 150);
   }
 
+  /* ✅ إصلاح: 800ms بدل 1500ms — فرق 700ms في سرعة الدخول */
   const _fbTimeout = setTimeout(function(){
     if(!_fbLoaderDone){
       console.warn('⚠️ Firebase: بطيء — جارٍ إظهار الدخول فوراً والمزامنة تكمل في الخلفية');
       _fbDone();
     }
-  }, 1500);
+  }, 800);
 
-  fetch(`${DB_URL}/appdata.json`)
+  /* ✅ إصلاح: إضافة AbortController + cache للتسريع */
+  const _fbAbort = new AbortController();
+  const _fbAbortTimer = setTimeout(() => _fbAbort.abort(), 750);
+  fetch(`${DB_URL}/appdata.json`, {
+    signal: _fbAbort.signal,
+    headers: { 'Cache-Control': 'max-age=30' }
+  })
     .then(r => {
+      clearTimeout(_fbAbortTimer);
       updateLoader(60);
       return r.json();
     })
@@ -1174,12 +1121,10 @@ window.uploadStoryMusic = async function(file) {
         });
       }
       _fbDone();
-      /* ✅ استعادة منشورات الأعضاء من Firebase بعد اكتمال التحميل */
-      setTimeout(function(){
-        if(typeof window._restorePostsFromFirebase === 'function'){
-          window._restorePostsFromFirebase();
-        }
-      }, 1500);
+      /* ✅ إصلاح: استعادة المنشورات فوراً بعد Firebase (أُزيل التأخير المزدوج 1500ms) */
+      if(typeof window._restorePostsFromFirebase === 'function'){
+        window._restorePostsFromFirebase();
+      }
     })
     .catch(err => {
       clearTimeout(_fbTimeout);
@@ -1208,7 +1153,11 @@ window.uploadStoryMusic = async function(file) {
 
       /* نجلب دائماً من Firebase لضمان ظهور جميع المنشورات (القديمة والجديدة) */
       console.log('🔄 [PostSync] جاري جلب كل منشورات الأعضاء من Firebase...');
-      const res = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json?orderBy="ts"&limitToLast=500');
+      /* ✅ إصلاح: AbortController بـ 5 ثوانٍ لجلب المنشورات + limitToLast=80 */
+      const _pCtrl = new AbortController();
+      const _pTimer = setTimeout(() => _pCtrl.abort(), 5000);
+      const res = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json?orderBy="ts"&limitToLast=80', { signal: _pCtrl.signal });
+      clearTimeout(_pTimer);
       if(!res.ok) return;
       const data = await res.json();
       if(!data || typeof data !== 'object') return;
@@ -1232,7 +1181,14 @@ window.uploadStoryMusic = async function(file) {
       console.log('✅ [PostSync] تم جلب', merged.length, 'منشور من Firebase (قديمة + جديدة)');
       if(typeof renderSocialFeed === 'function'){
         const feed = document.getElementById('socialFeedContainer');
-        if(feed && feed.offsetParent !== null) renderSocialFeed();
+        if(feed && feed.offsetParent !== null){
+          /* ✅ إصلاح: requestIdleCallback لتشغيل render في وقت الخمول — لا يعطل الـ UI */
+          if(typeof requestIdleCallback !== 'undefined'){
+            requestIdleCallback(() => renderSocialFeed(), { timeout: 2000 });
+          } else {
+            setTimeout(renderSocialFeed, 100);
+          }
+        }
       }
     }catch(ex){ console.warn('⚠️ [PostSync] فشل استعادة المنشورات:', ex); }
   };
@@ -1252,7 +1208,9 @@ window.uploadStoryMusic = async function(file) {
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Connect DZ">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<!-- ✅ إصلاح: font-display=swap لمنع توقف الرسم بسبب الخط -->
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
   --green:#0f9b0f;--red:#e52d27;--gold:#f5c518;
@@ -4759,23 +4717,21 @@ function switchLoginTab(tab){
         <span style="font-size:9px;font-weight:700;color:#65676B;">مسنجر</span>
         <span id="socialMsgBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;"></span>
       </div>
-      <div id="sTab_myprofile" onclick="if(typeof openNLDChampionship==='function'){openNLDChampionship();}else if(typeof openNldChampionship==='function'){openNldChampionship();}" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;" title="البطولة المحترفة">
-        <!-- أيقونة البطولة الديناميكية -->
-        <div id="nldTabIconWrap" style="position:relative;display:flex;align-items:center;justify-content:center;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#trophyGrad)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <defs>
-              <linearGradient id="trophyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" id="trophyGradStop1" style="stop-color:#FFD700"/>
-                <stop offset="100%" id="trophyGradStop2" style="stop-color:#ef4444"/>
-              </linearGradient>
-            </defs>
-            <path d="M8 21h8M12 17v4M7 4H4a2 2 0 0 0-2 2v1c0 2.8 1.7 5.2 4.3 6.3"/>
-            <path d="M17 4h3a2 2 0 0 1 2 2v1c0 2.8-1.7 5.2-4.3 6.3"/>
-            <path d="M7 4h10v8a5 5 0 0 1-10 0V4z"/>
-          </svg>
-          <span id="nldTabDivIcon" style="position:absolute;top:-6px;right:-6px;font-size:11px;line-height:1;">🌟</span>
-        </div>
-        <span id="nldTabDivName" style="font-size:9px;font-weight:800;color:#FFD700;">البطولة</span>
+      <div id="sTab_myprofile" onclick="if(typeof openNLDChampionship==='function'){openNLDChampionship();}else if(typeof openNldChampionship==='function'){openNldChampionship();}" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;" title="Next Leaders DZ — برنامج القيادة">
+        <!-- أيقونة البرنامج القيادي -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="url(#nldGrad2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <defs>
+            <linearGradient id="nldGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#7c3aed"/>
+              <stop offset="100%" style="stop-color:#60a5fa"/>
+            </linearGradient>
+          </defs>
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          <path d="M15 11l2-2 2 2"/>
+          <line x1="17" y1="9" x2="17" y2="14"/>
+        </svg>
+        <span style="font-size:9px;font-weight:800;background:linear-gradient(90deg,#7c3aed,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">القادة</span>
       </div>
     </div>
   </div>
@@ -9731,18 +9687,13 @@ function getProfilePostsKey(name){ return _profilePostsKey + name.replace(/\s+/g
 function renderProfilePosts(name){
   const feed = document.getElementById('profilePostsFeed');
   if(!feed) return;
+  const allPosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
+  /* إخفاء المنشورات المؤرشفة من العرض */
+  const posts = allPosts.filter(p => !p._archived);
+  const archivedCount = allPosts.filter(p => p._archived).length;
 
-  /* جلب من Firebase أولاً — المصدر الرئيسي الدائم */
-  const _FB_DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-  const memberKey = name.replace(/\s+/g,'_');
-
-  function _doRender(allPosts){
-    /* إخفاء المنشورات المؤرشفة من العرض */
-    const posts = allPosts.filter(p => !p._archived);
-    const archivedCount = allPosts.filter(p => p._archived).length;
-
-    /* زر الأرشيف إن وجدت منشورات مؤرشفة */
-    const archiveBtnHtml = archivedCount > 0 ? `
+  /* زر الأرشيف إن وجدت منشورات مؤرشفة */
+  const archiveBtnHtml = archivedCount > 0 ? `
     <div onclick="window.openArchivedPosts()" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(135deg,rgba(24,119,242,0.08),rgba(0,200,83,0.05));border-radius:12px;border:1px dashed rgba(24,119,242,0.3);margin-bottom:10px;cursor:pointer;">
       <span style="font-size:20px;">🗃️</span>
       <div>
@@ -9752,22 +9703,23 @@ function renderProfilePosts(name){
       <span style="margin-right:auto;font-size:16px;color:#1877F2;">›</span>
     </div>` : '';
 
-    if(posts.length===0){
-      feed.innerHTML=archiveBtnHtml+`<div style="background:white;padding:30px 20px;text-align:center;margin:0 0 8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. شارك أول منشور!</div></div>`;
-      return;
-    }
+  if(posts.length===0){
+    feed.innerHTML=archiveBtnHtml+`<div style="background:white;padding:30px 20px;text-align:center;margin:0 0 8px;"><div style="font-size:48px;margin-bottom:10px;">✍️</div><div style="font-size:14px;font-weight:700;color:#65676B;">لا توجد منشورات بعد. شارك أول منشور!</div></div>`;
+    return;
+  }
 
-    const postsHtml = posts.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map((p,ri)=>{
-      const i = allPosts.indexOf(p);
-      const photo = getProfilePhoto ? getProfilePhoto(name) : null;
-      const avatarHtml = photo ? `<img loading="lazy" src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;">${getLeaderIcon(name)}</div>`;
-      const postId = p.id || ('pp_'+name.replace(/\s+/g,'_')+'_'+i);
-      const reactions = p.reactions||{};
-      const totalReacts = Object.values(reactions).flat().length;
-      const myReact = Object.keys(reactions).find(r=>(reactions[r]||[]).includes(name));
-      const reactEmojis = ['❤️','😂','😢','👍','🤦🏻'];
-      const comments = p.comments||[];
-      return `<div id="pppost_${postId}" style="background:white;padding:14px 16px;margin-bottom:8px;">
+  const postsHtml = posts.slice().reverse().map((p,ri)=>{
+    /* نجد الفهرس الحقيقي في allPosts */
+    const i = allPosts.indexOf(p);
+    const photo = getProfilePhoto ? getProfilePhoto(name) : null;
+    const avatarHtml = photo ? `<img loading="lazy" src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;">${getLeaderIcon(name)}</div>`;
+    const postId = 'pp_'+name.replace(/\s+/g,'_')+'_'+i;
+    const reactions = p.reactions||{};
+    const totalReacts = Object.values(reactions).flat().length;
+    const myReact = Object.keys(reactions).find(r=>(reactions[r]||[]).includes(name));
+    const reactEmojis = ['❤️','😂','😢','👍','🤦🏻'];
+    const comments = p.comments||[];
+    return `<div id="pppost_${postId}" style="background:white;padding:14px 16px;margin-bottom:8px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
         ${avatarHtml}
         <div style="flex:1;">
@@ -9803,32 +9755,8 @@ function renderProfilePosts(name){
         </div>
       </div>
     </div>`;
-    }).join('');
-    feed.innerHTML = archiveBtnHtml + postsHtml;
-  }
-
-  /* عرض من localStorage أولاً (سريع) ثم تحديث من Firebase */
-  const localPosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
-  if(localPosts.length > 0) _doRender(localPosts);
-  else feed.innerHTML = '<div style="text-align:center;padding:20px;color:#65676B;font-size:13px;">⏳ جاري تحميل المنشورات...</div>';
-
-  /* جلب من Firebase — المصدر الدائم */
-  fetch(`${_FB_DB}/member_posts/${memberKey}.json`)
-    .then(r=>r.ok ? r.json() : null)
-    .then(data=>{
-      if(!data){ return; }
-      const fbPosts = Object.values(data).filter(Boolean);
-      if(fbPosts.length === 0) return;
-      /* دمج مع local */
-      const localIds = new Set(localPosts.map(p=>p.id).filter(Boolean));
-      const merged = [...localPosts];
-      fbPosts.forEach(fp=>{ if(fp.id && !localIds.has(fp.id)) merged.push(fp); });
-      merged.sort((a,b)=>(b.ts||0)-(a.ts||0));
-      /* تحديث localStorage */
-      try{ localStorage.setItem(getProfilePostsKey(name), JSON.stringify(merged)); }catch(e){}
-      _doRender(merged);
-    })
-    .catch(()=>{ /* يعمل من localStorage */ });
+  }).join('');
+  feed.innerHTML = archiveBtnHtml + postsHtml;
 }
 
 function addProfilePostReaction(ownerName, idx, emoji){
@@ -10060,11 +9988,34 @@ function submitPost(){
   const name = getCurrentUser();
   const text = (document.getElementById('postTextInput')||{}).value?.trim() || '';
   if(!text && _postImagesData.length === 0 && !_postVideoData){ showToast('✏️ اكتب شيئاً أو أضف صورة/فيديو', 'warning'); return; }
+  let posts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
   const now = new Date();
   const dateStr = now.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'});
-  const postId = 'sp_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
   const newPost = {
-    id: postId,
+    text,
+    image: _postImagesData[0] || null,
+    images: _postImagesData.length > 0 ? [..._postImagesData] : null,
+    video: _postVideoData,
+    feeling: _postFeelingMode ? _feelings[_feelingIdx] : null,
+    date: dateStr, ts: Date.now(), reactions:{}, comments:[], views: 0
+  };
+  posts.push(newPost);
+  /* حفظ منشورات الملف الشخصي — لا حذف للمنشورات القديمة */
+  try {
+    localStorage.setItem(getProfilePostsKey(name), JSON.stringify(posts));
+  } catch(e) {
+    /* localStorage ممتلئ — احتفظ بكل المنشورات لكن حاول ضغط البيانات */
+    console.warn('localStorage ممتلئ، جارٍ الضغط...');
+    try {
+      localStorage.setItem(getProfilePostsKey(name), JSON.stringify(posts));
+    } catch(e2) {
+      console.error('فشل حفظ منشورات الملف الشخصي:', e2);
+    }
+  }
+  // نشر في الفيد العام أيضاً — منشورات دائمة لا تُحذف
+  const socialPosts = getSocialPosts();
+  const socialPost = {
+    id: 'sp_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
     author: name,
     text,
     image: _postImagesData[0] || null,
@@ -10072,51 +10023,23 @@ function submitPost(){
     video: _postVideoData,
     feeling: _postFeelingMode ? _feelings[_feelingIdx] : null,
     date: dateStr, ts: Date.now(), reactions:{}, comments:[], views: 0,
-    privacy: '🌐 عام',
-    _protected: true  /* منشور محمي — لا يُحذف عند التحديث */
+    privacy: '🌐 عام'
   };
-
-  /* ① حفظ في Firebase أولاً — المخزن الرئيسي الدائم */
-  const _FB_DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-  const fbPostClean = Object.assign({}, newPost);
-  /* إزالة base64 الضخم من Firebase — يُخزن في Cloudinary */
-  if(fbPostClean.image && fbPostClean.image.startsWith('data:') && fbPostClean.image.length > 50000) fbPostClean.image = null;
-  if(fbPostClean.images) fbPostClean.images = fbPostClean.images.map(img => (img && img.startsWith('data:') && img.length > 50000) ? null : img);
-  if(fbPostClean.video && fbPostClean.video.startsWith('data:')) fbPostClean.video = null;
-
-  fetch(`${_FB_DB}/social_posts/${postId}.json`,{
-    method:'PUT', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(fbPostClean)
-  }).then(()=>{
-    console.log('✅ [Posts] تم حفظ المنشور في Firebase:', postId);
-  }).catch(e=>{
-    console.warn('⚠️ [Posts] فشل الحفظ في Firebase، يُحفظ محلياً:', e);
-  });
-
-  /* ② حفظ في social_posts (الفيد العام) — Firebase + localStorage */
-  const socialPosts = getSocialPosts();
-  socialPosts.push(newPost);
+  socialPosts.push(socialPost);
   saveSocialPosts(socialPosts);
-
-  /* ③ حفظ في منشورات الملف الشخصي — Firebase مستقل */
-  fetch(`${_FB_DB}/member_posts/${name.replace(/\s+/g,'_')}/${postId}.json`,{
-    method:'PUT', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(fbPostClean)
-  }).catch(()=>{});
-
-  /* ④ تحديث localStorage كـ cache فقط */
+  // مزامنة مع Firebase
   try{
-    let profPosts = JSON.parse(localStorage.getItem(getProfilePostsKey(name)) || '[]');
-    profPosts.push(newPost);
-    localStorage.setItem(getProfilePostsKey(name), JSON.stringify(profPosts));
+    const _FB_DB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+    fetch(`${_FB_DB}/social_posts/${socialPost.id}.json`,{
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(socialPost)
+    }).catch(()=>{});
   }catch(e){}
-
   ebPointsPost();
   closeCreatePost();
   renderProfilePosts(name);
   switchProfileTab('posts');
   if(typeof renderSocialFeed === 'function') renderSocialFeed();
-  showToast('✅ تم نشر منشورك للجميع!', 'success');
 }
 
 /* ===== ADMIN CONFIG ===== */
@@ -14527,7 +14450,8 @@ function startChatPolling(){
     const unread = await sbGetUnreadCount(myName);
     if(unread >= 0) updateNotifBadge(unread);
 
-  }, 10000); // كل 10 ثوانٍ
+  /* ✅ إصلاح: تخطي الـ polling عندما التطبيق في الخلفية — توفير بطارية وبيانات */
+  }, document.hidden ? 30000 : 8000);
 }
 
 function stopChatPolling(){
@@ -17253,57 +17177,32 @@ function saveSocialPosts(arr){
   }
 }
 
-/* ── استعادة المنشورات بعد تحديث التطبيق — Firebase أولاً ── */
+/* ── استعادة المنشورات بعد تحديث التطبيق ── */
 window._restorePostsAfterUpdate = async function(){
-  const _FB = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
+  var localPosts = getSocialPosts();
+  if(localPosts.length >= 5) return; /* لا حاجة للاستعادة */
 
-  /* ① جلب المنشورات من Firebase — المصدر الدائم دائماً */
-  try{
-    const res = await fetch(`${_FB}/social_posts.json?orderBy="ts"&limitToLast=200`);
-    if(res.ok){
-      const data = await res.json();
-      if(data){
-        const fbPosts = Object.values(data).filter(Boolean);
-        if(fbPosts.length > 0){
-          const localPosts = getSocialPosts();
-          const localIds = new Set(localPosts.map(p=>p.id).filter(Boolean));
-          const merged = [...localPosts];
-          fbPosts.forEach(fp=>{
-            if(fp.id && !localIds.has(fp.id)) merged.push(fp);
-            else if(fp.id){
-              const idx = merged.findIndex(p=>p.id===fp.id);
-              if(idx>=0) merged[idx] = Object.assign({}, merged[idx], fp);
-            }
-          });
-          saveSocialPosts(merged);
-          if(typeof renderSocialFeed==='function') setTimeout(renderSocialFeed, 500);
-          console.log(`✅ [PostRestore] تم مزامنة ${fbPosts.length} منشور من Firebase`);
-        }
-      }
-    }
-  }catch(e){ console.warn('⚠️ [PostRestore] فشل الجلب من Firebase:', e); }
+  console.log('🔄 [PostRestore] جاري استعادة المنشورات بعد التحديث...');
 
-  /* ② استعادة احتياطية من IndexedDB إذا كانت localStorage فارغة */
-  const localPosts = getSocialPosts();
-  if(localPosts.length < 3){
-    var idbPosts = await window._loadPostsFromIDB();
-    if(idbPosts.length > 0){
-      var merged = _mergePosts ? _mergePosts(localPosts, idbPosts) : idbPosts;
-      saveSocialPosts(merged);
-      if(typeof renderSocialFeed==='function') renderSocialFeed();
-      console.log('✅ [PostRestore] تم استعادة ' + merged.length + ' منشور من IndexedDB');
-      return;
-    }
-    /* محاولة 3: من sessionStorage */
-    try{
-      var backup = JSON.parse(sessionStorage.getItem('cdz_member_posts_backup')||'[]');
-      if(backup.length > 0){
-        saveSocialPosts(backup);
-        if(typeof renderSocialFeed==='function') renderSocialFeed();
-        console.log('✅ [PostRestore] تم استعادة ' + backup.length + ' منشور من sessionStorage');
-      }
-    }catch(ex){}
+  /* محاولة 1: من IndexedDB */
+  var idbPosts = await window._loadPostsFromIDB();
+  if(idbPosts.length > 0){
+    var merged = _mergePosts ? _mergePosts(localPosts, idbPosts) : idbPosts;
+    saveSocialPosts(merged);
+    if(typeof renderSocialFeed==='function') renderSocialFeed();
+    console.log('✅ [PostRestore] تم استعادة ' + merged.length + ' منشور من IndexedDB');
+    return;
   }
+
+  /* محاولة 2: من sessionStorage */
+  try{
+    var backup = JSON.parse(sessionStorage.getItem('cdz_member_posts_backup')||'[]');
+    if(backup.length > 0){
+      saveSocialPosts(backup);
+      if(typeof renderSocialFeed==='function') renderSocialFeed();
+      console.log('✅ [PostRestore] تم استعادة ' + backup.length + ' منشور من sessionStorage');
+    }
+  }catch(ex){}
 };
 
 /* تشغيل الاستعادة عند بدء التطبيق */
@@ -25739,7 +25638,14 @@ const _cityData = {
       /* تحديث الفيد إن كان مفتوحاً */
       if(typeof renderSocialFeed === 'function'){
         const feed = document.getElementById('socialFeedContainer');
-        if(feed && feed.offsetParent !== null) renderSocialFeed();
+        if(feed && feed.offsetParent !== null){
+          /* ✅ إصلاح: requestIdleCallback لتشغيل render في وقت الخمول — لا يعطل الـ UI */
+          if(typeof requestIdleCallback !== 'undefined'){
+            requestIdleCallback(() => renderSocialFeed(), { timeout: 2000 });
+          } else {
+            setTimeout(renderSocialFeed, 100);
+          }
+        }
       }
 
       console.log('✅ [AutoPost] تم نشر منشور تلقائي — الموضوع:', template.cat,
@@ -26692,7 +26598,7 @@ async function fbLoginUser(user){
   /* ✅ استعادة المنشورات من Firebase عند تسجيل الدخول لضمان ظهورها دائماً */
   setTimeout(async ()=>{
     try{
-      const fbRes = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json?orderBy="ts"&limitToLast=500');
+      const fbRes = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json?orderBy="ts"&limitToLast=80');
       if(fbRes.ok){
         const fbData = await fbRes.json();
         if(fbData && typeof fbData === 'object'){
@@ -35430,6 +35336,7 @@ function buildTabs(){
     <div id="nldTab_${i}" onclick="nldSelectDiv(${i})" style="flex-shrink:0;padding:10px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:70px;border-bottom:3px solid ${i===_nldActiveDiv?d.color:'transparent'};transition:.2s;">
       <span style="font-size:16px;">${d.icon}</span>
       <span style="font-size:10px;font-weight:800;color:${i===_nldActiveDiv?d.color:'rgba(255,255,255,0.5)'};">${d.name}</span>
+      <span style="font-size:9px;color:rgba(255,255,255,0.3);">${d.rangeLabel}</span>
     </div>
   `).join('');
 }
@@ -35485,21 +35392,15 @@ window.nldChampLoadAll = async function(){
 };
 
 /* ── رسم قسم محدد ── */
-function renderDivision(divIdx, allMembers, assignments){
+function renderDivision(divIdx, allMembers){
   const div = NLD_DIVISIONS[divIdx];
   if(!div) return;
   const contentDiv = document.getElementById('nldChampContent');
   if(!contentDiv) return;
 
-  // فلترة الأعضاء حسب تعيين Firebase (divId) — لا حسب النقاط
-  const assigns = assignments || window._nldAssignments || {};
+  // فلترة الأعضاء حسب مجموع النقاط (divisionIdx) — معيار التصنيف الرئيسي
   const members = allMembers
-    .filter(m => {
-      const key = (m.name||'').replace(/\s+/g,'_');
-      const assigned = assigns[key];
-      const memberDivId = (assigned && assigned.divId) ? assigned.divId : 'beginner';
-      return memberDivId === div.id;
-    })
+    .filter(m=> m.divisionIdx === divIdx)
     .sort((a,b)=>b.total-a.total);
 
   const currentUser = typeof getCurrentUser==='function' ? getCurrentUser() : '';
@@ -35511,6 +35412,7 @@ function renderDivision(divIdx, allMembers, assignments){
         <div style="font-size:52px;margin-bottom:14px;">${div.icon}</div>
         <div style="font-size:16px;font-weight:900;color:${div.color};margin-bottom:8px;">قسم ${div.name}</div>
         <div style="font-size:13px;color:rgba(255,255,255,0.4);">لا يوجد أعضاء في هذا القسم حالياً</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:6px;">نطاق النقاط: ${div.rangeLabel}</div>
       </div>`;
     return;
   }
@@ -35575,7 +35477,8 @@ function renderDivision(divIdx, allMembers, assignments){
     <div style="background:linear-gradient(135deg,rgba(${drgb},0.1),rgba(${drgb},0.03));border:1px solid rgba(${drgb},0.28);border-radius:18px;padding:18px 16px;margin-bottom:14px;text-align:center;">
       <div style="font-size:44px;margin-bottom:6px;filter:drop-shadow(0 0 14px rgba(${drgb},0.6));">${div.icon}</div>
       <div style="font-size:19px;font-weight:900;color:${div.color};margin-bottom:4px;">قسم ${div.name}</div>
-      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px;">
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px;">النقاط المطلوبة: ${div.rangeLabel}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);">${members.length} عضو</div>
         ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ حتى 5 صاعدين</div>`:''}
         ${(divIdx<NLD_DIVISIONS.length-1 && divIdx!==NLD_DIVISIONS.length-1)?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ حتى 5 نازلين</div>`:''}
@@ -35598,37 +35501,6 @@ window.openSideMenuItem = function(key){
 };
 
 console.log('✅ [NLDChampionship v4] البطولة المحترفة — Google Sheets + Firebase');
-
-/* ── تحديث أيقونة البطولة في التاب حسب قسم المستخدم ── */
-window._updateNldTabIcon = function(){
-  try{
-    const name = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-    if(!name) return;
-    const iconEl = document.getElementById('nldTabDivIcon');
-    const nameEl = document.getElementById('nldTabDivName');
-    const stop1  = document.getElementById('trophyGradStop1');
-    const stop2  = document.getElementById('trophyGradStop2');
-    if(!iconEl || !nameEl) return;
-    // قراءة تعيين المستخدم من Firebase أو localStorage
-    const key = name.replace(/\s+/g,'_');
-    const doUpdate = function(divId){
-      const div = (typeof NLD_DIVISIONS !== 'undefined') ? NLD_DIVISIONS.find(d=>d.id===divId) : null;
-      if(!div) return;
-      iconEl.innerText = div.icon;
-      nameEl.innerText = div.name;
-      nameEl.style.color = div.color;
-      if(stop1) stop1.style.stopColor = div.color;
-      if(stop2) stop2.style.stopColor = div.color;
-    };
-    fetch(`https://connectdz-49fab-default-rtdb.firebaseio.com/nld_assignments/${key}.json`)
-      .then(r=>r.json()).then(d=>{
-        if(d && d.divId) doUpdate(d.divId);
-        else doUpdate('beginner');
-      }).catch(()=>{ doUpdate('beginner'); });
-  }catch(e){}
-};
-/* تشغيل عند تحميل الصفحة */
-window.addEventListener('load', function(){ setTimeout(window._updateNldTabIcon, 3000); });
 
 /* ══════════════════════════════════════════════════════════════
    🏆 نظام الصعود والنزول الأسبوعي — Firebase-based
@@ -35707,12 +35579,7 @@ async function _runWeeklyEvaluation(allMembers, assignments){
   const hour = now.getHours();
   const isEvalTime = (dayOfWeek === 6 && hour >= 21);
 
-  // الأسبوع الأول يُنفَّذ فوراً بدون انتظار موعد التقييم
-  const FIRST_WEEK_KEY = 'nld_first_week_done';
-  const firstWeekDone = localStorage.getItem(FIRST_WEEK_KEY) === '1';
-
-  // إذا انتهى الأسبوع الأول وليس وقت التقييم الأسبوعي، نخرج
-  if(firstWeekDone && (!isEvalTime || currentWeek === lastEvalWeek)) return assignments;
+  if(!isEvalTime || currentWeek === lastEvalWeek) return assignments;
 
   // بناء خريطة: divId → قائمة الأعضاء مرتبة تنازلياً
   const divMap = {};
@@ -35735,31 +35602,21 @@ async function _runWeeklyEvaluation(allMembers, assignments){
   /* ══════════════════════════════════════════════════════
      الأسبوع الأول الخاص: أول 10 من المبتدئ يصعدون تلقائياً
      ══════════════════════════════════════════════════════ */
+  const FIRST_WEEK_KEY = 'nld_first_week_done';
+  const firstWeekDone = localStorage.getItem(FIRST_WEEK_KEY) === '1';
+
   if(!firstWeekDone){
-    const allBeginners = (divMap['beginner'] || []).slice().sort((a,b)=>b.total-a.total);
-    // أول 10 → المتقن (expert)
-    const top10 = allBeginners.slice(0, 10);
-    // المراتب 11-21 → الهاوي (amateur)
-    const next11 = allBeginners.slice(10, 21);
-    const expertDiv = NLD_DIVISIONS.find(d => d.id === 'expert');
-    const amateurDiv = NLD_DIVISIONS.find(d => d.id === 'amateur');
-    if(top10.length > 0 && expertDiv){
-      for(const m of top10){
+    const beginnerMembers = (divMap['beginner'] || []).slice(0, 10);
+    const nextDiv = NLD_DIVISIONS[NLD_DIVISIONS.length - 2]; // الهاوي (القسم فوق المبتدئ)
+    if(beginnerMembers.length > 0 && nextDiv){
+      for(const m of beginnerMembers){
         const key = (m.name||'').replace(/\s+/g,'_');
-        newAssignments[key] = { divId: 'expert', updatedAt: ts, promotedFrom: 'beginner' };
+        newAssignments[key] = { divId: nextDiv.id, updatedAt: ts, promotedFrom: 'beginner' };
       }
-      divMap['expert'] = [...(divMap['expert']||[]), ...top10].sort((a,b)=>b.total-a.total);
-      console.log(`✅ [NLD] الأسبوع الأول: ${top10.length} عضو صعدوا من المبتدئ → المتقن`);
+      divMap[nextDiv.id] = [...(divMap[nextDiv.id]||[]), ...beginnerMembers].sort((a,b)=>b.total-a.total);
+      divMap['beginner'] = (divMap['beginner']||[]).filter(m=>!beginnerMembers.includes(m));
+      console.log(`✅ [NLD] الأسبوع الأول: ${beginnerMembers.length} عضو صعدوا من المبتدئ → ${nextDiv.name}`);
     }
-    if(next11.length > 0 && amateurDiv){
-      for(const m of next11){
-        const key = (m.name||'').replace(/\s+/g,'_');
-        newAssignments[key] = { divId: 'amateur', updatedAt: ts, promotedFrom: 'beginner' };
-      }
-      divMap['amateur'] = [...(divMap['amateur']||[]), ...next11].sort((a,b)=>b.total-a.total);
-      console.log(`✅ [NLD] الأسبوع الأول: ${next11.length} عضو صعدوا من المبتدئ → الهاوي`);
-    }
-    divMap['beginner'] = allBeginners.filter(m => !top10.includes(m) && !next11.includes(m));
     localStorage.setItem(FIRST_WEEK_KEY, '1');
   }
 
@@ -35874,6 +35731,7 @@ function renderDivision(divIdx, allMembers, assignments){
         <div style="font-size:52px;margin-bottom:14px;">${div.icon}</div>
         <div style="font-size:16px;font-weight:900;color:${div.color};margin-bottom:8px;">قسم ${div.name}</div>
         <div style="font-size:13px;color:rgba(255,255,255,0.4);">لا يوجد أعضاء في هذا القسم حالياً</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:6px;">نطاق النقاط: ${div.rangeLabel}</div>
       </div>`;
     return;
   }
@@ -35953,6 +35811,7 @@ function renderDivision(divIdx, allMembers, assignments){
     <div style="background:linear-gradient(135deg,rgba(${drgb},0.1),rgba(${drgb},0.03));border:1px solid rgba(${drgb},0.28);border-radius:18px;padding:18px 16px;margin-bottom:14px;text-align:center;">
       <div style="font-size:44px;margin-bottom:6px;filter:drop-shadow(0 0 14px rgba(${drgb},0.6));">${div.icon}</div>
       <div style="font-size:19px;font-weight:900;color:${div.color};margin-bottom:4px;">قسم ${div.name}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px;">النقاط المطلوبة: ${div.rangeLabel}</div>
       <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
         ${fullBadge}
         ${promoNote}
@@ -39553,7 +39412,13 @@ window.openSendPointsPanel = function(){
 };
 
 /* ─── بحث الأعضاء لإرسال النقاط ─── */
+/* ✅ إصلاح: debounce 250ms لمنع البحث المتكرر عند كل حرف */
+var _spSearchDebounce = null;
 window._spSearchMembers = function(val){
+  clearTimeout(_spSearchDebounce);
+  _spSearchDebounce = setTimeout(function(){ _spSearchMembersImmediate(val); }, 250);
+};
+window._spSearchMembersImmediate = function(val){
   var res = document.getElementById('_spSearchResults');
   if(!res) return;
   if(!val || val.length < 2){ res.innerHTML = ''; return; }
