@@ -253,35 +253,18 @@ document.addEventListener('touchend', function(e){
       document.head.appendChild(st);
     }
 
-    /* ✅ تنفيذ التحديث الفعلي — جلب من Firebase + تحديث كل البيانات */
+    /* تنفيذ التحديث الفعلي */
     setTimeout(function(){
       try{
-        /* جلب المنشورات مباشرة من Firebase */
-        try{
-          var _PTR_FB_URL = 'https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json?orderBy="ts"&limitToLast=2000&_='+Date.now();
-          fetch(_PTR_FB_URL, {cache:'no-store'})
-            .then(function(r){ return r.json(); })
-            .then(function(data){
-              if(data && typeof data==='object'){
-                var fbPosts = Object.values(data).filter(function(p){ return p&&p.id&&p.author&&!p._archived; });
-                if(typeof _mergePosts==='function' && typeof getSocialPosts==='function' && typeof saveSocialPosts==='function'){
-                  var merged = _mergePosts(getSocialPosts(), fbPosts);
-                  saveSocialPosts(merged);
-                }
-              }
-              if(typeof renderSocialFeed==='function') renderSocialFeed();
-            }).catch(function(){ if(typeof renderSocialFeed==='function') renderSocialFeed(); });
-        }catch(e2){
-          if(typeof renderSocialFeed==='function') renderSocialFeed();
-          else if(typeof loadSocialFeed==='function') loadSocialFeed();
-        }
-        /* تحديث الإشعارات */
+        /* تحديث Feed الرئيسي */
+        if(typeof loadSocialFeed==='function') loadSocialFeed();
+        else if(typeof renderFeed==='function') renderFeed();
+        else if(typeof loadPosts==='function') loadPosts();
+        /* تحديث إشعارات */
         if(typeof loadNotifications==='function') loadNotifications();
         /* تحديث بيانات المستخدم */
         if(typeof refreshUserData==='function') refreshUserData();
-        /* تحديث لوحة الترتيب */
-        if(typeof renderLeaderboard==='function') renderLeaderboard();
-        if(typeof showToast==='function') showToast('✅ تم تحديث البيانات من السيرفر');
+        if(typeof showToast==='function') showToast('✅ تم تحديث البيانات');
       }catch(ex){}
       /* إخفاء المؤشر */
       ind.style.height = '0px';
@@ -4457,7 +4440,7 @@ function switchLoginTab(tab){
         <!-- زر نشر منشور - للمدير فقط -->
         <div class="notif-btn" id="adminPostBtn" onclick="openAdminCommandPanel()" title="نشر منشور" style="display:none;position:relative;background:linear-gradient(135deg,rgba(0,229,160,0.2),rgba(0,153,255,0.15));border-color:rgba(0,229,160,0.4);font-size:18px;">📣</div>
         <!-- زر الإدارة في الأعلى - للأدمن فقط -->
-        <div class="notif-btn" id="adminNavBtn" onclick="if(typeof openAdminFullPage==='function') openAdminFullPage(); else showModal('adminModal');" title="لوحة الإدارة" style="display:none;position:relative;background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(245,158,11,0.2));border-color:rgba(220,38,38,0.4);font-size:18px;">⚙️</div>
+        <div class="notif-btn" id="adminNavBtn" onclick="showModal('adminModal')" title="لوحة الإدارة" style="display:none;position:relative;background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(245,158,11,0.2));border-color:rgba(220,38,38,0.4);font-size:18px;">⚙️</div>
         <!-- زر مجموع نقاط الأعضاء - للمدير فقط -->
         <div class="notif-btn" id="adminAllPtsBtn" onclick="openAdminTotalPtsPanel()" title="مجموع نقاط كل عضو" style="display:none;position:relative;background:linear-gradient(135deg,rgba(0,229,255,0.2),rgba(99,102,241,0.2));border-color:rgba(0,229,255,0.5);font-size:18px;">📊</div>
         <button class="logout-btn" onclick="goBackToSocialHome()" title="رجوع للصفحة الرئيسية" style="gap:5px;">
@@ -5595,10 +5578,10 @@ function switchLoginTab(tab){
 
       <div style="height:1px;background:#E4E6EB;margin:4px 16px;"></div>
 
-      <!-- إضافة حساب — يفتح لوحة تبديل الحسابات -->
-      <div onclick="closeSocialSideMenu();setTimeout(function(){ if(typeof window.openMultiAccPanel==='function') window.openMultiAccPanel(); else if(typeof doLogout==='function') doLogout(); },200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <!-- إضافة حساب — يفتح واجهة تسجيل الدخول -->
+      <div onclick="closeSocialSideMenu();setTimeout(()=>{ doLogout(); },200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#00c853,#007a33);display:flex;align-items:center;justify-content:center;font-size:18px;">➕</div>
-        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">إضافة / تبديل حساب</div><div style="font-size:11px;color:#65676B;">تبديل بين الحسابات المحفوظة</div></div>
+        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">إضافة حساب</div><div style="font-size:11px;color:#65676B;">العودة لواجهة تسجيل الدخول</div></div>
         <span style="color:#BCC0C4;font-size:16px;">›</span>
       </div>
 
@@ -6557,10 +6540,10 @@ function switchLoginTab(tab){
           <div id="mpvHeaderBalance" style="font-size:14px;font-weight:900;color:#a5b4fc;font-family:'Tajawal',sans-serif;">--</div>
           <div style="font-size:8px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">جواهر</div>
         </div>
-        <!-- حول / تعديل —يتغير بحسب هوية الزائر -->
-        <div id="mpvAboutOrEditBtn" onclick="_mpvAboutOrEdit()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.22);border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;transition:.18s;" onmouseover="this.style.filter='brightness(1.2)'" onmouseout="this.style.filter='none'">
-          <div id="mpvAboutOrEditIcon" style="font-size:20px;margin-bottom:3px;">ℹ️</div>
-          <div id="mpvAboutOrEditLabel" style="font-size:14px;font-weight:900;color:#f87171;font-family:'Tajawal',sans-serif;">حول</div>
+        <!-- حول -->
+        <div onclick="openMpvAboutSheet()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.22);border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;transition:.18s;" onmouseover="this.style.filter='brightness(1.2)'" onmouseout="this.style.filter='none'">
+          <div style="font-size:20px;margin-bottom:3px;">ℹ️</div>
+          <div style="font-size:14px;font-weight:900;color:#f87171;font-family:'Tajawal',sans-serif;">حول</div>
           <div style="font-size:8px;color:rgba(255,255,255,0.4);font-family:'Tajawal',sans-serif;">معلومات</div>
         </div>
       </div>
@@ -7187,7 +7170,7 @@ function switchLoginTab(tab){
 </div>
 
 <!-- زر تبديل لوحة الإدارة (يظهر فقط للمدير) -->
-<div class="admin-toggle-btn" id="adminToggleBtn" onclick="if(typeof openAdminFullPage==='function') openAdminFullPage(); else showModal('adminModal');" title="لوحة الإدارة">⚙️</div>
+<div class="admin-toggle-btn" id="adminToggleBtn" onclick="showModal('adminModal')" title="لوحة الإدارة">⚙️</div>
 
 <!-- ══════════════════════════════════════════════════════
      💻 نافذة برمجة التطبيق — إرسال رسائل للمنخرطين
@@ -8723,11 +8706,6 @@ function showModal(id){
   if(id==='rankingCard') loadRanking();
   if(id==='quizCard')    loadQuiz();
   if(id==='adminModal'){
-    /* ✅ توجيه مباشر للوحة الكاملة بدلاً من اللوحة القديمة */
-    if(typeof openAdminControlPanel==='function'){
-      setTimeout(function(){ openAdminControlPanel(); }, 50);
-      return; /* لا تفتح adminModal القديمة */
-    }
     loadAdminStats();
     adminRenderSentLog();
     adminLoadMembersSelect();
@@ -9507,40 +9485,6 @@ function openNLDInfoModal(){
   document.body.appendChild(overlay);
 }
 
-/* ✅ زر حول/تعديل — يتغير حسب هوية المشاهد */
-function _mpvAboutOrEdit(){
-  var viewer = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-  var viewed = window._mpvCurrentUser || '';
-  if(viewer && viewer === viewed){
-    /* ملفي الشخصي — أفتح التعديل */
-    if(typeof openEditProfileOverlay==='function') openEditProfileOverlay();
-    else if(typeof showProfileEditMenu==='function') showProfileEditMenu();
-    else if(typeof _openEditInfoModal==='function') _openEditInfoModal();
-  } else {
-    openMpvAboutSheet();
-  }
-}
-
-/* تحديث أيقونة الزر عند فتح ملف شخصي */
-function _updateMpvAboutOrEditBtn(memberName){
-  var viewer = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-  var icon = document.getElementById('mpvAboutOrEditIcon');
-  var label = document.getElementById('mpvAboutOrEditLabel');
-  var btn = document.getElementById('mpvAboutOrEditBtn');
-  if(!icon || !label) return;
-  if(viewer && viewer === memberName){
-    icon.textContent = '✏️';
-    label.textContent = 'تعديل';
-    label.style.color = '#34d399';
-    if(btn){ btn.style.background='rgba(0,200,83,0.1)'; btn.style.border='1px solid rgba(0,200,83,0.22)'; }
-  } else {
-    icon.textContent = 'ℹ️';
-    label.textContent = 'حول';
-    label.style.color = '#f87171';
-    if(btn){ btn.style.background='rgba(239,68,68,0.1)'; btn.style.border='1px solid rgba(239,68,68,0.22)'; }
-  }
-}
-
 function openMpvAboutSheet(){
   var name = window._mpvCurrentUser || '';
   if(!name) return;
@@ -10075,7 +10019,7 @@ const SMARTKIDS_MEMBER_NAME = 'يحيى ديش';
 /* 🔒 نظام كلمة مرور المدير */
 /* ← غيّر هذه القيمة لكلمة مرورك السرية */
 /* 🔒 هاش SHA-256 لكلمة المرور — لا أحد يستطيع قراءة كلمة المرور الأصلية من هنا */
-const ADMIN_PASS_HASH = 'd5228ad663312d59ecde69b7d3c09a4083c46e626e4726ae609bf8f0cc69d9b6';
+const ADMIN_PASS_HASH = '71fee97039e7f150f9b4e761b151c10361fdd4e6c2ca71cb6a41fd668fb153ee';
 
 async function _hashPass(pass){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
@@ -17191,7 +17135,8 @@ function saveSocialPosts(arr){
     if(typeof showToast==='function') showToast('🧹 تم تنظيف المنشورات التلقائية القديمة — منشورات الأعضاء محفوظة ✅');
   } catch(e2) {
     try {
-      localStorage.setItem(_socialPostsKey, JSON.stringify(memberPosts.slice(0, 50)));
+      /* ✅ حفظ كل منشورات الأعضاء — لا حد لعدد المنشورات */
+      localStorage.setItem(_socialPostsKey, JSON.stringify(memberPosts));
       console.warn('تم الاحتفاظ بمنشورات الأعضاء فقط بسبب امتلاء الذاكرة');
     } catch(e3) {
       console.error('فشل الحفظ — بيانات محفوظة في IndexedDB و Firebase');
@@ -17481,7 +17426,8 @@ const _FB_POSTS_URL = 'https://connectdz-49fab-default-rtdb.firebaseio.com/socia
 async function _fetchFirebasePosts(){
   try{
     /* ✅ رفع الحد إلى 2000 لضمان جلب كل منشورات الأعضاء منذ بداية التطبيق */
-    const res = await fetch(_FB_POSTS_URL + '?orderBy="ts"&limitToLast=2000');
+    /* ✅ جلب كل المنشورات بدون حد — ضمان عدم فقدان أي منشور قديم */
+    const res = await fetch(_FB_POSTS_URL + '?orderBy="ts"&limitToLast=5000');
     if(!res.ok) return [];
     const data = await res.json();
     if(!data || typeof data !== 'object') return [];
@@ -17598,16 +17544,120 @@ function _timeAgo(tsOrDateStr){
   return 'منذ ' + years + (years===1?' سنة':' سنوات');
 }
 
+/* ══════════════════════════════════════════════════════
+   📰 نظام الفيد الاجتماعي المتطور — Pagination v2
+   • 200 منشور في الصفحة الأولى (الأصدقاء + عام)
+   • "رؤية المزيد" عند الوصول لآخر منشور
+   • المنشورات القديمة دائمة — لا تُحذف أبداً
+   • المنشور الجديد (<30 دقيقة) يظهر أولاً دائماً
+   • بعد 30 دقيقة: الأكثر تعليقاً أولاً
+   ══════════════════════════════════════════════════════ */
+
+const _FEED_PAGE_SIZE  = 200;  // عدد المنشورات في كل صفحة
+let   _feedCurrentPage = 0;    // الصفحة الحالية (0 = الأولى)
+let   _feedAllSorted   = [];   // كل المنشورات المرتبة
+let   _feedIsLoading   = false;
+
+/* ── ترتيب المنشورات: جديد (<30 د) أولاً، ثم الأكثر تعليقاً ── */
+function _postScore(p, now){
+  const HALF_HOUR = 30 * 60 * 1000;
+  const age = now - (p.ts||0);
+  if(age < HALF_HOUR) return Number.MAX_SAFE_INTEGER - (p.ts||0);
+  const comments = (p.comments||[]).length;
+  const likes    = Object.values(p.reactions||{}).reduce((s,arr)=>s+(arr.length||0),0);
+  const views    = p.views || 0;
+  return comments * 10 + likes * 3 + views;
+}
+
+/* ── فلترة المنشورات حسب الخصوصية ── */
+function _filterPosts(allPostsRaw, myName){
+  return allPostsRaw.filter(p => {
+    if(!p || !p.id) return false;
+    if(p.groupId || p.pageId || p.isGroupPost || p.isPagePost) return false;
+    if(p.isActivityAd || p.isAutoPost || p.isAd || p.isWorkshop || p.isPageAd) return false;
+    const priv = p.privacy || '🌐 عام';
+    if(priv.includes('أنت فقط')) return myName && p.author === myName;
+    if(priv.includes('الأصدقاء')){
+      const myFriends = myName ? getFriends(myName) : [];
+      return myName && (p.author === myName || myFriends.includes(p.author));
+    }
+    return true;
+  });
+}
+
+/* ── عرض المنشورات التدريجية (append) ── */
+function _appendFeedPage(){
+  const container = document.getElementById('socialFeedContainer');
+  if(!container) return;
+
+  // إزالة زر "رؤية المزيد" القديم
+  const oldBtn = document.getElementById('feedLoadMoreBtn');
+  if(oldBtn) oldBtn.remove();
+
+  const start = _feedCurrentPage * _FEED_PAGE_SIZE;
+  const end   = start + _FEED_PAGE_SIZE;
+  const page  = _feedAllSorted.slice(start, end);
+
+  if(page.length === 0) return;
+
+  // إضافة المنشورات
+  const frag = document.createDocumentFragment();
+  page.forEach(p => {
+    const div = document.createElement('div');
+    div.innerHTML = renderSocialPostCard(p);
+    while(div.firstChild) frag.appendChild(div.firstChild);
+  });
+  container.appendChild(frag);
+
+  _feedCurrentPage++;
+
+  // إضافة زر "رؤية المزيد" إن كان هناك المزيد
+  if(_feedCurrentPage * _FEED_PAGE_SIZE < _feedAllSorted.length){
+    const remaining = _feedAllSorted.length - _feedCurrentPage * _FEED_PAGE_SIZE;
+    const loadMoreDiv = document.createElement('div');
+    loadMoreDiv.id = 'feedLoadMoreBtn';
+    loadMoreDiv.style.cssText = 'text-align:center;padding:20px 16px;';
+    loadMoreDiv.innerHTML = `
+      <div onclick="window._loadMoreFeedPosts()" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1877F2,#0a5dc2);color:white;padding:12px 28px;border-radius:50px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(24,119,242,0.35);transition:.2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+        <span style="font-size:18px;">⬇️</span>
+        <span>رؤية المزيد (${remaining} منشور متبقٍ)</span>
+      </div>
+    `;
+    container.appendChild(loadMoreDiv);
+
+    // Intersection Observer لتحميل تلقائي عند الوصول للزر
+    if(window.IntersectionObserver){
+      const obs = new IntersectionObserver((entries)=>{
+        if(entries[0].isIntersecting){
+          obs.disconnect();
+          window._loadMoreFeedPosts();
+        }
+      }, { rootMargin:'200px' });
+      obs.observe(loadMoreDiv);
+    }
+  }
+
+  setTimeout(_restoreOpenComments, 50);
+}
+
+/* ── تحميل صفحة إضافية عند الطلب ── */
+window._loadMoreFeedPosts = function(){
+  if(_feedIsLoading) return;
+  _appendFeedPage();
+};
+
 async function renderSocialFeed(){
   const container = document.getElementById('socialFeedContainer');
   if(!container) return;
 
   const myName = getCurrentUser();
+  _feedCurrentPage = 0;
+  _feedAllSorted   = [];
 
-  /* ① عرض المحلية فوراً (تجربة سريعة) */
+  /* ① عرض المحلية فوراً */
   let localPosts = getSocialPosts();
 
-  /* ① مزامنة IndexedDB إن كانت المحلية فارغة أو قليلة */
+  /* مزامنة IndexedDB إن كانت المحلية فارغة */
   if(localPosts.length < 3 && typeof window._loadPostsFromIDB === 'function'){
     const idbPosts = await window._loadPostsFromIDB();
     if(idbPosts.length > localPosts.length){
@@ -17621,40 +17671,28 @@ async function renderSocialFeed(){
       <div style="font-size:14px;color:#65676B;font-weight:700;">جاري تحميل المنشورات...</div>
     </div>`;
   } else {
-    /* عرض المحلية فوراً مرتّبة — الأحدث أولاً */
-    const sorted = localPosts.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
-    container.innerHTML = sorted.map(p=>renderSocialPostCard(p)).join('');
+    /* عرض سريع للمحلية */
+    const now0 = Date.now();
+    const quick = _filterPosts(localPosts, myName).sort((a,b)=>_postScore(b,now0)-_postScore(a,now0));
+    _feedAllSorted = quick;
+    container.innerHTML = '';
+    _appendFeedPage();
   }
 
-  /* ② جلب Firebase — المصدر السحابي الحقيقي */
+  /* ② جلب Firebase */
   const fbPosts = await _fetchFirebasePosts();
 
-  /* ③ دمج: Firebase + محلية + IDB */
+  /* ③ دمج Firebase + محلي — المنشورات القديمة محمية دائماً */
   const allPostsRaw = _mergePosts(localPosts, fbPosts);
 
-  /* ④ حفظ النسخة المدمجة في كل الطبقات */
+  /* ④ حفظ دائم — لا حذف عند التحديث */
   saveSocialPosts(allPostsRaw);
 
   _startFbFeedPolling();
 
-  /* ⑤ فلترة: إظهار منشورات الأعضاء فقط — إخفاء الورشات والإعلانات التلقائية */
+  /* ⑤ فلترة وترتيب */
   const now = Date.now();
-  const posts = allPostsRaw.filter(p => {
-    /* إزالة منشورات المجموعات والصفحات من الفيد الرئيسي */
-    if(p.groupId || p.pageId || p.isGroupPost || p.isPagePost) return false;
-    /* إخفاء الإعلانات والمنشورات التلقائية للورشات والصفحات */
-    if(p.isActivityAd || p.isAutoPost || p.isAd || p.isWorkshop || p.isPageAd) return false;
-    const priv = p.privacy || '🌐 عام';
-    /* منشورات "أنت فقط" — تظهر لصاحبها فقط */
-    if(priv.includes('أنت فقط')) return myName && p.author === myName;
-    /* منشورات "الأصدقاء" — تظهر لصاحبها وأصدقائه */
-    if(priv.includes('الأصدقاء')){
-      const myFriends = myName ? getFriends(myName) : [];
-      return myName && (p.author === myName || myFriends.includes(p.author));
-    }
-    /* 🌐 عام أو أي خصوصية أخرى — تظهر لجميع المستخدمين دائماً */
-    return true;
-  });
+  const posts = _filterPosts(allPostsRaw, myName);
 
   if(posts.length === 0){
     container.innerHTML = `<div style="background:white;padding:32px 20px;text-align:center;margin-bottom:8px;border-radius:12px;">
@@ -17664,26 +17702,13 @@ async function renderSocialFeed(){
     return;
   }
 
-  /* ⑥ الترتيب الذكي:
-     - الجديد (أقل من 30 دقيقة) يظهر أولاً دائماً
-     - بعد 30 دقيقة: الأعلى مشاهدة ثم تعليقاً ثم إعجاباً
-  */
-  const THIRTY_MIN = 30 * 60 * 1000;
-  function _postScore(p){
-    const age = now - (p.ts||0);
-    if(age < THIRTY_MIN) return Number.MAX_SAFE_INTEGER - (p.ts||0); // الجديد جداً أولاً
-    const views = p.views || 0;
-    const comments = (p.comments||[]).length;
-    const likes = Object.values(p.reactions||{}).reduce((s,arr)=>s+(arr.length||0),0);
-    return views * 3 + comments * 2 + likes;
-  }
+  /* ⑥ الترتيب النهائي */
+  _feedAllSorted = posts.sort((a,b) => _postScore(b,now) - _postScore(a,now));
+  _feedCurrentPage = 0;
 
-  const sortedPosts = posts.slice().sort((a,b) => _postScore(b) - _postScore(a));
-
-  /* ⑦ عرض المنشورات المرتبة */
-  container.innerHTML = sortedPosts.map(p => renderSocialPostCard(p)).join('');
-  // استعادة التعليقات المفتوحة
-  setTimeout(_restoreOpenComments, 50);
+  /* ⑦ عرض أول صفحة (200 منشور) */
+  container.innerHTML = '';
+  _appendFeedPage();
 }
 
 function renderSocialPostCard(p){
@@ -19445,13 +19470,6 @@ let _mpvCurrentUser = null;
 /* viewMemberProfile الكاملة معرّفة لاحقاً (تشمل الأصدقاء + Firebase) */
 function viewMemberProfile(memberName){
   _mpvCurrentUser = memberName;
-  /* ✅ فتح ملف العضو مباشرة عند الضغط على الصورة */
-  if(typeof openFullMemberProfile === 'function'){
-    openFullMemberProfile(memberName);
-  } else {
-    const el = document.getElementById('memberProfileView');
-    if(el){ el.style.display='flex'; el.scrollTop=0; }
-  }
 }
 
 function updateMpvFriendBtn(memberName){
@@ -19550,48 +19568,14 @@ function openGroupView(groupId){
   showToast('📋 ميزة المجموعات قريباً...');
 }
 function createGroup(){
-  /* ✅ إنشاء مجموعة حقيقية مع Firebase */
-  var ov = document.createElement('div');
-  ov.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;';
-  ov.innerHTML = `<div style="background:white;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:24px 20px 36px;font-family:'Tajawal',sans-serif;">
-    <div style="width:40px;height:4px;background:#E4E6EB;border-radius:2px;margin:0 auto 20px;"></div>
-    <div style="font-size:18px;font-weight:900;color:#050505;margin-bottom:16px;text-align:center;">➕ إنشاء مجموعة جديدة</div>
-    <input id="_newGrpName" placeholder="اسم المجموعة..." style="width:100%;padding:12px 16px;border:1.5px solid #E4E6EB;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;box-sizing:border-box;outline:none;margin-bottom:10px;text-align:right;" oninput="this.style.borderColor='#00c853'">
-    <input id="_newGrpDesc" placeholder="وصف المجموعة (اختياري)..." style="width:100%;padding:12px 16px;border:1.5px solid #E4E6EB;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:13px;box-sizing:border-box;outline:none;margin-bottom:16px;text-align:right;">
-    <div style="display:flex;gap:10px;">
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;padding:13px;background:#F0F2F5;border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;color:#65676B;cursor:pointer;">إلغاء</button>
-      <button onclick="_submitCreateGroup()" style="flex:1;padding:13px;background:linear-gradient(135deg,#00c853,#007a33);border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:900;color:white;cursor:pointer;">إنشاء ✅</button>
-    </div>
-  </div>`;
-  document.body.appendChild(ov);
-  setTimeout(()=>{ var inp=document.getElementById('_newGrpName'); if(inp) inp.focus(); }, 200);
+  const name = prompt('اسم المجموعة الجديدة:');
+  if(!name) return;
+  const groups = getGroups();
+  groups.push({ id:'g'+Date.now(), name, desc:'مجموعة جديدة', members:[], icon:'👥', cover:'linear-gradient(135deg,#667eea,#764ba2)' });
+  localStorage.setItem(_groupsKey, JSON.stringify(groups));
+  renderGroupsPanel();
+  showToast('تم إنشاء المجموعة ✅');
 }
-
-window._submitCreateGroup = function(){
-  var name = (document.getElementById('_newGrpName')||{}).value||'';
-  var desc = (document.getElementById('_newGrpDesc')||{}).value||'مجموعة جديدة';
-  name = name.trim();
-  if(!name){ showToast('⚠️ أدخل اسم المجموعة'); return; }
-  var creator = typeof getCurrentUser==='function' ? getCurrentUser() : 'عضو';
-  var gid = 'g'+Date.now();
-  var groupData = { id:gid, name, desc, members:[creator], icon:'👥', cover:'linear-gradient(135deg,#667eea,#764ba2)', createdAt:Date.now(), createdBy:creator };
-  /* حفظ محلي */
-  var groups = typeof getGroups==='function' ? getGroups() : [];
-  groups.push(groupData);
-  localStorage.setItem(typeof _groupsKey!=='undefined'?_groupsKey:'cdz_groups', JSON.stringify(groups));
-  /* حفظ Firebase */
-  var db = window.firebaseDb || (window.firebase&&window.firebase.database&&window.firebase.database());
-  if(db){
-    db.ref('groups/'+gid).set(groupData).then(function(){
-      showToast('✅ تم إنشاء المجموعة وحفظها في السيرفر');
-    }).catch(function(){ showToast('✅ تم إنشاء المجموعة محلياً'); });
-  } else {
-    showToast('✅ تم إنشاء المجموعة');
-  }
-  /* إغلاق النافذة وتحديث القائمة */
-  document.querySelectorAll('[style*="fixed"][style*="rgba(0,0,0,0.6)"]').forEach(function(el){ el.remove(); });
-  if(typeof renderGroupsPanel==='function') renderGroupsPanel();
-};
 
 /* ══════════════════════════════════════════
    📄 الصفحات — الصفحة الرسمية فقط
@@ -20138,7 +20122,6 @@ function viewMemberProfile(memberName){
   _renderMpvExtendedInfo(memberName, isFriend || isMe);
 
   updateMpvFriendBtn(memberName);
-  _updateMpvAboutOrEditBtn(memberName);
   renderMpvPosts(memberName, true);
 
   // ✅ جلب الإحصائيات الحقيقية من Firebase وتحديث الواجهة
@@ -20158,13 +20141,13 @@ function viewMemberProfile(memberName){
       try{ friends = JSON.parse(localStorage.getItem('nld_friends_'+normN)||'[]'); }catch(ex){}
       if(friendsEl) friendsEl.innerText = friends.length;
 
-      // ✅ جلب الجواهر من rankingUrl مع بحث محسّن
+      // جلب الجواهر من rankingUrl
       if(typeof rankingUrl !== 'undefined' && rankingUrl){
         var txt = await fetch(rankingUrl+'&_='+Date.now(), {cache:'no-store'}).then(function(r){ return r.text(); }).catch(function(){ return ''; });
         if(!txt){ if(gemsEl) gemsEl.innerText = '—'; return; }
-        function _normName(s){ return (s||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase(); }
-        function _csvSplit(line){
-          var res=[],cur='',q=false;
+        var norm = function(s){ return s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase(); };
+        function csvLine(line){
+          var res=[]; var cur=''; var q=false;
           for(var i=0;i<=line.length;i++){
             var ch=line[i];
             if(ch==='"'){q=!q;}
@@ -20173,27 +20156,18 @@ function viewMemberProfile(memberName){
           }
           return res;
         }
-        var _targetNorm = _normName(memberName);
         var rows = txt.split('\n').slice(1).filter(function(r){ return r.trim(); });
         var gems = 0;
         for(var i=0;i<rows.length;i++){
-          var cols = _csvSplit(rows[i]);
-          var found = false;
-          // بحث في كل الأعمدة
+          var cols = csvLine(rows[i]);
+          // ابحث عن الاسم في أي عمود
           for(var j=0;j<cols.length;j++){
-            var cellNorm = _normName(cols[j]);
-            // مطابقة كاملة أو جزئية (اسم مضمّن)
-            if(cellNorm === _targetNorm || (cellNorm.length>2 && _targetNorm.indexOf(cellNorm)!==-1) || (cellNorm.length>2 && cellNorm.indexOf(_targetNorm)!==-1)){
-              // استخراج أكبر رقم في الصف
-              var maxPts = 0;
-              for(var k=0;k<cols.length;k++){
-                var num = parseInt((cols[k]||'').replace(/[^\d]/g,''))||0;
-                if(num > maxPts) maxPts = num;
-              }
-              if(maxPts > 0){ gems = maxPts; found = true; break; }
+            if(norm(cols[j])===norm(memberName)){
+              gems = parseInt((cols[cols.length-1]||'').replace(/[^\d]/g,''))||0;
+              break;
             }
           }
-          if(found) break;
+          if(gems) break;
         }
         if(gemsEl) gemsEl.innerText = gems ? gems.toLocaleString() : '0';
       } else {
@@ -24553,7 +24527,6 @@ function _fbErrorHTML(msg){
   }
 
   const db       = firebase.database();
-  window.firebaseDb = db; /* ✅ تعريض db للمحادثة الجماعية وسائر الوحدات */
   const DB_URL   = "https://connectdz-49fab-default-rtdb.firebaseio.com";
   const VAPID_KEY = 'BNBfJEdK6BYmpL-ZzB27HFKxw_-L-hyswuZjWc8ZUzmcSKO7pcpcDtTZrJsxjRlacxfccXebJW2j_snAsgsvIU4';
 
@@ -35276,12 +35249,21 @@ function getMemberLevel(totalPts){
 }
 
 /* ── تحديد القسم بناءً على مجموع النقاط مباشرةً ── */
+/* ── تحديد القسم بناءً على الترتيب العام (لا النقاط):
+   المراكز 1–10  → المتقن  | المراكز 11–21 → الهاوي | الباقون → المبتدئ ── */
+function getMemberDivisionByRank(rankIndex){
+  // rankIndex يبدأ من 0 (الأول = 0)
+  const expertIdx   = NLD_DIVISIONS.findIndex(d => d.id === 'expert');
+  const amateurIdx  = NLD_DIVISIONS.findIndex(d => d.id === 'amateur');
+  const beginnerIdx = NLD_DIVISIONS.findIndex(d => d.id === 'beginner');
+  if(rankIndex < 10)  return expertIdx  >= 0 ? expertIdx  : NLD_DIVISIONS.length - 1;
+  if(rankIndex < 21)  return amateurIdx >= 0 ? amateurIdx : NLD_DIVISIONS.length - 1;
+  return beginnerIdx >= 0 ? beginnerIdx : NLD_DIVISIONS.length - 1;
+}
+/* دالة توافقية — غير مستخدمة في التصنيف الرئيسي (يعتمد الترتيب الآن) */
 function getMemberDivisionIdx(totalPts){
-  for(let i=0; i<NLD_DIVISIONS.length; i++){
-    const d = NLD_DIVISIONS[i];
-    if(totalPts >= d.minPts && totalPts <= d.maxPts) return i;
-  }
-  return NLD_DIVISIONS.length - 1; // مبتدئ افتراضياً
+  const beginnerIdx = NLD_DIVISIONS.findIndex(d => d.id === 'beginner');
+  return beginnerIdx >= 0 ? beginnerIdx : NLD_DIVISIONS.length - 1;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -35367,12 +35349,13 @@ async function loadAllMembersWithPts(){
     upsert(name, total);
   });
 
-  /* ─── بناء النتيجة النهائية ─── */
-  const result = Object.values(map).map(({name, pts: total})=>({
-    name,
-    total,
-    level       : getMemberLevel(total),
-    divisionIdx : getMemberDivisionIdx(total)
+  /* ─── بناء النتيجة النهائية — مرتبة تنازلياً ثم نعيّن القسم بالترتيب ─── */
+  const resultRaw = Object.values(map)
+    .map(({name, pts: total})=>({ name, total, level: getMemberLevel(total) }))
+    .sort((a,b) => b.total - a.total);
+  const result = resultRaw.map((m, rankIndex) => ({
+    ...m,
+    divisionIdx: getMemberDivisionByRank(rankIndex) // الترتيب 1-10=متقن 11-21=هاوي 22+=مبتدئ
   }));
 
   console.log(`[NLDChamp v6] ✅ ${result.length} عضو — ranking:${rankTxt.status==='fulfilled'?'✓':'✗'} data:${dataTxt.status==='fulfilled'?'✓':'✗'} firebase:${Object.keys(fbStats).length}`);
@@ -35572,7 +35555,7 @@ console.log('✅ [NLDChampionship v4] البطولة المحترفة — Google
 /* ══════════════════════════════════════════════════════════════
    🏆 نظام الصعود والنزول الأسبوعي — Firebase-based
    - كل قسم حد أقصى 10 مستخدمين (ما عدا المبتدئين)
-   - التقييم نهاية كل أسبوع الساعة 22:00
+   - التقييم نهاية كل أسبوع الساعة 21:00
    - 3 أعلى نقاط يصعدون — 3 أقل نقاط ينزلون
    - المبتدئون: صعود فقط بدون نزول
    - الصعود والنزول لا يعمل إلا إذا كان القسم ممتلئاً (10 أعضاء)
@@ -35633,18 +35616,18 @@ function _getWeekNumber(){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   🔄 تنفيذ التقييم الأسبوعي (نهاية الأسبوع الساعة 22:00)
+   🔄 تنفيذ التقييم الأسبوعي (نهاية الأسبوع الساعة 21:00)
    ══════════════════════════════════════════════════════════════ */
 async function _runWeeklyEvaluation(allMembers, assignments){
   const WEEK_EVAL_KEY = 'nld_last_eval_week';
   const currentWeek = _getWeekNumber();
   const lastEvalWeek = parseInt(localStorage.getItem(WEEK_EVAL_KEY)||'-1');
 
-  // فحص هل الوقت الحالي بعد 22:00 يوم السبت (نهاية الأسبوع)
+  // فحص هل الوقت الحالي بعد 21:00 يوم السبت (نهاية الأسبوع)
   const now = new Date();
   const dayOfWeek = now.getDay(); // 0=أحد, 6=سبت
   const hour = now.getHours();
-  const isEvalTime = (dayOfWeek === 6 && hour >= 22);
+  const isEvalTime = (dayOfWeek === 6 && hour >= 21);
 
   if(!isEvalTime || currentWeek === lastEvalWeek) return assignments;
 
@@ -35673,39 +35656,18 @@ async function _runWeeklyEvaluation(allMembers, assignments){
   const firstWeekDone = localStorage.getItem(FIRST_WEEK_KEY) === '1';
 
   if(!firstWeekDone){
-    /* ✅ تحقق أولاً من Firebase أن الأسبوع الأول لم يُنفَّذ بالفعل */
-    let fbFirstDone = false;
-    try{
-      const fbCheckRes = await fetch(`${_NLD_FB}/nld_first_week.json`, {cache:'no-store'});
-      const fbCheckVal = await fbCheckRes.json();
-      fbFirstDone = fbCheckVal === true || fbCheckVal === 1 || fbCheckVal === '1';
-    }catch(e){}
-
-    if(!fbFirstDone){
-      const beginnerMembers = (divMap['beginner'] || []).slice(0, 10);
-      const nextDiv = NLD_DIVISIONS[NLD_DIVISIONS.length - 2]; // الهاوي
-      if(beginnerMembers.length > 0 && nextDiv){
-        for(const m of beginnerMembers){
-          const key = (m.name||'').replace(/\s+/g,'_');
-          newAssignments[key] = { divId: nextDiv.id, updatedAt: ts, promotedFrom: 'beginner' };
-        }
-        divMap[nextDiv.id] = [...(divMap[nextDiv.id]||[]), ...beginnerMembers].sort((a,b)=>b.total-a.total);
-        divMap['beginner'] = (divMap['beginner']||[]).filter(m=>!beginnerMembers.includes(m));
-        console.log(`✅ [NLD] الأسبوع الأول: ${beginnerMembers.length} عضو صعدوا من المبتدئ → ${nextDiv.name}`);
-        /* حفظ في Firebase لمنع إعادة التنفيذ من أي جهاز آخر */
-        try{
-          await fetch(`${_NLD_FB}/nld_first_week.json`,{
-            method:'PUT', headers:{'Content-Type':'application/json'},
-            body:'true'
-          });
-        }catch(e){}
+    const beginnerMembers = (divMap['beginner'] || []).slice(0, 10);
+    const nextDiv = NLD_DIVISIONS[NLD_DIVISIONS.length - 2]; // الهاوي (القسم فوق المبتدئ)
+    if(beginnerMembers.length > 0 && nextDiv){
+      for(const m of beginnerMembers){
+        const key = (m.name||'').replace(/\s+/g,'_');
+        newAssignments[key] = { divId: nextDiv.id, updatedAt: ts, promotedFrom: 'beginner' };
       }
-      localStorage.setItem(FIRST_WEEK_KEY, '1');
-    } else {
-      /* Firebase يؤكد أن الأسبوع الأول تم — سجّل محلياً وتخطَّ */
-      localStorage.setItem(FIRST_WEEK_KEY, '1');
-      console.log('[NLD] الأسبوع الأول تم بالفعل (من Firebase) — تخطي');
+      divMap[nextDiv.id] = [...(divMap[nextDiv.id]||[]), ...beginnerMembers].sort((a,b)=>b.total-a.total);
+      divMap['beginner'] = (divMap['beginner']||[]).filter(m=>!beginnerMembers.includes(m));
+      console.log(`✅ [NLD] الأسبوع الأول: ${beginnerMembers.length} عضو صعدوا من المبتدئ → ${nextDiv.name}`);
     }
+    localStorage.setItem(FIRST_WEEK_KEY, '1');
   }
 
   /* ══════════════════════════════════════════════════════
@@ -35770,25 +35732,8 @@ async function _runWeeklyEvaluation(allMembers, assignments){
     console.log(`✅ [NLD] تبادل (${actualCount}): ${relegMembers.map(m=>m.name).join('، ')} نزلوا من ${upperDiv.name} → ${lowerDiv.name}`);
   }
 
-  // ✅ حفظ التعيينات في Firebase + قفل لمنع التكرار
+  // حفظ التعيينات في Firebase
   try{
-    // ① أولاً: تحقق من Firebase إن لم يُنفَّذ التقييم بواسطة جهاز آخر
-    const evalLockRes = await fetch(`${_NLD_FB}/nld_eval_lock.json`, {cache:'no-store'});
-    const evalLock = await evalLockRes.json();
-    if(evalLock && evalLock.week === currentWeek){
-      // جهاز آخر نفّذ التقييم بالفعل — حمّل نتائجه
-      console.log('[NLD] التقييم نُفِّذ من جهاز آخر — تحميل النتائج');
-      localStorage.setItem(WEEK_EVAL_KEY, String(currentWeek));
-      const divRes = await fetch(`${_NLD_FB}/nld_divisions.json`, {cache:'no-store'});
-      const latestAssign = await divRes.json();
-      return latestAssign || assignments;
-    }
-    // ② تسجيل القفل في Firebase أولاً (منع تكرار من أجهزة أخرى)
-    await fetch(`${_NLD_FB}/nld_eval_lock.json`,{
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ week: currentWeek, executedAt: Date.now() })
-    });
-    // ③ حفظ التعيينات الجديدة
     await fetch(`${_NLD_FB}/nld_divisions.json`,{
       method:'PATCH', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(newAssignments)
@@ -35901,7 +35846,7 @@ function renderDivision(divIdx, allMembers, assignments){
     ? `<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ حتى 5 صاعدين إن تفوّقوا على أسفل القسم الأعلى</div>` : '';
   const relegNote = isFull && !isBeginners && divIdx < NLD_DIVISIONS.length-1
     ? `<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ حتى 5 نازلين إن تفوّق عليهم أعلى نقاط من القسم الأدنى</div>` : '';
-  const evalNote = `<div id="nldEvalCountdown" style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:10px;padding:5px 12px;font-size:10px;font-weight:700;color:#FFA500;">📅 التقييم الليلة السبت 22:00 — <span id="_nldCDspan">...</span></div>`;
+  const evalNote = `<div id="nldEvalCountdown" style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:10px;padding:5px 12px;font-size:10px;font-weight:700;color:#FFA500;">📅 التقييم الليلة السبت 21:00 — <span id="_nldCDspan">...</span></div>`;
   // عداد تنازلي يتحدث كل ثانية
   setTimeout(function _cdTick(){
     const el = document.getElementById('_nldCDspan');
@@ -35944,7 +35889,7 @@ setInterval(()=>{
 },60000);
 
 /* ══════════════════════════════════════════════════════════════
-   ⚡ ضبط بدء التقييم: اليوم السبت 30/05/2026 الساعة 22:00
+   ⚡ ضبط بدء التقييم: اليوم السبت 30/05/2026 الساعة 21:00
    — يُعاد ضبط التقييم الأسبوعي ليُنفَّذ الليلة كأسبوع أول
    — إذا لم يُنفَّذ الأسبوع الأول بعد، يمسح السجل القديم
    ══════════════════════════════════════════════════════════════ */
@@ -35957,7 +35902,7 @@ setInterval(()=>{
     if(!firstDone){
       // الأسبوع الأول لم يُنفَّذ بعد → امسح أي سجل سابق لضمان التشغيل الليلة
       localStorage.removeItem(EVAL_KEY);
-      console.log('✅ [NLD] الأسبوع الأول لم يبدأ — التقييم سيعمل الليلة السبت 30/05/2026 عند 22:00');
+      console.log('✅ [NLD] الأسبوع الأول لم يبدأ — التقييم سيعمل الليلة السبت 30/05/2026 عند 21:00');
     } else {
       // الأسبوع الأول انتهى — تأكد أن الأسبوع المحفوظ لا يمنع الأسبوع القادم
       const now = new Date();
@@ -35980,10 +35925,10 @@ window._nldGetCountdown = function(){
   const min = now.getMinutes();
   const sec = now.getSeconds();
 
-  // ثواني حتى السبت 22:00
+  // ثواني حتى السبت 21:00
   const daysUntilSat = ((6 - day) + 7) % 7;
-  let secsLeft = daysUntilSat * 86400 + (22 - h - 1) * 3600 + (60 - min - 1) * 60 + (60 - sec);
-  if(day === 6 && h >= 22) secsLeft = 7 * 86400; // السبت بعد 22:00 → الأسبوع القادم
+  let secsLeft = daysUntilSat * 86400 + (21 - h - 1) * 3600 + (60 - min - 1) * 60 + (60 - sec);
+  if(day === 6 && h >= 21) secsLeft = 7 * 86400; // السبت بعد 21:00 → الأسبوع القادم
 
   const d = Math.floor(secsLeft / 86400);
   const hh = Math.floor((secsLeft % 86400) / 3600);
@@ -35993,24 +35938,7 @@ window._nldGetCountdown = function(){
   return `${hh}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
 };
 
-console.log('✅ [NLDChampionship v5] البطولة المحترفة — صعود/نزول 5 — أسبوع أول الليلة 22:00');
-
-/* ✅ مؤقت يراقب الساعة 22:00 كل دقيقة — يُنفِّذ التقييم فور حلول الوقت */
-(function _watchEvalTime(){
-  function _check(){
-    var now = new Date();
-    /* السبت بعد 22:00 وقبل 22:10 — نافذة التنفيذ */
-    if(now.getDay()===6 && now.getHours()===22 && now.getMinutes()<10){
-      if(typeof window.nldChampLoadAll==='function'){
-        console.log('[NLD] ⏰ حان وقت التقييم الأسبوعي — تشغيل تلقائي');
-        window.nldChampLoadAll(); /* هذه تستدعي _runWeeklyEvaluation داخلياً */
-      }
-    }
-  }
-  setInterval(_check, 60000); // كل دقيقة
-  setTimeout(_check, 3000); // فحص فوري بعد 3 ثوانٍ من التحميل
-})();
-
+console.log('✅ [NLDChampionship v5] البطولة المحترفة — صعود/نزول 5 — أسبوع أول الليلة 21:00');
 })();
 </script>
 
@@ -38209,17 +38137,10 @@ console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات �
     document.body.appendChild(overlay);
   };
 
-  /* ✅ تطبيق سمة بالـ id — مباشرة ويغلق النافذة */
+  /* ── تطبيق سمة بالـ id ── */
   window._applyThemeById = function(id){
     var t = APP_THEMES.find(function(x){ return x.id===id; });
-    if(t){
-      applyTheme(t);
-      /* إغلاق نافذة الاختيار بعد التطبيق */
-      setTimeout(function(){
-        var ov = document.getElementById('_appThemePickerOverlay');
-        if(ov) ov.remove();
-      }, 500);
-    }
+    if(t) applyTheme(t);
   };
 
   /* ── تطبيق السمة المحفوظة عند التحميل ── */
@@ -39637,55 +39558,4 @@ console.log('✅ [ادواتي] لوحة الأدوات — جاهزة');
 })();
 </script>
 
-
-<script>
-/* ✅ مزامنة المنشورات المحلية مع Firebase — يُنفَّذ مرة واحدة لكل جلسة */
-(function _syncLocalPostsToFirebase(){
-  var SYNC_KEY = 'cdz_posts_synced_v1';
-  var lastSync = parseInt(localStorage.getItem(SYNC_KEY)||'0');
-  var now = Date.now();
-  // تزامن كل 10 دقائق كحد أقصى
-  if(now - lastSync < 600000) return;
-  
-  window.addEventListener('load', function(){
-    setTimeout(function(){
-      try{
-        var _FB_POSTS = 'https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts';
-        var posts = [];
-        try{ posts = JSON.parse(localStorage.getItem('nld_social_posts')||'[]'); }catch(e){}
-        
-        // فلتر: منشورات حقيقية فقط (ليست إعلانات أو تلقائية)
-        var realPosts = posts.filter(function(p){
-          return p && p.id && p.author && !p.isAutoPost && !p.isActivityAd && !p.isAd && !p._archived;
-        });
-        
-        if(realPosts.length === 0) return;
-        
-        // رفع كل منشور غير موجود في Firebase
-        var uploaded = 0;
-        realPosts.forEach(function(p){
-          if(!p.id) return;
-          fetch(_FB_POSTS+'/'+p.id+'.json', {cache:'no-store'})
-            .then(function(r){ return r.json(); })
-            .then(function(existing){
-              if(!existing){
-                // منشور غير موجود في Firebase — ارفعه
-                fetch(_FB_POSTS+'/'+p.id+'.json',{
-                  method:'PUT',
-                  headers:{'Content-Type':'application/json'},
-                  body: JSON.stringify(p)
-                }).then(function(){ uploaded++; }).catch(function(){});
-              }
-            }).catch(function(){});
-        });
-        
-        localStorage.setItem(SYNC_KEY, String(now));
-        console.log('[ConnectDZ] ✅ مزامنة المنشورات المحلية مع Firebase — '+realPosts.length+' منشور');
-      }catch(ex){
-        console.warn('[ConnectDZ] مزامنة فشلت:', ex);
-      }
-    }, 3000); // بعد 3 ثوانٍ من التحميل
-  });
-})();
-</script>
 </body>
