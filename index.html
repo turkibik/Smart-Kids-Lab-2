@@ -7700,8 +7700,14 @@ function switchLoginTab(tab){
 </div>
 
 <script>
-/* ▼ جدول البيانات الرئيسي - المصدر الوحيد للنقاط والمنخرطين ▼ */
-const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
+/* ▼ جدول البيانات الرئيسي - المصدر الوحيد للنقاط والمنخرطين ▼
+   الأعمدة المهمة في هذا الجدول (0-index):
+   C(2)=الاسم واللقب، D(3)=تاريخ الميلاد، I(8)=الجنس، J(9)=تحديد الفئة،
+   K(10)=المستوى الدراسي، Z(25)=نقاط المكافئة، AA(26)=نقاط الرصيد (آخر عمود) */
+const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS8sNG3xyNeBE4d3WVgjvA2tJ51t9eXJcqdcujS_61A79VAQaQS-9zc6i1CgILmZMOgh8BnFA7lkave/pub?output=csv';
+/* فهارس الأعمدة الجديدة الخاصة بالنقاط لتسهيل القراءة/الصيانة مستقبلاً */
+const dataUrlBonusPtsCol   = 25; // Z  = نقاط المكافئة
+const dataUrlBalancePtsCol = 26; // AA = نقاط الرصيد (هذا هو آخر عمود في الشيت الجديد)
 
 /* =======================================================================
    إعداد Google Apps Script لمزامنة نقاط الكويز بين جميع المستخدمين
@@ -11601,15 +11607,15 @@ async function loadMembers(){
       return '—';
     }
 
-    // من dataUrl: C(2)=الاسم، D(3)=تاريخ/السن، I(8)=الفئة، J(9)=المستوى، آخر عمود=النقاط
+    // من dataUrl: C(2)=الاسم، D(3)=تاريخ/السن، J(9)=الفئة، K(10)=المستوى، آخر عمود(AA)=نقاط الرصيد
     const dataRows=t1.split('\n').slice(1).filter(r=>r.trim()).map((r,rowIdx)=>{
       const c=csvParse(r);
       const name=(c[2]||'').trim();
       const _EXCL_NAMES = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء'];
       if(!name||_EXCL_NAMES.includes(name)) return null;
       const age=parseAge(c[3]);
-      const cat=(c[8]||'').replace(/"/g,'').trim();
-      const studyLevel=(c[9]||'').replace(/"/g,'').trim();
+      const cat=(c[9]||'').replace(/"/g,'').trim();
+      const studyLevel=(c[10]||'').replace(/"/g,'').trim();
       const pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
       return {name,age,cat,studyLevel,pts,rowIdx};
     }).filter(Boolean);
@@ -34262,7 +34268,7 @@ async function _fixOldSystemPointsDisplay(){
   if(mainPts && mainPts.innerText && mainPts.innerText !== '0 نقطة' && mainPts.innerText !== '--') return;
 
   /* جلب من dataUrl */
-  const dataUrl = window.dataUrl || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
+  const dataUrl = window.dataUrl || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS8sNG3xyNeBE4d3WVgjvA2tJ51t9eXJcqdcujS_61A79VAQaQS-9zc6i1CgILmZMOgh8BnFA7lkave/pub?output=csv';
   const norm = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
 
   function csvParse(line){
