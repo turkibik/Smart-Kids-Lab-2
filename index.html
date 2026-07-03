@@ -6898,23 +6898,8 @@ function switchLoginTab(tab){
 </div>
 
 <script>
-/* ▼ جدول البيانات الرئيسي - المصدر الوحيد للنقاط والمنخرطين ▼
-   تم الاستبدال بالكامل بالشيت الجديد. الأعمدة المعتمدة:
-     C  (index 2)  = الاسم
-     D  (index 3)  = السن
-     Z  (index 25) = نقاط المكافأة  (تُضاف إلى الإجمالي)
-     AA (index 26) = نقاط الرصيد / نقاط الجدول (المصدر الأساسي للنقاط)
-   إجمالي النقاط = AA (الرصيد) + Z (المكافأة)                              ▲ */
-const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS8sNG3xyNeBE4d3WVgjvA2tJ51t9eXJcqdcujS_61A79VAQaQS-9zc6i1CgILmZMOgh8BnFA7lkave/pub?output=csv';
-window.dataUrl = dataUrl; // تعريض المتغير على window لضمان استخدامه في كل نقاط الجلب البديلة بالملف
-
-/* دالة موحّدة لحساب نقاط أي صف من الشيت الجديد: الرصيد(AA) + المكافأة(Z) */
-function _pts2(c){
-  const balanceAA = parseInt((c[26]||'').toString().replace(/[^\d]/g,''))||0; // عمود AA = الرصيد
-  const rewardZ   = parseInt((c[25]||'').toString().replace(/[^\d]/g,''))||0; // عمود Z = نقاط المكافأة
-  return balanceAA + rewardZ;
-}
-window._pts2 = _pts2;
+/* ▼ جدول البيانات الرئيسي - المصدر الوحيد للنقاط والمنخرطين ▼ */
+const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
 
 /* =======================================================================
    إعداد Google Apps Script لمزامنة نقاط الكويز بين جميع المستخدمين
@@ -6952,7 +6937,6 @@ window._pts2 = _pts2;
    4. انسخ رابط الـ Web App وضعه في المتغير quizPtsApiUrl أدناه
    ======================================================================= */
 const membersUrl    = dataUrl;
-window.membersUrl = membersUrl;
 /* ▼ استمارة الشباب: مغلقة حتى إشعار آخر ▼ */
 const shabaabUrl    = null;
 const newShabaabUrl = null;
@@ -8349,7 +8333,7 @@ async function _computeAndShowBalance(){
         const key = norm(n);
         if(seen.has(key)) return;
         seen.add(key);
-        const pts = _pts2(c);
+        const pts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
         allRows.push({n, pts});
       });
     });
@@ -9460,7 +9444,7 @@ function _refreshPointsInBackground(name){
       if(!rows1[i].trim()) continue;
       const c = csvParse2(rows1[i]);
       if(norm(c[2]||'') === norm(name)){
-        const pts = _pts2(c);
+        const pts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
         const normKey = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
         let apiPts = 0;
         for(const [k,v] of Object.entries(allQuizPts||{})){
@@ -9911,7 +9895,7 @@ function processEntry(val,type){
       return best;
     }
 
-    // 1) البحث في الجدول الرئيسي: الاسم C(2)، النقاط = رصيد AA(26) + مكافأة Z(25)
+    // 1) البحث في الجدول الرئيسي: الاسم C(2)، آخر عمود = النقاط
     const rows1=t1.split('\n');
     for(let i=1;i<rows1.length;i++){
       if(!rows1[i].trim()) continue;
@@ -9921,7 +9905,7 @@ function processEntry(val,type){
       const matched=(type==="name"&&rowName===valNorm)||(type==="email"&&rowEmail===valNorm);
       if(matched){
         const name=(c[2]||'').trim();
-        const pts=_pts2(c);
+        const pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
         // ── حفظ العمر من الجدول (البحث في الأعمدة عن قيمة رقمية بين 5-100) ──
         for(let ci=3;ci<c.length-1;ci++){
           const ageCand=parseInt((c[ci]||'').replace(/[^\d]/g,''));
@@ -9985,7 +9969,7 @@ function processEntry(val,type){
           if(!rows1[k].trim()) continue;
           const c=csvParse(rows1[k]);
           if(norm(c[2]||'')===norm(nameCol)){
-            pts=_pts2(c);
+            pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
             for(let ci=3;ci<c.length-1;ci++){
               const ageCand=parseInt((c[ci]||'').replace(/[^\d]/g,''));
               if(ageCand>=5&&ageCand<=100){
@@ -10231,7 +10215,7 @@ function renderApp(name,pts,isReg, externalEarned){
             const c = csvParse(rows[i]);
             const sheetName = (c[2]||'').trim();
             if(normName(sheetName) === normName(name) || _nameMatches(sheetName, name)){
-              dashPts = _pts2(c);
+              dashPts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
               break;
             }
           }
@@ -10247,7 +10231,7 @@ function renderApp(name,pts,isReg, externalEarned){
               const c = csvParse(srows[i]);
               const sheetName = (c[2]||'').trim();
               if(normName(sheetName) === normName(name) || _nameMatches(sheetName, name)){
-                const spts = _pts2(c);
+                const spts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
                 if(spts > 0) dashPts = spts;
                 break;
               }
@@ -10268,7 +10252,7 @@ function renderApp(name,pts,isReg, externalEarned){
             const myNorm = normName(name);
             if(rName1 === myNorm || rName0 === myNorm ||
                _nameMatches(c[1]||c[0]||'', name)){
-              rankPts = _pts2(c);
+              rankPts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
               window._rankPtsCache = rankPts;
               break;
             }
@@ -10288,7 +10272,7 @@ function renderApp(name,pts,isReg, externalEarned){
           const _excl = ['لؤي','لؤي عماري','ممتاز','وفاء وفاء','حمودي عبد المومن','حمودي عبدالمومن','حمودي عبد المؤمن'];
           const allRows2 = r1.split('\n').slice(1).filter(x=>x.trim());
           const validRows = allRows2
-            .map(row=>{ const c=csvParse(row); return {name:(c[2]||'').trim(), pts:_pts2(c)}; })
+            .map(row=>{ const c=csvParse(row); return {name:(c[2]||'').trim(), pts:parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0}; })
             .filter(x=>x.name && !_excl.some(ex=>x.name===ex||x.name.startsWith(ex+' ')));
           validRows.sort((a,b)=>b.pts-a.pts);
           const myIdx = validRows.findIndex(x=>normName(x.name)===normName(name) || _nameMatches(x.name,name));
@@ -10428,14 +10412,14 @@ async function loadMembers(){
       return '—';
     }
 
-    // من dataUrl: C(2)=الاسم، D(3)=السن، النقاط = رصيد AA(26) + مكافأة Z(25)
+    // من dataUrl: C(2)=الاسم، D(3)=السن، آخر عمود=النقاط
     const dataRows=t1.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
       const c=csvParse(r);
       const name=(c[2]||'').trim();
       const _EXCL_NAMES = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء'];
       if(!name||_EXCL_NAMES.includes(name)) return null;
       const age=parseAge(c[3]);
-      const pts=_pts2(c);
+      const pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
       return {name,age,pts};
     }).filter(Boolean);
 
@@ -10585,11 +10569,11 @@ async function loadRanking(){
       return res;
     }
 
-    // من dataUrl: C(2)=الاسم، النقاط = رصيد AA(26) + مكافأة Z(25)
+    // من dataUrl: C(2)=الاسم، آخر عمود=النقاط
     const fromData=t1.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
       const c=csvParse(r);
       const n=(c[2]||'').trim();
-      const p=_pts2(c);
+      const p=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
       if(!n||n==='ممتاز'||n==='لؤي'||n==='لؤي عماري'||n==='وفاء وفاء') return null;
       return {n,p};
     }).filter(Boolean);
@@ -32515,8 +32499,8 @@ async function _fixOldSystemPointsDisplay(){
   /* إذا كانت النقاط تظهر بالفعل فلا نتدخل */
   if(mainPts && mainPts.innerText && mainPts.innerText !== '0 نقطة' && mainPts.innerText !== '--') return;
 
-  /* جلب من dataUrl (الشيت الجديد) */
-  const dataUrl = window.dataUrl || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS8sNG3xyNeBE4d3WVgjvA2tJ51t9eXJcqdcujS_61A79VAQaQS-9zc6i1CgILmZMOgh8BnFA7lkave/pub?output=csv';
+  /* جلب من dataUrl */
+  const dataUrl = window.dataUrl || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
   const norm = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
 
   function csvParse(line){
@@ -32544,7 +32528,7 @@ async function _fixOldSystemPointsDisplay(){
       if(!rows[i].trim()) continue;
       const c = csvParse(rows[i]);
       if(_matchOld(c[2]||'', name)){
-        const pts = _pts2(c);
+        const pts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
         const earned = parseInt(localStorage.getItem('nld_earned_'+name.replace(/\s+/g,'_'))||'0');
         const total = pts + earned;
 
@@ -32803,7 +32787,7 @@ window._fetchSheetPoints = async function(memberName){
         const c = _csvPL(rows[i]);
         const sn = _nN(c[2]||c[1]||c[0]||'');
         if(sn && sn===nm){
-          const p = _pts2(c);
+          const p = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
           if(p>sheetPts) sheetPts=p;
           break;
         }
@@ -32821,7 +32805,7 @@ window._fetchSheetPoints = async function(memberName){
       const _excl = ['لؤي','لؤي عماري','ممتاز','وفاء وفاء','حمودي عبد المومن','حمودي عبدالمومن'];
       const vRows = rows2.slice(1)
         .filter(x=>x.trim())
-        .map(r=>{ const c=_csvPL(r); return {name:_nN(c[1]||c[0]||''),pts:_pts2(c)}; })
+        .map(r=>{ const c=_csvPL(r); return {name:_nN(c[1]||c[0]||''),pts:parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0}; })
         .filter(x=>x.name && !_excl.some(ex=>_nN(ex)===x.name));
       vRows.sort((a,b)=>b.pts-a.pts);
       const ri = vRows.findIndex(x=>x.name===nm);
@@ -33591,7 +33575,7 @@ async function loadAllMembersWithPts(){
       if(!row.trim()) return;
       const c = csvParse(row);
       const name = (c[2]||'').trim();
-      const pts  = _pts2(c);
+      const pts  = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
       upsert(name, pts);
     });
   }
