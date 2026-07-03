@@ -4450,69 +4450,543 @@ function switchLoginTab(tab){
 <!-- ══════════════════════════════════════════
      🌐 صفحة الشبكة الاجتماعية (Next Leaders Social)
      ══════════════════════════════════════════ -->
-<div id="socialHomeCard" style="display:none;position:fixed;inset:0;z-index:2900;background:#F0F2F5;flex-direction:column;overflow:hidden;">
+<style>
+/* ══════════════════════════════════════════════════════════
+   🌟 CONNECT DZ — تصميم ثلاثي الأبعاد الفخم
+   ألوان: أحمر + أخضر + أبيض ضبابي + بنفسجي
+   ══════════════════════════════════════════════════════════ */
 
-  <!-- ── Top Bar (Facebook-style) ── -->
-  <div id="socialTopBar" style="background:white;border-bottom:2px solid #E4E6EB;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+/* ── متغيرات الألوان الجديدة ── */
+#socialHomeCard {
+  --cdz-red: #e52d27;
+  --cdz-green: #00c853;
+  --cdz-purple: #9b27af;
+  --cdz-white-fog: rgba(255,255,255,0.92);
+  --cdz-dark: #0a0a14;
+  --cdz-surface: rgba(15,12,30,0.88);
+  --cdz-glass: rgba(255,255,255,0.07);
+  --cdz-glow-r: rgba(229,45,39,0.5);
+  --cdz-glow-g: rgba(0,200,83,0.5);
+  --cdz-glow-p: rgba(155,39,175,0.5);
+}
+
+/* ── الخلفية الرئيسية ── */
+#socialHomeCard {
+  background: #080814 !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* طبقة الخلفية الديناميكية */
+#socialHomeCard::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 0%, rgba(229,45,39,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 90% 100%, rgba(0,200,83,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(155,39,175,0.12) 0%, transparent 70%),
+    linear-gradient(180deg, #080814 0%, #0d0b1f 50%, #080814 100%);
+  animation: bgPulse3D 8s ease-in-out infinite alternate;
+}
+
+@keyframes bgPulse3D {
+  0%   { opacity: 1; filter: hue-rotate(0deg); }
+  50%  { opacity: 0.85; filter: hue-rotate(15deg); }
+  100% { opacity: 1; filter: hue-rotate(-10deg); }
+}
+
+/* شبكة هندسية ثلاثية الأبعاد */
+#socialHomeCard::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,200,83,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(229,45,39,0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  transform: perspective(600px) rotateX(8deg) scaleY(1.1);
+  transform-origin: top center;
+  opacity: 0.7;
+}
+
+/* ══ شريط التبويبات العلوي — الجديد ══ */
+#socialTopBar {
+  background: rgba(8,8,20,0.95) !important;
+  backdrop-filter: blur(28px) saturate(1.8) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.8) !important;
+  border-bottom: none !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.05),
+    0 4px 24px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(155,39,175,0.15) !important;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+/* خط توهج فوق الشريط */
+#socialTopBar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 10%; right: 10%; height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    var(--cdz-red, #e52d27) 20%,
+    var(--cdz-green, #00c853) 50%,
+    var(--cdz-purple, #9b27af) 80%,
+    transparent);
+  opacity: 0.8;
+  animation: topLineShimmer 3s ease infinite;
+}
+
+@keyframes topLineShimmer {
+  0%, 100% { opacity: 0.5; transform: scaleX(0.8); }
+  50%       { opacity: 1;   transform: scaleX(1); }
+}
+
+/* ── الشعار الجديد ── */
+.cdz-logo-new {
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  font-family: 'Tajawal', sans-serif;
+  background: linear-gradient(135deg, #e52d27 0%, #ffffff 40%, #00c853 70%, #9b27af 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 200%;
+  animation: logoColorFlow 4s ease infinite;
+  filter: drop-shadow(0 0 12px rgba(229,45,39,0.4));
+  flex: 1;
+}
+
+@keyframes logoColorFlow {
+  0%   { background-position: 0% 50%; filter: drop-shadow(0 0 12px rgba(229,45,39,0.5)); }
+  33%  { background-position: 50% 50%; filter: drop-shadow(0 0 12px rgba(0,200,83,0.5)); }
+  66%  { background-position: 100% 50%; filter: drop-shadow(0 0 12px rgba(155,39,175,0.5)); }
+  100% { background-position: 0% 50%; filter: drop-shadow(0 0 12px rgba(229,45,39,0.5)); }
+}
+
+/* ── زر البطولة ── */
+.cdz-champ-btn {
+  height: 34px;
+  border-radius: 17px;
+  background: linear-gradient(135deg, #e52d27, #9b27af);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0 12px;
+  gap: 5px;
+  box-shadow:
+    0 0 16px rgba(229,45,39,0.5),
+    0 0 32px rgba(155,39,175,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s;
+  animation: champGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes champGlow {
+  0%   { box-shadow: 0 0 12px rgba(229,45,39,0.5), 0 0 24px rgba(155,39,175,0.3); }
+  100% { box-shadow: 0 0 20px rgba(229,45,39,0.8), 0 0 40px rgba(155,39,175,0.6); }
+}
+
+.cdz-champ-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -60%;
+  width: 40%; height: 200%;
+  background: rgba(255,255,255,0.2);
+  transform: skewX(-20deg);
+  animation: champShine 2.5s linear infinite;
+}
+
+@keyframes champShine {
+  0%   { left: -60%; }
+  100% { left: 140%; }
+}
+
+/* ── زر القائمة ── */
+.cdz-menu-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(8px);
+}
+
+.cdz-menu-btn:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(0,200,83,0.4);
+  box-shadow: 0 0 12px rgba(0,200,83,0.3);
+}
+
+.cdz-menu-line {
+  display: block;
+  width: 15px;
+  height: 2px;
+  border-radius: 2px;
+}
+
+.cdz-menu-line:nth-child(1) { background: #e52d27; }
+.cdz-menu-line:nth-child(2) { background: #ffffff; width: 11px; }
+.cdz-menu-line:nth-child(3) { background: #00c853; }
+
+/* ── شريط البحث ── */
+#socialSearchBar input {
+  background: rgba(255,255,255,0.06) !important;
+  color: white !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+}
+
+/* ── تبويبات التنقل الجديدة ── */
+.cdz-tab-bar {
+  display: flex;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 0 4px;
+  background: rgba(0,0,0,0.2);
+}
+
+.cdz-tab {
+  flex: 1;
+  padding: 8px 2px 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+}
+
+.cdz-tab.active-red   { border-bottom-color: #e52d27; }
+.cdz-tab.active-green { border-bottom-color: #00c853; }
+.cdz-tab.active-purple{ border-bottom-color: #9b27af; }
+
+.cdz-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 20%; right: 20%; height: 2px;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.cdz-tab.active-red::after   { background: radial-gradient(circle, rgba(229,45,39,0.8), transparent); opacity: 1; }
+.cdz-tab.active-green::after { background: radial-gradient(circle, rgba(0,200,83,0.8), transparent); opacity: 1; }
+
+.cdz-tab-label {
+  font-size: 9px;
+  font-weight: 800;
+  font-family: 'Tajawal', sans-serif;
+}
+
+/* ══ شريط القصص — تصميم جديد ══ */
+#storiesBar {
+  background: transparent !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  padding: 10px 10px 2px !important;
+  position: relative;
+  z-index: 2;
+}
+
+/* بطاقة المنشور الجديدة */
+#socialPanel_home > div[style*="background:white"],
+#socialPanel_home > div[style*="background: white"] {
+  background: rgba(15,12,30,0.75) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  backdrop-filter: blur(16px) !important;
+  margin-bottom: 8px;
+}
+
+/* ══ منطقة الـ Feed الرئيسية ══ */
+#socialMainScroll {
+  position: relative;
+  z-index: 2;
+}
+
+/* ══ بطاقات المنشورات ══ */
+#socialPanel_home .social-post-card,
+.social-post {
+  background: rgba(15,12,30,0.78) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  backdrop-filter: blur(20px) !important;
+  border-radius: 18px !important;
+  margin: 0 8px 10px !important;
+  box-shadow:
+    0 4px 24px rgba(0,0,0,0.4),
+    0 0 0 1px rgba(155,39,175,0.08) inset !important;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* جسيمات متوهجة متحركة */
+@keyframes particleFloat {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  20%  { opacity: 0.6; }
+  80%  { opacity: 0.3; }
+  100% { transform: translateY(-80px) translateX(20px) scale(0.5); opacity: 0; }
+}
+
+.cdz-particle {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  animation: particleFloat ease-in-out infinite;
+}
+
+/* ══ صندوق إنشاء المنشور ══ */
+.cdz-create-post-box {
+  background: rgba(15,12,30,0.82) !important;
+  border: 1px solid rgba(255,255,255,0.09) !important;
+  backdrop-filter: blur(24px) !important;
+  border-radius: 18px !important;
+  margin: 0 8px 10px !important;
+  padding: 14px !important;
+  box-shadow:
+    0 0 0 1px rgba(0,200,83,0.08) inset,
+    0 8px 32px rgba(0,0,0,0.35) !important;
+}
+
+/* ══ أيقونات الشريط السفلي (إذا وُجدت) ══ */
+.cdz-bottom-nav {
+  background: rgba(8,8,20,0.96);
+  backdrop-filter: blur(28px);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+/* ══ تصميم القائمة الجانبية ══ */
+#socialSideMenu {
+  background: linear-gradient(160deg, rgba(8,8,20,0.98), rgba(20,8,35,0.98)) !important;
+  border-left: 1px solid rgba(155,39,175,0.2) !important;
+  backdrop-filter: blur(32px) !important;
+}
+
+/* ══ الضبابية على الصور والأفاتارات ══ */
+.cdz-avatar-ring {
+  box-shadow:
+    0 0 0 2px #e52d27,
+    0 0 0 4px rgba(229,45,39,0.3),
+    0 0 16px rgba(229,45,39,0.4);
+}
+
+/* ══ توهج الألوان على التبويب النشط ══ */
+#sTab_home[style*="border-bottom:3px solid"],
+#sTab_home.active {
+  background: rgba(229,45,39,0.08) !important;
+}
+
+/* ══ النص العام داخل socialHomeCard ══ */
+#socialHomeCard [style*="color:#050505"] { color: rgba(255,255,255,0.92) !important; }
+#socialHomeCard [style*="color:#65676B"] { color: rgba(255,255,255,0.5) !important; }
+#socialHomeCard [style*="background:white"],
+#socialHomeCard [style*="background: white"] {
+  background: rgba(15,12,30,0.82) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+}
+#socialHomeCard [style*="background:#F0F2F5"],
+#socialHomeCard [style*="background: #F0F2F5"],
+#socialHomeCard [style*="background:#F7F8FA"],
+#socialHomeCard [style*="background:#FAFAFA"] {
+  background: rgba(255,255,255,0.06) !important;
+}
+#socialHomeCard [style*="border-bottom:1px solid #E4E6EB"],
+#socialHomeCard [style*="border-top:1px solid #E4E6EB"],
+#socialHomeCard [style*="border:1px solid #E4E6EB"] {
+  border-color: rgba(255,255,255,0.08) !important;
+}
+#socialHomeCard input[type="text"],
+#socialHomeCard textarea {
+  background: rgba(255,255,255,0.07) !important;
+  color: rgba(255,255,255,0.9) !important;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+#socialHomeCard input::placeholder,
+#socialHomeCard textarea::placeholder {
+  color: rgba(255,255,255,0.35) !important;
+}
+#socialHomeCard svg:not([fill="#e52d27"]):not([fill="#00c853"]):not([fill="#F7B928"]):not([fill="#0084FF"]):not([fill="url(#frGrad)"]):not([fill="url(#adminGrad)"]) {
+  filter: brightness(1.4);
+}
+
+/* ══ القائمة المنسدلة (profile dropdown) ══ */
+#profileDropdownMenu > div {
+  background: linear-gradient(160deg, rgba(8,8,20,0.98), rgba(20,8,35,0.97)) !important;
+  box-shadow: 0 -12px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(155,39,175,0.15) !important;
+}
+#profileDropdownMenu [style*="color:#050505"] { color: rgba(255,255,255,0.9) !important; }
+#profileDropdownMenu [style*="color:#65676B"] { color: rgba(255,255,255,0.45) !important; }
+#profileDropdownMenu [style*="background:#F0F2F5"],
+#profileDropdownMenu [style*="background:#E4E6EB"] {
+  background: rgba(255,255,255,0.08) !important;
+}
+#profileDropdownMenu [style*="height:1px"] {
+  background: rgba(255,255,255,0.07) !important;
+}
+#profileDropdownMenu [onmouseover] {
+  transition: background 0.15s !important;
+}
+
+/* ══ لوحة جانبية side panels ══ */
+#sideSmartKidsPanel,
+#sideMcaPanel,
+#sideYouthHallPanel {
+  background: linear-gradient(160deg, rgba(8,8,20,0.99), rgba(15,5,28,0.99)) !important;
+}
+#sideSmartKidsPanel [style*="background:white"],
+#sideMcaPanel [style*="background:white"],
+#sideYouthHallPanel [style*="background:white"] {
+  background: rgba(20,15,38,0.9) !important;
+}
+#sideSmartKidsPanel [style*="color:#050505"],
+#sideMcaPanel [style*="color:#050505"],
+#sideYouthHallPanel [style*="color:#050505"] { color: rgba(255,255,255,0.9) !important; }
+#sideSmartKidsPanel [style*="color:#65676B"],
+#sideMcaPanel [style*="color:#65676B"],
+#sideYouthHallPanel [style*="color:#65676B"] { color: rgba(255,255,255,0.5) !important; }
+
+/* ══ نبض ثلاثي الأبعاد على صندوق الكتابة ══ */
+@keyframes postBoxPulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(0,200,83,0.08) inset, 0 8px 32px rgba(0,0,0,0.35); }
+  50%       { box-shadow: 0 0 0 1px rgba(155,39,175,0.15) inset, 0 8px 40px rgba(0,0,0,0.4), 0 0 24px rgba(155,39,175,0.1); }
+}
+
+/* ══ تبويب القصص الشريط ══ */
+#storiesBar > div {
+  scrollbar-width: none !important;
+}
+
+/* ══ القصة الشخصية ══ */
+#storiesBar .story-thumb-card {
+  border: 2px solid rgba(229,45,39,0.6);
+  box-shadow: 0 0 12px rgba(229,45,39,0.3), 0 0 24px rgba(155,39,175,0.2);
+}
+
+/* ══ الألوان على نص التبويبات ══ */
+#sTab_home span   { color: #e52d27; }
+#sTab_friends span { color: rgba(255,255,255,0.6); }
+#sTab_notifs span  { color: #F7B928; }
+#sTab_pages span   { color: #00c853; }
+
+/* ══ شارة الإشعارات ══ */
+#socialNotifBadge, #socialMsgBadge {
+  border-color: rgba(8,8,20,0.9) !important;
+}
+
+/* ══ أنيماشن دخول لكل شيء ══ */
+@keyframes cdzFadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+#socialHomeCard > * {
+  animation: cdzFadeSlideUp 0.4s cubic-bezier(0.22,0.68,0,1.1) both;
+}
+
+/* ══ الشريط العلوي من الداخل ══ */
+#socialTopBar > div:first-child {
+  padding: 10px 12px 6px !important;
+}
+
+</style>
+
+<div id="socialHomeCard" style="display:none;position:fixed;inset:0;z-index:2900;flex-direction:column;overflow:hidden;">
+
+  <!-- جسيمات الخلفية المتوهجة -->
+  <div id="cdzParticles" style="position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;">
+    <div class="cdz-particle" style="width:4px;height:4px;background:#e52d27;top:15%;left:8%;opacity:0.5;animation-duration:6s;animation-delay:0s;"></div>
+    <div class="cdz-particle" style="width:3px;height:3px;background:#00c853;top:40%;left:85%;opacity:0.4;animation-duration:8s;animation-delay:1.5s;"></div>
+    <div class="cdz-particle" style="width:5px;height:5px;background:#9b27af;top:70%;left:20%;opacity:0.45;animation-duration:7s;animation-delay:0.8s;"></div>
+    <div class="cdz-particle" style="width:3px;height:3px;background:#ffffff;top:25%;left:60%;opacity:0.3;animation-duration:9s;animation-delay:2s;"></div>
+    <div class="cdz-particle" style="width:4px;height:4px;background:#e52d27;top:80%;left:70%;opacity:0.4;animation-duration:5s;animation-delay:0.4s;"></div>
+    <div class="cdz-particle" style="width:3px;height:3px;background:#00c853;top:55%;left:45%;opacity:0.35;animation-duration:10s;animation-delay:3s;"></div>
+    <div class="cdz-particle" style="width:6px;height:6px;background:#9b27af;top:10%;left:40%;opacity:0.25;animation-duration:12s;animation-delay:1s;border-radius:2px;transform:rotate(45deg);"></div>
+  </div>
+
+  <!-- ── Top Bar — التصميم الجديد ── -->
+  <div id="socialTopBar">
     <!-- Row 1: Logo + Actions -->
-    <div style="padding:8px 12px 6px;display:flex;align-items:center;gap:8px;">
-      <!-- Logo -->
-      <div style="font-size:22px;font-weight:900;background:linear-gradient(90deg,#00c853,#e53935);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;flex:1;font-family:'Tajawal',sans-serif;">Connect DZ</div>
-      <!-- Action buttons row (Facebook-like circles) -->
+    <div style="padding:10px 12px 6px;display:flex;align-items:center;gap:8px;">
+      <!-- الشعار الجديد -->
+      <div class="cdz-logo-new">Connect DZ</div>
+      <!-- أزرار الإجراءات -->
       <div style="display:flex;gap:7px;align-items:center;">
-      <!-- بطولة Next Leaders DZ — بدل البحث -->
-        <div onclick="openNldChampionship()" style="height:36px;border-radius:18px;background:linear-gradient(135deg,#FFD700,#e52d27);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;padding:0 12px;gap:5px;box-shadow:0 2px 10px rgba(255,215,0,0.45);" title="البطولة المحترفة" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
-          <span style="font-size:17px;line-height:1;">🏆</span>
-          <span style="font-size:11px;font-weight:900;color:#fff;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,0.4);">البطولة</span>
+        <!-- زر البطولة -->
+        <div class="cdz-champ-btn" onclick="openNldChampionship()" title="البطولة المحترفة">
+          <span style="font-size:16px;line-height:1;">🏆</span>
+          <span style="font-size:11px;font-weight:900;color:#fff;white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,0.5);">البطولة</span>
         </div>
-        <!-- Hamburger Menu (3 lines) -->
-        <div onclick="toggleSocialSideMenu()" id="socialMenuBtn" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:.15s;flex-shrink:0;" title="القائمة" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">
-          <span style="display:block;width:16px;height:2px;background:linear-gradient(90deg,#00c853,#e53935);border-radius:2px;"></span>
-          <span style="display:block;width:16px;height:2px;background:linear-gradient(90deg,#00c853,#e53935);border-radius:2px;"></span>
-          <span style="display:block;width:16px;height:2px;background:linear-gradient(90deg,#00c853,#e53935);border-radius:2px;"></span>
+        <!-- زر القائمة -->
+        <div class="cdz-menu-btn" onclick="toggleSocialSideMenu()" id="socialMenuBtn" title="القائمة">
+          <span class="cdz-menu-line"></span>
+          <span class="cdz-menu-line"></span>
+          <span class="cdz-menu-line"></span>
         </div>
       </div>
     </div>
-    <!-- Search bar (hidden by default) -->
+    <!-- شريط البحث -->
     <div id="socialSearchBar" style="display:none;padding:4px 12px 8px;">
-      <div style="display:flex;align-items:center;background:#F0F2F5;border-radius:22px;padding:0 14px;gap:8px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#65676B" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="socialSearchInput" type="text" placeholder="ابحث في Connect DZ…" style="flex:1;border:none;background:transparent;padding:8px 0;font-family:'Tajawal',sans-serif;font-size:14px;color:#050505;outline:none;text-align:right;" oninput="handleSocialSearch(this.value)">
-        <div onclick="toggleSocialSearch()" style="font-size:12px;font-weight:700;color:#1877F2;cursor:pointer;white-space:nowrap;">إلغاء</div>
+      <div style="display:flex;align-items:center;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:22px;padding:0 14px;gap:8px;backdrop-filter:blur(8px);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="socialSearchInput" type="text" placeholder="ابحث في Connect DZ…" style="flex:1;border:none;background:transparent;padding:8px 0;font-family:'Tajawal',sans-serif;font-size:14px;color:rgba(255,255,255,0.9);outline:none;text-align:right;" oninput="handleSocialSearch(this.value)">
+        <div onclick="toggleSocialSearch()" style="font-size:12px;font-weight:700;color:#00c853;cursor:pointer;white-space:nowrap;">إلغاء</div>
       </div>
     </div>
-    <!-- ── Top Tab Bar (Facebook-style icons) ── -->
-    <div style="display:flex;border-top:1px solid #E4E6EB;">
-      <div id="sTab_home" onclick="switchSocialTab('home')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid #1877F2;transition:.2s;position:relative;">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="#00c853"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-        <span style="font-size:9px;font-weight:800;color:#00c853;">الرئيسية</span>
+    <!-- ── تبويبات التنقل الجديدة ── -->
+    <div class="cdz-tab-bar">
+      <!-- الرئيسية -->
+      <div id="sTab_home" class="cdz-tab active-red" onclick="switchSocialTab('home')" style="border-bottom:2px solid #e52d27;">
+        <svg width="22" height="22" viewBox="0 0 24 24"><defs><linearGradient id="homeGrad3D" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#ff6b6b"/><stop offset="100%" style="stop-color:#e52d27"/></linearGradient></defs><path fill="url(#homeGrad3D)" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span class="cdz-tab-label" style="color:#e52d27;">الرئيسية</span>
       </div>
-      <div id="sTab_friends" onclick="switchSocialTab('friends')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;">
-        <svg width="22" height="22" viewBox="0 0 24 24"><defs><linearGradient id="frGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#00c853"/><stop offset="100%" style="stop-color:#e53935"/></linearGradient></defs><path fill="url(#frGrad)" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-        <span style="font-size:9px;font-weight:700;background:linear-gradient(90deg,#00c853,#e53935);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">الأصدقاء</span>
+      <!-- الأصدقاء -->
+      <div id="sTab_friends" class="cdz-tab" onclick="switchSocialTab('friends')" style="border-bottom:2px solid transparent;">
+        <svg width="22" height="22" viewBox="0 0 24 24"><defs><linearGradient id="frGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#00c853"/><stop offset="100%" style="stop-color:#9b27af"/></linearGradient></defs><path fill="url(#frGrad)" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        <span class="cdz-tab-label" style="color:rgba(255,255,255,0.5);">الأصدقاء</span>
       </div>
-      <div id="sTab_notifs" onclick="switchSocialTab('notifs')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="#F7B928"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-        <span style="font-size:9px;font-weight:700;color:#F7B928;">الإشعارات</span>
-        <span id="socialNotifBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;">0</span>
+      <!-- الإشعارات -->
+      <div id="sTab_notifs" class="cdz-tab" onclick="switchSocialTab('notifs')" style="border-bottom:2px solid transparent;position:relative;">
+        <svg width="22" height="22" viewBox="0 0 24 24"><defs><linearGradient id="notifGrad3D" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#ffd700"/><stop offset="100%" style="stop-color:#F7B928"/></linearGradient></defs><path fill="url(#notifGrad3D)" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <span class="cdz-tab-label" style="color:#F7B928;">الإشعارات</span>
+        <span id="socialNotifBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:linear-gradient(135deg,#e52d27,#9b27af);border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid rgba(8,8,20,0.9);padding:0 3px;font-family:'Tajawal',sans-serif;box-shadow:0 0 8px rgba(229,45,39,0.6);">0</span>
       </div>
-      <div id="sTab_pages" onclick="switchSocialTab('pages')" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;">
-        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='22' height='22' fill='#0084FF'><path d='M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z'/></svg>
-        <span style="font-size:9px;font-weight:700;color:#0084FF;">مسنجر</span>
-        <span id="socialMsgBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;"></span>
+      <!-- مسنجر -->
+      <div id="sTab_pages" class="cdz-tab" onclick="switchSocialTab('pages')" style="border-bottom:2px solid transparent;position:relative;">
+        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='22' height='22'><defs><linearGradient id="msgGrad3D" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#00c853"/><stop offset="100%" style="stop-color:#0084FF"/></linearGradient></defs><path fill='url(#msgGrad3D)' d='M12 2C6.477 2 2 6.145 2 11.243c0 2.855 1.357 5.41 3.484 7.108v3.649l3.33-1.83C9.85 20.376 10.907 20.5 12 20.5c5.523 0 10-4.145 10-9.257C22 6.145 17.523 2 12 2zm1.006 12.464l-2.55-2.717-4.97 2.717 5.468-5.804 2.611 2.717 4.909-2.717-5.468 5.804z'/></svg>
+        <span class="cdz-tab-label" style="color:#00c853;">مسنجر</span>
+        <span id="socialMsgBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:linear-gradient(135deg,#e52d27,#9b27af);border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid rgba(8,8,20,0.9);padding:0 3px;font-family:'Tajawal',sans-serif;box-shadow:0 0 8px rgba(229,45,39,0.5);"></span>
       </div>
-      <div id="sTab_myprofile" onclick="toggleProfileDropdown()" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;" title="الإدارة">
-        <!-- أيقونة الإدارة SVG — ترس + درع -->
+      <!-- الإدارة -->
+      <div id="sTab_myprofile" class="cdz-tab" onclick="toggleProfileDropdown()" style="border-bottom:2px solid transparent;" title="الإدارة">
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="url(#adminGrad)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <defs>
             <linearGradient id="adminGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#dc2626"/>
-              <stop offset="100%" style="stop-color:#f59e0b"/>
+              <stop offset="0%" style="stop-color:#e52d27"/>
+              <stop offset="100%" style="stop-color:#9b27af"/>
             </linearGradient>
           </defs>
           <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.4C17.25 22.15 21 17.25 21 12V7L12 2z"/>
           <polyline points="9 12 11 14 15 10"/>
         </svg>
+        <span class="cdz-tab-label" style="background:linear-gradient(90deg,#e52d27,#9b27af);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">الإدارة</span>
       </div>
     </div>
   </div>
@@ -4545,7 +5019,7 @@ function switchLoginTab(tab){
       <div style="height:1px;background:#E4E6EB;margin:8px 0;"></div>
 
       <!-- لوحة التحكم -->
-      <div onclick="closeProfileDropdown();setTimeout(()=>{hideSocialHomeForDashboard();},200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <div onclick="closeProfileDropdown();setTimeout(()=>{hideSocialHomeForDashboard();},200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
         <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#f5a623,#e8870a);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📊</div>
         <div><div style="font-size:14px;font-weight:900;color:#050505;">لوحة التحكم</div><div style="font-size:11px;color:#65676B;">ميزات التطبيق الكاملة</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
@@ -4554,14 +5028,14 @@ function switchLoginTab(tab){
       <!-- لوحة البيانات والتفاعل — نُقلت إلى قائمة الثلاث شرطات -->
 
       <!-- النشاطات -->
-      <div onclick="closeProfileDropdown();setTimeout(()=>{showModal('activitiesCard');},200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <div onclick="closeProfileDropdown();setTimeout(()=>{showModal('activitiesCard');},200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
         <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🏅</div>
         <div><div style="font-size:14px;font-weight:900;color:#050505;">النشاطات</div><div style="font-size:11px;color:#65676B;">سجل نشاطاتك وإنجازاتك</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
       <!-- الجمهورية DZ -->
-      <div onclick="closeProfileDropdown();setTimeout(()=>openAlgeriaDZ(),200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <div onclick="closeProfileDropdown();setTimeout(()=>openAlgeriaDZ(),200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
         <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00c853,#e53935);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🇩🇿</div>
         <div><div style="font-size:14px;font-weight:900;color:#050505;">الجمهورية DZ</div><div style="font-size:11px;color:#65676B;">مؤسسات وشخصيات وأبطال الجزائر</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
@@ -4572,14 +5046,14 @@ function switchLoginTab(tab){
       <div style="height:1px;background:#E4E6EB;margin:4px 0;"></div>
 
       <!-- الإعدادات والخصوصية -->
-      <div onclick="closeProfileDropdown();openSideMenuItem('settings');" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <div onclick="closeProfileDropdown();openSideMenuItem('settings');" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
         <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">⚙️</div>
         <div><div style="font-size:14px;font-weight:900;color:#050505;">الإعدادات والخصوصية</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
       <!-- اللغة -->
-      <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
         <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🌐</div>
         <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#050505;">اللغة</div><div id="pdCurrentLang" style="font-size:11px;color:#65676B;">العربية 🇩🇿</div></div>
         <div style="display:flex;gap:8px;align-items:center;">
@@ -4590,7 +5064,7 @@ function switchLoginTab(tab){
       </div>
 
       <!-- خصوصية الظهور -->
-      <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
         <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#fc4a1a,#f7b733);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👁️</div>
         <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#050505;">خصوصية الظهور</div><div style="font-size:11px;color:#65676B;">تحكم من يراك</div></div>
         <div id="pdVisibilityToggle" onclick="toggleProfileVisibility()" style="width:44px;height:24px;border-radius:12px;background:#1877F2;cursor:pointer;position:relative;transition:.3s;flex-shrink:0;">
@@ -4614,7 +5088,7 @@ function switchLoginTab(tab){
   <!-- ── Side Menu Overlay ── -->
   <div id="socialSideMenuOverlay" onclick="closeSocialSideMenu()" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:50;"></div>
   <!-- ── Side Menu Drawer ── -->
-  <div id="socialSideMenu" style="display:none;position:absolute;top:0;left:0;width:78%;max-width:300px;height:100%;background:white;z-index:51;flex-direction:column;box-shadow:4px 0 24px rgba(0,0,0,0.18);animation:slideInLeft .25s ease;overflow-y:auto;">
+  <div id="socialSideMenu" style="display:none;position:absolute;top:0;left:0;width:78%;max-width:300px;height:100%;background:linear-gradient(160deg,rgba(8,8,20,0.99),rgba(18,6,32,0.99));border-left:1px solid rgba(155,39,175,0.2);z-index:51;flex-direction:column;box-shadow:4px 0 40px rgba(0,0,0,0.7),0 0 80px rgba(155,39,175,0.1);animation:slideInLeft .25s ease;overflow-y:auto;backdrop-filter:blur(32px);">
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#00c853,#e53935);padding:24px 18px 18px;color:white;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
@@ -4629,25 +5103,25 @@ function switchLoginTab(tab){
     <!-- Menu Items -->
     <div style="padding:8px 0;">
       <!-- الإعدادات والخصوصية -->
-      <div onclick="openSideMenuItem('settings')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <div onclick="openSideMenuItem('settings')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:18px;">⚙️</div>
         <div><div style="font-size:14px;font-weight:800;color:#050505;">الإعدادات والخصوصية</div><div style="font-size:11px;color:#65676B;">تحكم في حسابك وبياناتك</div></div>
       </div>
 
       <!-- المعرض -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>{ _iconEnter('gallery_open');window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3'); },200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <div onclick="closeSocialSideMenu();setTimeout(()=>{ _iconEnter('gallery_open');window.open('https://drive.google.com/drive/folders/1Ohqm-j25-AgqG3eyfSRdsb3jxubxwhP3'); },200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:18px;">🖼️</div>
         <div><div style="font-size:14px;font-weight:800;color:#050505;">المعرض</div><div style="font-size:11px;color:#65676B;">معرض الصور والفيديوهات</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
       <!-- لوحة البيانات والتفاعل -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>openDataInteractionPanel(),200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <div onclick="closeSocialSideMenu();setTimeout(()=>openDataInteractionPanel(),200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;">📈</div>
         <div><div style="font-size:14px;font-weight:800;color:#050505;">لوحة البيانات والتفاعل</div><div style="font-size:11px;color:#65676B;">إحصائياتك ونقاطك ومستواك</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
       <!-- الألعاب -->
-      <div onclick="openSideMenuItem('games')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <div onclick="openSideMenuItem('games')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:18px;">🎮</div>
         <div><div style="font-size:14px;font-weight:800;color:#050505;">الألعاب</div><div style="font-size:11px;color:#65676B;">العب وتسلى مع الأعضاء</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
@@ -4655,14 +5129,14 @@ function switchLoginTab(tab){
       <!-- اجمع النقاط — موجود في لوحة التحكم فقط -->
       <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
       <!-- Smart Kids Lab -->
-      <div onclick="openSideMenuItem('smart_kids')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <div onclick="openSideMenuItem('smart_kids')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#00c6ff,#0072ff);display:flex;align-items:center;justify-content:center;font-size:18px;">🧠</div>
         <div><div style="font-size:14px;font-weight:800;color:#050505;">Smart Kids Lab</div><div style="font-size:11px;color:#65676B;">مختبر الأطفال الأذكياء</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
       <!-- القاعة متعددة الخدمات للشباب بودغن -->
-      <div onclick="openSideMenuItem('youth_hall')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <div onclick="openSideMenuItem('youth_hall')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:18px;">🏛️</div>
         <div><div style="font-size:14px;font-weight:800;color:#050505;">قاعة الشباب بودغن</div><div style="font-size:11px;color:#65676B;">القاعة متعددة الخدمات</div></div>
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
@@ -4671,7 +5145,7 @@ function switchLoginTab(tab){
       <!-- البطولة المحترفة — نُقلت إلى الشريط العلوي -->
       <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
       <!-- اللغة -->
-      <div onclick="toggleSideLanguagePanel()" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+      <div onclick="toggleSideLanguagePanel()" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
         <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:18px;">🌐</div>
         <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">اللغة</div><div id="sideCurrentLangLabel" style="font-size:11px;color:#65676B;">العربية 🇩🇿</div></div>
         <div id="sideLangChevron" style="font-size:18px;color:#BCC0C4;">›</div>
@@ -4955,9 +5429,9 @@ function switchLoginTab(tab){
           <div onclick="openSocialCreatePost()" style="flex:1;background:#F0F2F5;border-radius:22px;padding:10px 16px;font-size:13px;color:#65676B;cursor:pointer;font-family:'Tajawal',sans-serif;">💬 واش راك حاب تقول؟ شارك أفكارك…</div>
         </div>
         <div style="display:flex;border-top:1px solid #E4E6EB;padding-top:8px;gap:4px;">
-          <div onclick="openSocialCreatePost('photo')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🖼️ صورة</div>
-          <div onclick="openSocialCreatePost('feeling')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">😊 شعور</div>
-          <div onclick="openSocialCreatePost('achievement')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F3425F;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🏆 إنجاز</div>
+          <div onclick="openSocialCreatePost('photo')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">🖼️ صورة</div>
+          <div onclick="openSocialCreatePost('feeling')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">😊 شعور</div>
+          <div onclick="openSocialCreatePost('achievement')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F3425F;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">🏆 إنجاز</div>
         </div>
       </div>
 
@@ -5013,11 +5487,11 @@ function switchLoginTab(tab){
           <div id="smPlusBtn" onclick="toggleSmPlusMenu()" title="جديد" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,120,255,0.35);font-size:22px;font-weight:900;color:white;line-height:1;">+</div>
           <!-- قائمة الاختيارات -->
           <div id="smPlusMenu" style="display:none;position:absolute;bottom:48px;left:0;background:white;border:1px solid #E4E6EB;border-radius:18px;padding:8px;box-shadow:0 -8px 32px rgba(0,0,0,0.18);z-index:10000;min-width:200px;animation:fadeUp .2s ease;">
-            <div onclick="closeSocialSideMenu();closeSmPlusMenu();showNewChatScreen();" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;color:#1C1E21;font-family:'Tajawal',sans-serif;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+            <div onclick="closeSocialSideMenu();closeSmPlusMenu();showNewChatScreen();" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;color:#1C1E21;font-family:'Tajawal',sans-serif;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
               <span style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0099ff,#0055cc);display:flex;align-items:center;justify-content:center;font-size:18px;">💬</span>
               محادثة جديدة
             </div>
-            <div onclick="closeSmPlusMenu();openCreateGroupScreen();" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;color:#1C1E21;font-family:'Tajawal',sans-serif;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+            <div onclick="closeSmPlusMenu();openCreateGroupScreen();" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;color:#1C1E21;font-family:'Tajawal',sans-serif;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
               <span style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;">👥</span>
               إنشاء مجموعة
             </div>
@@ -5466,9 +5940,9 @@ function switchLoginTab(tab){
           <div onclick="openCreatePost()" style="flex:1;background:#F0F2F5;border-radius:22px;padding:10px 16px;font-size:13px;color:#65676B;cursor:pointer;font-family:'Tajawal',sans-serif;">بماذا تفكر؟</div>
         </div>
         <div style="display:flex;border-top:1px solid #E4E6EB;padding-top:8px;gap:4px;">
-          <div onclick="openCreatePost('photo')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🖼️ صورة</div>
-          <div onclick="openCreatePost('feeling')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">😊 شعور</div>
-          <div onclick="openCreatePost('achievement')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F3425F;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">🏆 إنجاز</div>
+          <div onclick="openCreatePost('photo')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#45BD62;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">🖼️ صورة</div>
+          <div onclick="openCreatePost('feeling')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F7B928;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">😊 شعور</div>
+          <div onclick="openCreatePost('achievement')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#F3425F;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">🏆 إنجاز</div>
         </div>
       </div>
 
@@ -8155,8 +8629,8 @@ function showProfileEditMenu(){
   n.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5000;display:flex;align-items:flex-end;justify-content:center;';
   n.innerHTML=`<div style="background:white;width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:20px;animation:slideUp .3s ease;">
     <div style="font-size:16px;font-weight:900;color:#050505;margin-bottom:14px;text-align:center;">تعديل ملفك الشخصي</div>
-    <div onclick="document.getElementById('profilePhotoInput').click();this.closest('[style*=fixed]').remove();" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=''">📷 تغيير صورة الملف الشخصي</div>
-    <div onclick="document.getElementById('coverPhotoInput').click();this.closest('[style*=fixed]').remove();" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=''">🖼️ تغيير صورة الغلاف</div>
+    <div onclick="document.getElementById('profilePhotoInput').click();this.closest('[style*=fixed]').remove();" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#050505;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background=''">📷 تغيير صورة الملف الشخصي</div>
+    <div onclick="document.getElementById('coverPhotoInput').click();this.closest('[style*=fixed]').remove();" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#050505;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background=''">🖼️ تغيير صورة الغلاف</div>
     <div onclick="resetMemberFiles()" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;color:#e53935;" onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background=''">🔄 إعادة تسجيل الملفات (تصفير)</div>
     <div onclick="this.closest('[style*=fixed]').remove();" style="margin-top:8px;padding:12px;background:#F0F2F5;border-radius:12px;text-align:center;font-size:14px;font-weight:700;color:#65676B;cursor:pointer;">إلغاء</div>
   </div>`;
@@ -8271,15 +8745,15 @@ function renderProfilePosts(name){
       ${totalReacts>0||comments.length>0?`<div style="padding:6px 0;display:flex;justify-content:space-between;border-top:1px solid #F0F2F5;margin-top:8px;"><div style="font-size:12px;color:#65676B;">${totalReacts>0?getTopReactEmojis(reactions)+' '+totalReacts:''} ${totalReacts>0&&comments.length>0?'·':''} ${comments.length>0?comments.length+' تعليق':''}</div></div>`:''}
       <div style="display:flex;border-top:1px solid #E4E6EB;margin-top:8px;padding-top:2px;gap:4px;">
         <div style="position:relative;flex:1;">
-          <div onclick="toggleReactPicker('${postId}')" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:${myReact?'#1877F2':'#65676B'};transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+          <div onclick="toggleReactPicker('${postId}')" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:${myReact?'#1877F2':'#65676B'};transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
             ${myReact||'👍'} ${myReact?'معجب':'إعجاب'}
           </div>
           <div id="reactPicker_${postId}" style="display:none;position:absolute;bottom:40px;left:50%;transform:translateX(-50%);background:white;border-radius:30px;padding:8px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);display:flex;gap:8px;z-index:100;border:1px solid #E4E6EB;white-space:nowrap;">
             ${reactEmojis.map(e=>`<span onclick="addProfilePostReaction('${name}',${i},'${e}')" style="font-size:24px;cursor:pointer;transition:.15s;display:inline-block;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`).join('')}
           </div>
         </div>
-        <div onclick="toggleComments('${postId}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">💬 تعليق</div>
-        <div onclick="shareProfilePost('${name}',${i})" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">↗️ مشاركة</div>
+        <div onclick="toggleComments('${postId}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">💬 تعليق</div>
+        <div onclick="shareProfilePost('${name}',${i})" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">↗️ مشاركة</div>
       </div>
       <div id="commentsSection_${postId}" style="display:none;padding:8px 0 4px;background:#FAFAFA;border-top:1px solid #F0F2F5;">
         ${comments.map(c=>renderCommentItem(c)).join('')}
@@ -16032,15 +16506,15 @@ function renderSocialPostCard(p){
           <div onclick="togglePostMenu('${p.id}')" style="width:32px;height:32px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:900;color:#65676B;letter-spacing:1px;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">⋮</div>
           <div id="postMenu_${p.id}" style="display:none;position:absolute;top:36px;left:0;background:white;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,0.18);z-index:300;min-width:200px;overflow:hidden;border:1px solid #E4E6EB;animation:fadeIn .15s ease;">
             ${isOwner ? `
-            <div onclick="editSocialPost('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+            <div onclick="editSocialPost('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
               <span style="font-size:18px;">✏️</span> تعديل المنشور
             </div>
             <div style="height:1px;background:#F0F2F5;margin:0 12px;"></div>
-            <div onclick="changePostPrivacy('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+            <div onclick="changePostPrivacy('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
               <span style="font-size:18px;">🔒</span> تعديل خصوصية المنشور
             </div>
             <div style="height:1px;background:#F0F2F5;margin:0 12px;"></div>
-            <div onclick="copyPostLink('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+            <div onclick="copyPostLink('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
               <span style="font-size:18px;">🔗</span> نسخ رابط المنشور
             </div>
             <div style="height:1px;background:#F0F2F5;margin:0 12px;"></div>
@@ -16050,7 +16524,7 @@ function renderSocialPostCard(p){
             <div onclick="window.openArchivedPosts();closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#1877F2;transition:.15s;" onmouseover="this.style.background='#F0F7FF'" onmouseout="this.style.background='transparent'">
               <span style="font-size:18px;">↩️</span> عرض المنشورات المؤرشفة
             </div>` : `
-            <div onclick="copyPostLink('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+            <div onclick="copyPostLink('${p.id}');closeAllPostMenus()" style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:700;color:#050505;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
               <span style="font-size:18px;">🔗</span> نسخ رابط المنشور
             </div>`}
           </div>
@@ -16089,8 +16563,8 @@ function renderSocialPostCard(p){
           ${reactEmojis.map(e=>`<span onclick="addReaction('${p.id}','${e}')" style="font-size:32px;cursor:pointer;transition:.15s;display:inline-block;line-height:1;" onmouseover="this.style.transform='scale(1.4) translateY(-5px)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`).join('')}
         </div>
       </div>
-      <div onclick="openCommentsModal('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">💬 تعليق</div>
-      <div onclick="sharePost('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">↗️ مشاركة</div>
+      <div onclick="openCommentsModal('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">💬 تعليق</div>
+      <div onclick="sharePost('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">↗️ مشاركة</div>
       <div onclick="showPostViewStats('${p.id}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;color:#6366f1;transition:.15s;border-right:1px solid #E4E6EB;" onmouseover="this.style.background='#f0f0ff'" onmouseout="this.style.background='transparent'">👁️ <span id="postViews_${p.id}">${(p.views||0)}</span></div>
     </div>
 
@@ -17195,7 +17669,7 @@ function openScpPrivacyPicker(){
   const ov = document.createElement('div');
   ov.id = '_scpPrivacyOverlay';
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:flex-end;justify-content:center;';
-  ov.innerHTML = `<div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:18px 16px 32px;"><div style="width:36px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 16px;"></div><div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:14px;text-align:center;">خصوصية المنشور</div>${options.map(o=>`<div onclick="setScpPrivacy('${o.label}')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;cursor:pointer;margin-bottom:6px;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'"><span style="font-size:20px;">${o.label.split(' ')[0]}</span><div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">${o.label}</div><div style="font-size:11px;color:#65676B;">${o.desc}</div></div>${_scpPrivacy===o.label?'<span style="color:#1877F2;font-size:18px;font-weight:900;">✓</span>':''}</div>`).join('')}<button onclick="document.getElementById('_scpPrivacyOverlay').remove()" style="width:100%;padding:12px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#65676B;cursor:pointer;margin-top:6px;">إلغاء</button></div>`;
+  ov.innerHTML = `<div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:18px 16px 32px;"><div style="width:36px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 16px;"></div><div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:14px;text-align:center;">خصوصية المنشور</div>${options.map(o=>`<div onclick="setScpPrivacy('${o.label}')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;cursor:pointer;margin-bottom:6px;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'"><span style="font-size:20px;">${o.label.split(' ')[0]}</span><div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">${o.label}</div><div style="font-size:11px;color:#65676B;">${o.desc}</div></div>${_scpPrivacy===o.label?'<span style="color:#1877F2;font-size:18px;font-weight:900;">✓</span>':''}</div>`).join('')}<button onclick="document.getElementById('_scpPrivacyOverlay').remove()" style="width:100%;padding:12px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#65676B;cursor:pointer;margin-top:6px;">إلغاء</button></div>`;
   ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
   document.body.appendChild(ov);
 }
@@ -17216,7 +17690,7 @@ function openScpLocationPicker(){
     <div style="width:36px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 14px;"></div>
     <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:12px;text-align:center;">📍 أضف موقعك</div>
     <input id="_scpLocSearch" placeholder="ابحث عن مدينة..." style="width:100%;padding:10px 14px;border:1.5px solid #E4E6EB;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box;text-align:right;" oninput="_filterScpLoc(this.value)">
-    <div id="_scpLocList">${locations.map(l=>`<div onclick="setScpLocation('${l}')" style="padding:11px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">📍 ${l}</div>`).join('')}</div>
+    <div id="_scpLocList">${locations.map(l=>`<div onclick="setScpLocation('${l}')" style="padding:11px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;color:#050505;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">📍 ${l}</div>`).join('')}</div>
     <button onclick="document.getElementById('_scpLocOverlay').remove()" style="width:100%;padding:12px;background:#F0F2F5;border:none;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;color:#65676B;cursor:pointer;margin-top:8px;">إلغاء</button>
   </div>`;
   ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
@@ -17287,7 +17761,7 @@ function openScpTagFriend(){
   ov.innerHTML=`<div style="width:100%;max-width:480px;background:white;border-radius:20px 20px 0 0;padding:18px 16px 32px;max-height:60vh;overflow-y:auto;">
     <div style="width:36px;height:4px;background:#E4E6EB;border-radius:10px;margin:0 auto 14px;"></div>
     <div style="font-size:15px;font-weight:900;color:#050505;margin-bottom:12px;text-align:center;">🏷️ وسم صديق</div>
-    ${friends.map(f=>`<div onclick="toggleScpTag('${f.replace(/'/g,"\'")}');this.style.background=_scpTaggedFriends.includes('${f.replace(/'/g,"\'")}')?' #EEF4FF':'transparent';" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;color:#050505;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background=_scpTaggedFriends.includes('${f.replace(/'/g,"\'")}')?' #EEF4FF':'transparent'">
+    ${friends.map(f=>`<div onclick="toggleScpTag('${f.replace(/'/g,"\'")}');this.style.background=_scpTaggedFriends.includes('${f.replace(/'/g,"\'")}')?' #EEF4FF':'transparent';" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;color:#050505;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background=_scpTaggedFriends.includes('${f.replace(/'/g,"\'")}')?' #EEF4FF':'transparent'">
       <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(f):'👑'}</div>
       <span style="flex:1;">${f}</span>
       <span id="_tagCheck_${f.replace(/\s+/g,'_')}" style="font-size:18px;color:#1877F2;">${_scpTaggedFriends.includes(f)?'✓':''}</span>
@@ -19375,10 +19849,10 @@ function renderReelsPanel(){
         </div>` : ''}
       ${r.image && !r.videoData && !r.videoUrl ? `<img loading="lazy" src="${r.image}" style="width:100%;max-height:380px;object-fit:cover;display:block;" alt="ريلز">` : ''}
       <div style="padding:8px 14px;display:flex;gap:16px;border-top:1px solid #F0F2F5;">
-        <div onclick="reelLike('${r.id}')" id="reelLike_${r.id}" style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;padding:6px 10px;border-radius:8px;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div onclick="reelLike('${r.id}')" id="reelLike_${r.id}" style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;padding:6px 10px;border-radius:8px;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
           👍 <span id="reelLikeCount_${r.id}">${(r.likes||[]).length}</span>
         </div>
-        <div onclick="shareReelPost('${r.id}')" style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;padding:6px 10px;border-radius:8px;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">↗️ مشاركة</div>
+        <div onclick="shareReelPost('${r.id}')" style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;font-weight:700;color:#65676B;padding:6px 10px;border-radius:8px;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">↗️ مشاركة</div>
       </div>
     </div>`).join('');
 }
@@ -33175,8 +33649,8 @@ function renderDivision(divIdx, allMembers){
     const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
     const borderL = isPromo ? '3px solid #22c55e' : isRelg ? '3px solid #ef4444' : '3px solid transparent';
-    const promoBadge = isPromo ? '<span style="font-size:11px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #22c55e;">⬆️ صعود</span>' : '';
-    const relegBadge = isRelg ? '<span style="font-size:11px;font-weight:900;color:#ef4444;background:rgba(239,68,68,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #ef4444;">⬇️ نزول</span>' : '';
+    const promoBadge = isPromo ? '<span style="font-size:10px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.15);border-radius:6px;padding:2px 6px;">↑ صعود</span>' : '';
+    const relegBadge = isRelg ? '<span style="font-size:10px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.12);border-radius:6px;padding:2px 6px;">↓ هبوط</span>' : '';
     const meBadge = isMe ? '<span style="font-size:10px;font-weight:900;color:#00e5a0;background:rgba(0,229,160,0.15);border-radius:6px;padding:2px 6px;">✦ أنت</span>' : '';
 
     const photo = typeof localStorage!=='undefined' ? localStorage.getItem('nld_photo_'+m.name.replace(/\s+/g,'_')) : null;
@@ -33227,8 +33701,8 @@ function renderDivision(divIdx, allMembers){
       <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px;">النقاط المطلوبة: ${div.rangeLabel}</div>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);">${members.length} عضو</div>
-        ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">⬆️ أوائل يصعدون</div>`:''}
-        ${divIdx<NLD_DIVISIONS.length-1?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">⬇️ آخرين ينزلون</div>`:''}
+        ${divIdx>0?`<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون</div>`:''}
+        ${divIdx<NLD_DIVISIONS.length-1?`<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ 2 أخيرين ينزلون</div>`:''}
         ${myRankBadge}
       </div>
     </div>
@@ -33497,8 +33971,8 @@ function renderDivision(divIdx, allMembers, assignments){
     const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
     const borderL = isPromo ? '3px solid #22c55e' : isRelg ? '3px solid #ef4444' : '3px solid transparent';
-    const promoBadge = isPromo ? '<span style="font-size:11px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #22c55e;">⬆️ صعود</span>' : '';
-    const relegBadge = isRelg ? '<span style="font-size:11px;font-weight:900;color:#ef4444;background:rgba(239,68,68,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #ef4444;">⬇️ نزول</span>' : '';
+    const promoBadge = isPromo ? '<span style="font-size:10px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.15);border-radius:6px;padding:2px 6px;">↑ صعود</span>' : '';
+    const relegBadge = isRelg ? '<span style="font-size:10px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.12);border-radius:6px;padding:2px 6px;">↓ هبوط</span>' : '';
     const meBadge = isMe ? '<span style="font-size:10px;font-weight:900;color:#00e5a0;background:rgba(0,229,160,0.15);border-radius:6px;padding:2px 6px;">✦ أنت</span>' : '';
 
     const photo = typeof localStorage!=='undefined' ? localStorage.getItem('nld_photo_'+m.name.replace(/\s+/g,'_')) : null;
@@ -33544,9 +34018,9 @@ function renderDivision(divIdx, allMembers, assignments){
     : `<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);">${totalInDiv}/${NLD_MAX_MEMBERS} عضو</div>`) : '';
 
   const promoNote = isFull && divIdx > 0
-    ? `<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">⬆️ أعلى تنقيط يصعدون إن تفوّقوا على أدنى في القسم الأعلى</div>` : '';
+    ? `<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون إن تفوّقوا على أدنى 3 في القسم الأعلى</div>` : '';
   const relegNote = isFull && !isBeginners && divIdx < NLD_DIVISIONS.length-1
-    ? `<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">⬇️ أدنى تنقيط ينزلون إن تفوّق عليهم أعلى من القسم الأدنى</div>` : '';
+    ? `<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ 3 أخيرين ينزلون إن تفوّق عليهم أعلى 3 من القسم الأدنى</div>` : '';
   const evalNote = `<div style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:10px;padding:5px 12px;font-size:10px;font-weight:700;color:#FFA500;">📅 التقييم: نهاية الأسبوع 21:00</div>`;
 
   const hexRgb = h=>{ const m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return m?`${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)}`:'150,150,150'; };
@@ -33889,7 +34363,7 @@ function _renderShareList(names,post){
   if(!names.length){ el.innerHTML='<div style="text-align:center;padding:30px;color:#65676B;font-size:13px;">لا يوجد أعضاء</div>'; return; }
   const av=n=>typeof getMemberAvatarHtml==='function'?getMemberAvatarHtml(n,44,13,false):`<div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;">${typeof getLeaderIcon==='function'?getLeaderIcon(n):'👤'}</div>`;
   el.innerHTML=names.map(n=>`
-    <div onclick="_doShareToMember('${n.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}',this)" style="display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:12px;cursor:pointer;transition:.15s;margin-bottom:4px;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+    <div onclick="_doShareToMember('${n.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}',this)" style="display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:12px;cursor:pointer;transition:.15s;margin-bottom:4px;" onmouseover="this.style.background='rgba(255,255,255,0.07)'" onmouseout="this.style.background='transparent'">
       ${av(n)}
       <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">${n}</div><div style="font-size:11px;color:#65676B;">إرسال في المسنجر</div></div>
       <div id="shareBtn_${n.replace(/\s+/g,'_')}" style="background:linear-gradient(135deg,#1877F2,#0d5bda);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:800;color:white;flex-shrink:0;">↗️ إرسال</div>
@@ -35663,862 +36137,6 @@ console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات �
   _updateClock();
   setInterval(_updateClock, 1000);
   console.log('✅ [ConnectDZ] ساعة حية 24-ساعة — مفعّلة');
-})();
-</script>
-
-<!-- ══════════════════════════════════════════════════════════════════════
-     🚀 ConnectDZ — Smart Cache & Network Manager (v2.0)
-     ══════════════════════════════════════════════════════════════════════
-     المنطق:
-     ┌─────────────────────────────────────────────────────────────────┐
-     │ الأصول الثابتة  (CSS/JS/صور/خطوط) → Cache 1 سنة + immutable  │
-     │ المنشورات/الرسائل/الإشعارات        → no-store  (طازج دائماً) │
-     │ البيانات شبه-ثابتة (ملف عضو/نقاط) → no-cache  (تحقق أولاً)  │
-     │ Cloudinary CDN                      → Cache 30 يوم            │
-     └─────────────────────────────────────────────────────────────────┘
-     الميزات:
-     ✅ Fetch Interceptor  — يضبط cache تلقائياً لكل fetch في الكود
-     ✅ Request Deduplicator — يلغي الطلبات المكررة في نفس اللحظة
-     ✅ Smart Retry          — إعادة محاولة تلقائية عند انقطاع الشبكة
-     ✅ Offline Queue        — يحفظ الكتابات ويرسلها عند العودة
-     ✅ Memory Cache         — يخزن نتائج القراءة لتقليل طلبات Firebase
-     ✅ Visibility Refresh   — يحدّث الفيد عند العودة للتطبيق
-     ✅ Cache Busting Ready  — يدعم ?v=HASH في الأصول الثابتة
-     ══════════════════════════════════════════════════════════════════════ -->
-<script>
-(function _initCDZSmartCache(){
-  'use strict';
-
-  /* ══════════════════════════════════════════════
-     § 1 — تصنيف الـ URL
-     ══════════════════════════════════════════════ */
-  const _STATIC_PATTERNS = [
-    /fonts\.googleapis\.com/,
-    /fonts\.gstatic\.com/,
-    /res\.cloudinary\.com/,
-    /cdn\.jsdelivr\.net/,
-    /cdn\.onesignal\.com/,
-    /cdnjs\.cloudflare\.com/,
-    /\.(woff2?|ttf|eot|otf)(\?|$)/i,
-    /\.(ico|svg|webp|avif|png|jpg|jpeg|gif)(\?v=|$)/i,
-    /\.(css|js)(\?v=|$)/i
-  ];
-
-  const _REALTIME_PATTERNS = [
-    /\/social_posts/,
-    /\/messages\//,
-    /\/calls\//,
-    /\/webrtc\//,
-    /\/monitor\//,
-    /\/admin_points_gifts\//,
-    /supabase\.co\/rest\/v1\/messages/,
-    /onesignal\.com/
-  ];
-
-  const _SEMI_STATIC_PATTERNS = [
-    /\/userStats\//,
-    /\/appdata\//,
-    /\/leaderboard/,
-    /\/page_posts\//,
-    /sheetdb\.io/,
-    /sheets\.googleapis\.com/,
-    /oauth2\.googleapis\.com/
-  ];
-
-  function _classifyUrl(url){
-    const s = String(url);
-    if(_STATIC_PATTERNS.some(p => p.test(s)))   return 'static';
-    if(_REALTIME_PATTERNS.some(p => p.test(s)))  return 'realtime';
-    if(_SEMI_STATIC_PATTERNS.some(p => p.test(s))) return 'semi';
-    return 'default';
-  }
-
-  /* ══════════════════════════════════════════════
-     § 2 — In-Memory Cache للقراءات شبه-الثابتة
-     TTL: 90 ثانية — يوفّر طلبات متكررة لنفس البيانات
-     (النقاط، ملف العضو، الجدول)
-     ══════════════════════════════════════════════ */
-  const _memCache = new Map();
-  const _SEMI_TTL  = 90 * 1000; /* 90 ثانية */
-
-  function _memGet(key){
-    const entry = _memCache.get(key);
-    if(!entry) return null;
-    if(Date.now() - entry.ts > _SEMI_TTL){ _memCache.delete(key); return null; }
-    return entry.clone(); /* نُرجع نسخة طازجة من Response */
-  }
-
-  function _memSet(key, response){
-    /* نحفظ فقط إذا كانت الاستجابة ناجحة */
-    if(!response || !response.ok) return;
-    const clone = response.clone();
-    _memCache.set(key, { ts: Date.now(), clone: () => clone.clone() });
-  }
-
-  /* ══════════════════════════════════════════════
-     § 3 — Request Deduplicator
-     يمنع إرسال نفس الطلب مرتين في وقت واحد
-     (مشكلة شائعة في renderSocialFeed + SSE)
-     ══════════════════════════════════════════════ */
-  const _inflight = new Map();
-
-  /* ══════════════════════════════════════════════
-     § 4 — Offline Write Queue
-     يحفظ طلبات PUT/POST/DELETE عند انقطاع النت
-     ويرسلها تلقائياً عند العودة
-     ══════════════════════════════════════════════ */
-  const _QUEUE_KEY = '__cdz_offq';
-  let   _offlineQueue = [];
-
-  function _loadQueue(){
-    try{ _offlineQueue = JSON.parse(localStorage.getItem(_QUEUE_KEY) || '[]'); }
-    catch(e){ _offlineQueue = []; }
-  }
-
-  function _saveQueue(){
-    try{ localStorage.setItem(_QUEUE_KEY, JSON.stringify(_offlineQueue.slice(-50))); }
-    catch(e){ /* localStorage ممتلئ */ }
-  }
-
-  function _enqueue(url, init){
-    /* نحفظ فقط الكتابات الحيوية: نقاط + منشورات */
-    const s = String(url);
-    const isVital = /\/(userStats|social_posts|messages|appdata)\//.test(s);
-    if(!isVital) return;
-    _offlineQueue.push({ url: s, init: _serializeInit(init), ts: Date.now() });
-    _saveQueue();
-  }
-
-  function _serializeInit(init){
-    if(!init) return {};
-    const safe = { method: init.method || 'GET', headers: init.headers || {} };
-    if(init.body && typeof init.body === 'string') safe.body = init.body;
-    return safe;
-  }
-
-  async function _flushQueue(){
-    if(!_offlineQueue.length) return;
-    const pending = _offlineQueue.splice(0);
-    _saveQueue();
-    for(const item of pending){
-      try{
-        await _originalFetch(item.url, item.init);
-        console.log('[CDZ-Cache] 📤 أُرسل من القائمة:', item.url.slice(0,60));
-      }catch(e){
-        /* أعد للقائمة إذا فشل */
-        _offlineQueue.push(item);
-      }
-    }
-    if(_offlineQueue.length) _saveQueue();
-  }
-
-  /* ══════════════════════════════════════════════
-     § 5 — Fetch Interceptor الرئيسي
-     ══════════════════════════════════════════════ */
-  const _originalFetch = window.fetch.bind(window);
-
-  window.fetch = async function(input, init){
-    const url    = (input instanceof Request) ? input.url : String(input);
-    const method = ((init && init.method) || 'GET').toUpperCase();
-    const type   = _classifyUrl(url);
-
-    /* ── أ) الكتابات (PUT/POST/PATCH/DELETE) ── */
-    if(method !== 'GET' && method !== 'HEAD'){
-      if(!navigator.onLine){
-        _enqueue(url, init);
-        /* أرجع استجابة وهمية ناجحة حتى لا يكسر الكود */
-        return new Response(JSON.stringify({ queued: true }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-      /* اكتابات تذهب مباشرة بدون cache */
-      return _originalFetch(input, init);
-    }
-
-    /* ── ب) الأصول الثابتة — يتولاها المتصفح/Service Worker ── */
-    if(type === 'static'){
-      return _originalFetch(input, init);
-    }
-
-    /* ── ج) البيانات الفورية (منشورات/رسائل/مكالمات) ── */
-    if(type === 'realtime'){
-      /* no-store: لا تخزين أبداً — طازج دائماً */
-      const newInit = Object.assign({}, init, { cache: 'no-store' });
-      return _originalFetch(input, newInit);
-    }
-
-    /* ── د) البيانات شبه-الثابتة (نقاط/ملف عضو) ── */
-    if(type === 'semi'){
-      /* فحص Memory Cache أولاً */
-      const cached = _memGet(url);
-      if(cached){
-        console.log('[CDZ-Cache] ⚡ من الذاكرة:', url.slice(0,60));
-        return cached;
-      }
-
-      /* Request Deduplicator */
-      if(_inflight.has(url)){
-        return _inflight.get(url).then(r => r.clone());
-      }
-
-      const newInit = Object.assign({}, init, { cache: 'no-cache' });
-      const prom = _originalFetch(input, newInit).then(res => {
-        _memSet(url, res);
-        _inflight.delete(url);
-        return res;
-      }).catch(err => {
-        _inflight.delete(url);
-        throw err;
-      });
-
-      _inflight.set(url, prom);
-      return prom;
-    }
-
-    /* ── هـ) افتراضي — no-cache (تحقق أولاً) ── */
-    const defInit = Object.assign({}, init, { cache: 'no-cache' });
-    return _originalFetch(input, defInit);
-  };
-
-  /* ══════════════════════════════════════════════
-     § 6 — Smart Retry عند انقطاع الشبكة
-     يحاول 3 مرات مع تأخير تصاعدي (500ms, 1s, 2s)
-     ══════════════════════════════════════════════ */
-  const _origFetchNow = window.fetch;
-  window.fetch = async function(input, init){
-    const method = ((init && init.method) || 'GET').toUpperCase();
-    /* الـ retry فقط للقراءات */
-    if(method !== 'GET' && method !== 'HEAD'){
-      return _origFetchNow(input, init);
-    }
-    const delays = [500, 1000, 2000];
-    let lastErr;
-    for(let i = 0; i <= delays.length; i++){
-      try{
-        return await _origFetchNow(input, init);
-      }catch(err){
-        lastErr = err;
-        if(i < delays.length){
-          await new Promise(r => setTimeout(r, delays[i]));
-        }
-      }
-    }
-    throw lastErr;
-  };
-
-  /* ══════════════════════════════════════════════
-     § 7 — Visibility Refresh
-     عند العودة للتطبيق بعد الخلفية → تحديث الفيد
-     ══════════════════════════════════════════════ */
-  let _lastHidden = 0;
-  const _REFRESH_AFTER = 5 * 60 * 1000; /* 5 دقائق */
-
-  document.addEventListener('visibilitychange', function(){
-    if(document.hidden){
-      _lastHidden = Date.now();
-      return;
-    }
-    /* عاد المستخدم بعد 5+ دقائق */
-    if(_lastHidden && (Date.now() - _lastHidden) > _REFRESH_AFTER){
-      /* تنظيف Memory Cache → يجبر على جلب جديد */
-      _memCache.clear();
-      console.log('[CDZ-Cache] 👁 عودة من الخلفية — تنظيف الكاش');
-
-      /* تحديث الفيد إذا كان ظاهراً */
-      const container = document.getElementById('socialFeedContainer');
-      if(container && container.offsetParent !== null){
-        if(typeof renderSocialFeed === 'function'){
-          setTimeout(renderSocialFeed, 300);
-        }
-      }
-    }
-
-    /* إرسال القائمة المعلقة إذا عادت الشبكة */
-    if(navigator.onLine) _flushQueue();
-  });
-
-  /* ══════════════════════════════════════════════
-     § 8 — Online Event: إرسال القائمة فور العودة
-     ══════════════════════════════════════════════ */
-  window.addEventListener('online', function(){
-    console.log('[CDZ-Cache] 📶 الشبكة عادت — إرسال القائمة المعلقة');
-    setTimeout(_flushQueue, 1000);
-    /* تحديث فوري لعداد الرسائل */
-    if(typeof refreshSocialMsgBadge === 'function') refreshSocialMsgBadge();
-  });
-
-  window.addEventListener('offline', function(){
-    console.log('[CDZ-Cache] 📴 انقطع الإنترنت — وضع الحفظ مفعّل');
-  });
-
-  /* ══════════════════════════════════════════════
-     § 9 — تصدير أدوات للاستخدام الخارجي
-     ══════════════════════════════════════════════ */
-
-  /* مسح كاش عضو معين (بعد تحديث نقاطه مثلاً) */
-  window._cdzCacheClear = function(urlFragment){
-    _memCache.forEach((v, k) => {
-      if(!urlFragment || k.includes(urlFragment)){
-        _memCache.delete(k);
-      }
-    });
-    console.log('[CDZ-Cache] 🧹 تم مسح الكاش:', urlFragment || 'الكل');
-  };
-
-  /* استعراض حالة الكاش في Console */
-  window._cdzCacheStatus = function(){
-    const entries = [];
-    _memCache.forEach((v, k) => {
-      const age = Math.round((Date.now() - v.ts) / 1000);
-      entries.push({ url: k.slice(0, 70), age: age + 'ث' });
-    });
-    console.table(entries);
-    console.log('[CDZ-Cache] قائمة الانتظار:', _offlineQueue.length, 'عنصر');
-  };
-
-  /* ربط مسح كاش نقاط العضو بعد إرسال النقاط */
-  const _prevSyncLB = window.syncLeaderboard;
-  if(typeof _prevSyncLB === 'function'){
-    window.syncLeaderboard = async function(name){
-      await _prevSyncLB.apply(this, arguments);
-      /* مسح كاش النقاط لهذا العضو فوراً */
-      if(name) window._cdzCacheClear('userStats/' + name.replace(/\s+/g,'_'));
-    };
-  }
-
-  /* تهيئة قائمة الانتظار من localStorage */
-  _loadQueue();
-
-  console.log('✅ [ConnectDZ] Smart Cache Manager v2.0 — مفعّل');
-  console.log('   ├ الأصول الثابتة: Cache 1 سنة (متصفح/SW)');
-  console.log('   ├ المنشورات/الرسائل: no-store (طازج دائماً)');
-  console.log('   ├ النقاط/ملف العضو: Memory Cache 90ث');
-  console.log('   ├ Request Deduplication: مفعّل');
-  console.log('   ├ Smart Retry (3 محاولات): مفعّل');
-  console.log('   ├ Offline Queue: مفعّل (' + _offlineQueue.length + ' معلق)');
-  console.log('   └ Visibility Refresh (5 دقائق): مفعّل');
-
-})();
-</script>
-
-<!-- ══════════════════════════════════════════════════════════════
-     ✅ الميزات الجديدة v5.0
-     1) حظر العضو نهائياً + حذفه — لحساب المدير فقط
-     2) نظام الصعود والنزول: أسهم خضراء/حمراء + منطق الأسبوع الأول
-     3) حذف حساب شيماء سفيسيفي المكرر (>45000 نقطة)
-     4) استمرارية قسم التعليقات بعد العودة للتطبيق
-══════════════════════════════════════════════════════════════ -->
-<script>
-(function(){
-'use strict';
-
-/* ══════════════════════════════════════════════════════════════
-   ① حظر العضو نهائياً + حذفه — لحساب المدير فقط
-══════════════════════════════════════════════════════════════ */
-
-const _BANNED_KEY = 'cdz_permanently_banned';
-
-function _getBannedList(){
-  try{ return JSON.parse(localStorage.getItem(_BANNED_KEY)||'[]'); }catch{ return []; }
-}
-function _saveBannedList(list){
-  try{ localStorage.setItem(_BANNED_KEY, JSON.stringify(list)); }catch(e){}
-}
-
-/** هل هذا العضو محظور نهائياً؟ */
-window.isPermanentlyBanned = function(name){
-  if(!name) return false;
-  const list = _getBannedList();
-  return list.some(b => b.name === name);
-};
-
-/** حظر عضو نهائياً وحذف بياناته */
-window.permanentlyBanAndDelete = function(targetName){
-  const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-  if(me !== 'المدير'){
-    if(typeof showToast==='function') showToast('🔒 هذه الميزة للمدير فقط');
-    return;
-  }
-  if(!targetName || targetName === 'المدير'){
-    if(typeof showToast==='function') showToast('⚠️ اسم غير صالح');
-    return;
-  }
-
-  // نافذة تأكيد
-  const ov = document.createElement('div');
-  ov.id = '_permBanOverlay';
-  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:999999;display:flex;align-items:center;justify-content:center;font-family:Tajawal,sans-serif;';
-  ov.innerHTML = `
-    <div style="background:linear-gradient(160deg,#1a0505,#2d0a0a);border:2px solid rgba(239,68,68,0.5);border-radius:24px;padding:28px 24px;width:92%;max-width:400px;text-align:center;">
-      <div style="font-size:42px;margin-bottom:12px;">🚫</div>
-      <div style="font-size:17px;font-weight:900;color:#f87171;margin-bottom:10px;">حظر نهائي + حذف</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:20px;line-height:1.7;">
-        هل تريد حظر وحذف العضو<br>
-        <strong style="color:#fca5a5;font-size:15px;">${targetName}</strong><br>
-        نهائياً من التطبيق؟<br>
-        <span style="color:#f87171;font-size:11px;">⚠️ لا يمكن التراجع عن هذا الإجراء</span>
-      </div>
-      <div style="display:flex;gap:10px;justify-content:center;">
-        <button onclick="document.getElementById('_permBanOverlay').remove()" style="flex:1;padding:12px;border:1.5px solid rgba(255,255,255,0.2);border-radius:12px;background:rgba(255,255,255,0.08);color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:700;cursor:pointer;">إلغاء</button>
-        <button onclick="_executePermanentBan('${targetName.replace(/'/g,"\\'")}');document.getElementById('_permBanOverlay').remove()" style="flex:1;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:white;font-family:Tajawal,sans-serif;font-size:14px;font-weight:900;cursor:pointer;">🚫 حظر وحذف</button>
-      </div>
-    </div>`;
-  document.body.appendChild(ov);
-};
-
-window._executePermanentBan = function(targetName){
-  const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-  if(me !== 'المدير') return;
-
-  // 1) إضافة للقائمة السوداء
-  const list = _getBannedList();
-  if(!list.some(b=>b.name===targetName)){
-    list.push({ name: targetName, bannedAt: Date.now(), bannedBy: me });
-    _saveBannedList(list);
-  }
-
-  // 2) حذف من قاعدة المستخدمين المسجلين
-  try{
-    const REG_KEY = 'nld_registered_users';
-    const users = JSON.parse(localStorage.getItem(REG_KEY)||'[]');
-    const filtered = users.filter(u=>{
-      const fullName = ((u.firstName||'')+' '+(u.lastName||'')).trim();
-      return fullName !== targetName;
-    });
-    localStorage.setItem(REG_KEY, JSON.stringify(filtered));
-  }catch(e){}
-
-  // 3) حذف نقاطه وبياناته من localStorage
-  const normKey = targetName.replace(/\s+/g,'_');
-  const keysToDelete = [
-    'nld_pts_'+normKey,
-    'nld_interaction_'+normKey,
-    'nld_quiz_pts_'+normKey,
-    'nld_photo_'+normKey,
-    'nld_bio_'+normKey,
-    'nld_email_'+normKey,
-    'cdz_sheet_verified_'+normKey,
-    'nld_divisions_'+normKey,
-  ];
-  keysToDelete.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
-
-  // 4) حذف منشوراته من الفيد الاجتماعي
-  try{
-    const POSTS_KEY = 'nld_social_posts';
-    const posts = JSON.parse(localStorage.getItem(POSTS_KEY)||'[]');
-    const cleanPosts = posts.filter(p=>p.author !== targetName);
-    localStorage.setItem(POSTS_KEY, JSON.stringify(cleanPosts));
-  }catch(e){}
-
-  // 5) حذف من Firebase userStats
-  const fbBase = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-  fetch(`${fbBase}/userStats/${normKey}.json`,{ method:'DELETE' }).catch(()=>{});
-  fetch(`${fbBase}/nld_divisions/${normKey}.json`,{ method:'DELETE' }).catch(()=>{});
-  fetch(`${fbBase}/leaderboard/${normKey}.json`,{ method:'DELETE' }).catch(()=>{});
-
-  if(typeof showToast==='function') showToast(`🚫 تم حظر وحذف ${targetName} نهائياً`);
-
-  // 6) تحديث لوحات المدير
-  setTimeout(()=>{
-    if(typeof _afpLoadMembers==='function') _afpLoadMembers();
-    if(typeof renderSocialFeed==='function') renderSocialFeed();
-  }, 500);
-};
-
-/** منع العضو المحظور من تسجيل الدخول */
-const _origLogin = window.login;
-if(typeof _origLogin === 'function'){
-  window.login = function(){
-    // سنعترض بعد تسجيل الدخول الناجح
-    return _origLogin.apply(this, arguments);
-  };
-}
-
-/* إضافة زر الحظر النهائي لقائمة أعضاء لوحة المدير */
-const _origAfpRenderMembers = window._afpRenderMembers;
-window._afpRenderMembers = function(members){
-  const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-  const listEl = document.getElementById('afpMemberList');
-  if(!listEl){ if(typeof _origAfpRenderMembers==='function') return _origAfpRenderMembers(members); return; }
-
-  const banned = _getBannedList().map(b=>b.name);
-  listEl.innerHTML = members.map(name=>{
-    const isBanned = banned.includes(name);
-    return `<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgba(255,255,255,0.05);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
-      <div style="flex:1;font-size:13px;font-weight:700;color:${isBanned?'#6b7280':'white'};">${name}${isBanned?' <span style="font-size:10px;color:#f87171;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:1px 6px;">محظور</span>':''}</div>
-      ${me==='المدير'&&!isBanned?`<button onclick="permanentlyBanAndDelete('${name.replace(/'/g,"\\'")}');document.getElementById('afpMemberSearch').value='';_afpFilterMembers('');" style="padding:5px 10px;border:1px solid rgba(239,68,68,0.4);border-radius:8px;background:rgba(239,68,68,0.1);color:#f87171;font-family:Tajawal,sans-serif;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;">🚫 حظر نهائي</button>`:''}
-    </div>`;
-  }).join('') || '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.4);">لا توجد أعضاء</div>';
-};
-
-/* إضافة زر الحظر النهائي لقسم الأعضاء في لوحة المدير الكاملة */
-// Hook على openAdminFullPage لإضافة قسم الحظر
-const _origOpenAdminFullPage = window.openAdminFullPage;
-if(typeof _origOpenAdminFullPage === 'function'){
-  window.openAdminFullPage = function(){
-    _origOpenAdminFullPage.apply(this, arguments);
-    // إضافة قسم الحظر النهائي بعد 200ms
-    setTimeout(()=>{
-      const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-      if(me !== 'المدير') return;
-      const body = document.querySelector('.afp-body');
-      if(!body || document.getElementById('_permBanSection')) return;
-      const sec = document.createElement('div');
-      sec.className = 'afp-section';
-      sec.id = '_permBanSection';
-      sec.innerHTML = `
-        <div class="afp-section-title">🚫 حظر عضو نهائياً</div>
-        <div style="font-size:11px;color:rgba(255,100,100,0.8);background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:8px 10px;margin-bottom:10px;line-height:1.6;font-weight:600;">
-          ⚠️ الحظر النهائي يحذف العضو من التطبيق بشكل دائم ولا يمكن التراجع عنه.
-        </div>
-        <select id="_permBanSelect" class="afp-select" style="color:white;margin-bottom:8px;">
-          <option value="">👤 اختر عضو للحظر النهائي...</option>
-        </select>
-        <button class="afp-btn red" onclick="_doPermanentBanFromPanel()">🚫 حظر وحذف نهائياً</button>
-        <div id="_permBanMsg" style="display:none;margin-top:8px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;font-family:Tajawal,sans-serif;"></div>
-      `;
-      body.appendChild(sec);
-      // تعبئة القائمة
-      const users = typeof getRegUsers==='function' ? getRegUsers() : [];
-      const names = users.map(u=>((u.firstName||'')+' '+(u.lastName||'')).trim()).filter(Boolean);
-      const sel = document.getElementById('_permBanSelect');
-      if(sel){
-        sel.innerHTML = '<option value="">👤 اختر عضو للحظر النهائي...</option>' +
-          names.map(n=>`<option value="${n}">${n}</option>`).join('');
-      }
-    }, 250);
-  };
-}
-
-window._doPermanentBanFromPanel = function(){
-  const sel = document.getElementById('_permBanSelect');
-  const name = sel ? sel.value : '';
-  if(!name){
-    const m=document.getElementById('_permBanMsg');
-    if(m){m.style.display='block';m.style.background='rgba(239,68,68,0.15)';m.style.color='#fca5a5';m.style.border='1px solid rgba(239,68,68,0.3)';m.innerText='⚠️ اختر عضواً أولاً';}
-    return;
-  }
-  window.permanentlyBanAndDelete(name);
-};
-
-/* ══════════════════════════════════════════════════════════════
-   ② تحسين عرض الصعود والنزول: أسهم خضراء/حمراء واضحة
-      + منطق الأسبوع الأول: أعلى 10 يصعدون مباشرة للهاوي
-══════════════════════════════════════════════════════════════ */
-
-/* حساب رقم الأسبوع منذ بداية التطبيق */
-function _getAppWeek(){
-  // نحسب الأسبوع منذ 2025-01-01 كبداية مرجعية
-  const APP_START = new Date('2025-01-01').getTime();
-  const now = Date.now();
-  return Math.floor((now - APP_START) / (7 * 24 * 60 * 60 * 1000));
-}
-
-function _isFirstWeek(){
-  const FIRST_WEEK_KEY = 'nld_app_first_week_num';
-  const stored = localStorage.getItem(FIRST_WEEK_KEY);
-  if(!stored){
-    // أول مرة يشغّل أحد → نحفظ رقم الأسبوع الحالي كالأسبوع الأول
-    localStorage.setItem(FIRST_WEEK_KEY, String(_getAppWeek()));
-    return true;
-  }
-  return _getAppWeek() === parseInt(stored);
-}
-
-/* تجاوز renderDivision الأصلية لإضافة الأسهم والمنطق الجديد */
-const _origRenderDivision = window._nldRenderDivisionWithAssignments || null;
-
-/* نحقن في renderDivisionWithAssignments لتعديل شارات الصعود/النزول */
-// نحتاج intercept على nldChampLoadAll أو renderDivision
-// لأن renderDivision داخل IIFE، سنستخدم MutationObserver على المحتوى
-
-const _nldObserver = new MutationObserver(function(mutations){
-  for(const m of mutations){
-    for(const node of m.addedNodes){
-      if(node.nodeType !== 1) continue;
-      // إذا تم تحديث nldChampContent → نعيد تلوين الأسهم وتكبيرها
-      const content = document.getElementById('nldChampContent');
-      if(!content) continue;
-      // تحسين شارات الصعود
-      content.querySelectorAll('span').forEach(span=>{
-        const t = span.innerText || span.textContent;
-        if(t.includes('↑ صعود') && !span.dataset.enhanced){
-          span.dataset.enhanced='1';
-          span.style.cssText='font-size:12px;font-weight:900;color:#22c55e;background:rgba(0,200,83,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #22c55e;display:inline-flex;align-items:center;gap:3px;';
-          span.innerHTML='<span style="font-size:14px;">⬆️</span> صعود';
-        }
-        if((t.includes('↓ هبوط') || t.includes('↓ نزول')) && !span.dataset.enhanced){
-          span.dataset.enhanced='1';
-          span.style.cssText='font-size:12px;font-weight:900;color:#ef4444;background:rgba(229,45,39,0.18);border-radius:8px;padding:3px 8px;border:1.5px solid #ef4444;display:inline-flex;align-items:center;gap:3px;';
-          span.innerHTML='<span style="font-size:14px;">⬇️</span> نزول';
-        }
-      });
-    }
-  }
-});
-
-/* تشغيل المراقب عند تحميل الصفحة */
-document.addEventListener('DOMContentLoaded',function(){
-  const content = document.getElementById('nldChampContent');
-  if(content) _nldObserver.observe(content.parentElement||document.body,{childList:true,subtree:true});
-});
-// أيضاً الآن في حالة DOM جاهز
-setTimeout(()=>{
-  const parent = document.getElementById('nldChampionshipPanel') || document.body;
-  _nldObserver.observe(parent,{childList:true,subtree:true});
-},1000);
-
-/* Hook على nldChampLoadAll لتطبيق منطق الأسبوع الأول */
-const _origNldChampLoadAll = window.nldChampLoadAll;
-if(typeof _origNldChampLoadAll === 'function'){
-  window.nldChampLoadAll = async function(){
-    // تشغيل النسخة الأصلية أولاً
-    await _origNldChampLoadAll.apply(this, arguments);
-
-    // بعد التحميل: إذا أسبوع أول → ننقل أعلى 10 من المبتدئين للهاوي مباشرة
-    if(!_isFirstWeek()) return;
-
-    const me = typeof getCurrentUser==='function' ? getCurrentUser() : '';
-    if(me !== 'المدير') return; // فقط المدير ينفذ النقل التلقائي
-
-    const FIRST_PROMO_DONE = 'nld_first_week_promo_done';
-    if(localStorage.getItem(FIRST_PROMO_DONE) === '1') return;
-
-    const allMembers = window._nldAllMembers;
-    const assignments = window._nldAssignments;
-    if(!allMembers || !assignments) return;
-
-    // أعضاء المبتدئين فقط
-    const beginners = allMembers
-      .filter(m=>{ const k=(m.name||'').replace(/\s+/g,'_'); const asgn=assignments[k]; return !asgn || asgn.divId==='beginner'; })
-      .sort((a,b)=>b.total-a.total)
-      .slice(0,10);
-
-    if(beginners.length === 0) return;
-
-    // نقلهم للهاوي
-    const amateurDivId = 'amateur';
-    const fbBase = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
-    const updates = {};
-    beginners.forEach(m=>{
-      const k=(m.name||'').replace(/\s+/g,'_');
-      updates[k] = { divId: amateurDivId, updatedAt: Date.now(), promotedFrom:'beginner', firstWeekPromo:true };
-    });
-
-    try{
-      await fetch(`${fbBase}/nld_divisions.json`,{
-        method:'PATCH', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(updates)
-      });
-      localStorage.setItem(FIRST_PROMO_DONE,'1');
-      if(typeof showToast==='function') showToast(`🌱 تمت ترقية أعلى ${beginners.length} عضو من المبتدئين للهاوي (الأسبوع الأول)`);
-      // إعادة تحميل
-      setTimeout(()=>{ if(typeof nldChampLoadAll==='function') _origNldChampLoadAll(); }, 1000);
-    }catch(e){}
-  };
-}
-
-/* تحسين مرئي إضافي: إضافة أسهم ملونة في بطاقات الأقسام */
-(function _enhancePromoRelegBadges(){
-  // نضيف CSS إضافي
-  const style = document.createElement('style');
-  style.textContent = `
-    /* تحسين شارات الصعود والنزول في البطولة */
-    .nld-promo-badge {
-      font-size:12px!important;font-weight:900!important;
-      color:#22c55e!important;background:rgba(0,200,83,0.18)!important;
-      border-radius:8px!important;padding:3px 8px!important;
-      border:1.5px solid #22c55e!important;
-      display:inline-flex!important;align-items:center!important;gap:3px!important;
-      animation:nldPromoGlow 2s ease infinite!important;
-    }
-    .nld-relg-badge {
-      font-size:12px!important;font-weight:900!important;
-      color:#ef4444!important;background:rgba(239,68,68,0.18)!important;
-      border-radius:8px!important;padding:3px 8px!important;
-      border:1.5px solid #ef4444!important;
-      display:inline-flex!important;align-items:center!important;gap:3px!important;
-    }
-    @keyframes nldPromoGlow {
-      0%,100%{ box-shadow:0 0 0 0 rgba(34,197,94,0); }
-      50%{ box-shadow:0 0 8px 2px rgba(34,197,94,0.4); }
-    }
-  `;
-  document.head.appendChild(style);
-})();
-
-/* ══════════════════════════════════════════════════════════════
-   ③ حذف حساب شيماء سفيسيفي المكرر (>45000 نقطة) من البطولة
-      المنطق: عند تحميل البيانات، نستبعد الإدخال ذو النقاط العالية جداً
-      ونبقي فقط الحساب الثاني (الظاهر في جدول الترتيب بعد الاسم الأول)
-══════════════════════════════════════════════════════════════ */
-
-/* نعترض على loadAllMembersWithPts لفلترة شيماء ذات النقاط المرتفعة */
-const _origLoadAllMembersWithPts = window.loadAllMembersWithPts ||
-  (typeof loadAllMembersWithPts !== 'undefined' ? loadAllMembersWithPts : null);
-
-/* نستخدم hook على نتيجة nldChampLoadAll بدلاً من ذلك */
-const _origNldChampLoadAllForShaimaa = window.nldChampLoadAll;
-if(typeof _origNldChampLoadAllForShaimaa === 'function'){
-  window.nldChampLoadAll = async function(){
-    // سيتم استدعاء النسخة المعدّلة الأولى (من التغيير ②)
-    await _origNldChampLoadAllForShaimaa.apply(this, arguments);
-    // بعد التحميل، نفلتر قائمة _nldAllMembers
-    if(window._nldAllMembers && Array.isArray(window._nldAllMembers)){
-      // نجمع كل إدخالات شيماء
-      const _norm = s=>(s||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
-      const _SHAIMAA_NORM = _norm('شيماء سفيسيفي');
-      const shaimaaEntries = window._nldAllMembers.filter(m=>_norm(m.name)===_SHAIMAA_NORM || _norm(m.name).includes('شيماء'));
-      if(shaimaaEntries.length > 1){
-        // نبقي فقط الأقل نقاطاً (الحساب الحقيقي)
-        shaimaaEntries.sort((a,b)=>a.total-b.total);
-        const keepEntry = shaimaaEntries[0]; // الأقل نقاطاً = الحساب الصحيح
-        // نحذف كل إدخالات شيماء ونضيف فقط الصحيح
-        window._nldAllMembers = window._nldAllMembers.filter(m=>
-          !(_norm(m.name)===_SHAIMAA_NORM || _norm(m.name).includes('شيماء'))
-        );
-        window._nldAllMembers.push(keepEntry);
-        window._nldAllMembers.sort((a,b)=>b.total-a.total);
-      } else if(shaimaaEntries.length === 1 && shaimaaEntries[0].total > 45000){
-        // حساب واحد لكن بنقاط مرتفعة جداً → نحذفه (هو الحساب غير المسجل)
-        window._nldAllMembers = window._nldAllMembers.filter(m=>
-          !(_norm(m.name)===_SHAIMAA_NORM || _norm(m.name).includes('شيماء'))
-        );
-      }
-    }
-  };
-}
-
-/* ══════════════════════════════════════════════════════════════
-   ④ استمرارية قسم التعليقات + حفظ مسودة التعليق
-      المشكلة: عند الخروج والعودة، يختفي التعليق
-      الحل: حفظ حالة الأقسام المفتوحة + مسودة النص في localStorage
-══════════════════════════════════════════════════════════════ */
-
-const _OPEN_SECTIONS_KEY = 'cdz_open_comment_sections';
-const _COMMENT_DRAFTS_KEY = 'cdz_comment_drafts';
-
-function _getOpenSections(){
-  try{ return JSON.parse(localStorage.getItem(_OPEN_SECTIONS_KEY)||'[]'); }catch{ return []; }
-}
-function _saveOpenSections(ids){
-  try{ localStorage.setItem(_OPEN_SECTIONS_KEY, JSON.stringify(ids)); }catch(e){}
-}
-function _getDrafts(){
-  try{ return JSON.parse(localStorage.getItem(_COMMENT_DRAFTS_KEY)||'{}'); }catch{ return {}; }
-}
-function _saveDrafts(obj){
-  try{ localStorage.setItem(_COMMENT_DRAFTS_KEY, JSON.stringify(obj)); }catch(e){}
-}
-
-/* عند تغيير حالة القسم، نحفظها */
-const _origToggleComments = window.toggleComments;
-if(typeof _origToggleComments === 'function'){
-  window.toggleComments = function(postId){
-    _origToggleComments.apply(this, arguments);
-    // تحديث قائمة الأقسام المفتوحة
-    const section = document.getElementById('commentsSection_'+postId);
-    const isOpen = section && section.style.display !== 'none' && section.style.display !== '';
-    let openList = _getOpenSections();
-    if(isOpen){
-      if(!openList.includes(postId)) openList.push(postId);
-    } else {
-      openList = openList.filter(id=>id!==postId);
-    }
-    _saveOpenSections(openList);
-  };
-}
-
-/* حفظ مسودة التعليق أثناء الكتابة */
-function _initCommentDraftSaving(){
-  // نستخدم event delegation
-  document.addEventListener('input', function(e){
-    if(e.target && e.target.id && e.target.id.startsWith('commentInput_')){
-      const postId = e.target.id.replace('commentInput_','');
-      const drafts = _getDrafts();
-      if(e.target.value.trim()){
-        drafts[postId] = e.target.value;
-      } else {
-        delete drafts[postId];
-      }
-      _saveDrafts(drafts);
-    }
-  }, { passive: true });
-}
-
-/* استرجاع الحالة المحفوظة بعد إعادة الرسم */
-function _restoreCommentSections(){
-  const openList = _getOpenSections();
-  const drafts = _getDrafts();
-
-  openList.forEach(postId=>{
-    const section = document.getElementById('commentsSection_'+postId);
-    if(section && (section.style.display==='none' || !section.style.display)){
-      section.style.display = 'block';
-    }
-  });
-
-  Object.entries(drafts).forEach(([postId, text])=>{
-    const inp = document.getElementById('commentInput_'+postId);
-    if(inp && !inp.value) inp.value = text;
-  });
-}
-
-/* عند إرسال تعليق → نمسح المسودة المحفوظة */
-const _origSubmitComment = window.submitComment;
-if(typeof _origSubmitComment === 'function'){
-  window.submitComment = function(postId){
-    _origSubmitComment.apply(this, arguments);
-    // مسح المسودة لهذا المنشور
-    const drafts = _getDrafts();
-    delete drafts[postId];
-    _saveDrafts(drafts);
-    // إبقاء القسم مفتوحاً في القائمة المحفوظة
-    const openList = _getOpenSections();
-    if(!openList.includes(postId)) openList.push(postId);
-    _saveOpenSections(openList);
-  };
-}
-
-/* عند إرسال تعليق من المودال */
-const _origSubmitModalComment = window._submitModalComment;
-if(typeof _origSubmitModalComment === 'function'){
-  window._submitModalComment = function(postId){
-    _origSubmitModalComment.apply(this, arguments);
-    const drafts = _getDrafts();
-    delete drafts[postId];
-    _saveDrafts(drafts);
-  };
-}
-
-/* Hook على renderSocialFeed لاسترجاع الحالة بعد إعادة الرسم */
-const _origRenderSocialFeed = window.renderSocialFeed;
-if(typeof _origRenderSocialFeed === 'function'){
-  window.renderSocialFeed = async function(){
-    const result = await _origRenderSocialFeed.apply(this, arguments);
-    // استرجاع الأقسام المفتوحة بعد 100ms (بعد إعادة الرسم)
-    setTimeout(_restoreCommentSections, 150);
-    return result;
-  };
-}
-
-/* عند visibilitychange → لا نمسح الأقسام المفتوحة */
-// الكود الأصلي يستدعي renderSocialFeed عند العودة
-// النسخة المعدّلة ستستعيد الأقسام المفتوحة تلقائياً
-
-/* تهيئة */
-_initCommentDraftSaving();
-// استرجاع أولي بعد 1 ثانية من تحميل الصفحة
-setTimeout(_restoreCommentSections, 1000);
-
-console.log('✅ [ConnectDZ v5] الميزات الجديدة — مفعّلة');
-console.log('   ├ حظر نهائي + حذف: مفعّل (للمدير فقط)');
-console.log('   ├ أسهم الصعود/النزول المحسّنة: مفعّلة');
-console.log('   ├ منطق الأسبوع الأول (10 صاعدين للهاوي): مفعّل');
-console.log('   ├ فلترة حساب شيماء المكرر: مفعّلة');
-console.log('   └ استمرارية التعليقات: مفعّلة');
-
 })();
 </script>
 
