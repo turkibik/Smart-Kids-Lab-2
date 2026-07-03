@@ -15702,7 +15702,19 @@ window._smartPts = {
       </button>
     </div>
 
-    <div class="adm-sec-title"><i class="fa-solid fa-list-ol"></i> الترتيب الحالي</div>
+    <div class="adm-form-card">
+      <div class="afc-title"><i class="fa-solid fa-cloud-arrow-up" style="color:#34d399"></i> مزامنة نقاط الجدول → Firebase</div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,.55);margin-bottom:12px;line-height:1.7">
+        يقرأ نقاط كل عضو من Google Sheets ويحفظها في Firebase كمصدر موحّد للجميع.<br>
+        <span style="color:#fbbf24">⚠️ شغّل هذا بعد كل تحديث في الجدول.</span>
+      </div>
+      <div id="adm-sync-status" style="font-size:.75rem;color:#60a5fa;margin-bottom:10px;min-height:18px"></div>
+      <button class="adm-btn primary" onclick="admSyncSheetToFirebase()">
+        <i class="fa-solid fa-rotate"></i> مزامنة الآن
+      </button>
+    </div>
+
+    <div class="adm-sec-title"><i class="fa-solid fa-list-ol"></i> الترتيب الحالي (من Firebase)</div>
     <div class="adm-table" id="adm-tournament-table">
       <div style="text-align:center;padding:24px;color:rgba(255,255,255,.3);font-size:.82rem">جارٍ التحميل...</div>
     </div>
@@ -16337,30 +16349,65 @@ function saveTournRanks(ranks) {
 function admLoadTournament() {
   const table = document.getElementById('adm-tournament-table');
   if (!table) return;
-  if (!_admUsers.length) { fetchAdminUsers().then(() => admLoadTournament()); return; }
+  table.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(255,255,255,.4);font-size:.8rem">⏳ جارٍ جلب البيانات من Firebase...</div>';
 
+  const db    = window._firestoreDB;
+  const utils = window._firestoreUtils;
+  if (!db || !utils) {
+    // fallback: انتظر Firebase
+    waitForFirebase(admLoadTournament);
+    return;
+  }
+
+  const { collection, query, orderBy, limit, getDocs } = utils;
   const ranks = getTournRanks();
-  table.innerHTML = `
-    <div class="adm-table-hdr" style="grid-template-columns:2fr 1fr 1fr">
-      <span>المستخدم</span>
-      <span>القسم</span>
-      <span>النقاط</span>
-    </div>
-    ${_admUsers.slice(0,15).map(u => {
-      const divIdx = ranks[u.email] !== undefined ? ranks[u.email] : 0;
-      const divName = TOURN_DIVS[Math.min(divIdx, TOURN_DIVS.length-1)];
-      return `<div class="adm-user-row" style="grid-template-columns:2fr 1fr 1fr">
-        <div class="ur-info">
-          <img src="${getAvatarUrl(u)}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=1a6dff&color=fff&size=64'" />
-          <div>
-            <div class="ur-name">${u.name}</div>
-            <div class="ur-email">${u.email.split('@')[0]}</div>
-          </div>
+
+  getDocs(query(collection(db, 'users'), orderBy('points', 'desc'), limit(100)))
+    .then(snap => {
+      // منع التكرار بالـ uid
+      const seen = new Map();
+      snap.forEach(u => {
+        const d = u.data();
+        if (!seen.has(u.id) || d.points > (seen.get(u.id).points || 0)) {
+          seen.set(u.id, { ...d, _uid: u.id });
+        }
+      });
+
+      const sorted = [...seen.values()].sort((a, b) => b.points - a.points);
+      if (!sorted.length) {
+        table.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(255,255,255,.3)">لا يوجد بيانات في Firebase — شغّل المزامنة أولاً</div>';
+        return;
+      }
+
+      table.innerHTML = `
+        <div class="adm-table-hdr" style="grid-template-columns:2fr 1fr 1fr 1fr">
+          <span>المستخدم</span><span>القسم</span><span>النقاط</span><span>📊/💬/🧠</span>
         </div>
-        <div style="font-size:.75rem;color:#818cf8">${divName}</div>
-        <div class="ur-pts">${u.points.toLocaleString('ar-DZ')}</div>
-      </div>`;
-    }).join('')}`;
+        ${sorted.map((d, idx) => {
+          const divIdx  = ranks[d.email] !== undefined ? ranks[d.email] : 0;
+          const divName = TOURN_DIVS[Math.min(divIdx, TOURN_DIVS.length-1)];
+          const av = d.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name||'?')}&background=1a6dff&color=fff&size=40`;
+          return `<div class="adm-user-row" style="grid-template-columns:2fr 1fr 1fr 1fr">
+            <div class="ur-info">
+              <img src="${av}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=1a6dff&color=fff&size=40'" style="width:32px;height:32px;border-radius:50%"/>
+              <div>
+                <div class="ur-name">${(d.name||'عضو').replace(/</g,'&lt;')}</div>
+                <div class="ur-email" style="font-size:.65rem;opacity:.5">${(d.email||'').split('@')[0]}</div>
+              </div>
+            </div>
+            <div style="font-size:.75rem;color:#818cf8">${divName}</div>
+            <div class="ur-pts">${(d.points||0).toLocaleString('ar-DZ')}</div>
+            <div style="font-size:.65rem;color:rgba(255,255,255,.4)">
+              ${(d.sheetPts||0)}/${(d.interactPts||0)}/${(d.quizPts||0)}
+            </div>
+          </div>`;
+        }).join('')}`;
+    })
+    .catch(e => {
+      console.warn('admLoadTournament:', e);
+      table.innerHTML = `<div style="text-align:center;padding:16px;color:#f87171">❌ ${e.message}</div>`;
+    });
+}
 }
 
 window.admTournamentMove = function() {
@@ -18078,37 +18125,199 @@ window.fsPublishStory = async function(file) {
 // ═══════════════════════════════════════════════════════════════
 async function updateLeaderboard() {
   try {
-    const q    = query(collection(db, "users"), orderBy("points", "desc"), limit(50));
+    const q    = query(collection(db, "users"), orderBy("points", "desc"), limit(200));
     const snap = await getDocs(q);
     const tbody = document.getElementById("tourn-table-body");
     if (!tbody) return;
 
-    let html   = "";
-    let rank   = 0;
     const myUid = window._cdz_uid || "";
 
+    // ── منع التكرار: uid واحد = سطر واحد فقط ──
+    const seen = new Map(); // uid → data
     snap.forEach(u => {
-      rank++;
-      const d     = u.data();
-      const pts   = d.points || 0;
-      const av    = d.photo  || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name||"?")}&background=1a6dff&color=fff&size=40`;
-      const isMe  = u.id === myUid;
+      const d = u.data();
+      if (!d.points || d.points === 0) return;
+      if (!seen.has(u.id) || d.points > (seen.get(u.id)._pts || 0)) {
+        seen.set(u.id, { ...d, _uid: u.id, _pts: d.points || 0 });
+      }
+    });
+
+    // ترتيب تنازلي
+    const sorted = [...seen.values()].sort((a, b) => b._pts - a._pts);
+
+    let html = "";
+    sorted.forEach((d, idx) => {
+      const rank  = idx + 1;
+      const pts   = d._pts;
+      const av    = d.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name||"?")}&background=1a6dff&color=fff&size=40`;
+      const isMe  = d._uid === myUid;
       const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
       html += `
         <div class="tourn-row ${isMe ? 'tourn-me' : ''}" style="${isMe ? 'background:rgba(26,109,255,.08);border-right:3px solid var(--primary);' : ''}">
           <span style="font-weight:900;font-size:${rank<=3?'1.1rem':'.88rem'}">${medal}</span>
           <div style="display:flex;align-items:center;gap:8px">
-            <img src="${av}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid ${isMe?'var(--primary)':'var(--border)'}" />
-            <span style="font-family:var(--font-main);font-size:.82rem;font-weight:${isMe?900:700}">${escHtml(d.name||"عضو")}${isMe?' ⭐':''}</span>
+            <img src="${av}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid ${isMe?'var(--primary)':'var(--border)'}"
+                 onerror="this.src='https://ui-avatars.com/api/?name=U&background=1a6dff&color=fff&size=40'" />
+            <div style="display:flex;flex-direction:column;gap:1px">
+              <span style="font-family:var(--font-main);font-size:.82rem;font-weight:${isMe?900:700}">
+                ${escHtml(d.name||"عضو")}${isMe?' ⭐':''}
+              </span>
+              <span style="font-size:.62rem;color:var(--text-muted)">
+                📊${(d.sheetPts||0).toLocaleString("ar-DZ")}
+                💬${(d.interactPts||0).toLocaleString("ar-DZ")}
+                🧠${(d.quizPts||0).toLocaleString("ar-DZ")}
+              </span>
+            </div>
           </div>
-          <span style="font-family:var(--font-main);font-weight:900;color:var(--primary)">${pts.toLocaleString("ar-DZ")}</span>
+          <span style="font-family:var(--font-main);font-weight:900;color:var(--primary);font-size:.9rem">${pts.toLocaleString("ar-DZ")}</span>
           <span><i class="fa-solid fa-arrow-up" style="color:#16a34a;font-size:.75rem"></i></span>
         </div>`;
     });
 
-    if (html) tbody.innerHTML = html;
+    tbody.innerHTML = html || '<div style="text-align:center;padding:20px;color:var(--text-muted);font-family:var(--font-main)">لا يوجد بيانات بعد</div>';
   } catch(e) { console.warn("Leaderboard:", e); }
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  POINTS ENGINE — Firebase كمصدر الحقيقة الوحيد
+//  uid ثابت من الإيميل — لا تكرار أبداً
+// ═══════════════════════════════════════════════════════════════
+
+// uid ثابت من الإيميل
+function _getUid(email) {
+  return (email||'').trim().toLowerCase().replace(/[^a-zA-Z0-9]/g,'_');
+}
+
+// رفع نقاط المستخدم الحالي → Firebase
+// sheetPts: يُقرأ من Firebase (لا يُستبدل من localStorage)
+async function pushPointsToFirebase() {
+  const email = localStorage.getItem('cdz_user_email');
+  if (!email) return;
+  const uid  = _getUid(email);
+  window._cdz_uid = uid;
+  const name  = localStorage.getItem('cdz_user_display') || 'عضو';
+  const photo = localStorage.getItem('cdz_user_photo')   || '';
+
+  // interact + quiz من localStorage
+  const interact = parseInt(localStorage.getItem('cdz_interact_pts')||'0')||0;
+  const quiz = (() => {
+    try { return Object.values(JSON.parse(localStorage.getItem('cdz_quiz_progress')||'{}')).reduce((s,lv)=>s+(lv.earnedPts||0),0); }
+    catch(e){ return 0; }
+  })();
+
+  // sheetPts: اقرأ من Firebase أولاً
+  let sheetPts = 0;
+  try {
+    const snap = await getDoc(doc(db,'users',uid));
+    if (snap.exists()) {
+      sheetPts = snap.data().sheetPts || 0;
+    } else {
+      // أول دخول فقط: خذ من localStorage
+      sheetPts = parseInt(localStorage.getItem('cdz_user_points')||'0')||0;
+    }
+  } catch(e) {
+    sheetPts = parseInt(localStorage.getItem('cdz_user_points')||'0')||0;
+  }
+
+  // مزامنة المتغير المحلي
+  window.userSheetPts = sheetPts;
+  localStorage.setItem('cdz_user_points', String(sheetPts));
+
+  const total = sheetPts + interact + quiz;
+  try {
+    await setDoc(doc(db,'users',uid), {
+      uid, email: email.trim().toLowerCase(), name, photo,
+      sheetPts, interactPts: interact, quizPts: quiz,
+      points: total, lastUpdated: serverTimestamp()
+    }, { merge: true });
+    console.log(`✅ PushPts uid=${uid} total=${total} (sheet=${sheetPts} interact=${interact} quiz=${quiz})`);
+  } catch(e) { console.warn('pushPointsToFirebase:', e); }
+}
+window.pushPointsToFirebase = pushPointsToFirebase;
+
+// مزامنة Google Sheets → Firebase (الأدمن يشغلها يدوياً أو تلقائياً)
+window.admSyncSheetToFirebase = async function() {
+  const statusEl = document.getElementById('adm-sync-status');
+  if (statusEl) statusEl.innerHTML = '<span style="color:#60a5fa">⏳ جارٍ قراءة Google Sheets...</span>';
+  try {
+    const res  = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vS8sNG3xyNeBE4d3WVgjvA2tJ51t9eXJcqdcujS_61A79VAQaQS-9zc6i1CgILmZMOgh8BnFA7lkave/pub?gid=1279805773&single=true&output=csv&t=' + Date.now());
+    const csv  = await res.text();
+    const rows = csv.trim().split('\n');
+    if (rows.length < 2) { if (statusEl) statusEl.textContent = '⚠️ الجدول فارغ'; return; }
+
+    let synced = 0, skipped = 0;
+    for (let i = 1; i < rows.length; i++) {
+      const cols     = typeof parseAdmCSV === 'function' ? parseAdmCSV(rows[i]) : rows[i].split(',');
+      const email    = (cols[1]||'').replace(/"/g,'').trim();
+      if (!email) { skipped++; continue; }
+      const name     = (cols[2]||'').replace(/"/g,'').trim() || email.split('@')[0];
+      const photo    = (cols[7]||'').replace(/"/g,'').trim();
+      const sheetPts = parseInt((cols[21]||'0').replace(/[^\d]/g,''))||0;
+      const uid      = _getUid(email);
+
+      // احتفظ بـ interactPts و quizPts الموجودة
+      let interactPts = 0, quizPts = 0;
+      try {
+        const snap = await getDoc(doc(db,'users',uid));
+        if (snap.exists()) { interactPts = snap.data().interactPts||0; quizPts = snap.data().quizPts||0; }
+      } catch(e) {}
+
+      await setDoc(doc(db,'users',uid), {
+        uid, email: email.toLowerCase(), name, photo,
+        sheetPts, interactPts, quizPts,
+        points: sheetPts + interactPts + quizPts,
+        lastUpdated: serverTimestamp()
+      }, { merge: true });
+
+      synced++;
+      if (statusEl && synced % 5 === 0)
+        statusEl.innerHTML = `<span style="color:#60a5fa">⏳ مزامنة ${synced} عضو...</span>`;
+    }
+    if (statusEl) statusEl.innerHTML = `<span style="color:#34d399">✅ تمت المزامنة: ${synced} عضو</span>`;
+    if (typeof admToast === 'function') admToast(`✅ مزامنة ${synced} عضو مع Firebase`);
+    if (typeof admLoadTournament === 'function') admLoadTournament();
+    // تحديث اللوحة للمستخدمين أيضاً
+    updateLeaderboard();
+  } catch(e) {
+    console.error('admSyncSheetToFirebase:', e);
+    if (statusEl) statusEl.innerHTML = `<span style="color:#f87171">❌ خطأ: ${e.message}</span>`;
+  }
+};
+
+// مزامنة تلقائية كل 6 ساعات
+setInterval(() => window.admSyncSheetToFirebase && window.admSyncSheetToFirebase(), 6 * 60 * 60 * 1000);
+
+// ── Hook: تفاعل → رفع تلقائي ──
+(function() {
+  const _orig = window.addInteractionPts;
+  if (typeof _orig === 'function') {
+    window.addInteractionPts = function(pts) {
+      _orig(pts);
+      clearTimeout(window._iptTimer);
+      window._iptTimer = setTimeout(pushPointsToFirebase, 3000);
+    };
+  }
+})();
+
+// ── Hook: نهاية الكويز → رفع تلقائي ──
+(function() {
+  function tryHook() {
+    if (typeof window.saveQuizProgress !== 'function') return;
+    const _o = window.saveQuizProgress;
+    window.saveQuizProgress = function() {
+      _o.apply(this, arguments);
+      clearTimeout(window._qzTimer);
+      window._qzTimer = setTimeout(pushPointsToFirebase, 2000);
+    };
+  }
+  tryHook(); setTimeout(tryHook, 2000);
+})();
+
+// رفع عند تحميل الصفحة + كل 5 دقائق
+setTimeout(pushPointsToFirebase, 3000);
+setInterval(() => { if (localStorage.getItem('cdz_logged_in')==='1') pushPointsToFirebase(); }, 5*60*1000);
+
+console.log('✅ POINTS ENGINE: Firebase = مصدر الحقيقة الوحيد — uid ثابت — لا تكرار');
 
 // ═══════════════════════════════════════════════════════════════
 //  FLASH VIDEOS — تحميل فيديوهات ومضة من Firestore لجميع المستخدمين
@@ -22892,192 +23101,6 @@ console.log('✅ REAL_SYSTEM_PATCH_V4: نظام حقيقي شامل — منشو
 </script>
 </html>
 
-<script type="module">
-// ═══════════════════════════════════════════════════════════════
-//  POINTS SYNC PATCH — حفظ كل النقاط في Firebase + البطولة
-//  sheetPts + interactPts + quizPts = totalPts
-// ═══════════════════════════════════════════════════════════════
-
-// ── انتظر جهوزية Firebase ──
-function waitForFirebase(cb, tries = 0) {
-  if (window._firestoreDB && window._firestoreUtils) { cb(); return; }
-  if (tries > 30) { console.warn('Points Sync: Firebase timeout'); return; }
-  setTimeout(() => waitForFirebase(cb, tries + 1), 500);
-}
-
-// ── حساب الإجمالي من المصادر الثلاثة ──
-function calcTotalPts() {
-  const sheet    = parseInt(localStorage.getItem('cdz_user_points')  || '0') || 0;
-  const interact = parseInt(localStorage.getItem('cdz_interact_pts') || '0') || 0;
-  const quiz     = (() => {
-    try {
-      const prog = JSON.parse(localStorage.getItem('cdz_quiz_progress') || '{}');
-      return Object.values(prog).reduce((s, lv) => s + (lv.earnedPts || 0), 0);
-    } catch(e) { return 0; }
-  })();
-  return { sheet, interact, quiz, total: sheet + interact + quiz };
-}
-
-// ── رفع النقاط لـ Firebase (مستخدم واحد = وثيقة واحدة فقط، لا تكرار) ──
-async function pushPointsToFirebase() {
-  const email = localStorage.getItem('cdz_user_email');
-  if (!email) return;
-  // uid موحد وثابت دائماً من الإيميل
-  if (!window._cdz_uid) {
-    window._cdz_uid = email.trim().toLowerCase().replace(/[^a-zA-Z0-9]/g, '_');
-  }
-  const uid   = window._cdz_uid;
-  const name  = localStorage.getItem('cdz_user_display') || 'عضو';
-  const photo = localStorage.getItem('cdz_user_photo')   || '';
-  const { sheet, interact, quiz, total } = calcTotalPts();
-  const db = window._firestoreDB;
-  const utils = window._firestoreUtils;
-  if (!db || !utils) return;
-  const { doc, setDoc, serverTimestamp } = utils;
-  try {
-    // merge:true → نفس الوثيقة دائماً، لا تكرار، لا حذف للحقول الأخرى
-    await setDoc(doc(db, 'users', uid), {
-      uid,
-      email:       email.trim().toLowerCase(),
-      name,
-      photo,
-      sheetPts:    sheet,
-      interactPts: interact,
-      quizPts:     quiz,
-      points:      total,        // ← الإجمالي الذي تقرأه البطولة
-      lastUpdated: serverTimestamp()
-    }, { merge: true });
-    console.log(`✅ Points synced uid=${uid} total=${total} (sheet=${sheet} interact=${interact} quiz=${quiz})`);
-  } catch(e) { console.warn('pushPointsToFirebase:', e); }
-}
-
-// ── Hook: كل مرة تُضاف نقطة تفاعل → رفع Firebase ──
-(function hookInteractPts() {
-  const _orig = window.addInteractionPts;
-  if (typeof _orig === 'function') {
-    window.addInteractionPts = function(pts) {
-      _orig(pts);
-      clearTimeout(window._interactSyncTimer);
-      window._interactSyncTimer = setTimeout(() => {
-        waitForFirebase(pushPointsToFirebase);
-      }, 3000); // تأخير 3 ثوانٍ لتجميع التفاعلات
-    };
-  } else {
-    // انتظر تعريف الدالة
-    let t = 0;
-    const iv = setInterval(() => {
-      t++;
-      if (typeof window.addInteractionPts === 'function') {
-        clearInterval(iv);
-        hookInteractPts();
-      }
-      if (t > 20) clearInterval(iv);
-    }, 500);
-  }
-})();
-
-// ── Hook: نهاية الكويز → رفع Firebase ──
-(function hookQuizFinish() {
-  function tryHook() {
-    const _origSave = window.saveQuizProgress;
-    if (typeof _origSave === 'function') {
-      window.saveQuizProgress = function() {
-        _origSave.apply(this, arguments);
-        clearTimeout(window._quizSyncTimer);
-        window._quizSyncTimer = setTimeout(() => {
-          waitForFirebase(pushPointsToFirebase);
-        }, 2000);
-      };
-    }
-  }
-  // حاول فوراً وبعد تحميل الصفحة
-  tryHook();
-  document.addEventListener('DOMContentLoaded', tryHook);
-  setTimeout(tryHook, 2000);
-})();
-
-// ── رفع عند تسجيل الدخول (بعد جلب نقاط الشيت) ──
-(function hookLogin() {
-  const _origLogin = window.doLogin;
-  if (typeof _origLogin !== 'function') {
-    setTimeout(hookLogin, 1000);
-    return;
-  }
-  window.doLogin = async function() {
-    await _origLogin.apply(this, arguments);
-    // بعد نجاح تسجيل الدخول → رفع النقاط
-    setTimeout(() => waitForFirebase(pushPointsToFirebase), 2000);
-  };
-})();
-
-// ── تحديث لوحة البطولة: تجلب totalPts من Firebase ──
-async function updateLeaderboardFromFirebase() {
-  const db = window._firestoreDB;
-  const { collection, query, orderBy, limit, getDocs } = window._firestoreUtils || {};
-  if (!db || !query) return;
-  try {
-    const q    = query(collection(db, 'users'), orderBy('points', 'desc'), limit(50));
-    const snap = await getDocs(q);
-    const tbody = document.getElementById('tourn-table-body');
-    if (!tbody) return;
-    const myUid = window._cdz_uid || '';
-    let html = '', rank = 0;
-    snap.forEach(u => {
-      rank++;
-      const d     = u.data();
-      const pts   = d.points || 0;
-      if (pts === 0) return; // لا تُظهر من لا نقاط له
-      const av    = d.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name||'?')}&background=1a6dff&color=fff&size=40`;
-      const isMe  = u.id === myUid;
-      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
-      html += `
-        <div class="tourn-row ${isMe ? 'tourn-me' : ''}" style="${isMe ? 'background:rgba(26,109,255,.08);border-right:3px solid var(--primary);' : ''}">
-          <span style="font-weight:900;font-size:${rank<=3?'1.1rem':'.88rem'}">${medal}</span>
-          <div style="display:flex;align-items:center;gap:8px">
-            <img src="${av}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:2px solid ${isMe?'var(--primary)':'var(--border)'}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=1a6dff&color=fff&size=40'" />
-            <div style="display:flex;flex-direction:column;gap:1px">
-              <span style="font-family:var(--font-main);font-size:.82rem;font-weight:${isMe?900:700}">${(d.name||'عضو').replace(/</g,'&lt;')}${isMe?' ⭐':''}</span>
-              <span style="font-size:.65rem;color:var(--text-muted)">
-                📊${(d.sheetPts||0).toLocaleString('ar-DZ')}
-                💬${(d.interactPts||0).toLocaleString('ar-DZ')}
-                🧠${(d.quizPts||0).toLocaleString('ar-DZ')}
-              </span>
-            </div>
-          </div>
-          <span style="font-family:var(--font-main);font-weight:900;color:var(--primary);font-size:.9rem">${pts.toLocaleString('ar-DZ')}</span>
-          <span><i class="fa-solid fa-arrow-up" style="color:#16a34a;font-size:.75rem"></i></span>
-        </div>`;
-    });
-    if (html) tbody.innerHTML = html;
-    else tbody.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-family:var(--font-main)">لا يوجد بيانات بعد</div>';
-  } catch(e) { console.warn('updateLeaderboardFromFirebase:', e); }
-}
-
-// ── استبدال updateLeaderboard الأصلية ──
-waitForFirebase(() => {
-  window.updateLeaderboard = updateLeaderboardFromFirebase;
-  // رفع نقاط المستخدم الحالي عند الفتح
-  pushPointsToFirebase();
-  // تحديث لوحة البطولة
-  updateLeaderboardFromFirebase();
-});
-
-// ── تحديث اللوحة عند الانتقال لصفحة البطولة ──
-document.addEventListener('click', function(e) {
-  const btn = e.target.closest('[data-page]');
-  if (btn && (btn.dataset.page === 'tournament' || btn.dataset.page === 'leaderboard')) {
-    setTimeout(() => waitForFirebase(updateLeaderboardFromFirebase), 400);
-  }
-});
-
-// ── رفع دوري كل 5 دقائق ──
-setInterval(() => {
-  if (localStorage.getItem('cdz_logged_in') === '1') {
-    waitForFirebase(pushPointsToFirebase);
-  }
-}, 5 * 60 * 1000);
-
-console.log('✅ POINTS_SYNC: نقاط التفاعل + الكويز + الجدول → Firebase → البطولة');
 
 // ═══════════════════════════════════════════════════════════════
 //  CDZ POINTS ENGINE v2 — نظام التنقيط الكامل مع الحدود اليومية
@@ -23573,6 +23596,132 @@ console.log('✅ POINTS_SYNC: نقاط التفاعل + الكويز + الجد�
   };
 
   console.log('✅ GIFT_FIREBASE_CHECK: التحقق من نقاط الجدول عبر Firebase + الخصم الفوري');
+})();
+
+// ═══════════════════════════════════════════════════════════════
+//  SHEETDB SYNC — مزامنة نقاط التفاعل مع Google Sheets
+// ═══════════════════════════════════════════════════════════════
+(function SHEETDB_SYNC() {
+
+  const SHEETDB_URL = 'https://sheetdb.io/api/v1/sc1z9g0cnu62a';
+
+  // ─── جلب بيانات المستخدم من Firebase وإرسالها للشيت ───
+  async function syncUserToSheet(uid) {
+    if (!uid) return;
+    const db    = window._firestoreDB;
+    const utils = window._firestoreUtils;
+    if (!db || !utils) return;
+
+    const { doc, getDoc } = utils;
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      if (!snap.exists()) return;
+      const data = snap.data();
+
+      const username    = data.displayName || data.username || data.name || uid;
+      const interactPts = data.interactPts || 0;
+      const sheetPts    = data.sheetPts    || 0;
+      const quizPts     = data.quizPts     || 0;
+      const totalPts    = data.points      || 0;
+      const lastUpdated = new Date().toLocaleString('ar-DZ');
+
+      // تحقق إن كان المستخدم موجود في الشيت
+      const searchRes = await fetch(`${SHEETDB_URL}/search?${encodeURIComponent('الاسم واللقب')}=${encodeURIComponent(username)}`);
+      const searchData = await searchRes.json();
+
+      if (searchData && searchData.length > 0) {
+        // تحديث الصف الموجود
+        await fetch(`${SHEETDB_URL}/${encodeURIComponent('الاسم واللقب')}/${encodeURIComponent(username)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            data: {
+              'نقاط الجدول':  sheetPts,
+              'نقاط الكويز':  quizPts,
+              'نقاط التفاعل': interactPts,
+              'المجموع':       totalPts,
+              'آخر تحديث':    lastUpdated
+            }
+          })
+        });
+        console.log('✅ SheetDB: تم تحديث بيانات', username);
+      } else {
+        // إضافة صف جديد
+        await fetch(SHEETDB_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            data: [{
+              'الاسم واللقب':  username,
+              'نقاط الجدول':   sheetPts,
+              'نقاط الكويز':   quizPts,
+              'نقاط التفاعل':  interactPts,
+              'المجموع':        totalPts,
+              'آخر تحديث':     lastUpdated
+            }]
+          })
+        });
+        console.log('✅ SheetDB: تم إضافة مستخدم جديد', username);
+      }
+
+    } catch(e) {
+      console.warn('SHEETDB_SYNC error:', e);
+    }
+  }
+
+  // ─── جدولة المزامنة (بعد 3 ثواني من آخر تغيير) ───
+  let _syncTimer = null;
+  function scheduleSync() {
+    clearTimeout(_syncTimer);
+    _syncTimer = setTimeout(() => {
+      const uid = window._cdz_uid;
+      if (uid) syncUserToSheet(uid);
+    }, 3000);
+  }
+
+  // ─── ربط المزامنة مع دوال النقاط ───
+  function hookSyncOnPoints() {
+    // Hook على pushPointsToFirebase
+    const _origPush = window.pushPointsToFirebase;
+    if (typeof _origPush === 'function' && !_origPush._sheetHooked) {
+      window.pushPointsToFirebase = function() {
+        const result = _origPush.apply(this, arguments);
+        scheduleSync();
+        return result;
+      };
+      window.pushPointsToFirebase._sheetHooked = true;
+    }
+
+    // Hook على updateAllPointsDisplays
+    const _origUpdate = window.updateAllPointsDisplays;
+    if (typeof _origUpdate === 'function' && !_origUpdate._sheetHooked) {
+      window.updateAllPointsDisplays = function() {
+        const result = _origUpdate.apply(this, arguments);
+        scheduleSync();
+        return result;
+      };
+      window.updateAllPointsDisplays._sheetHooked = true;
+    }
+  }
+
+  // ─── مزامنة عند تسجيل الدخول ───
+  const _origApplySheet = window.applyUserDataToApp;
+  window.applyUserDataToApp = function() {
+    if (_origApplySheet) _origApplySheet.apply(this, arguments);
+    setTimeout(() => {
+      hookSyncOnPoints();
+      const uid = window._cdz_uid;
+      if (uid) syncUserToSheet(uid);
+    }, 3000);
+  };
+
+  // محاولات ربط الـ hooks بعد تحميل الصفحة
+  [1000, 2000, 4000].forEach(t => setTimeout(hookSyncOnPoints, t));
+
+  // تصدير الدالة للاستخدام اليدوي
+  window.syncUserToSheet = syncUserToSheet;
+
+  console.log('✅ SHEETDB_SYNC: مزامنة Google Sheets نشطة — sc1z9g0cnu62a');
 })();
 </script>
 </html>
