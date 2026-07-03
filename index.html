@@ -997,24 +997,8 @@ window.uploadStoryMusic = async function(file) {
   };
 
   /* ── تحميل البيانات من Firebase عند الفتح ── */
-  /* ✅ حد أقصى للانتظار: 1500ms — بعدها يظهر الدخول فوراً والمزامنة تكمل في الخلفية */
   showLoader();
   updateLoader(20);
-
-  let _fbLoaderDone = false;
-  function _fbDone(){
-    if(_fbLoaderDone) return;
-    _fbLoaderDone = true;
-    updateLoader(100);
-    setTimeout(hideLoader, 200);
-  }
-
-  const _fbTimeout = setTimeout(function(){
-    if(!_fbLoaderDone){
-      console.warn('⚠️ Firebase: بطيء — جارٍ إظهار الدخول فوراً والمزامنة تكمل في الخلفية');
-      _fbDone();
-    }
-  }, 1500);
 
   fetch(`${DB_URL}/appdata.json`)
     .then(r => {
@@ -1022,7 +1006,6 @@ window.uploadStoryMusic = async function(file) {
       return r.json();
     })
     .then(data => {
-      clearTimeout(_fbTimeout);
       updateLoader(90);
       if(data && typeof data === 'object'){
         Object.entries(data).forEach(([safeKey, value]) => {
@@ -1033,8 +1016,10 @@ window.uploadStoryMusic = async function(file) {
             }
           }catch(e){}
         });
+      } else {
       }
-      _fbDone();
+      updateLoader(100);
+      setTimeout(hideLoader, 300);
       /* ✅ استعادة منشورات الأعضاء من Firebase بعد اكتمال التحميل */
       setTimeout(function(){
         if(typeof window._restorePostsFromFirebase === 'function'){
@@ -1043,9 +1028,8 @@ window.uploadStoryMusic = async function(file) {
       }, 1500);
     })
     .catch(err => {
-      clearTimeout(_fbTimeout);
       console.warn('⚠️ Firebase: تعذّر التحميل، يعمل محلياً', err);
-      _fbDone();
+      hideLoader();
     });
 
   /* ── مزامنة فورية عند تغيير من تبويب آخر ── */
@@ -1059,23 +1043,25 @@ window.uploadStoryMusic = async function(file) {
     }
   });
 
-  /* ══ استعادة منشورات الأعضاء من Firebase — دائماً وليس فقط عند النقص ══ */
+  /* ══ استعادة منشورات الأعضاء من Firebase بعد التحديث ══ */
   /* يعمل بعد اكتمال تحميل Firebase لضمان جاهزية الجلسة */
   window._restorePostsFromFirebase = async function(){
     try{
       const localPosts = JSON.parse(localStorage.getItem('nld_social_posts')||'[]');
       /* قائمة الحسابات المحظورة — منشوراتها لا تُعرض */
       const _BLOCKED_AUTH = ['وفاء وفاء','لؤي عماري','لؤي','حمودي عبد المومن','حمودي عبدالمومن','حمودي عبد المؤمن'];
+      const memberLocal = localPosts.filter(function(p){ return !p.isAutoPost && !p.isActivityAd && !p.isAd && !_BLOCKED_AUTH.includes((p.author||'').trim()); });
+      /* إذا كانت منشورات الأعضاء كافية لا حاجة للاستعادة */
+      if(memberLocal.length >= 3) return;
 
-      /* نجلب دائماً من Firebase لضمان ظهور جميع المنشورات (القديمة والجديدة) */
-      console.log('🔄 [PostSync] جاري جلب كل منشورات الأعضاء من Firebase...');
-      const res = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json?orderBy="ts"&limitToLast=500');
+      console.log('🔄 [PostSync] جاري استعادة منشورات الأعضاء من Firebase...');
+      const res = await fetch('https://connectdz-49fab-default-rtdb.firebaseio.com/social_posts.json?orderBy="ts"&limitToLast=200');
       if(!res.ok) return;
       const data = await res.json();
       if(!data || typeof data !== 'object') return;
 
       const fbPosts = Object.values(data).filter(function(p){
-        /* نعيد منشورات الأعضاء كاملة — نحذف فقط منشورات الحسابات المحظورة */
+        /* ✅ نعيد منشورات الأصدقاء كاملة — نحذف فقط منشورات الحسابات المحظورة */
         return p && p.id && p.author && !p._archived && !_BLOCKED_AUTH.includes((p.author||'').trim());
       });
 
@@ -1084,13 +1070,12 @@ window.uploadStoryMusic = async function(file) {
       /* دمج مع المحلية — الحفاظ على منشورات الأصدقاء الموجودة */
       const map = new Map();
       localPosts.forEach(function(p){ if(p && p.id) map.set(p.id, p); });
-      /* المنشورات القديمة من Firebase تُضاف دائماً */
-      fbPosts.forEach(function(p){ if(p && p.id) map.set(p.id, p); }); // تحديث أو إضافة
+      fbPosts.forEach(function(p){ if(p && p.id && !map.has(p.id)) map.set(p.id, p); });
 
       const merged = Array.from(map.values()).sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
       localStorage.setItem('nld_social_posts', JSON.stringify(merged));
 
-      console.log('✅ [PostSync] تم جلب', merged.length, 'منشور من Firebase (قديمة + جديدة)');
+      console.log('✅ [PostSync] تم استعادة', merged.length, 'منشور من Firebase');
       if(typeof renderSocialFeed === 'function'){
         const feed = document.getElementById('socialFeedContainer');
         if(feed && feed.offsetParent !== null) renderSocialFeed();
@@ -4345,7 +4330,6 @@ function switchLoginTab(tab){
         <div>
           <div class="user-name" id="userNameTop">...</div>
           <div class="user-role">لوحة القيادة</div>
-          <div class="user-role" id="appLiveClock" style="font-size:12px;font-weight:800;color:var(--accent);letter-spacing:1px;">--:--</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
@@ -4470,19 +4454,22 @@ function switchLoginTab(tab){
 
   <!-- ── Top Bar (Facebook-style) ── -->
   <div id="socialTopBar" style="background:white;border-bottom:2px solid #E4E6EB;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-    <!-- Row 1: القائمة يمين + اسم التطبيق يسار + بحث -->
+    <!-- Row 1: Logo + Actions -->
     <div style="padding:8px 12px 6px;display:flex;align-items:center;gap:8px;">
-      <!-- Hamburger Menu يمين (3 شرطات) -->
-      <div onclick="toggleSocialSideMenu()" id="socialMenuBtn" style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--cdz-c1,#00c853),var(--cdz-c2,#e53935));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:.15s;flex-shrink:0;box-shadow:0 2px 8px rgba(0,200,83,0.35);" title="القائمة">
-        <span style="display:block;width:16px;height:2px;background:white;border-radius:2px;"></span>
-        <span style="display:block;width:16px;height:2px;background:white;border-radius:2px;"></span>
-        <span style="display:block;width:16px;height:2px;background:white;border-radius:2px;"></span>
-      </div>
-      <!-- اسم التطبيق يسار -->
-      <div style="font-size:20px;font-weight:900;background:linear-gradient(90deg,#00c853,#e53935);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;flex:1;font-family:'Tajawal',sans-serif;">Connect DZ</div>
-      <!-- زر البحث -->
-      <div onclick="toggleSocialSearch()" style="width:38px;height:38px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'" title="بحث">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <!-- Logo -->
+      <div style="font-size:22px;font-weight:900;background:linear-gradient(90deg,#00c853,#e53935);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;flex:1;font-family:'Tajawal',sans-serif;">Connect DZ</div>
+      <!-- Action buttons row (Facebook-like circles) -->
+      <div style="display:flex;gap:7px;align-items:center;">
+        <!-- Search -->
+        <div onclick="toggleSocialSearch()" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0;" title="بحث" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c853" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <!-- Hamburger Menu (3 lines) -->
+        <div onclick="toggleSocialSideMenu()" id="socialMenuBtn" style="width:36px;height:36px;border-radius:50%;background:#F0F2F5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:.15s;flex-shrink:0;" title="القائمة" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='#F0F2F5'">
+          <span style="display:block;width:16px;height:2px;background:linear-gradient(90deg,#00c853,#e53935);border-radius:2px;"></span>
+          <span style="display:block;width:16px;height:2px;background:linear-gradient(90deg,#00c853,#e53935);border-radius:2px;"></span>
+          <span style="display:block;width:16px;height:2px;background:linear-gradient(90deg,#00c853,#e53935);border-radius:2px;"></span>
+        </div>
       </div>
     </div>
     <!-- Search bar (hidden by default) -->
@@ -4513,23 +4500,18 @@ function switchLoginTab(tab){
         <span style="font-size:9px;font-weight:700;color:#0084FF;">مسنجر</span>
         <span id="socialMsgBadge" style="display:none;position:absolute;top:4px;left:50%;margin-left:4px;min-width:16px;height:16px;background:#e53935;border-radius:8px;font-size:9px;font-weight:900;color:white;align-items:center;justify-content:center;border:2px solid white;padding:0 3px;font-family:'Tajawal',sans-serif;"></span>
       </div>
-      <div id="sTab_myprofile" onclick="if(typeof openNLDChampionship==='function'){openNLDChampionship();}else if(typeof openNldChampionship==='function'){openNldChampionship();}" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;" title="البطولة المحترفة">
-        <!-- أيقونة البطولة المحترفة -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="url(#champGrad2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <div id="sTab_myprofile" onclick="toggleProfileDropdown()" style="flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;position:relative;" title="الإدارة">
+        <!-- أيقونة الإدارة SVG — ترس + درع -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="url(#adminGrad)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <defs>
-            <linearGradient id="champGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#FFD700"/>
-              <stop offset="100%" style="stop-color:#e52d27"/>
+            <linearGradient id="adminGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#dc2626"/>
+              <stop offset="100%" style="stop-color:#f59e0b"/>
             </linearGradient>
           </defs>
-          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-          <path d="M4 22h16"/>
-          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-          <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+          <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.4C17.25 22.15 21 17.25 21 12V7L12 2z"/>
+          <polyline points="9 12 11 14 15 10"/>
         </svg>
-        <span style="font-size:9px;font-weight:800;background:linear-gradient(90deg,#FFD700,#e52d27);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">البطولة</span>
       </div>
     </div>
   </div>
@@ -4568,7 +4550,12 @@ function switchLoginTab(tab){
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
-      <!-- لوحة البيانات والتفاعل — نُقلت إلى قائمة الثلاث شرطات -->
+      <!-- لوحة البيانات والتفاعل -->
+      <div onclick="closeProfileDropdown();setTimeout(()=>openDataInteractionPanel(),200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📈</div>
+        <div><div style="font-size:14px;font-weight:900;color:#050505;">لوحة البيانات والتفاعل</div><div style="font-size:11px;color:#65676B;">إحصائياتك ونقاطك ومستواك</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      </div>
 
       <!-- النشاطات -->
       <div onclick="closeProfileDropdown();setTimeout(()=>{showModal('activitiesCard');},200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
@@ -4584,7 +4571,12 @@ function switchLoginTab(tab){
         <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
-      <!-- البطولة المحترفة — نُقلت إلى الشريط العلوي -->
+      <!-- البطولة المحترفة Next Leaders DZ -->
+      <div onclick="closeProfileDropdown();setTimeout(()=>openNldChampionship(),200);" style="display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer;transition:.15s;background:linear-gradient(135deg,rgba(255,215,0,0.06),rgba(229,45,39,0.04));border-right:3px solid #FFD700;" onmouseover="this.style.background='linear-gradient(135deg,rgba(255,215,0,0.15),rgba(229,45,39,0.1))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(255,215,0,0.06),rgba(229,45,39,0.04))'">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#e52d27);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 14px rgba(255,215,0,0.45);">🏆</div>
+        <div><div style="font-size:14px;font-weight:900;background:linear-gradient(90deg,#e8870a,#e52d27);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">البطولة المحترفة</div><div style="font-size:11px;color:#65676B;">Next Leaders DZ — جدول الترتيب</div></div>
+        <div style="font-size:18px;color:#FFD700;margin-right:auto;">›</div>
+      </div>
 
       <div style="height:1px;background:#E4E6EB;margin:4px 0;"></div>
 
@@ -4628,386 +4620,117 @@ function switchLoginTab(tab){
   </div>
 
 
-  <!-- ══════════════════════════════════════════════
-       🌐 القائمة السفلية — نصف دائرة زجاجية
-       ══════════════════════════════════════════════ -->
-
-  <!-- زر فتح القائمة السفلية — نصف دائرة في أسفل الشاشة -->
-  <!-- ══════════════════════════════════════════
-       🌀 العجلة الدوارة العائمة — الجانب الأيسر
-       ══════════════════════════════════════════ -->
-  <style>
-  /* ═══ CSS العجلة الدوارة ═══ */
-  #wheelFloatBtn {
-    position: fixed;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 5000;
-    cursor: pointer;
-    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
-  }
-  #wheelFloatBtn:active { transform: translateY(-50%) scale(.92); }
-
-  /* نصف دائرة الزر العائم */
-  #wheelFloatBtnInner {
-    width: 52px;
-    height: 104px;
-    background: linear-gradient(180deg,var(--cdz-c1,#00c853),var(--cdz-c2,#e53935));
-    border-radius: 0 104px 104px 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 4px 0 24px rgba(0,200,83,0.45), 2px 0 12px rgba(229,57,53,0.3);
-    transition: box-shadow .3s;
-    position: relative;
-    overflow: hidden;
-  }
-  #wheelFloatBtnInner::after {
-    content:'';
-    position:absolute;
-    inset:0;
-    background:linear-gradient(180deg,rgba(255,255,255,.18),transparent);
-    pointer-events:none;
-  }
-
-  /* أيقونة الزر العائم */
-  #wheelFloatIcon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 2.5px solid rgba(255,255,255,0.85);
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    background: rgba(255,255,255,0.2);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
-    transition: transform .3s;
-  }
-  #wheelFloatBtn:hover #wheelFloatIcon { transform: scale(1.1); }
-
-  /* طبقة الخلفية الضبابية */
-  #wheelBgOverlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 4980;
-    background: rgba(0,0,0,0.55);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    animation: fadeIn .25s ease;
-  }
-
-  /* حاوية العجلة — دائرة كاملة في المنتصف */
-  #wheelContainer {
-    display: none;
-    position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 4990;
-    width: 320px;
-    height: 320px;
-  }
-
-  /* دائرة العجلة */
-  #wheelRing {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.15);
-  }
-
-  /* الأيقونة المحورية (صورة المستخدم) */
-  #wheelCenterAvatar {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%,-50%);
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    border: 3px solid white;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 30px;
-    background: linear-gradient(135deg,var(--cdz-c1,#00c853),var(--cdz-c2,#e53935));
-    box-shadow: 0 0 0 8px rgba(255,255,255,0.18), 0 6px 28px rgba(0,0,0,0.45);
-    z-index: 10;
-    cursor: pointer;
-    transition: transform .3s;
-  }
-  #wheelCenterAvatar:active { transform: translate(-50%,-50%) scale(.92); }
-
-  /* زر إغلاق صغير */
-  #wheelCloseBtn {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%,-50%);
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.2);
-    border: 1.5px solid rgba(255,255,255,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    color: white;
-    font-weight: 900;
-    cursor: pointer;
-    z-index: 11;
-    opacity: 0;
-    transition: opacity .3s;
-    pointer-events: none;
-  }
-  #wheelContainer.open #wheelCloseBtn {
-    opacity: 1;
-    pointer-events: all;
-    top: calc(50% + 42px);
-  }
-
-  /* أيقونات العجلة */
-  .wheel-item {
-    position: absolute;
-    width: 54px;
-    height: 54px;
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform .2s, box-shadow .2s;
-    opacity: 0;
-    transform: scale(0) translateX(0) translateY(0);
-    pointer-events: none;
-    border: 2px solid rgba(255,255,255,0.3);
-    box-shadow: 0 4px 18px rgba(0,0,0,0.35);
-  }
-  .wheel-item.show {
-    opacity: 1;
-    pointer-events: all;
-  }
-  .wheel-item:active { transform: scale(.88) !important; }
-  .wheel-item-emoji { font-size: 22px; line-height: 1; }
-  .wheel-item-label {
-    position: absolute;
-    bottom: -22px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 9px;
-    font-weight: 900;
-    color: white;
-    white-space: nowrap;
-    text-shadow: 0 1px 5px rgba(0,0,0,0.8);
-    pointer-events: none;
-    max-width: 80px;
-    text-align: center;
-    line-height: 1.2;
-  }
-
-  @keyframes wheelItemIn {
-    0% { opacity:0; transform: scale(0); }
-    60% { transform: scale(1.15); }
-    100% { opacity:1; transform: scale(1); }
-  }
-  </style>
-
-  <!-- زر العجلة العائم — نصف دائرة يسار -->
-  <div id="wheelFloatBtn" onclick="toggleWheelMenu()">
-    <div id="wheelFloatBtnInner">
-      <div id="wheelFloatIcon">🌀</div>
-    </div>
-  </div>
-
-  <!-- طبقة الخلفية -->
-  <div id="wheelBgOverlay" onclick="closeWheelMenu()"></div>
-
-  <!-- حاوية العجلة -->
-  <div id="wheelContainer">
-    <!-- صورة المستخدم في المركز -->
-    <div id="wheelCenterAvatar" onclick="closeWheelMenu();setTimeout(()=>openMyFullProfile(),200);">👑</div>
-    <!-- زر إغلاق -->
-    <div id="wheelCloseBtn" onclick="closeWheelMenu()">✕</div>
-    <!-- الأيقونات تُبنى بـ JS -->
-  </div>
-
-  <!-- ══════════════════════════════
-       📄 لوحات الصفحات العائمة
-       ══════════════════════════════ -->
-
-  <!-- لوحة: مولودية أكادير تلمسان -->
-  <div id="wheelPanel_mouloudiya" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,0.7);backdrop-filter:blur(12px);align-items:flex-end;justify-content:center;animation:fadeIn .25s ease;">
-    <div style="background:linear-gradient(160deg,#0d1117,#1a0a0a);border:1px solid rgba(229,45,39,0.3);border-radius:28px 28px 0 0;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:0 0 30px;">
-      <div style="background:linear-gradient(135deg,#e52d27,#f5c518);padding:20px 18px 16px;border-radius:28px 28px 0 0;position:sticky;top:0;z-index:1;">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <div style="font-size:17px;font-weight:900;color:white;">⚽ مولودية أكادير تلمسان</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.8);margin-top:2px;">MCA — الفخر والأصالة</div>
-          </div>
-          <div onclick="closeWheelPanel('mouloudiya')" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:900;color:white;">✕</div>
-        </div>
-      </div>
-      <div id="wheelPanel_mouloudiya_content" style="padding:16px;"></div>
-      <div id="wheelPanel_mouloudiya_adminPost" style="display:none;padding:0 16px;"></div>
-    </div>
-  </div>
-
-  <!-- لوحة: شباب آمال تلمسان -->
-  <div id="wheelPanel_shabab" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,0.7);backdrop-filter:blur(12px);align-items:flex-end;justify-content:center;animation:fadeIn .25s ease;">
-    <div style="background:linear-gradient(160deg,#0d1117,#001a0a);border:1px solid rgba(0,200,83,0.3);border-radius:28px 28px 0 0;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:0 0 30px;">
-      <div style="background:linear-gradient(135deg,#00c853,#004d1a);padding:20px 18px 16px;border-radius:28px 28px 0 0;position:sticky;top:0;z-index:1;">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <div style="font-size:17px;font-weight:900;color:white;">🟢 شباب آمال تلمسان</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.8);margin-top:2px;">فريق المستقبل — تلمسان</div>
-          </div>
-          <div onclick="closeWheelPanel('shabab')" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:900;color:white;">✕</div>
-        </div>
-      </div>
-      <div id="wheelPanel_shabab_content" style="padding:16px;"></div>
-      <div id="wheelPanel_shabab_adminPost" style="display:none;padding:0 16px;"></div>
-    </div>
-  </div>
-
-  <!-- لوحة: معرض الصور -->
-  <div id="wheelPanel_gallery" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,0.7);backdrop-filter:blur(12px);align-items:flex-end;justify-content:center;animation:fadeIn .25s ease;">
-    <div style="background:linear-gradient(160deg,#0d1117,#1a0a1a);border:1px solid rgba(240,147,251,0.3);border-radius:28px 28px 0 0;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:0 0 30px;">
-      <div style="background:linear-gradient(135deg,#f093fb,#f5576c);padding:20px 18px 16px;border-radius:28px 28px 0 0;position:sticky;top:0;z-index:1;">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <div style="font-size:17px;font-weight:900;color:white;">🖼️ معرض الصور</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.8);margin-top:2px;">الصور والذكريات</div>
-          </div>
-          <div onclick="closeWheelPanel('gallery')" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:900;color:white;">✕</div>
-        </div>
-      </div>
-      <div id="wheelPanel_gallery_content" style="padding:16px;"></div>
-      <div id="wheelPanel_gallery_adminPost" style="display:none;padding:0 16px;"></div>
-    </div>
-  </div>
-
   <!-- ── Side Menu Overlay ── -->
   <div id="socialSideMenuOverlay" onclick="closeSocialSideMenu()" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:50;"></div>
-  <!-- ── Side Menu Drawer (الجديد) ── -->
-  <div id="socialSideMenu" style="display:none;position:absolute;top:0;right:0;width:82%;max-width:320px;height:100%;background:white;z-index:51;flex-direction:column;box-shadow:-4px 0 28px rgba(0,0,0,0.2);animation:slideInRight .25s ease;overflow-y:auto;">
-
-    <!-- Header: صورة المستخدم + اسمه -->
-    <div style="background:linear-gradient(135deg,var(--cdz-c1,#00c853),var(--cdz-c2,#e53935));padding:28px 18px 20px;color:white;position:relative;">
-      <!-- زر إغلاق -->
-      <div onclick="closeSocialSideMenu()" style="position:absolute;top:12px;left:12px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:900;">✕</div>
-
-      <!-- صورة المستخدم — تفتح الملف الشخصي -->
-      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
-        <div id="sideMenuAvatar" onclick="closeSocialSideMenu();setTimeout(()=>openMyFullProfile(),200);" style="width:74px;height:74px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:32px;border:3px solid rgba(255,255,255,0.8);overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 0 0 rgba(255,255,255,0);" onmouseover="this.style.transform='scale(1.08)';this.style.boxShadow='0 0 0 4px rgba(255,255,255,0.4)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 0 0 0 rgba(255,255,255,0)'" title="عرض ملفي الشخصي">👑</div>
-        <div style="text-align:center;">
-          <div id="sideMenuName" onclick="closeSocialSideMenu();setTimeout(()=>showMyProfile(),200);" style="font-size:17px;font-weight:900;cursor:pointer;text-shadow:0 1px 4px rgba(0,0,0,0.2);">اسم العضو</div>
-          <div style="font-size:11px;opacity:0.85;margin-top:2px;">Connect DZ ◆ عضو</div>
-        </div>
-        <!-- زر الإدارة / لوحة التحكم -->
-        <div onclick="closeSocialSideMenu();setTimeout(()=>hideSocialHomeForDashboard(),200);" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;">
-          <span>⚙️</span> الإدارة
+  <!-- ── Side Menu Drawer ── -->
+  <div id="socialSideMenu" style="display:none;position:absolute;top:0;left:0;width:78%;max-width:300px;height:100%;background:white;z-index:51;flex-direction:column;box-shadow:4px 0 24px rgba(0,0,0,0.18);animation:slideInLeft .25s ease;overflow-y:auto;">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#00c853,#e53935);padding:24px 18px 18px;color:white;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <div id="sideMenuAvatar" onclick="closeSocialSideMenu();setTimeout(()=>openMyFullProfile(),200);" style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:26px;border:3px solid rgba(255,255,255,0.7);overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 0 0 rgba(255,255,255,0);" onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 0 0 4px rgba(255,255,255,0.4)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 0 0 0 rgba(255,255,255,0)'" title="عرض ملفي الشخصي">👑</div>
+        <div>
+          <div id="sideMenuName" onclick="closeSocialSideMenu();setTimeout(()=>showMyProfile(),200);" style="font-size:16px;font-weight:900;cursor:pointer;text-decoration:underline;text-underline-offset:2px;opacity:.95;">اسم العضو</div>
+          <div style="font-size:11px;opacity:0.8;">Connect DZ</div>
+          <div onclick="closeSocialSideMenu();setTimeout(()=>showMyProfile(),200);" style="font-size:10px;color:rgba(255,255,255,0.8);cursor:pointer;margin-top:2px;display:flex;align-items:center;gap:3px;">👆 اضغط لعرض ملفك الشخصي</div>
         </div>
       </div>
     </div>
-
-    <!-- عناصر القائمة -->
-    <div style="padding:8px 0;flex:1;overflow-y:auto;">
-
-      <!-- من نحن -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>showWhoWeAreModal(),200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#00c853,#00a040);display:flex;align-items:center;justify-content:center;font-size:18px;">🏛️</div>
-        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">من نحن</div><div style="font-size:11px;color:#65676B;">تعرف على Connect DZ</div></div>
-        <span style="color:#BCC0C4;font-size:16px;">›</span>
+    <!-- Menu Items -->
+    <div style="padding:8px 0;">
+      <!-- الإعدادات والخصوصية -->
+      <div onclick="openSideMenuItem('settings')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:18px;">⚙️</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">الإعدادات والخصوصية</div><div style="font-size:11px;color:#65676B;">تحكم في حسابك وبياناتك</div></div>
       </div>
 
-      <!-- المنخرطون -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>showModal('membersCard'),200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#00c853,#e53935);display:flex;align-items:center;justify-content:center;font-size:18px;">👥</div>
-        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">المنخرطون</div><div style="font-size:11px;color:#65676B;">جميع أعضاء المنصة</div></div>
-        <span style="color:#BCC0C4;font-size:16px;">›</span>
+      <!-- المجموعات -->
+      <div onclick="openSideMenuItem('groups')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:18px;">👥</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">المجموعات</div><div style="font-size:11px;color:#65676B;">انضم إلى مجموعات الأعضاء</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      </div>
+      <!-- الصفحات -->
+      <div onclick="openSideMenuItem('social_pages')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f5c518,#f97316);display:flex;align-items:center;justify-content:center;font-size:18px;">📄</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">الصفحات</div><div style="font-size:11px;color:#65676B;">تابع صفحاتك المفضلة</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      </div>
+      <!-- الألعاب -->
+      <div onclick="openSideMenuItem('games')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:18px;">🎮</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">الألعاب</div><div style="font-size:11px;color:#65676B;">العب وتسلى مع الأعضاء</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
+      </div>
+      <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
+      <!-- Smart Kids Lab -->
+      <div onclick="openSideMenuItem('smart_kids')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#00c6ff,#0072ff);display:flex;align-items:center;justify-content:center;font-size:18px;">🧠</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">Smart Kids Lab</div><div style="font-size:11px;color:#65676B;">مختبر الأطفال الأذكياء</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
-      <!-- فيسبوك -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>{ ebPointsFacebook();window.open('https://www.facebook.com/share/19UtXj8kRV/'); },200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#1877F2,#0d5bda);display:flex;align-items:center;justify-content:center;font-size:18px;">📱</div>
-        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">الفيسبوك</div><div style="font-size:11px;color:#65676B;">تابعنا على فيسبوك</div></div>
-        <span style="color:#BCC0C4;font-size:16px;">›</span>
+      <!-- القاعة متعددة الخدمات للشباب بودغن -->
+      <div onclick="openSideMenuItem('youth_hall')" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#11998e,#38ef7d);display:flex;align-items:center;justify-content:center;font-size:18px;">🏛️</div>
+        <div><div style="font-size:14px;font-weight:800;color:#050505;">قاعة الشباب بودغن</div><div style="font-size:11px;color:#65676B;">القاعة متعددة الخدمات</div></div>
+        <div style="font-size:18px;color:#BCC0C4;margin-right:auto;">›</div>
       </div>
 
-      <!-- الملف الإداري -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>showModal('adminModal'),200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#FFF8E1'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;font-size:18px;">🗂️</div>
-        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">الملف الإداري</div><div style="font-size:11px;color:#65676B;">إدارة التطبيق والأعضاء</div></div>
-        <span style="color:#BCC0C4;font-size:16px;">›</span>
+      <!-- البطولة المحترفة Next Leaders DZ -->
+      <div onclick="openSideMenuItem('nld_championship');closeSocialSideMenu();" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;background:linear-gradient(135deg,rgba(255,215,0,0.05),rgba(229,45,39,0.05));border-right:3px solid #FFD700;" onmouseover="this.style.background='linear-gradient(135deg,rgba(255,215,0,0.12),rgba(229,45,39,0.08))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(255,215,0,0.05),rgba(229,45,39,0.05))'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#e52d27);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(255,215,0,0.4);">🏆</div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:900;background:linear-gradient(90deg,#e8870a,#e52d27);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">البطولة المحترفة</div>
+          <div style="font-size:11px;color:#65676B;">Next Leaders DZ — 9 أقسام</div>
+        </div>
+        <div style="font-size:18px;color:#FFD700;margin-right:auto;">›</div>
       </div>
-
-      <!-- سمات وألوان التطبيق -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>openAppThemePicker(),200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0FFF4'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#00c853,#e53935,#ffffff);display:flex;align-items:center;justify-content:center;font-size:18px;">🎨</div>
-        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">سمات وألوان التطبيق</div><div id="sideThemeLabel" style="font-size:11px;color:#65676B;">اختر لون التطبيق</div></div>
-        <span style="color:#BCC0C4;font-size:16px;">›</span>
-      </div>
-
-      <div style="height:1px;background:#E4E6EB;margin:4px 16px;"></div>
-
+      <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
       <!-- اللغة -->
-      <div onclick="toggleSideLanguagePanel()" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:18px;">🌐</div>
+      <div onclick="toggleSideLanguagePanel()" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0099ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:18px;">🌐</div>
         <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">اللغة</div><div id="sideCurrentLangLabel" style="font-size:11px;color:#65676B;">العربية 🇩🇿</div></div>
         <div id="sideLangChevron" style="font-size:18px;color:#BCC0C4;">›</div>
       </div>
       <!-- Language Sub-panel -->
       <div id="sideLangPanel" style="display:none;background:#F7F8FA;padding:6px 14px 10px;margin:0 14px;border-radius:12px;margin-bottom:6px;">
         <div onclick="setSideLang('ar')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='transparent'">
-          <span style="font-size:22px;">🇩🇿</span><span style="font-size:13px;font-weight:800;color:#050505;">العربية</span>
-          <span id="sideLangCheck_ar" style="margin-right:auto;color:#00c853;font-size:16px;font-weight:900;display:none;">✓</span>
+          <span style="font-size:22px;">🇩🇿</span>
+          <span style="font-size:13px;font-weight:800;color:#050505;">العربية</span>
+          <span id="sideLangCheck_ar" style="margin-right:auto;color:#1877F2;font-size:16px;font-weight:900;display:none;">✓</span>
         </div>
         <div onclick="setSideLang('en')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='transparent'">
-          <span style="font-size:22px;">🇬🇧</span><span style="font-size:13px;font-weight:800;color:#050505;">English</span>
-          <span id="sideLangCheck_en" style="margin-right:auto;color:#00c853;font-size:16px;font-weight:900;display:none;">✓</span>
+          <span style="font-size:22px;">🇬🇧</span>
+          <span style="font-size:13px;font-weight:800;color:#050505;">English</span>
+          <span id="sideLangCheck_en" style="margin-right:auto;color:#1877F2;font-size:16px;font-weight:900;display:none;">✓</span>
         </div>
-        <div onclick="setSideLang('fr')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='transparent'">
-          <span style="font-size:22px;">🇫🇷</span><span style="font-size:13px;font-weight:800;color:#050505;">Français</span>
-          <span id="sideLangCheck_fr" style="margin-right:auto;color:#00c853;font-size:16px;font-weight:900;display:none;">✓</span>
+        <div onclick="setSideLang('es')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='transparent'">
+          <span style="font-size:22px;">🇪🇸</span>
+          <span style="font-size:13px;font-weight:800;color:#050505;">Español</span>
+          <span id="sideLangCheck_es" style="margin-right:auto;color:#1877F2;font-size:16px;font-weight:900;display:none;">✓</span>
+        </div>
+        <div onclick="setSideLang('zh')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#E4E6EB'" onmouseout="this.style.background='transparent'">
+          <span style="font-size:22px;">🇨🇳</span>
+          <span style="font-size:13px;font-weight:800;color:#050505;">中文</span>
+          <span id="sideLangCheck_zh" style="margin-right:auto;color:#1877F2;font-size:16px;font-weight:900;display:none;">✓</span>
         </div>
       </div>
-
-      <!-- الإعدادات والخصوصية -->
-      <div onclick="openSideMenuItem('settings')" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:18px;">⚙️</div>
-        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">الإعدادات والخصوصية</div><div style="font-size:11px;color:#65676B;">تحكم في حسابك وبياناتك</div></div>
-        <span style="color:#BCC0C4;font-size:16px;">›</span>
+      <div style="height:1px;background:#E4E6EB;margin:4px 18px;"></div>
+      <!-- العودة إلى التطبيق -->
+      <div onclick="closeSocialSideMenu();" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F8FF'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#0d5bda);display:flex;align-items:center;justify-content:center;font-size:18px;">🏠</div>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#1877F2;">العودة إلى التطبيق</div>
+          <div style="font-size:11px;color:#65676B;">الرجوع للواجهة الرئيسية</div>
+        </div>
       </div>
-
-      <div style="height:1px;background:#E4E6EB;margin:4px 16px;"></div>
-
-      <!-- إضافة حساب — يفتح واجهة تسجيل الدخول -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>{ doLogout(); },200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#00c853,#007a33);display:flex;align-items:center;justify-content:center;font-size:18px;">➕</div>
-        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">إضافة حساب</div><div style="font-size:11px;color:#65676B;">العودة لواجهة تسجيل الدخول</div></div>
-        <span style="color:#BCC0C4;font-size:16px;">›</span>
-      </div>
-
-      <!-- إنشاء حساب — يفتح استمارة التسجيل -->
-      <div onclick="closeSocialSideMenu();setTimeout(()=>openJoinRegistrationForm(),200);" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#F0F2F5'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#e53935,#b71c1c);display:flex;align-items:center;justify-content:center;font-size:18px;">🆕</div>
-        <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">إنشاء حساب</div><div style="font-size:11px;color:#65676B;">تسجيل جديد في المنصة</div></div>
-        <span style="color:#BCC0C4;font-size:16px;">›</span>
-      </div>
-
-      <div style="height:1px;background:#E4E6EB;margin:4px 16px;"></div>
-
-      <!-- تسجيل الخروج -->
-      <div onclick="closeSocialSideMenu();doLogout();" style="display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;transition:.15s;margin-bottom:16px;" onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background='transparent'">
-        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#e53935,#b71c1c);display:flex;align-items:center;justify-content:center;font-size:18px;">🚪</div>
-        <div><div style="font-size:14px;font-weight:800;color:#e53935;">تسجيل الخروج</div></div>
+      <!-- الرجوع إلى لوحة القيادة -->
+      <div onclick="closeSocialSideMenu();setTimeout(()=>{ document.getElementById('socialHomeCard').style.display='none'; },200);" style="display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:.15s;" onmouseover="this.style.background='#FFF8F0'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f5a623,#e8870a);display:flex;align-items:center;justify-content:center;font-size:18px;">📊</div>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#e8870a;">الرجوع إلى لوحة القيادة</div>
+          <div style="font-size:11px;color:#65676B;">العودة للوحة التحكم الرئيسية</div>
+        </div>
       </div>
     </div>
   </div>
@@ -5624,8 +5347,44 @@ function switchLoginTab(tab){
     </div>
     <div style="font-size:11px;color:#65676B;margin-bottom:12px;">عضو القادة المستقبليين • الجزائر 🇩🇿</div>
 
-    <!-- عناصر مخفية للمتوافقية مع الكود القديم -->
-    <div id="mpvPtsBreakdownCard" style="display:none;"><div id="mpvPtsBreakdownLoading"></div><div id="mpvPtsSheet"></div><div id="mpvPtsQuiz"></div><div id="mpvPtsInteract"></div><div id="mpvPtsTotal"></div></div>
+    <!-- ══ بطاقة تفصيل النقاط الإجمالية ══ -->
+    <div id="mpvPtsBreakdownCard" style="background:linear-gradient(135deg,#0d1117,#1a1a2e);border:1px solid rgba(255,215,0,0.2);border-radius:14px;padding:12px 14px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:900;color:#FFD700;display:flex;align-items:center;gap:6px;">
+          <span>🏆</span><span>تفاصيل النقاط الإجمالية</span>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;" id="mpvPtsBreakdownLoading">⏳ جارٍ التحميل...</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+        <!-- نقاط Google Sheets -->
+        <div style="background:rgba(24,119,242,0.12);border:1px solid rgba(24,119,242,0.25);border-radius:10px;padding:8px 4px;text-align:center;">
+          <div style="font-size:18px;margin-bottom:2px;">📊</div>
+          <div id="mpvPtsSheet" style="font-size:14px;font-weight:900;color:#60a5fa;">—</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;margin-top:2px;">جدول</div>
+        </div>
+        <!-- نقاط الكويز -->
+        <div style="background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.25);border-radius:10px;padding:8px 4px;text-align:center;">
+          <div style="font-size:18px;margin-bottom:2px;">🎯</div>
+          <div id="mpvPtsQuiz" style="font-size:14px;font-weight:900;color:#c084fc;">—</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;margin-top:2px;">كويز</div>
+        </div>
+        <!-- نقاط التفاعلات -->
+        <div style="background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.25);border-radius:10px;padding:8px 4px;text-align:center;">
+          <div style="font-size:18px;margin-bottom:2px;">⚡</div>
+          <div id="mpvPtsInteract" style="font-size:14px;font-weight:900;color:#34d399;">—</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;margin-top:2px;">تفاعلات</div>
+        </div>
+      </div>
+      <!-- شريط الإجمالي -->
+      <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;">المجموع الكلي</div>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <span style="font-size:16px;font-weight:900;color:#FFD700;" id="mpvPtsTotal">—</span>
+          <span style="font-size:10px;color:rgba(255,215,0,0.7);font-weight:700;">نقطة ⭐</span>
+        </div>
+      </div>
+    </div>
+    <!-- ══ نهاية بطاقة تفصيل النقاط ══ -->
 
     <div style="display:flex;gap:8px;">
       <button id="mpvFriendBtn" onclick="handleMpvFriendAction()" style="flex:1;padding:9px;background:linear-gradient(135deg,#00c853,#43a047);border:none;border-radius:8px;color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">👥 إضافة صديق</button>
@@ -5815,9 +5574,9 @@ function switchLoginTab(tab){
               <div style="font-size:10px;color:#65676B;">رصيد قابل للسحب</div>
             </div>
             <div style="background:white;border-radius:10px;padding:10px;text-align:center;border:1px solid #E4E6EB;">
-              <div style="font-size:20px;margin-bottom:3px;">🌟</div>
-              <div id="ppInfoQuiz" style="font-size:16px;font-weight:900;color:#f59e0b;">0</div>
-              <div style="font-size:10px;color:#65676B;">محفظة النجوم</div>
+              <div style="font-size:20px;margin-bottom:3px;">🎯</div>
+              <div id="ppInfoQuiz" style="font-size:16px;font-weight:900;color:#a855f7;">0</div>
+              <div style="font-size:10px;color:#65676B;">نقاط الكويز</div>
             </div>
           </div>
         </div>
@@ -6899,7 +6658,17 @@ function switchLoginTab(tab){
 
 <script>
 /* ▼ جدول البيانات الرئيسي - المصدر الوحيد للنقاط والمنخرطين ▼ */
-const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
+const dataUrl       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS8sNG3xyNeBE4d3WVgjvA2tJ51t9eXJcqdcujS_61A79VAQaQS-9zc6i1CgILmZMOgh8BnFA7lkave/pub?output=csv';
+
+/* ── تخطيط أعمدة الشيت الجديد (dataUrl) ──────────────────────────────
+   C = اسم العضو (index 2) · D = السن (index 3)
+   Z  = نقاط المكافأة       (index 25) → تُضاف لنقاط الإجمالي
+   AA = نقاط الجدول/الرصيد  (index 26) → أساس نقاط الإجمالي والرصيد
+   الإجمالي = AA + Z
+   ──────────────────────────────────────────────────────────────────── */
+function _dzColPts(c, idx){ return parseInt((c[idx]||'').replace(/[^\d]/g,''))||0; }
+function _dzTotalPts(c){ return _dzColPts(c,26) + _dzColPts(c,25); } // AA(رصيد/جدول) + Z(مكافأة)
+function _dzBalancePts(c){ return _dzColPts(c,26); } // AA فقط
 
 /* =======================================================================
    إعداد Google Apps Script لمزامنة نقاط الكويز بين جميع المستخدمين
@@ -7718,48 +7487,8 @@ async function _submitJoinRegistration(){
   const city = wilaya;
   const msgEl = document.getElementById('_regMsg');
 
-  /* التحقق من جميع الحقول المطلوبة */
-  const _regBloodVal    = (document.getElementById('_regBlood')?.value||'').trim();
-  const _regGenderVal   = (document.getElementById('_regGender')?.value||'').trim();
-  const _regCategoryVal = (document.getElementById('_regCategory')?.value||'').trim();
-  const _regLevelVal    = (document.getElementById('_regLevel')?.value||'').trim();
-  const _regDarChabVal  = (document.getElementById('_regDarChab')?.value||'').trim();
-  const _regRatingVal   = (document.getElementById('_regRating')?.value||'').trim();
-  const _regSKBeforeVal = (document.getElementById('_regSmartKidsBefore')?.value||'').trim();
-
-  const _missingFields = [];
-  if(!name)              _missingFields.push('الاسم واللقب');
-  if(!email)             _missingFields.push('البريد الإلكتروني');
-  if(!phone)             _missingFields.push('رقم الهاتف');
-  if(!birth)             _missingFields.push('تاريخ الميلاد');
-  if(!address)           _missingFields.push('عنوان الإقامة');
-  if(!nid)               _missingFields.push('رقم بطاقة التعريف');
-  if(!_regBloodVal)      _missingFields.push('زمرة الدم');
-  if(!_regGenderVal)     _missingFields.push('الجنس');
-  if(!_regCategoryVal)   _missingFields.push('تحديد الفئة');
-  if(!_regLevelVal)      _missingFields.push('المستوى الدراسي');
-  if(!wilaya)            _missingFields.push('الولاية');
-  if(!commune)           _missingFields.push('البلدية');
-  if(!_regDarChabVal)    _missingFields.push('هل أنت منخرط بدار الشباب؟');
-  if(!hobbies)           _missingFields.push('هواياتك');
-  if(!leadership)        _missingFields.push('مهاراتك القيادية');
-  if(!_regSKBeforeVal)   _missingFields.push('هل شاركت في الطفل الذكي؟');
-  if(!health)            _missingFields.push('حالتك الصحية');
-  if(!liked)             _missingFields.push('ماذا أعجبك في Smart Kids');
-  if(!suggest)           _missingFields.push('اقتراحاتك');
-  if(!_regRatingVal)     _missingFields.push('رأيك في مستوى Smart Kids');
-
-  if(_missingFields.length > 0){
-    if(msgEl){
-      msgEl.style.display='block';
-      msgEl.style.background='rgba(229,45,39,0.15)';
-      msgEl.style.border='1px solid rgba(229,45,39,0.3)';
-      msgEl.style.color='#f87171';
-      msgEl.innerText='⚠️ يرجى ملء جميع الحقول:\n' + _missingFields.join(' · ');
-    }
-    /* تمرير للأعلى لإظهار الخطأ */
-    const ov = document.getElementById('_joinRegOverlay');
-    if(ov){ const inner = ov.querySelector('div'); if(inner) inner.scrollTop = 0; }
+  if(!name || !email || !phone){
+    if(msgEl){ msgEl.style.display='block'; msgEl.style.background='rgba(229,45,39,0.15)'; msgEl.style.border='1px solid rgba(229,45,39,0.3)'; msgEl.style.color='#f87171'; msgEl.innerText='⚠️ يرجى ملء الاسم والبريد الإلكتروني والهاتف'; }
     return;
   }
 
@@ -7769,7 +7498,7 @@ async function _submitJoinRegistration(){
   try{
     const now = new Date();
     const dateStr = now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
-    const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+    const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
 
     // حفظ طلب الانضمام محلياً
     const requests = JSON.parse(localStorage.getItem(_JOIN_REQUESTS_KEY)||'[]');
@@ -8196,8 +7925,7 @@ function syncProfilePageAvatar(name){
 function updateProfilePageData(name){
   const pts = _basePoints || 0;
   const quizPts = parseInt(localStorage.getItem(_earnedKey ? _earnedKey(name) : 'nld_earned_'+name)||'0');
-  // ✅ الرصيد يُحسب من نقاط الجدول فقط — يُفضَّل _sheetPtsCache إذا توفّر
-  const sheetPts = (window._sheetPtsCache != null && window._sheetPtsCache >= 0) ? window._sheetPtsCache : Math.max(0, pts - quizPts);
+  const sheetPts = pts - quizPts; // نقاط الجدول فقط (بدون الكويز) للرصيد
   const LEVEL_PTS = 3000;
   const lv = Math.floor(pts/LEVEL_PTS)+1;
   const ptsInLv = pts % LEVEL_PTS;
@@ -8218,10 +7946,7 @@ function updateProfilePageData(name){
   setTxt('ppInfoPoints', pts.toLocaleString());
   setTxt('ppInfoLevel', lv);
   setTxt('ppInfoBalance', bal+' دج');
-  // ✅ نجوم المحفظة بدلاً من نقاط الكويز
-  const _walletKey = 'nld_stars_wallet_'+(name||'').replace(/\s+/g,'_');
-  const _wallet = (()=>{ try{ return JSON.parse(localStorage.getItem(_walletKey)||'{}'); }catch(e){ return {}; } })();
-  setTxt('ppInfoQuiz', (_wallet.total||0).toLocaleString());
+  setTxt('ppInfoQuiz', quizPts.toLocaleString());
   setTxt('cpName', name);
 
   // Progress bar
@@ -8324,7 +8049,7 @@ async function _computeAndShowBalance(){
     const allRows = [];
     const seen = new Set();
 
-    [r1,r2].forEach(txt=>{
+    [[r1,true],[r2,false]].forEach(([txt,isDataUrl])=>{
       txt.split('\n').slice(1).forEach(row=>{
         if(!row.trim()) return;
         const c = csvParse(row);
@@ -8333,7 +8058,7 @@ async function _computeAndShowBalance(){
         const key = norm(n);
         if(seen.has(key)) return;
         seen.add(key);
-        const pts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+        const pts = isDataUrl ? _dzTotalPts(c) : (parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0);
         allRows.push({n, pts});
       });
     });
@@ -9064,7 +8789,7 @@ function _notifyAdminQuizWinner(memberName, ptsEarned, level){
   if(!memberName || memberName === 'المدير' || memberName === 'زائر') return;
   const now = new Date();
   const dateStr = now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
-  const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
 
   // بناء محتوى الرسالة للمدير
   const msgTextAdmin = `🏆 نتيجة الكويز!\n👤 العضو: ${memberName}\n📚 المستوى: ${level}\n⭐ النقاط المكسوبة: ${ptsEarned} نقطة\n📅 ${dateStr} — ${timeStr}\n\n✅ تم إضافة النقاط تلقائياً لرصيد العضو`;
@@ -9444,7 +9169,7 @@ function _refreshPointsInBackground(name){
       if(!rows1[i].trim()) continue;
       const c = csvParse2(rows1[i]);
       if(norm(c[2]||'') === norm(name)){
-        const pts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+        const pts = _dzTotalPts(c);
         const normKey = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
         let apiPts = 0;
         for(const [k,v] of Object.entries(allQuizPts||{})){
@@ -9716,7 +9441,7 @@ function adminEditPoints(){
     try{
       const now = new Date();
       const dateStr = now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
-      const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+      const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
       const sorted = ['المدير', name].sort();
       const p2pKey = 'nld_p2p_' + sorted[0].replace(/\s+/g,'_') + '__' + sorted[1].replace(/\s+/g,'_');
       const p2pMsgs = JSON.parse(localStorage.getItem(p2pKey)||'[]');
@@ -9787,7 +9512,7 @@ window.adminExecuteDeduct = function(){
   const logEntry={id:'deduct_'+Date.now(),memberName,amount,location,reason,beforePts:currentPts,afterPts:newPts,ts:Date.now()};
   const log=_getDeductLog(); log.push(logEntry); _saveDeductLog(log);
   try{
-    const now=new Date(); const dateStr=now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'}); const timeStr=now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+    const now=new Date(); const dateStr=now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'}); const timeStr=now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
     const sorted=['المدير',memberName].sort(); const p2pKey='nld_p2p_'+sorted[0].replace(/\s+/g,'_')+'__'+sorted[1].replace(/\s+/g,'_');
     const p2pMsgs=JSON.parse(localStorage.getItem(p2pKey)||'[]');
     p2pMsgs.push({id:'deduct_notif_'+Date.now(),from:'المدير',to:memberName,message:`⚠️ إشعار خصم نقاط\n\n👤 العضو: ${memberName}\n➖ المخصوم: ${amount} نقطة\n📍 المكان: ${location||'—'}\n📝 السبب: ${reason}\n📊 الرصيد الجديد: ${newPts.toLocaleString()} نقطة\n📅 ${dateStr} — ${timeStr}`,timestamp:now.toISOString(),read:false});
@@ -9905,7 +9630,7 @@ function processEntry(val,type){
       const matched=(type==="name"&&rowName===valNorm)||(type==="email"&&rowEmail===valNorm);
       if(matched){
         const name=(c[2]||'').trim();
-        const pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+        const pts=_dzTotalPts(c);
         // ── حفظ العمر من الجدول (البحث في الأعمدة عن قيمة رقمية بين 5-100) ──
         for(let ci=3;ci<c.length-1;ci++){
           const ageCand=parseInt((c[ci]||'').replace(/[^\d]/g,''));
@@ -9969,7 +9694,7 @@ function processEntry(val,type){
           if(!rows1[k].trim()) continue;
           const c=csvParse(rows1[k]);
           if(norm(c[2]||'')===norm(nameCol)){
-            pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+            pts=_dzTotalPts(c);
             for(let ci=3;ci<c.length-1;ci++){
               const ageCand=parseInt((c[ci]||'').replace(/[^\d]/g,''));
               if(ageCand>=5&&ageCand<=100){
@@ -10128,9 +9853,12 @@ function renderApp(name,pts,isReg, externalEarned){
 
     const currentLevel = Math.floor(_displayTotal/LEVEL_PTS)+1;
     const ptsInLevel   = _displayTotal % LEVEL_PTS;
-    // ✅ الرصيد يُحسب فقط من نقاط جدول البيانات (sheetPoints) — المصدر الوحيد
+    // حساب الرصيد من نقاط جدول الترتيب (أو جدول البيانات fallback)
     const _rate = (typeof window._userBalanceRate !== 'undefined') ? window._userBalanceRate : 30;
-    const balance = ((sheetPoints / 50) * _rate).toFixed(2);
+    // الرصيد يُحسب فقط من نقاط جدول الترتيب (rankingPoints)
+    // إذا لم يوجد في جدول الترتيب بعد، يُستخدم نقاط جدول البيانات (sheetPoints)
+    const _rankForBalance = rankingPoints > 0 ? rankingPoints : sheetPoints;
+    const balance = ((_rankForBalance / 50) * _rate).toFixed(2);
 
     // لوحة القيادة: يُظهر الإجمالي (جدول + كويز) — أو 10,000 لشيماء
     const _mpEl = document.getElementById("mainPoints");
@@ -10215,7 +9943,7 @@ function renderApp(name,pts,isReg, externalEarned){
             const c = csvParse(rows[i]);
             const sheetName = (c[2]||'').trim();
             if(normName(sheetName) === normName(name) || _nameMatches(sheetName, name)){
-              dashPts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+              dashPts = _dzTotalPts(c);
               break;
             }
           }
@@ -10272,7 +10000,7 @@ function renderApp(name,pts,isReg, externalEarned){
           const _excl = ['لؤي','لؤي عماري','ممتاز','وفاء وفاء','حمودي عبد المومن','حمودي عبدالمومن','حمودي عبد المؤمن'];
           const allRows2 = r1.split('\n').slice(1).filter(x=>x.trim());
           const validRows = allRows2
-            .map(row=>{ const c=csvParse(row); return {name:(c[2]||'').trim(), pts:parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0}; })
+            .map(row=>{ const c=csvParse(row); return {name:(c[2]||'').trim(), pts:_dzTotalPts(c)}; })
             .filter(x=>x.name && !_excl.some(ex=>x.name===ex||x.name.startsWith(ex+' ')));
           validRows.sort((a,b)=>b.pts-a.pts);
           const myIdx = validRows.findIndex(x=>normName(x.name)===normName(name) || _nameMatches(x.name,name));
@@ -10294,8 +10022,7 @@ function renderApp(name,pts,isReg, externalEarned){
 
         // ── تحديث عناصر لوحة القيادة بشكل صريح ──
         const _rate2 = window._userBalanceRate || 30;
-        // ✅ الرصيد من نقاط جدول البيانات (dashPts) فقط
-        const _bal2 = (dashPts / 50 * _rate2).toFixed(2);
+        const _bal2 = ((rankPts > 0 ? rankPts : dashPts) / 50 * _rate2).toFixed(2);
         ['cardBalance','ppStatBalance','ppInfoBalance'].forEach(id=>{
           const el=document.getElementById(id);
           if(el && parseFloat(_bal2)>0) el.innerText=_bal2+' دج';
@@ -10419,7 +10146,7 @@ async function loadMembers(){
       const _EXCL_NAMES = ['ممتاز','لؤي','لؤي عماري','وفاء وفاء'];
       if(!name||_EXCL_NAMES.includes(name)) return null;
       const age=parseAge(c[3]);
-      const pts=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+      const pts=_dzTotalPts(c);
       return {name,age,pts};
     }).filter(Boolean);
 
@@ -10573,7 +10300,7 @@ async function loadRanking(){
     const fromData=t1.split('\n').slice(1).filter(r=>r.trim()).map(r=>{
       const c=csvParse(r);
       const n=(c[2]||'').trim();
-      const p=parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+      const p=_dzTotalPts(c);
       if(!n||n==='ممتاز'||n==='لؤي'||n==='لؤي عماري'||n==='وفاء وفاء') return null;
       return {n,p};
     }).filter(Boolean);
@@ -11264,7 +10991,7 @@ function renderQuestion(){
       const finalQuizPts=parseInt(localStorage.getItem(_earnedKey(name))||'0');
       const now=new Date();
       const dateStr=now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
-      const timeStr=now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+      const timeStr=now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
 
       // إرسال إشعار للمدير
       const adminMsgs=JSON.parse(localStorage.getItem('nld_member_msgs')||'[]');
@@ -12070,7 +11797,7 @@ function renderInboxList(){
       html += `<div style="padding:8px 14px 4px;font-size:11px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:1px;">💬 محادثاتك مع الأعضاء</div>`;
       html += adminConvs.map(({other, last, unread})=>{
         const lastText = last ? (last.message||(last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت')) : '';
-        const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : '';
+        const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
         const unreadBadge = unread>0 ? `<span style="min-width:20px;height:20px;border-radius:10px;background:linear-gradient(135deg,#e52d27,#b91c1c);color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;">${unread}</span>` : '';
         const memberBadge = `<span title="عضو موثّق" style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:50%;font-size:8px;color:#fff;font-weight:900;margin-left:5px;box-shadow:0 0 4px rgba(34,197,94,0.6);">✓</span>`;
         return `<div onclick="openAdminChat('${other.replace(/'/g,"\'")}',false)" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(0,120,255,0.05)'" onmouseout="this.style.background='transparent'">
@@ -12094,7 +11821,7 @@ function renderInboxList(){
       html += allSpyConvs.map(({a, b, msgs, last})=>{
         const iconA = getLeaderIcon(a), iconB = getLeaderIcon(b);
         const lastText = last ? (last.message||(last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت')) : '';
-        const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : '';
+        const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
         const convKey = _p2pKey(a,b);
         return `<div onclick="adminSpyChat('${a.replace(/'/g,"\'")}','${b.replace(/'/g,"\'")}','${convKey}')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:.15s;" onmouseover="this.style.background='rgba(0,120,255,0.05)'" onmouseout="this.style.background='transparent'">
           <div style="position:relative;width:48px;height:48px;flex-shrink:0;">
@@ -12174,7 +11901,7 @@ function renderInboxList(){
     div.innerHTML = myConvsFiltered.map(({other, last, unread})=>{
       const icon = getLeaderIcon(other);
       const lastText = last ? (last.message||(last.mediaType==='image'?'🖼️ صورة':last.mediaType==='video'?'🎬 فيديو':'🎙️ صوت')) : '';
-      const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : '';
+      const lastTs = last ? new Date(last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
       const unreadBadge = unread>0 ? `<span style="min-width:20px;height:20px;border-radius:10px;background:linear-gradient(135deg,#0099ff,#a855f7);color:white;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;">${unread}</span>` : '';
       const isAdminConv = other==='المدير';
       const convBadge = isAdminConv
@@ -12531,7 +12258,7 @@ function renderChatBubbles(msgs, div, myName, readOnly){
 const _videoBlobCache = {};
 
 function renderBubble(m, isMe){
-  const ts = m.timestamp ? new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : '';
+  const ts = m.timestamp ? new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
   // شارة التوثيق الزرقاء للمدير
   const isAdminMsg = (m.from === 'المدير');
   const verifiedBadge = isAdminMsg ? `<span title="مدير النظام 👑 شارة ذهبية" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;background:linear-gradient(135deg,#FFD700,#FFA500);border-radius:50%;font-size:10px;color:#0d1117;font-weight:900;margin-right:3px;flex-shrink:0;vertical-align:middle;box-shadow:0 0 8px rgba(255,215,0,0.7),0 0 14px rgba(255,165,0,0.4);">👑</span>` : '';
@@ -13600,7 +13327,7 @@ window._doAdminDeductPoints = async function(){
     /* إشعار العضو برسالة */
     const now = new Date();
     const dateStr = now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
-    const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+    const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
     const ts = now.toISOString();
     const notifMsg = {
       id: 'deduct_notif_'+Date.now(), from:'المدير', to:memberName, timestamp:ts, read:false,
@@ -13905,7 +13632,7 @@ function adminRenderSentLog(){
   allSent.sort((a,b)=>b.timestamp.localeCompare(a.timestamp));
   if(allSent.length===0){ div.innerHTML='<p style="color:var(--muted);font-size:12px;text-align:center;padding:8px;">لا توجد رسائل مرسلة</p>'; return; }
   div.innerHTML=allSent.slice(0,20).map(m=>{
-    const dt=new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+    const dt=new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
     const to=m.to||m.pair?.find(n=>n!=='المدير')||'';
     return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 11px;font-size:12px;">
       <div style="color:var(--accent);font-weight:700;margin-bottom:3px;">📤 إلى: ${to}</div>
@@ -13939,7 +13666,7 @@ function adminRenderInbox(){
   const convs = Object.values(convMap).sort((a,b)=>(b.last?.timestamp||'').localeCompare(a.last?.timestamp||''));
   if(convs.length===0){ div.innerHTML='<p style="color:var(--muted);font-size:12px;text-align:center;padding:8px;">لا توجد رسائل واردة بعد</p>'; return; }
   div.innerHTML=convs.slice(0,20).map(c=>{
-    const dt=c.last ? new Date(c.last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : '';
+    const dt=c.last ? new Date(c.last.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
     const lastTxt=c.last ? (c.last.message||(c.last.mediaType==='image'?'🖼️ صورة':c.last.mediaType==='video'?'🎬 فيديو':'🎙️ رسالة صوتية')) : '';
     const unreadBadge = c.unread>0 ? `<span style="min-width:18px;height:18px;border-radius:9px;background:#e53935;color:white;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;margin-right:4px;">${c.unread}</span>` : '';
     const safeName = c.other.replace(/'/g,"\\'");
@@ -14894,7 +14621,7 @@ async function adminRenderActivity(){
             <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
               <div>
                 <div style="font-weight:800;color:var(--text);">${v.name||'—'}</div>
-                <div style="color:var(--muted);font-size:11px;">دخل: ${v.enterAt ? new Date(v.enterAt).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : '—'}</div>
+                <div style="color:var(--muted);font-size:11px;">دخل: ${v.enterAt ? new Date(v.enterAt).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—'}</div>
               </div>
               <div style="background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.2);border-radius:8px;padding:3px 8px;font-size:11px;color:var(--accent);white-space:nowrap;">
                 ${v.duration !== null && v.duration !== '…' ? v.duration + ' دقيقة' : '…'}
@@ -14917,7 +14644,7 @@ async function adminRenderActivity(){
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
         <div>
           <div style="font-weight:800;color:var(--text);">${v.name||'—'}</div>
-          <div style="color:var(--muted);font-size:11px;">دخل: ${v.enterAt ? new Date(v.enterAt).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : '—'}</div>
+          <div style="color:var(--muted);font-size:11px;">دخل: ${v.enterAt ? new Date(v.enterAt).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—'}</div>
         </div>
         <div style="background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.2);border-radius:8px;padding:3px 8px;font-size:11px;color:var(--accent);white-space:nowrap;">
           ${v.duration !== undefined ? v.duration + ' دقيقة' : '…'}
@@ -14987,7 +14714,7 @@ function openNotifications(){
         border:'rgba(245,197,24,0.25)',
         title:'تنبيه من المدير',
         body: obj.msg||'',
-        ts: obj.ts ? new Date(obj.ts).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : ''
+        ts: obj.ts ? new Date(obj.ts).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : ''
       });
     }
   }catch(e){}
@@ -15006,7 +14733,7 @@ function openNotifications(){
             border:'rgba(0,153,255,0.25)',
             title:'رسالة من ' + (m.from||'عضو'),
             body: m.message || (m.mediaType==='image'?'🖼️ صورة':m.mediaType==='video'?'🎬 فيديو':'🎙️ رسالة صوتية'),
-            ts: m.timestamp ? new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}) : ''
+            ts: m.timestamp ? new Date(m.timestamp).toLocaleString('ar-DZ',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : ''
           });
         });
       }
@@ -16235,10 +15962,8 @@ async function renderSocialFeed(){
 
   _startFbFeedPolling();
 
-  /* ⑤ فلترة: إزالة منشورات المجموعات/الصفحات — إظهار جميع منشورات المستخدمين */
+  /* ⑤ فلترة حسب الخصوصية — المنشورات العامة تظهر للجميع دائماً */
   const posts = allPostsRaw.filter(p => {
-    /* إزالة منشورات المجموعات والصفحات من الفيد الرئيسي */
-    if(p.groupId || p.pageId || p.isGroupPost || p.isPagePost) return false;
     /* الإعلانات والمنشورات التلقائية تظهر دائماً */
     if(p.isActivityAd || p.isAutoPost || p.isAd) return true;
     const priv = p.privacy || '🌐 عام';
@@ -17013,7 +16738,7 @@ function openCommentsModal(postId){
           const cPh = typeof getProfilePhoto==='function' ? getProfilePhoto(c.author) : null;
           const isMe = c.author === name;
           const cId = String(c.id || c.ts);
-          const timeStr = c.ts ? new Date(c.ts).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false}) : '';
+          const timeStr = c.ts ? new Date(c.ts).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'}) : '';
           const liked = !!(name && c.likes && c.likes[name]);
           const likeCount = c.likes ? Object.keys(c.likes).length : 0;
           const replies = c.replies || [];
@@ -17121,7 +16846,7 @@ window._submitModalComment = function(postId){
   const list = document.getElementById('_cmntList');
   if(list){
     const ph = typeof getProfilePhoto==='function' ? getProfilePhoto(name) : null;
-    const timeStr = new Date().toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+    const timeStr = new Date().toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
     const div = document.createElement('div');
     div.id = 'cmnt_'+commentId;
     div.style.cssText = 'display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;';
@@ -19480,14 +19205,26 @@ function _refreshMyVerifiedBadge(name){
   }
 }
 
-// override renderMpvPosts — إظهار جميع منشورات الأعضاء للجميع
+// override renderMpvPosts to respect friendship
 const _origRenderMpvPosts = renderMpvPosts;
 function renderMpvPosts(memberName, canSeeAll){
   const feed = document.getElementById('mpvPostsFeed');
   if(!feed) return;
 
-  /* ✅ جميع المنشورات ظاهرة للجميع */
-  const allPosts = getSocialPosts().filter(p=>p.author===memberName && !p.groupId && !p.pageId && !p.isGroupPost && !p.isPagePost);
+  if(canSeeAll === undefined){
+    const myName = getCurrentUser();
+    canSeeAll = myName === memberName || _isFriendOf(myName, memberName);
+  }
+
+  if(!canSeeAll){
+    feed.innerHTML=`<div style="background:white;padding:28px 20px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:10px;">🔒</div>
+      <div style="font-size:14px;font-weight:700;color:#65676B;">المنشورات متاحة للأصدقاء فقط</div>
+    </div>`;
+    return;
+  }
+
+  const allPosts = getSocialPosts().filter(p=>p.author===memberName);
   if(allPosts.length===0){
     feed.innerHTML=`<div style="background:white;padding:28px 20px;text-align:center;"><div style="font-size:40px;margin-bottom:10px;">✍️</div><div style="font-size:13px;color:#65676B;">لا توجد منشورات بعد</div></div>`;
     return;
@@ -19738,264 +19475,6 @@ function closeSocialSideMenu(){
     if(el) el.style.display = 'none';
   });
 }
-
-
-/* ══ دوال القائمة السفلية الزجاجية ══ */
-/* ══════════════════════════════════════════════════════════
-   🌀 نظام العجلة الدوارة العائمة — Connect DZ
-   ══════════════════════════════════════════════════════════ */
-
-/* تعريف عناصر العجلة */
-var _WHEEL_ITEMS = [
-  { id:'law',       emoji:'⚖️',  label:'القانون\nالجزائري',  color:'linear-gradient(135deg,#1a1a2e,#16213e)',  action: function(){ if(typeof openAlgerianLaw==='function') openAlgerianLaw(); } },
-  { id:'algeria',   emoji:'🇩🇿', label:'الجمهورية\nDZ',      color:'linear-gradient(135deg,#00c853,#e53935)',  action: function(){ if(typeof openAlgeriaDZ==='function') openAlgeriaDZ(); } },
-  { id:'city',      emoji:'🏙️',  label:'عالم\nالمدينة',     color:'linear-gradient(135deg,#f093fb,#f5576c)',  action: function(){ if(typeof showCityWorldModal==='function') showCityWorldModal(); } },
-  { id:'sport',     emoji:'🏆',  label:'الرياضة\nالجزائرية', color:'linear-gradient(135deg,#00c853,#007a33)',  action: function(){ if(typeof openSportsSection==='function') openSportsSection(); } },
-  { id:'gallery',   emoji:'🖼️', label:'معرض\nالصور',        color:'linear-gradient(135deg,#a855f7,#6d28d9)',  action: function(){ openWheelPanel('gallery'); } },
-  { id:'youth',     emoji:'🏛️', label:'قاعة\nبودغن',        color:'linear-gradient(135deg,#11998e,#38ef7d)',  action: function(){ if(typeof openSideMenuItem==='function') openSideMenuItem('youth_hall'); } },
-  { id:'smart',     emoji:'🧠',  label:'Smart\nKids Lab',    color:'linear-gradient(135deg,#00c6ff,#0072ff)',  action: function(){ if(typeof openSideMenuItem==='function') openSideMenuItem('smart_kids'); } },
-  { id:'nld',       emoji:'🥇',  label:'Next\nLeaders DZ',   color:'linear-gradient(135deg,#FFD700,#e52d27)',  action: function(){ if(typeof openNldChampionship==='function') openNldChampionship(); } },
-  { id:'mouloudiya',emoji:'🔴',  label:'مولودية\nأكادير',    color:'linear-gradient(135deg,#e52d27,#f5c518)',  action: function(){ openWheelPanel('mouloudiya'); } },
-  { id:'shabab',    emoji:'🟢',  label:'شباب\nآمال',         color:'linear-gradient(135deg,#00c853,#004d1a)',  action: function(){ openWheelPanel('shabab'); } },
-];
-
-var _wheelOpen = false;
-
-/* حساب مواضع الأيقونات على نصف دائرة يمينية */
-function _getWheelPositions(n){
-  var positions = [];
-  var cx = 160, cy = 160; // مركز الدائرة الكاملة
-  var r  = 120;           // نصف القطر
-  // دائرة كاملة 360 درجة — توزيع متساوٍ
-  for(var i=0; i<n; i++){
-    var angle = -90 + (360 / n) * i; // بدءاً من الأعلى
-    var rad = angle * Math.PI / 180;
-    positions.push({
-      x: cx + r * Math.cos(rad),
-      y: cy + r * Math.sin(rad)
-    });
-  }
-  return positions;
-}
-
-function _buildWheel(){
-  var container = document.getElementById('wheelContainer');
-  if(!container) return;
-  // احذف الأيقونات القديمة
-  var old = container.querySelectorAll('.wheel-item');
-  old.forEach(function(el){ el.remove(); });
-
-  var positions = _getWheelPositions(_WHEEL_ITEMS.length);
-  _WHEEL_ITEMS.forEach(function(item, i){
-    var pos = positions[i];
-    var el = document.createElement('div');
-    el.className = 'wheel-item';
-    el.id = 'wi_' + item.id;
-    el.innerHTML = '<span class="wheel-item-emoji">' + item.emoji + '</span><span class="wheel-item-label">' + item.label + '</span>';
-    el.style.background = item.color;
-    el.style.left = (pos.x - 27) + 'px';
-    el.style.top  = (pos.y - 27) + 'px';
-    el.style.zIndex = '5';
-    el.style.transformOrigin = 'center center';
-    el.addEventListener('click', function(e){
-      e.stopPropagation();
-      closeWheelMenu();
-      setTimeout(function(){ item.action(); }, 180);
-    });
-    container.appendChild(el);
-  });
-}
-
-function _updateWheelAvatar(){
-  var av = document.getElementById('wheelCenterAvatar');
-  if(!av) return;
-  var name = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-  if(name){
-    var photo = typeof getProfilePhoto === 'function' ? getProfilePhoto(name) : null;
-    if(photo){
-      av.innerHTML = '<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-    } else {
-      var icon = typeof getLeaderIcon === 'function' ? getLeaderIcon(name) : '👑';
-      av.innerHTML = icon;
-    }
-  }
-}
-
-function toggleWheelMenu(){
-  if(_wheelOpen){ closeWheelMenu(); }
-  else { openWheelMenu(); }
-}
-
-function openWheelMenu(){
-  _wheelOpen = true;
-  _buildWheel();
-  _updateWheelAvatar();
-
-  var bg = document.getElementById('wheelBgOverlay');
-  var wc = document.getElementById('wheelContainer');
-  if(bg) bg.style.display = 'block';
-  if(wc){
-    wc.style.display = 'block';
-    wc.classList.add('open');
-  }
-
-  // تحريك الأيقونات واحدة تلو الأخرى
-  _WHEEL_ITEMS.forEach(function(item, i){
-    var el = document.getElementById('wi_' + item.id);
-    if(!el) return;
-    setTimeout(function(){
-      el.classList.add('show');
-      el.style.animation = 'wheelItemIn .35s cubic-bezier(.34,1.56,.64,1) both';
-    }, 60 + i * 55);
-  });
-
-  // تحديث أيقونة الزر العائم
-  var icon = document.getElementById('wheelFloatIcon');
-  if(icon) icon.innerHTML = '✕';
-}
-
-function closeWheelMenu(){
-  _wheelOpen = false;
-  var items = document.querySelectorAll('.wheel-item');
-  items.forEach(function(el, i){
-    setTimeout(function(){
-      el.classList.remove('show');
-      el.style.animation = '';
-    }, i * 25);
-  });
-  setTimeout(function(){
-    var bg = document.getElementById('wheelBgOverlay');
-    var wc = document.getElementById('wheelContainer');
-    if(bg) bg.style.display = 'none';
-    if(wc){ wc.style.display = 'none'; wc.classList.remove('open'); }
-  }, 250);
-  var icon = document.getElementById('wheelFloatIcon');
-  if(icon) icon.innerHTML = '🌀';
-}
-
-/* ══ لوحات الصفحات (نشر المدير) ══ */
-var _WHEEL_PANELS_DATA = {};
-
-function openWheelPanel(panelId){
-  var overlay = document.getElementById('wheelPanel_' + panelId);
-  if(!overlay){ if(typeof showToast==='function') showToast('الصفحة قيد الإنشاء'); return; }
-  overlay.style.display = 'flex';
-  _loadWheelPanelContent(panelId);
-}
-
-function closeWheelPanel(panelId){
-  var overlay = document.getElementById('wheelPanel_' + panelId);
-  if(overlay) overlay.style.display = 'none';
-}
-
-function _loadWheelPanelContent(panelId){
-  var contentEl = document.getElementById('wheelPanel_' + panelId + '_content');
-  var adminPostEl = document.getElementById('wheelPanel_' + panelId + '_adminPost');
-  if(!contentEl) return;
-
-  // بيانات ثابتة لكل لوحة
-  var defaultContent = {
-    mouloudiya: {
-      title: '⚽ مولودية أكادير تلمسان',
-      info: 'نادي مولودية أكادير (MCA) هو نادٍ رياضي جزائري عريق يمثل مدينة أكادير بفخر واعتزاز، ويسعى دائماً نحو التميز والبطولة في الساحة الرياضية الوطنية والإقليمية.',
-      stats: [
-        { label:'التأسيس', val:'1946' },
-        { label:'الألوان', val:'🔴🟡 أحمر وأصفر' },
-        { label:'الملعب', val:'ملعب بودغن البلدي' },
-        { label:'البطولات', val:'دوري الهواة الجهوي' },
-      ]
-    },
-    shabab: {
-      title: '🟢 شباب آمال تلمسان',
-      info: 'فريق شباب آمال تلمسان يمثل الأمل والطاقة الشبابية في ولاية تلمسان، يسعى للوصول إلى أعلى المستويات الكروية.',
-      stats: [
-        { label:'الولاية', val:'تلمسان' },
-        { label:'الألوان', val:'🟢⚪ أخضر وأبيض' },
-        { label:'الفئة', val:'شباب وأصاغر' },
-        { label:'الهدف', val:'التميز والبطولة' },
-      ]
-    },
-    gallery: {
-      title: '🖼️ معرض الصور',
-      info: 'معرض الصور والذكريات الخاصة بمنصة Connect DZ — شاهد أحدث الصور والفعاليات.',
-      stats: []
-    }
-  };
-
-  var data = defaultContent[panelId] || { title: panelId, info:'...', stats:[] };
-
-  // قراءة المنشورات المحفوظة من localStorage
-  var posts = [];
-  try{
-    var raw = localStorage.getItem('cdz_wheel_posts_' + panelId);
-    if(raw) posts = JSON.parse(raw);
-  } catch(e){}
-
-  // بناء المحتوى
-  var statsHtml = data.stats.map(function(s){
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.05);border-radius:10px;margin-bottom:6px;">'
-      + '<span style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);">'+s.label+'</span>'
-      + '<span style="font-size:13px;font-weight:900;color:white;">'+s.val+'</span>'
-      + '</div>';
-  }).join('');
-
-  var postsHtml = posts.length === 0
-    ? '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.4);font-size:13px;">لا توجد منشورات بعد</div>'
-    : posts.slice().reverse().map(function(p){
-        return '<div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:14px;margin-bottom:10px;">'
-          + (p.img ? '<img src="'+p.img+'" style="width:100%;border-radius:10px;margin-bottom:10px;max-height:200px;object-fit:cover;">' : '')
-          + '<div style="font-size:13px;color:white;line-height:1.6;font-weight:600;">'+p.text+'</div>'
-          + '<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:8px;">👑 المدير · '+new Date(p.ts).toLocaleDateString('ar-DZ')+'</div>'
-          + '</div>';
-      }).join('');
-
-  contentEl.innerHTML = '<div style="color:rgba(255,255,255,0.75);font-size:13px;line-height:1.7;margin-bottom:14px;font-weight:600;">' + data.info + '</div>'
-    + (statsHtml ? '<div style="margin-bottom:14px;">' + statsHtml + '</div>' : '')
-    + '<div style="font-size:12px;font-weight:900;color:rgba(255,255,255,0.5);letter-spacing:.5px;margin-bottom:10px;margin-top:4px;">📌 المنشورات</div>'
-    + postsHtml;
-
-  // لوحة النشر للمدير
-  if(adminPostEl){
-    var isAdmin = typeof window.isCurrentUserAdmin === 'function' ? window.isCurrentUserAdmin() : false;
-    if(isAdmin){
-      adminPostEl.style.display = 'block';
-      adminPostEl.innerHTML = '<div style="background:rgba(255,215,0,0.08);border:1.5px solid rgba(255,215,0,0.25);border-radius:16px;padding:14px;margin-bottom:10px;">'
-        + '<div style="font-size:12px;font-weight:900;color:#FFD700;margin-bottom:10px;">👑 نشر جديد — المدير</div>'
-        + '<textarea id="adminWheelPostText_'+panelId+'" placeholder="اكتب محتوى المنشور..." style="width:100%;min-height:80px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,215,0,0.3);border-radius:10px;color:white;font-family:Tajawal,sans-serif;font-size:13px;padding:10px;outline:none;resize:none;box-sizing:border-box;text-align:right;"></textarea>'
-        + '<div style="display:flex;gap:8px;margin-top:8px;">'
-        + '<button onclick="_submitWheelPost(\''+panelId+'\')" style="flex:1;padding:10px;background:linear-gradient(135deg,#FFD700,#FFA500);border:none;border-radius:10px;font-family:Tajawal,sans-serif;font-size:13px;font-weight:900;color:#0d1117;cursor:pointer;">📤 نشر</button>'
-        + '<button onclick="document.getElementById(\'adminWheelPostText_'+panelId+'\').value=\'\'" style="padding:10px 14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;font-family:Tajawal,sans-serif;font-size:12px;font-weight:700;color:#ccc;cursor:pointer;">مسح</button>'
-        + '</div></div>';
-    }
-  }
-}
-
-function _submitWheelPost(panelId){
-  var ta = document.getElementById('adminWheelPostText_' + panelId);
-  if(!ta || !ta.value.trim()){ if(typeof showToast==='function') showToast('اكتب محتوى المنشور أولاً'); return; }
-  var posts = [];
-  try{ var raw = localStorage.getItem('cdz_wheel_posts_' + panelId); if(raw) posts = JSON.parse(raw); } catch(e){}
-  posts.push({ text: ta.value.trim(), ts: Date.now() });
-  try{ localStorage.setItem('cdz_wheel_posts_' + panelId, JSON.stringify(posts)); } catch(e){}
-  ta.value = '';
-  if(typeof showToast==='function') showToast('✅ تم النشر بنجاح');
-  _loadWheelPanelContent(panelId); // إعادة تحميل
-}
-
-/* توافق مع الكود القديم */
-function toggleBottomGlassMenu(){ toggleWheelMenu(); }
-function closeBottomGlassMenu(){ closeWheelMenu(); }
-function _openAdminMembersList(){
-  try{ if(typeof showModal==='function') showModal('membersCard'); } catch(e){}
-}
-
-(function(){
-  if(document.getElementById('_cdz_extra_anim')) return;
-  var st = document.createElement('style');
-  st.id = '_cdz_extra_anim';
-  st.textContent = '@keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}';
-  document.head.appendChild(st);
-})();
 
 function openSideMenuItem(type){
   closeSocialSideMenu();
@@ -20347,7 +19826,7 @@ function _smFormatTime(date){
   if(mins < 1) return 'الآن';
   if(mins < 60) return mins + 'د';
   const hours = Math.floor(diff/3600000);
-  if(hours < 24) return date.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+  if(hours < 24) return date.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
   const days = Math.floor(diff/86400000);
   if(days === 1) return 'أمس';
   if(days < 7) return ['أحد','إثن','ثلا','أرب','خمي','جمع','سبت'][date.getDay()];
@@ -21589,7 +21068,7 @@ function _showStoryViewer(authorName, stories, startIdx){
     const authorAvatar = authorPhoto
       ? `<img loading="lazy" src="${authorPhoto}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid white;">`
       : `<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid white;">${typeof getLeaderIcon==='function'?getLeaderIcon(authorName):'👑'}</div>`;
-    const ts = new Date(s.ts||Date.now()).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+    const ts = new Date(s.ts||Date.now()).toLocaleString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
 
     /* ── الردود والتفاعلات ── */
     const reactEmojis = ['❤️','😮','😂','😢','👏','🔥'];
@@ -22281,42 +21760,12 @@ function shareStory(authorName, storyId){
 
 // مفتاح تتبع النشاطات المنشورة مسبقاً
 const _autoPostedKey = 'nld_auto_posted_activities';
-const _lastActivityPublishKey = 'nld_last_activity_publish_ts';
-const _ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 function _getAutoPostedIds(){
   return JSON.parse(localStorage.getItem(_autoPostedKey)||'[]');
 }
 function _saveAutoPostedIds(ids){
   localStorage.setItem(_autoPostedKey, JSON.stringify(ids));
-}
-
-// فحص إذا كان تاريخ النشاط في المستقبل (لم يمر بعد)
-function _isActivityFuture(dateStr){
-  if(!dateStr) return false;
-  try{
-    // دعم صيغ التاريخ العربية والأوروبية
-    const months = {'يناير':0,'فبراير':1,'مارس':2,'أبريل':3,'مايو':4,'ماي':4,'يونيو':5,'يوليو':6,'أغسطس':7,'سبتمبر':8,'أكتوبر':9,'نوفمبر':10,'ديسمبر':11,
-                    'janvier':0,'février':1,'mars':2,'avril':3,'mai':4,'juin':5,'juillet':6,'août':7,'septembre':8,'octobre':9,'novembre':10,'décembre':11};
-    let d = null;
-    // صيغة DD/MM/YYYY أو MM/DD/YYYY
-    const slashM = dateStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
-    if(slashM){
-      const day=parseInt(slashM[1]),mon=parseInt(slashM[2])-1,yr=parseInt(slashM[3]);
-      d = new Date(yr < 100 ? 2000+yr : yr, mon, day);
-    }
-    // صيغة عربية: "15 مايو 2026"
-    if(!d){
-      for(const [mname,mnum] of Object.entries(months)){
-        const re = new RegExp('(\\d{1,2})\\s+'+mname+'\\s+(\\d{4})','i');
-        const m = dateStr.match(re);
-        if(m){ d = new Date(parseInt(m[2]), mnum, parseInt(m[1])); break; }
-      }
-    }
-    if(!d) return true; // إذا ما عرفنا التاريخ، نفترض مستقبلي
-    const today = new Date(); today.setHours(0,0,0,0);
-    return d >= today;
-  }catch(e){ return true; }
 }
 
 // إنشاء ID فريد لنشاط من بياناته
@@ -22336,10 +21785,8 @@ function _buildActivityPostText(title, place, date, time, coach){
   return text;
 }
 
-// نشر نشاط كمنشور إعلاني — فقط إذا لم يُنشر ومستقبلي
+// نشر نشاط كمنشور إعلاني إذا لم يُنشر مسبقاً
 function _autoPostActivity(title, place, date, time, coach){
-  // لا تنشر نشاطات ماضية
-  if(!_isActivityFuture(date)) return;
   const actId = _activityId(title, date, place);
   const posted = _getAutoPostedIds();
   if(posted.includes(actId)) return; // تم النشر مسبقاً
@@ -22368,61 +21815,25 @@ function _autoPostActivity(title, place, date, time, coach){
   // تسجيل المعرّف لمنع التكرار
   posted.push(actId);
   _saveAutoPostedIds(posted);
-  return true; // تم نشر نشاط جديد
 }
 
-// جلب النشاطات ونشرها — مع منطق "مرة في الأسبوع أو عند إضافة جديد"
+// جلب النشاطات ونشرها تلقائياً
 async function _initAutoPagePosts(){
   try{
     const res = await fetch(typeof rankingUrl !== 'undefined' ? rankingUrl : '');
     if(!res.ok) return;
     const text = await res.text();
     const rows = text.split('\n').slice(1).filter(r=>r.trim());
-
-    // استخرج كل IDs النشاطات الحالية المستقبلية
-    const currentFutureIds = [];
-    const actData = [];
     rows.forEach(r=>{
       const cols = r.match(/(".*?"|[^,]+)(?=,|$)/g) || r.split(',');
       const clean = c => (cols[c]||'').replace(/^"|"$/g,'').trim();
-      const title=clean(1), place=clean(2), date=clean(3), time=clean(4), coach=clean(5);
-      if(title && _isActivityFuture(date)){
-        currentFutureIds.push(_activityId(title,date,place));
-        actData.push({title,place,date,time,coach});
-      }
+      const title  = clean(1);
+      const place  = clean(2);
+      const date   = clean(3);
+      const time   = clean(4);
+      const coach  = clean(5);
+      if(title) _autoPostActivity(title, place, date, time, coach);
     });
-
-    const posted = _getAutoPostedIds();
-    const lastTs = parseInt(localStorage.getItem(_lastActivityPublishKey)||'0');
-    const now = Date.now();
-    const weekPassed = (now - lastTs) >= _ONE_WEEK_MS;
-    // هل هناك نشاط جديد لم يُنشر بعد؟
-    const hasNew = currentFutureIds.some(id => !posted.includes(id));
-
-    // انشر فقط إذا مر أسبوع أو هناك نشاط جديد
-    if(!weekPassed && !hasNew) return;
-
-    // إذا مر أسبوع: أعد تعيين المنشورة حتى تُعاد (تحديث دوري)
-    if(weekPassed && !hasNew){
-      // أزل IDs النشاطات القديمة من القائمة لإعادة نشرها
-      const refreshedPosted = posted.filter(id => !currentFutureIds.includes(id));
-      _saveAutoPostedIds(refreshedPosted);
-      // احذف منشورات النشاطات القديمة من الفيد لتُجدَّد
-      const allPosts = getSocialPosts();
-      const filtered = allPosts.filter(p => !(p.isActivityAd && currentFutureIds.some(id=>p.id.includes(id))));
-      saveSocialPosts(filtered);
-    }
-
-    let anyNew = false;
-    actData.forEach(a => {
-      const r = _autoPostActivity(a.title, a.place, a.date, a.time, a.coach);
-      if(r) anyNew = true;
-    });
-
-    if(anyNew || weekPassed){
-      localStorage.setItem(_lastActivityPublishKey, String(now));
-    }
-
     // تحديث الفيد إذا كان مفتوحاً
     if(typeof renderSocialFeed === 'function'){
       const feed = document.getElementById('socialFeedContainer');
@@ -22563,7 +21974,7 @@ function submitJoinUs(){
   const userName = getCurrentUser() || 'زائر';
   const now = new Date();
   const dateStr = now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
-  const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
 
   const requests = JSON.parse(localStorage.getItem(_JOIN_REQUESTS_KEY) || '[]');
   const req = { id: 'jr_' + Date.now(), name: userName, date: dateStr, time: timeStr, ts: Date.now() };
@@ -22643,7 +22054,7 @@ function submitMemberQuestion(){
   const userName = getCurrentUser ? getCurrentUser() : (localStorage.getItem('sklab_user_name') || 'عضو');
   const now = new Date();
   const dateStr = now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
-  const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const timeStr = now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
 
   const questions = JSON.parse(localStorage.getItem(_QUESTIONS_KEY) || '[]');
   const q = {
@@ -24857,18 +24268,15 @@ async function fbLoginUser(user){
   /* ══ تنظيف الحسابات المكررة قبل الدخول ══ */
   _removeDuplicateAccounts();
 
-  /* ══ التحقق من الانخراط في Google Sheets — في الخلفية بدون انتظار ══
-     الدخول فوري، والتحقق يحدث لاحقاً لا يوقف العملية */
-  _checkMemberInSheets(fullName).then(function(isInSheets){
-    localStorage.setItem('cdz_sheet_verified_'+fullName.replace(/\s+/g,'_'), isInSheets ? '1' : '0');
-    if(!isInSheets){
-      setTimeout(()=>{
-        if(typeof showToast==='function') showToast('⚠️ اسمك غير موجود في جدول المنخرطين الرسمي\nتواصل مع المدير لتسجيل انخراطك');
-      }, 2000);
-    }
-  }).catch(function(){ 
-    localStorage.setItem('cdz_sheet_verified_'+fullName.replace(/\s+/g,'_'), '0');
-  });
+  /* ══ التحقق من الانخراط في Google Sheets ══
+     نتحقق في الخلفية — لا نوقف الدخول، فقط نحدد صفة "منخرط" */
+  let isInSheets = false;
+  try{
+    isInSheets = await _checkMemberInSheets(fullName);
+  }catch(e){ isInSheets = false; }
+
+  /* حفظ حالة الانخراط في localStorage */
+  localStorage.setItem('cdz_sheet_verified_'+fullName.replace(/\s+/g,'_'), isInSheets ? '1' : '0');
 
   localStorage.setItem('sklab_user_name', fullName);
   // حفظ بيانات المستخدم الكاملة
@@ -24897,6 +24305,13 @@ async function fbLoginUser(user){
   }catch(e2){}
   // تطبيق الصورة في كل مكان
   if(user.photoUrl) applyUserPhotoEverywhere(user.photoUrl, fullName);
+
+  /* تنبيه إذا لم يكن مسجلاً في الجدول */
+  if(!isInSheets){
+    setTimeout(()=>{
+      if(typeof showToast==='function') showToast('⚠️ اسمك غير موجود في جدول المنخرطين الرسمي\nتواصل مع المدير لتسجيل انخراطك');
+    }, 2000);
+  }
 
   /* ✅ استعادة المنشورات من Firebase عند تسجيل الدخول لضمان ظهورها دائماً */
   setTimeout(async ()=>{
@@ -26173,11 +25588,11 @@ window.adminOpenFileImg = function(url, label){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div style="background:linear-gradient(135deg,#1877F2,#0d5bda);border-radius:12px;padding:14px;text-align:center;">
           <div id="dipBalancePerOp" style="font-size:20px;font-weight:900;color:white;">0 دج</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.8);font-weight:700;">رصيدك الكلي</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.8);font-weight:700;">لكل عملية</div>
         </div>
         <div style="background:linear-gradient(135deg,#00c853,#00a040);border-radius:12px;padding:14px;text-align:center;">
           <div id="dipBalancePerFeature" style="font-size:20px;font-weight:900;color:white;">0 دج</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.8);font-weight:700;">سعر 50 نقطة</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.8);font-weight:700;">لكل ميزة</div>
         </div>
       </div>
     </div>
@@ -26910,10 +26325,8 @@ window.closeDataInteractionPanel = function(){
 function _fillDataInteractionPanel(){
   const name = typeof getCurrentUser==='function' ? getCurrentUser() : (localStorage.getItem('sklab_user_name')||'');
   if(!name) return;
-  const normName = name.replace(/\s+/g,'_');
-  const FB_BASE = 'https://connectdz-49fab-default-rtdb.firebaseio.com';
 
-  // تعليقات ولايكات من المنشورات (محلي + Firebase)
+  // تعليقات ولايكات من المنشورات
   try{
     const posts = JSON.parse(localStorage.getItem('nld_social_posts')||'[]');
     const mine = posts.filter(p=>p.author===name);
@@ -26921,88 +26334,49 @@ function _fillDataInteractionPanel(){
     const totalLikes = mine.reduce((s,p)=>s+(p.reactions||[]).length,0);
     const dc = document.getElementById('dipComments'); if(dc) dc.innerText = totalComments;
     const dl = document.getElementById('dipLikes'); if(dl) dl.innerText = totalLikes;
-    // نسبة الوصول والمشاهدة
-    const totalPosts = mine.length || 1;
-    const reach = totalComments + totalLikes;
-    const dr = document.getElementById('dipReach'); if(dr) dr.innerText = reach > 0 ? reach : '0';
-    const dv = document.getElementById('dipViews'); if(dv) dv.innerText = mine.reduce((s,p)=>s+(p.views||0),0)||'—';
   }catch(e){}
 
-  // ── جلب البيانات الحقيقية من Firebase ──
-  (async()=>{
-    try{
-      const res = await fetch(FB_BASE+'/userStats/'+normName+'.json');
-      const d = res.ok ? await res.json() : null;
-      const sheetPts = parseInt((d&&d.sheetPts)||0);
-      const quizPts  = parseInt((d&&d.quizPts)||0);
-      const interPts = parseInt((d&&d.interactionPts)||0);
-      const totalPts = sheetPts + quizPts + interPts || parseInt(document.getElementById('mainPoints')?.innerText||'0');
+  // النقاط والرصيد
+  const ptsEl = document.getElementById('mainPoints');
+  const totalPts = parseInt(ptsEl?.innerText)||0;
+  const rate = window._userBalanceRate || 30;
+  const balance = ((totalPts/50)*rate).toFixed(2);
+  const bop = document.getElementById('dipBalancePerOp'); if(bop) bop.innerText = (rate/50).toFixed(2)+' دج';
+  const bpf = document.getElementById('dipBalancePerFeature'); if(bpf) bpf.innerText = balance+' دج';
 
-      // الرصيد من نقاط الجدول فقط
-      const rate = window._userBalanceRate || 30;
-      const sheetPtsReal = sheetPts > 0 ? sheetPts : (window._sheetPtsCache||0);
-      const balance = ((sheetPtsReal/50)*rate).toFixed(2);
-      const bop = document.getElementById('dipBalancePerOp'); if(bop) bop.innerText = balance+' دج';
-      const bpf = document.getElementById('dipBalancePerFeature'); if(bpf) bpf.innerText = (rate/50).toFixed(2)+' دج / 50 نقطة';
+  // النجوم
+  const starsEl = document.getElementById('dipStarsDisplay');
+  if(starsEl){
+    const normName = name.replace(/\s+/g,'_');
+    const categories = ['stars_interaction','stars_activities','stars_comments','stars_quizzes','stars_content','stars_help','stars_discipline'];
+    const totalStars = categories.reduce((s,k)=>s+parseInt(localStorage.getItem('nld_'+k+'_'+normName)||'0'),0);
+    const starCount = Math.min(7, Math.floor(totalStars/300));
+    starsEl.innerHTML = Array(7).fill(0).map((_,i)=>`<span style="opacity:${i<starCount?1:0.2};">⭐</span>`).join('');
+  }
 
-      // النجوم — من محفظة النجوم الحقيقية
-      const starsEl = document.getElementById('dipStarsDisplay');
-      if(starsEl){
-        const walletKey = 'nld_stars_wallet_'+normName;
-        const wallet = (()=>{ try{ return JSON.parse(localStorage.getItem(walletKey)||'{}'); }catch(e){ return {}; } })();
-        const totalStars = wallet.total || 0;
-        const starCount = Math.min(7, Math.floor(totalStars/300));
-        starsEl.innerHTML = `<span style="font-size:13px;font-weight:900;color:#f59e0b;">${totalStars.toLocaleString()} ⭐</span>`;
-      }
+  // المستوى والتقدم
+  const lvl = Math.floor(totalPts/3000)+1;
+  const dipLvl = document.getElementById('dipLevel'); if(dipLvl) dipLvl.innerText = '🚀 '+lvl;
+  const dipDP = document.getElementById('dipDailyProgress');
+  if(dipDP){
+    const normName = name.replace(/\s+/g,'_');
+    const todayPts = parseInt(localStorage.getItem('nld_today_pts_'+normName)||'0');
+    dipDP.innerText = Math.min(100,todayPts)+'%';
+  }
 
-      // المستوى والتقدم
-      const lvlCalc = Math.floor(totalPts/3000)+1;
-      const ptsInLvl = totalPts % 3000;
-      const dipLvl = document.getElementById('dipLevel'); if(dipLvl) dipLvl.innerText = '🚀 '+lvlCalc;
-      const dipDP = document.getElementById('dipDailyProgress');
-      if(dipDP){
-        const todayPts = parseInt(localStorage.getItem('nld_today_pts_'+normName)||'0');
-        const pct = Math.min(100, Math.round((ptsInLvl/3000)*100));
-        dipDP.innerText = pct+'%';
-      }
+  // التقييم العام
+  const dipAR = document.getElementById('dipAppRating');
+  if(dipAR){
+    const ratings=['ضعيف','مقبول','جيد','جيد جداً','ممتاز'];
+    dipAR.innerText = ratings[Math.min(4,Math.floor(lvl/2))] || 'جيد';
+  }
 
-      // التقييم
-      const dipAR = document.getElementById('dipAppRating');
-      if(dipAR){
-        const ratings=['مبتدئ','مقبول','جيد','جيد جداً','ممتاز','متميز'];
-        dipAR.innerText = ratings[Math.min(5,Math.floor(lvlCalc/2))] || 'جيد';
-      }
-
-      // الترتيب من Firebase
-      const rankEl = document.getElementById('dipRank');
-      if(rankEl){
-        const rankBadge = document.getElementById('memberRankDisplay');
-        rankEl.innerText = rankBadge?.innerText || '—';
-        // جلب الترتيب الحقيقي إذا لم يوجد
-        if(!rankBadge?.innerText || rankBadge.innerText==='—'){
-          try{
-            const r2 = await fetch(FB_BASE+'/leaderboard.json');
-            const lb = r2.ok ? await r2.json() : null;
-            if(lb){
-              const entries = Object.values(lb).sort((a,b)=>(b.pts||0)-(a.pts||0));
-              const idx = entries.findIndex(e=>(e.name||'').trim()===name.trim());
-              if(idx >= 0) rankEl.innerText = '#'+(idx+1);
-            }
-          }catch(e2){}
-        }
-      }
-    }catch(e){
-      // fallback: استخدام البيانات المحلية
-      const ptsEl = document.getElementById('mainPoints');
-      const totalPts = parseInt(ptsEl?.innerText||'0');
-      const sheetPts = window._sheetPtsCache || totalPts;
-      const rate = window._userBalanceRate || 30;
-      const balance = ((sheetPts/50)*rate).toFixed(2);
-      const bop = document.getElementById('dipBalancePerOp'); if(bop) bop.innerText = balance+' دج';
-      const lvl2 = Math.floor(totalPts/3000)+1;
-      const dipLvl2 = document.getElementById('dipLevel'); if(dipLvl2) dipLvl2.innerText = '🚀 '+lvl2;
-    }
-  })();
+  // الترتيب
+  const rankEl = document.getElementById('dipRank');
+  if(rankEl){
+    const rankBadge = document.getElementById('memberRankDisplay');
+    rankEl.innerText = rankBadge?.innerText || '—';
+  }
 }
 
 /* ══ الجمهورية DZ ══ */
@@ -30702,7 +30076,7 @@ async function _renderGrpMessages(groupId, myName){
       return ph?`<img src="${ph}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid ${senderColor}40;">`
                :`<div style="width:30px;height:30px;border-radius:50%;background:${senderColor};display:flex;align-items:center;justify-content:center;font-size:13px;color:white;flex-shrink:0;font-weight:700;">${m.from.charAt(0)||'👤'}</div>`;
     })();
-    const timeStr = new Date(m.ts).toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+    const timeStr = new Date(m.ts).toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
     const readStr = (m.readBy&&m.readBy.length>1)?`✓✓ ${m.readBy.filter(r=>r!==myName).length}`:isMe?'✓':'';
 
     let mediaHtml = '';
@@ -31180,7 +30554,7 @@ async function _publishDailyRanking(){
 
   // بناء نص جدول الترتيب
   const medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
-  const timeStr = new Date().toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const timeStr = new Date().toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
   let rankText = '🏆 تحديث جدول الترتيب\n\n';
   rankText += new Date().toLocaleDateString('ar-DZ',{weekday:'long',day:'numeric',month:'long'}) + ' — ' + timeStr + '\n\n';
 
@@ -31749,7 +31123,7 @@ function _msngFormatTime(date){
   if(mins < 1) return 'الآن';
   if(mins < 60) return mins + 'د';
   const hours = Math.floor(diff/3600000);
-  if(hours < 24) return date.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+  if(hours < 24) return date.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
   const days = Math.floor(diff/86400000);
   if(days === 1) return 'أمس';
   if(days < 7) return ['أحد','إثن','ثلا','أرب','خمي','جمع','سبت'][date.getDay()];
@@ -32500,7 +31874,7 @@ async function _fixOldSystemPointsDisplay(){
   if(mainPts && mainPts.innerText && mainPts.innerText !== '0 نقطة' && mainPts.innerText !== '--') return;
 
   /* جلب من dataUrl */
-  const dataUrl = window.dataUrl || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3H3djgDqL2iegFEqaGjCnQUG616lofnKleTsk4F1E2vGOqhrHTJIQT3ORvTDwnGeDfTT-5OO1ctS1/pub?output=csv';
+  const dataUrl = window.dataUrl || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS8sNG3xyNeBE4d3WVgjvA2tJ51t9eXJcqdcujS_61A79VAQaQS-9zc6i1CgILmZMOgh8BnFA7lkave/pub?output=csv';
   const norm = s => s.replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase();
 
   function csvParse(line){
@@ -32528,7 +31902,7 @@ async function _fixOldSystemPointsDisplay(){
       if(!rows[i].trim()) continue;
       const c = csvParse(rows[i]);
       if(_matchOld(c[2]||'', name)){
-        const pts = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+        const pts = _dzTotalPts(c);
         const earned = parseInt(localStorage.getItem('nld_earned_'+name.replace(/\s+/g,'_'))||'0');
         const total = pts + earned;
 
@@ -32779,6 +32153,7 @@ window._fetchSheetPoints = async function(memberName){
   let sheetPts = 0;
   for(const url of urls){
     if(!url) continue;
+    const isDataUrl = (url === dataUrl);
     try{
       const txt = await fetch(url).then(r=>r.text());
       const rows = txt.split('\n');
@@ -32787,7 +32162,7 @@ window._fetchSheetPoints = async function(memberName){
         const c = _csvPL(rows[i]);
         const sn = _nN(c[2]||c[1]||c[0]||'');
         if(sn && sn===nm){
-          const p = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+          const p = isDataUrl ? _dzTotalPts(c) : (parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0);
           if(p>sheetPts) sheetPts=p;
           break;
         }
@@ -33131,7 +32506,7 @@ window._afpExecuteDeduct = function(){
   try{
     const now=new Date();
     const dateStr=now.toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'});
-    const timeStr=now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+    const timeStr=now.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'});
     const sorted=['المدير',name].sort();
     const p2pKey='nld_p2p_'+sorted[0].replace(/\s+/g,'_')+'__'+sorted[1].replace(/\s+/g,'_');
     const p2pMsgs=JSON.parse(localStorage.getItem(p2pKey)||'[]');
@@ -33575,7 +32950,7 @@ async function loadAllMembersWithPts(){
       if(!row.trim()) return;
       const c = csvParse(row);
       const name = (c[2]||'').trim();
-      const pts  = parseInt((c[c.length-1]||'').replace(/[^\d]/g,''))||0;
+      const pts  = _dzTotalPts(c);
       upsert(name, pts);
     });
   }
@@ -33870,89 +33245,93 @@ async function _runWeeklyEvaluation(allMembers, assignments){
   const now = new Date();
   const dayOfWeek = now.getDay(); // 0=أحد, 6=سبت
   const hour = now.getHours();
-  const isEvalTime = (dayOfWeek === 6 && hour >= 21);
+  const isEvalTime = (dayOfWeek === 6 && hour >= 21); // السبت بعد 21:00
 
   if(!isEvalTime || currentWeek === lastEvalWeek) return assignments;
 
-  // بناء خريطة: divId → قائمة الأعضاء مرتبة تنازلياً
+  // بناء خريطة: divId → قائمة الأعضاء مع نقاطهم
   const divMap = {};
   NLD_DIVISIONS.forEach(d => { divMap[d.id] = []; });
 
   for(const m of allMembers){
     const key = (m.name||'').replace(/\s+/g,'_');
-    const divId = (assignments[key] && assignments[key].divId) || 'beginner';
+    const assignment = assignments[key];
+    const divId = assignment ? assignment.divId : 'beginner';
     if(divMap[divId]) divMap[divId].push(m);
   }
-  // ترتيب كل قسم تنازلياً
-  NLD_DIVISIONS.forEach(d => {
-    divMap[d.id].sort((a,b) => b.total - a.total);
-  });
 
   const newAssignments = { ...assignments };
   const divCount = NLD_DIVISIONS.length;
 
-  /* ══════════════════════════════════════════════════════
-     منطق التبادل: للقسم i والقسم i-1 (الأعلى)
-     الشرط: أعلى 3 في القسم i > أدنى 3 في القسم i-1
-     إذا تحقق → يتبادلون (3 يصعدون، 3 ينزلون)
-     إذا لم يتحقق → لا يتحرك أحد
-     ══════════════════════════════════════════════════════ */
-  for(let i = divCount - 1; i >= 1; i--){
-    const lowerDiv  = NLD_DIVISIONS[i];
-    const upperDiv  = NLD_DIVISIONS[i-1];
-    const isBeginners = lowerDiv.id === 'beginner';
+  // معالجة كل قسم من الأعلى للأسفل
+  for(let i=0; i<divCount; i++){
+    const div = NLD_DIVISIONS[i];
+    const members = divMap[div.id] || [];
+    const isBeginners = div.id === 'beginner';
 
-    const lowerMembers = divMap[lowerDiv.id] || [];
-    const upperMembers = divMap[upperDiv.id] || [];
+    // شرط: القسم يجب أن يكون ممتلئاً (10 أعضاء) لتفعيل الصعود/النزول
+    // (المبتدئون: يكفي أن يكون القسم التالي قابلاً للاستقبال)
+    if(!isBeginners && members.length < NLD_MAX_MEMBERS) continue;
 
-    // القسم الأعلى يجب أن يكون ممتلئاً (10) لتفعيل النزول منه
-    // القسم الأدنى (غير المبتدئين) يجب أن يكون ممتلئاً أيضاً
-    const upperFull = upperMembers.length >= NLD_MAX_MEMBERS;
-    const lowerFull = isBeginners ? lowerMembers.length > 0 : lowerMembers.length >= NLD_MAX_MEMBERS;
+    const sorted = [...members].sort((a,b) => b.total - a.total);
 
-    if(!upperFull || !lowerFull) continue;
+    // --- الصعود (أعلى 3) ---
+    if(i > 0){ // ليس أعلى قسم
+      const upperDiv = NLD_DIVISIONS[i-1];
+      const upperMembers = divMap[upperDiv.id] || [];
+      const upperFull = upperDiv.maxMembers !== Infinity && upperMembers.length >= upperDiv.maxMembers;
 
-    // أعلى 3 في القسم الأدنى
-    const top3Lower  = lowerMembers.slice(0, NLD_PROMO_COUNT);
-    // أدنى 3 في القسم الأعلى
-    const bottom3Upper = upperMembers.slice(-NLD_PROMO_COUNT);
-
-    if(top3Lower.length < NLD_PROMO_COUNT || bottom3Upper.length < NLD_PROMO_COUNT) continue;
-
-    // أقل نقاط بين الصاعدين يجب أن تكون أعلى من أعلى نقاط بين النازلين
-    const minPromoterPts  = Math.min(...top3Lower.map(m => m.total));
-    const maxRelegeePts   = Math.max(...bottom3Upper.map(m => m.total));
-
-    // الشرط: كل صاعد أعلى من كل نازل
-    if(minPromoterPts <= maxRelegeePts) continue; // لا تبادل
-
-    // ✅ الشرط تحقق — تنفيذ التبادل
-    const ts = Date.now();
-    for(const m of top3Lower){
-      const key = (m.name||'').replace(/\s+/g,'_');
-      newAssignments[key] = { divId: upperDiv.id, updatedAt: ts, promotedFrom: lowerDiv.id };
-    }
-    for(const m of bottom3Upper){
-      const key = (m.name||'').replace(/\s+/g,'_');
-      newAssignments[key] = { divId: lowerDiv.id, updatedAt: ts, relegatedFrom: upperDiv.id };
+      if(!upperFull){
+        const availableSlots = upperDiv.maxMembers === Infinity ? NLD_PROMO_COUNT : Math.min(NLD_PROMO_COUNT, upperDiv.maxMembers - upperMembers.length);
+        const promotees = sorted.slice(0, availableSlots);
+        for(const m of promotees){
+          const key = (m.name||'').replace(/\s+/g,'_');
+          newAssignments[key] = { divId: upperDiv.id, updatedAt: Date.now(), promotedFrom: div.id };
+          // تحديث divMap مؤقتاً
+          divMap[upperDiv.id].push(m);
+          divMap[div.id] = divMap[div.id].filter(x => x.name !== m.name);
+        }
+      }
     }
 
-    // تحديث divMap للحسابات اللاحقة
-    divMap[upperDiv.id] = [
-      ...upperMembers.filter(m => !bottom3Upper.includes(m)),
-      ...top3Lower
-    ].sort((a,b) => b.total - a.total);
+    // --- النزول (أقل 3) — إلا المبتدئين ---
+    if(!isBeginners && i < divCount - 1){
+      const lowerDiv = NLD_DIVISIONS[i+1];
+      const isLowerBeginners = lowerDiv.id === 'beginner';
+      const currentMembers = divMap[div.id] || [];
 
-    divMap[lowerDiv.id] = [
-      ...lowerMembers.filter(m => !top3Lower.includes(m)),
-      ...bottom3Upper
-    ].sort((a,b) => b.total - a.total);
+      // النزول فقط إذا القسم لديه 10 أعضاء
+      if(currentMembers.length >= NLD_MAX_MEMBERS){
+        const reSorted = [...currentMembers].sort((a,b) => b.total - a.total);
+        const relegees = reSorted.slice(-NLD_PROMO_COUNT);
+        for(const m of relegees){
+          const key = (m.name||'').replace(/\s+/g,'_');
+          newAssignments[key] = { divId: lowerDiv.id, updatedAt: Date.now(), relegatedFrom: div.id };
+          divMap[lowerDiv.id].push(m);
+          divMap[div.id] = divMap[div.id].filter(x => x.name !== m.name);
+        }
+      }
+    }
 
-    console.log(`✅ [NLD] تبادل: ${top3Lower.map(m=>m.name).join('، ')} صعدوا من ${lowerDiv.name} → ${upperDiv.name}`);
-    console.log(`✅ [NLD] تبادل: ${bottom3Upper.map(m=>m.name).join('، ')} نزلوا من ${upperDiv.name} → ${lowerDiv.name}`);
+    // --- المبتدئون: صعود فقط عندما القسم التالي يفرغ 3 أماكن ---
+    if(isBeginners && i > 0){
+      const upperDiv = NLD_DIVISIONS[i-1]; // الهاوي
+      const upperMembers = divMap[upperDiv.id] || [];
+      const availableSlots = upperDiv.maxMembers - upperMembers.length;
+      if(availableSlots >= NLD_PROMO_COUNT){
+        const beginnersSorted = [...(divMap[div.id]||[])].sort((a,b) => b.total - a.total);
+        const promotees = beginnersSorted.slice(0, NLD_PROMO_COUNT);
+        for(const m of promotees){
+          const key = (m.name||'').replace(/\s+/g,'_');
+          newAssignments[key] = { divId: upperDiv.id, updatedAt: Date.now(), promotedFrom: div.id };
+          divMap[upperDiv.id].push(m);
+          divMap[div.id] = divMap[div.id].filter(x => x.name !== m.name);
+        }
+      }
+    }
   }
 
-  // حفظ التعيينات في Firebase
+  // حفظ التعيينات الجديدة في Firebase
   try{
     await fetch(`${_NLD_FB}/nld_divisions.json`,{
       method:'PATCH', headers:{'Content-Type':'application/json'},
@@ -34008,38 +33387,10 @@ function renderDivision(divIdx, allMembers, assignments){
 
   const rows = members.map((m,i)=>{
     const isMe = (m.name||'').replace(/"/g,'').replace(/\s+/g,' ').trim().toLowerCase()===normCurr;
-    // صعود: أعلى 3 (فقط إذا القسم ممتلئ وأعلى 3 هنا أعلى من أدنى 3 في القسم الأعلى)
-    const isPromo = i < NLD_PROMO_COUNT && divIdx > 0 && isFull && (()=>{
-      if(!assignments || divIdx === 0) return false;
-      const upperDiv = NLD_DIVISIONS[divIdx - 1];
-      const upperMembers = allMembers.filter(m => {
-        const k = (m.name||'').replace(/\s+/g,'_');
-        return assignments[k] && assignments[k].divId === upperDiv.id;
-      }).sort((a,b) => b.total - a.total);
-      if(upperMembers.length < NLD_MAX_MEMBERS) return false;
-      const bottom3Upper = upperMembers.slice(-NLD_PROMO_COUNT);
-      const top3Lower = members.slice(0, NLD_PROMO_COUNT);
-      const minPromo = Math.min(...top3Lower.map(m=>m.total));
-      const maxReleg = Math.max(...bottom3Upper.map(m=>m.total));
-      return minPromo > maxReleg;
-    })();
-    // هبوط: آخر 3 (فقط إذا القسم ممتلئ وشرط التبادل تحقق من القسم الأدنى)
-    const isRelg = !isBeginners && isFull && i >= members.length - NLD_PROMO_COUNT && members.length >= NLD_PROMO_COUNT && divIdx < NLD_DIVISIONS.length - 1 && (()=>{
-      const lowerDiv = NLD_DIVISIONS[divIdx + 1];
-      const lowerMembers = allMembers.filter(m => {
-        const k = (m.name||'').replace(/\s+/g,'_');
-        const divId = (assignments[k] && assignments[k].divId) || 'beginner';
-        return divId === lowerDiv.id;
-      }).sort((a,b) => b.total - a.total);
-      const lowerFull = lowerDiv.id === 'beginner' ? lowerMembers.length > 0 : lowerMembers.length >= NLD_MAX_MEMBERS;
-      if(!lowerFull) return false;
-      const top3Lower = lowerMembers.slice(0, NLD_PROMO_COUNT);
-      const bottom3Upper = members.slice(-NLD_PROMO_COUNT);
-      if(top3Lower.length < NLD_PROMO_COUNT || bottom3Upper.length < NLD_PROMO_COUNT) return false;
-      const minPromo = Math.min(...top3Lower.map(m=>m.total));
-      const maxReleg = Math.max(...bottom3Upper.map(m=>m.total));
-      return minPromo > maxReleg;
-    })();
+    // صعود: أول 3 يصعدون (فقط إذا القسم ممتلئ)
+    const isPromo = i < NLD_PROMO_COUNT && divIdx > 0 && isFull;
+    // هبوط: آخر 3 ينزلون (فقط إذا القسم ممتلئ وليس المبتدئين)
+    const isRelg = !isBeginners && isFull && i >= members.length - NLD_PROMO_COUNT && members.length >= NLD_PROMO_COUNT && divIdx < NLD_DIVISIONS.length - 1;
 
     const rankNum = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     const rowBg = isMe ? 'rgba(0,229,160,0.1)' : isPromo ? 'rgba(0,200,83,0.07)' : isRelg ? 'rgba(229,45,39,0.07)' : 'rgba(255,255,255,0.03)';
@@ -34091,9 +33442,9 @@ function renderDivision(divIdx, allMembers, assignments){
     : `<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);">${totalInDiv}/${NLD_MAX_MEMBERS} عضو</div>`) : '';
 
   const promoNote = isFull && divIdx > 0
-    ? `<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون إن تفوّقوا على أدنى 3 في القسم الأعلى</div>` : '';
+    ? `<div style="background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.28);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#22c55e;">↑ 3 أوائل يصعدون</div>` : '';
   const relegNote = isFull && !isBeginners && divIdx < NLD_DIVISIONS.length-1
-    ? `<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ 3 أخيرين ينزلون إن تفوّق عليهم أعلى 3 من القسم الأدنى</div>` : '';
+    ? `<div style="background:rgba(229,45,39,0.08);border:1px solid rgba(229,45,39,0.22);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:800;color:#ef4444;">↓ 3 أخيرين ينزلون</div>` : '';
   const evalNote = `<div style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:10px;padding:5px 12px;font-size:10px;font-weight:700;color:#FFA500;">📅 التقييم: نهاية الأسبوع 21:00</div>`;
 
   const hexRgb = h=>{ const m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return m?`${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)}`:'150,150,150'; };
@@ -34309,112 +33660,22 @@ function _openShareModal(post){
         <div style="font-size:12px;color:#65676B;font-weight:700;">${post.author}</div>
         <div style="font-size:13px;color:#050505;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(post.text||'').substring(0,90)}${(post.text||'').length>90?'…':''}</div>
       </div>
-      <!-- اقتراحات المشاركة -->
-      <div style="padding:12px 16px;border-bottom:1px solid #F0F2F5;flex-shrink:0;">
-        <div style="font-size:11px;font-weight:800;color:#65676B;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">اختر طريقة المشاركة</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <!-- نشر في الصفحة الرئيسية -->
-          <div onclick="_shareToFeed('${post.id}')" style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:linear-gradient(135deg,rgba(24,119,242,0.06),rgba(0,200,83,0.06));border:1.5px solid rgba(24,119,242,0.2);border-radius:14px;cursor:pointer;transition:.15s;" onmouseover="this.style.borderColor='#1877F2'" onmouseout="this.style.borderColor='rgba(24,119,242,0.2)'">
-            <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#1877F2,#00c853);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🌐</div>
-            <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">نشر في الصفحة الرئيسية</div><div style="font-size:11px;color:#65676B;">يظهر المنشور لجميع الأعضاء</div></div>
-            <div style="font-size:20px;color:#BCC0C4;">›</div>
-          </div>
-          <!-- إرسال عبر المسنجر -->
-          <div onclick="_showShareMembersSection()" style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:linear-gradient(135deg,rgba(0,132,255,0.06),rgba(0,132,255,0.03));border:1.5px solid rgba(0,132,255,0.2);border-radius:14px;cursor:pointer;transition:.15s;" onmouseover="this.style.borderColor='#0084FF'" onmouseout="this.style.borderColor='rgba(0,132,255,0.2)'">
-            <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#0084FF,#0052CC);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">💬</div>
-            <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">إرسال عبر المسنجر</div><div style="font-size:11px;color:#65676B;">أرسله لعضو في المحادثات</div></div>
-            <div style="font-size:20px;color:#BCC0C4;">›</div>
-          </div>
-          <!-- إعادة النشر بإسمي -->
-          <div onclick="_repostAsMe('${post.id}')" style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:linear-gradient(135deg,rgba(168,85,247,0.06),rgba(168,85,247,0.03));border:1.5px solid rgba(168,85,247,0.2);border-radius:14px;cursor:pointer;transition:.15s;" onmouseover="this.style.borderColor='#a855f7'" onmouseout="this.style.borderColor='rgba(168,85,247,0.2)'">
-            <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🔁</div>
-            <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#050505;">إعادة النشر بإسمي</div><div style="font-size:11px;color:#65676B;">يُنشر كمنشور جديد باسمك</div></div>
-            <div style="font-size:20px;color:#BCC0C4;">›</div>
-          </div>
+      <div style="padding:8px 16px;flex-shrink:0;">
+        <div style="background:#F0F2F5;border-radius:20px;display:flex;align-items:center;padding:7px 12px;gap:8px;">
+          <span>🔍</span>
+          <input id="_shareSearchInp" type="text" placeholder="ابحث عن عضو…"
+            style="flex:1;border:none;background:transparent;font-family:'Tajawal',sans-serif;font-size:13px;color:#050505;outline:none;text-align:right;"
+            oninput="_filterShareMembers(this.value)">
         </div>
       </div>
-      <!-- قائمة الأعضاء للمسنجر (مخفية بداية) -->
-      <div id="_shareMessengerSection" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
-        <div style="padding:8px 16px;flex-shrink:0;">
-          <div style="background:#F0F2F5;border-radius:20px;display:flex;align-items:center;padding:7px 12px;gap:8px;">
-            <span>🔍</span>
-            <input id="_shareSearchInp" type="text" placeholder="ابحث عن عضو…"
-              style="flex:1;border:none;background:transparent;font-family:'Tajawal',sans-serif;font-size:13px;color:#050505;outline:none;text-align:right;"
-              oninput="_filterShareMembers(this.value)">
-          </div>
-        </div>
-        <div id="_shareMemList" style="flex:1;overflow-y:auto;padding:0 12px 20px;">
-          <div style="text-align:center;padding:30px;color:#65676B;font-size:13px;">⏳ جارٍ تحميل قائمة الأعضاء…</div>
-        </div>
+      <div id="_shareMemList" style="flex:1;overflow-y:auto;padding:0 12px 20px;">
+        <div style="text-align:center;padding:30px;color:#65676B;font-size:13px;">⏳ جارٍ تحميل قائمة الأعضاء…</div>
       </div>
     </div>`;
   ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
   document.body.appendChild(ov);
-  window._sharePost = post;
   _loadShareMembers(post);
 }
-
-/* إظهار قسم الأعضاء للمسنجر */
-window._showShareMembersSection = function(){
-  const sec = document.getElementById('_shareMessengerSection');
-  if(sec){ sec.style.display='flex'; sec.style.flexDirection='column'; }
-};
-
-/* نشر في الصفحة الرئيسية */
-window._shareToFeed = function(postId){
-  const me = typeof getCurrentUser==='function'?getCurrentUser():null;
-  if(!me){ if(typeof showToast==='function') showToast('🔒 سجّل دخولك أولاً'); return; }
-  const posts = typeof getSocialPosts==='function'?getSocialPosts():[];
-  const orig = posts.find(p=>p.id===postId);
-  if(!orig) return;
-  const sharedPost = {
-    id:'shared_feed_'+Date.now(),
-    author: me,
-    text: `🔁 إعادة نشر من *${orig.author}*:\n\n${orig.text||''}`,
-    image: orig.image||null,
-    feeling:'↗️ مشارِك',
-    date: new Date().toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'}),
-    ts: Date.now(),
-    reactions:{},
-    comments:[],
-    isShared: true,
-    sharedFrom: orig.author
-  };
-  posts.push(sharedPost);
-  if(typeof saveSocialPosts==='function') saveSocialPosts(posts);
-  if(typeof ebPointsShare==='function') ebPointsShare();
-  if(typeof renderSocialFeed==='function') renderSocialFeed();
-  if(typeof showToast==='function') showToast('✅ تم نشره في الصفحة الرئيسية');
-  const m=document.getElementById('_cdzShareModal'); if(m) m.remove();
-};
-
-/* إعادة النشر بإسمي */
-window._repostAsMe = function(postId){
-  const me = typeof getCurrentUser==='function'?getCurrentUser():null;
-  if(!me){ if(typeof showToast==='function') showToast('🔒 سجّل دخولك أولاً'); return; }
-  const posts = typeof getSocialPosts==='function'?getSocialPosts():[];
-  const orig = posts.find(p=>p.id===postId);
-  if(!orig) return;
-  const repost = {
-    id:'repost_'+Date.now(),
-    author: me,
-    text: orig.text||'',
-    image: orig.image||null,
-    feeling: orig.feeling||'🔁 إعادة نشر',
-    date: new Date().toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'}),
-    ts: Date.now(),
-    reactions:{},
-    comments:[],
-    isRepost: true,
-    originalAuthor: orig.author
-  };
-  posts.push(repost);
-  if(typeof saveSocialPosts==='function') saveSocialPosts(posts);
-  if(typeof ebPointsShare==='function') ebPointsShare();
-  if(typeof renderSocialFeed==='function') renderSocialFeed();
-  if(typeof showToast==='function') showToast('✅ تم إعادة النشر بإسمك');
-  const m=document.getElementById('_cdzShareModal'); if(m) m.remove();
-};
 
 async function _loadShareMembers(post){
   const myName=typeof getCurrentUser==='function'?getCurrentUser():null;
@@ -36193,150 +35454,7 @@ console.log('✅ [ConnectDZ v5.0] تبديل سريع بين الحسابات �
   window._refreshMpvBreakdown = _fetchAndShowBreakdown;
   console.log('✅ [ConnectDZ] تفاصيل النقاط في ملف العضو — جاهزة');
 })();
-
-/* ══════════════════════════════════════════════════════════
-   🕐 ساعة حية — نظام توقيت 24 ساعة (مثلاً 09:00 / 21:00)
-   ══════════════════════════════════════════════════════════ */
-(function _initLiveClock(){
-  'use strict';
-  function _updateClock(){
-    var el = document.getElementById('appLiveClock');
-    if(!el) return;
-    var now = new Date();
-    var h = String(now.getHours()).padStart(2,'0');
-    var m = String(now.getMinutes()).padStart(2,'0');
-    el.innerText = h + ':' + m;
-  }
-  _updateClock();
-  setInterval(_updateClock, 1000);
-  console.log('✅ [ConnectDZ] ساعة حية 24-ساعة — مفعّلة');
-})();
 </script>
 
-
-<script>
-/* ══════════════════════════════════════════════════════════
-   🎨 نظام سمات وألوان التطبيق — Connect DZ
-   الألوان الافتراضية: أخضر #00c853 + أحمر #e53935 + أبيض ضبابي
-   ══════════════════════════════════════════════════════════ */
-(function _initAppThemeSystem(){
-  'use strict';
-
-  /* ── تعريف السمات المتاحة ── */
-  var APP_THEMES = [
-    { id:'default',  name:'افتراضي',   c1:'#00c853', c2:'#e53935', c3:'#f8f9fa', icon:'🇩🇿' },
-    { id:'emerald',  name:'زمرد',       c1:'#00b894', c2:'#00c853', c3:'#f0fff4', icon:'💚' },
-    { id:'ocean',    name:'المحيط',    c1:'#0099ff', c2:'#00c853', c3:'#f0f8ff', icon:'🌊' },
-    { id:'sunset',   name:'غروب',      c1:'#f97316', c2:'#e53935', c3:'#fff8f0', icon:'🌅' },
-    { id:'violet',   name:'بنفسجي',    c1:'#a855f7', c2:'#6d28d9', c3:'#faf5ff', icon:'💜' },
-    { id:'gold',     name:'ذهبي',      c1:'#FFD700', c2:'#FFA500', c3:'#fffdf0', icon:'🥇' },
-    { id:'rose',     name:'وردي',      c1:'#ec4899', c2:'#e53935', c3:'#fff0f6', icon:'🌹' },
-    { id:'night',    name:'ليلي',      c1:'#1a1a2e', c2:'#e53935', c3:'#0d1117', icon:'🌙' },
-    { id:'dz_red',   name:'أحمر DZ',   c1:'#e53935', c2:'#b71c1c', c3:'#fff5f5', icon:'🔴' },
-    { id:'dz_green', name:'أخضر DZ',   c1:'#00c853', c2:'#007a33', c3:'#f0fff4', icon:'🟢' },
-  ];
-
-  var _THEME_KEY = 'cdz_app_theme_v2';
-
-  /* ── قراءة السمة المحفوظة ── */
-  function _getSavedTheme(){
-    try {
-      return JSON.parse(localStorage.getItem(_THEME_KEY) || 'null');
-    } catch(e){ return null; }
-  }
-
-  /* ── تطبيق السمة على التطبيق ── */
-  function applyTheme(themeObj){
-    if(!themeObj) return;
-    var c1 = themeObj.c1, c2 = themeObj.c2, c3 = themeObj.c3;
-    // تحويل hex إلى rgb للـ rgba
-    function hexToRgb(hex){ var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return r+','+g+','+b; }
-    var r1 = hexToRgb(c1), r2 = hexToRgb(c2);
-    var styleEl = document.getElementById('_cdzThemeVars');
-    if(!styleEl){ styleEl=document.createElement('style'); styleEl.id='_cdzThemeVars'; document.head.appendChild(styleEl); }
-    styleEl.textContent = [
-      ':root {',
-      '  --cdz-c1: ' + c1 + ';',
-      '  --cdz-c2: ' + c2 + ';',
-      '  --cdz-c3: ' + c3 + ';',
-      '  --cdz-r1: ' + r1 + ';',
-      '  --cdz-r2: ' + r2 + ';',
-      '}',
-      // تطبيق الألوان على عناصر التطبيق
-      '#socialMenuBtn { background: linear-gradient(135deg,' + c1 + ',' + c2 + ') !important; }',
-      '#wheelFloatBtnInner { background: linear-gradient(180deg,' + c1 + ',' + c2 + ') !important; box-shadow: 4px 0 24px rgba(' + r1 + ',0.45), 2px 0 12px rgba(' + r2 + ',0.3) !important; }',
-      '#wheelCenterAvatar { background: linear-gradient(135deg,' + c1 + ',' + c2 + ') !important; }',
-      '.social-side-header, #socialSideMenu > div:first-child { background: linear-gradient(135deg,' + c1 + ',' + c2 + ') !important; }',
-      '#socialBottomNav { background: ' + c3 + ' !important; }',
-      '#sTab_home[style*="border-bottom:3px solid"] { border-bottom-color: ' + c1 + ' !important; }',
-      '.admin-toggle-btn { background: linear-gradient(135deg,' + c1 + ',' + c2 + ') !important; }',
-      '#joinUsBtnMain, #joinUsBtnSocial { background: linear-gradient(135deg,' + c1 + ',' + c2 + ') !important; }',
-    ].join('
-');
-    // تحديث label
-    var labelEl = document.getElementById('sideThemeLabel');
-    if(labelEl) labelEl.innerText = themeObj.icon + ' ' + themeObj.name;
-    localStorage.setItem(_THEME_KEY, JSON.stringify(themeObj));
-    if(typeof showToast==='function') showToast('🎨 تم تطبيق سمة ' + themeObj.name);
-  }
-
-  /* ── فتح واجهة اختيار السمة ── */
-  window.openAppThemePicker = function(){
-    var old = document.getElementById('_appThemePickerOverlay');
-    if(old) old.remove();
-    var saved = _getSavedTheme();
-    var overlay = document.createElement('div');
-    overlay.id = '_appThemePickerOverlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;';
-    overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
-
-    var rows = APP_THEMES.map(function(t){
-      var isActive = saved && saved.id === t.id;
-      return '<div onclick="window._applyThemeById(''+t.id+'');document.getElementById('_appThemePickerOverlay').remove();" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;cursor:pointer;transition:.15s;border:2px solid '+(isActive?t.c1:'transparent')+';background:'+(isActive?'rgba(0,0,0,0.04)':'transparent')+';margin-bottom:4px;" onmouseover="this.style.background='rgba(0,0,0,0.04)'" onmouseout="this.style.background=''+(isActive?'rgba(0,0,0,0.04)':'transparent')+'';">'
-        + '<div style="display:flex;gap:4px;align-items:center;">'
-        + '<div style="width:22px;height:22px;border-radius:50%;background:'+t.c1+';border:2px solid rgba(255,255,255,0.8);box-shadow:0 2px 6px rgba(0,0,0,0.2);"></div>'
-        + '<div style="width:22px;height:22px;border-radius:50%;background:'+t.c2+';border:2px solid rgba(255,255,255,0.8);box-shadow:0 2px 6px rgba(0,0,0,0.2);margin-right:-8px;"></div>'
-        + '</div>'
-        + '<div style="flex:1;"><div style="font-size:13px;font-weight:800;color:#050505;">'+t.icon+' '+t.name+'</div></div>'
-        + (isActive ? '<div style="color:#00c853;font-size:16px;font-weight:900;">✓</div>' : '')
-        + '</div>';
-    }).join('');
-
-    overlay.innerHTML = '<div style="background:white;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:16px 0 28px;max-height:88vh;overflow-y:auto;">'
-      + '<div style="width:36px;height:4px;background:#E4E6EB;border-radius:2px;margin:0 auto 12px;"></div>'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px 12px;">'
-      + '<div style="font-size:16px;font-weight:900;color:#050505;">🎨 سمات وألوان التطبيق</div>'
-      + '<div onclick="document.getElementById('_appThemePickerOverlay').remove()" style="width:28px;height:28px;border-radius:50%;background:#F0F2F5;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:900;color:#65676B;">✕</div>'
-      + '</div>'
-      + '<div style="background:linear-gradient(135deg,#00c853,#e53935);margin:0 16px 14px;border-radius:14px;padding:12px 16px;color:white;font-size:12px;font-weight:700;">'
-      + '🌈 اختر سمة واحدة أو أكثر — الألوان تُطبَّق فوراً على كل التطبيق'
-      + '</div>'
-      + '<div style="padding:0 12px;">' + rows + '</div>'
-      + '<div style="margin:10px 16px 0;display:flex;gap:8px;">'
-      + '<div onclick="window._applyThemeById('default');document.getElementById('_appThemePickerOverlay').remove();" style="flex:1;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#00c853,#e53935);color:white;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:900;cursor:pointer;text-align:center;">↩ إعادة الافتراضي</div>'
-      + '</div>'
-      + '</div>';
-
-    document.body.appendChild(overlay);
-  };
-
-  /* ── تطبيق سمة بالـ id ── */
-  window._applyThemeById = function(id){
-    var t = APP_THEMES.find(function(x){ return x.id===id; });
-    if(t) applyTheme(t);
-  };
-
-  /* ── تطبيق السمة المحفوظة عند التحميل ── */
-  window.addEventListener('load', function(){
-    var saved = _getSavedTheme();
-    if(saved){
-      setTimeout(function(){ applyTheme(saved); }, 600);
-    }
-  });
-
-  window._appThemes = APP_THEMES;
-  console.log('🎨 [ConnectDZ] نظام سمات التطبيق — جاهز');
-})();
-</script>
 </body>
 </html>
